@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from datetime import date
+from decimal import MAX_EMAX, ROUND_HALF_UP, Context, Decimal, localcontext
 from importlib.resources import files
 
 from . import PROJECT_NAME
@@ -46,6 +47,20 @@ class Formatter:
     def integer(self, value: int) -> str:
         return f"{value:,}".replace(",", self.strings["format"]["thousands_separator"])
 
+    def number(self, value: Decimal) -> str:
+        whole, point, fraction = f"{value:,f}".partition(".")
+        settings = self.strings["format"]
+        whole = whole.replace(",", settings["thousands_separator"])
+        return f"{whole}{settings['decimal_separator']}{fraction}" if point else whole
+
+    def money(self, amount: Decimal, currency: str) -> str:
+        with localcontext(Context(prec=max(3, amount.adjusted() + 4), Emax=MAX_EMAX)):
+            rounded = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if rounded == 0:
+            rounded = rounded.copy_abs()
+        template = self.strings["format"]["money"]
+        return template.format(amount=self.number(rounded), currency=currency).strip()
+
     def storage(self, value: int) -> str:
         settings = self.strings["format"]
         units = settings["storage_units"]
@@ -57,12 +72,18 @@ class Formatter:
         whole, fraction = divmod(tenths, 10)
         return f"{self.integer(whole)}{settings['decimal_separator']}{fraction} {units[index]}"
 
-    def date(self, value: str) -> str:
-        day = date.fromisoformat(value[:10])
-        return self.strings["format"]["date"].format(
-            day=day.day, month=self.strings["months"][day.month - 1], year=day.year
+    def _date(self, day: date, layout: str, months: str) -> str:
+        return self.strings["format"][layout].format(
+            day=day.day, month=self.strings[months][day.month - 1], year=day.year
         )
 
+    def date(self, value: str) -> str:
+        return self._date(date.fromisoformat(value[:10]), "date", "months")
+
     def period(self, value: str) -> str:
-        start, end = value.split("/")
-        return self.strings["format"]["period"].format(start=self.date(start), end=self.date(end))
+        start, end = (date.fromisoformat(day) for day in value.split("/"))
+        first_layout = "day_and_month" if start.year == end.year else "date"
+        return self.strings["format"]["period"].format(
+            start=self._date(start, first_layout, "short_months"),
+            end=self._date(end, "date", "short_months"),
+        )

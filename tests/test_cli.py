@@ -21,7 +21,7 @@ from befund import report as report_module
 from befund.catalogue import load_catalogue
 from befund.cli import app
 from befund.errors import InputError
-from befund.i18n import load_locale
+from befund.i18n import SUPPORTED_LANGUAGES, load_locale
 from befund.model import Coverage, Scan, load_scan, load_scan_text
 from befund.parsing import parse_yaml, read_text
 from befund.report import render_report, report_file_name
@@ -45,6 +45,7 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     assert re.findall(r'data-section="([^"]+)"', html) == [
         "header",
         "found",
+        "costs",
         "readiness",
         "moves",
         "attention",
@@ -383,7 +384,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
             strings["provenance"]["measured"],
             strings["source"]["sample.onedrive_usage"],
             "5. November 2026",
-            "9. Mai 2026 bis 4. November 2026",
+            "9. Mai bis 4. Nov. 2026",
             "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen",
         ):
             assert text in onedrive[0]
@@ -443,7 +444,7 @@ def test_nonprofit_partial_coverage_has_all_counts_and_localised_dates() -> None
     assert "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen" in row[1]
     assert "52,5 GB" in row[1]
     assert "5. November 2026" in row[1]
-    assert "9. Mai 2026 bis 4. November 2026" in row[1]
+    assert "9. Mai bis 4. Nov. 2026" in row[1]
 
 
 @pytest.mark.parametrize(
@@ -723,13 +724,31 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
         patch.setattr(module, "datetime", SystemDateTime)
 
 
-@pytest.mark.parametrize("with_inputs", [False, True])
+@pytest.mark.parametrize(
+    ("sample", "lang", "profile", "with_inputs"),
+    [
+        ("town", "en", "opendesk", False),
+        *(
+            (sample, lang, profile, True)
+            for sample in ("town", "nonprofit")
+            for lang in SUPPORTED_LANGUAGES
+            for profile in rules.PROFILES
+        ),
+    ],
+)
 def test_report_bytes_and_name_ignore_the_system_day(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, with_inputs: bool
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    sample: str,
+    lang: str,
+    profile: str,
+    with_inputs: bool,
 ) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
-    answers = files("befund").joinpath("demo", "town", "inputs.yaml")
-    options = ["--inputs", str(answers)] if with_inputs else []
+    sample_dir = files("befund").joinpath("demo", sample)
+    scan = sample_dir.joinpath("scan.json")
+    options = ["--lang", lang, "--profile", profile]
+    if with_inputs:
+        options.extend(["--inputs", str(sample_dir.joinpath("inputs.yaml"))])
     reports = []
     for day in (date(2027, 1, 1), date(2031, 12, 31)):
         out = tmp_path / day.isoformat()

@@ -1,14 +1,19 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
+from collections import Counter
+from hashlib import sha256
+from html import unescape
 from html.parser import HTMLParser
 from importlib.resources import files
 from itertools import combinations, pairwise
 from pathlib import Path
+from shutil import copytree
 
 import pytest
 from typer.testing import CliRunner
 
+from befund import __version__, catalogue, rules
 from befund import report as report_module
 from befund.cli import app
 from befund.i18n import load_locale
@@ -62,10 +67,13 @@ class ReportDocument(HTMLParser):
             self.styles.append(data)
 
 
-def _rebuild(scan: Path, out: Path, lang: str, *, profile: str = "opendesk") -> str:
-    result = runner.invoke(
-        app, ["report", str(scan), "--lang", lang, "--profile", profile, "--out", str(out)]
-    )
+def _rebuild(
+    scan: Path, out: Path, lang: str, *, profile: str = "opendesk", inputs: Path | None = None
+) -> str:
+    command = ["report", str(scan), "--lang", lang, "--profile", profile, "--out", str(out)]
+    if inputs is not None:
+        command.extend(["--inputs", str(inputs)])
+    result = runner.invoke(app, command)
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.strip())
     assert path.is_file() and path.parent == out
@@ -77,13 +85,25 @@ def _sample_scan(sample: str) -> Path:
     return Path(str(files("befund").joinpath("demo", sample, "scan.json")))
 
 
+def _sample_inputs(sample: str) -> Path:
+    return _sample_scan(sample).with_name("inputs.yaml")
+
+
+def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
+    return _rebuild(_sample_scan(sample), out, lang, profile=profile, inputs=_sample_inputs(sample))
+
+
 @pytest.mark.parametrize(("sample", "lang"), [*SAMPLES, ("planted", "en")])
 @pytest.mark.parametrize("profile", PROFILES)
 def test_report_cannot_fetch_resources(
     tmp_path: Path, sample: str, lang: str, profile: str
 ) -> None:
-    scan = PLANTED_SCAN if sample == "planted" else _sample_scan(sample)
-    document = ReportDocument(_rebuild(scan, tmp_path, lang, profile=profile))
+    html = (
+        _rebuild(PLANTED_SCAN, tmp_path, lang, profile=profile)
+        if sample == "planted"
+        else _sample_report(sample, tmp_path, lang, profile)
+    )
+    document = ReportDocument(html)
 
     policies = []
     for tag, attrs in document.tags:
@@ -123,27 +143,42 @@ def test_scan_organisation_markup_is_ignored(tmp_path: Path) -> None:
     assert all(tag != "img" for tag, _ in ReportDocument(html).tags)
 
 
-def test_rendered_text_is_autoescaped(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+@pytest.mark.parametrize("profile", PROFILES)
+def test_rendered_text_is_autoescaped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sample: str, lang: str, profile: str
+) -> None:
     text = '<img src="https://example.invalid/repository">'
     monkeypatch.setattr(report_module, "REPOSITORY_URL", text)
-
-    html = _rebuild(PLANTED_SCAN, tmp_path, "en")
+    markup = '<img src="https://example.invalid/organisation">'
+    original = _sample_inputs(sample).read_text(encoding="utf-8")
+    inputs = tmp_path / "inputs.yaml"
+    edited = re.sub(
+        r"^organisation_name:.*$", f"organisation_name: '{markup}'", original, flags=re.M
+    )
+    inputs.write_text(edited, encoding="utf-8")
+    html = _rebuild(_sample_scan(sample), tmp_path / "out", lang, profile=profile, inputs=inputs)
 
     assert "&lt;img src=" in html and "example.invalid/repository" in html
+    header = html.split("</header>", 1)[0]
+    assert "&lt;img src=" in header and markup in unescape(header)
     assert all(tag != "img" for tag, _ in ReportDocument(html).tags)
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
-def test_report_document_structure(tmp_path: Path, sample: str, lang: str) -> None:
-    document = ReportDocument(_rebuild(_sample_scan(sample), tmp_path, lang))
+@pytest.mark.parametrize("profile", PROFILES)
+def test_report_document_structure(tmp_path: Path, sample: str, lang: str, profile: str) -> None:
+    document = ReportDocument(_sample_report(sample, tmp_path, lang, profile))
 
     assert [attrs.get("lang") for tag, attrs in document.tags if tag == "html"] == [lang]
     headings = [int(tag[1]) for tag, _ in document.tags if re.fullmatch(r"h[1-6]", tag)]
     assert headings and headings[0] == 1 and headings.count(1) == 1
     assert all(next_level <= level + 1 for level, next_level in pairwise(headings))
     sections = [attrs["data-section"] for _, attrs in document.tags if "data-section" in attrs]
-    assert {"header", "found", "appendix", "footer"} <= set(sections)
-    assert sections == [section for section in SECTION_ORDER if section in sections]
+    assert tuple(sections) == SECTION_ORDER
+    assert [
+        attrs["data-subsection"] for _, attrs in document.tags if "data-subsection" in attrs
+    ] == ["not-examined", "cannot-be-moved", "run-details"]
 
     headers = [attrs for tag, attrs in document.tags if tag == "th"]
     scopes = {"col", "colgroup", "row", "rowgroup"}
@@ -171,10 +206,11 @@ def _luminance(color: str) -> float:
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+@pytest.mark.parametrize("profile", PROFILES)
 def test_report_styles_work_in_light_dark_narrow_and_print(
-    tmp_path: Path, sample: str, lang: str
+    tmp_path: Path, sample: str, lang: str, profile: str
 ) -> None:
-    document = ReportDocument(_rebuild(_sample_scan(sample), tmp_path, lang))
+    document = ReportDocument(_sample_report(sample, tmp_path, lang, profile))
     metas = {
         attrs.get("name"): attrs.get("content") for tag, attrs in document.tags if tag == "meta"
     }
@@ -204,3 +240,110 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert re.search(r"@media\s+print\s*\{", css)
     assert re.search(r"break-inside:\s*avoid", css)
     assert re.search(r"print-color-adjust:\s*exact", css)
+    print_css = css.split("@media print", 1)[1]
+    assert re.search(r"::details-content\s*\{[^}]*content-visibility:\s*visible", print_css)
+
+
+def _checksums(html: str) -> dict[str, str]:
+    details = html.split('data-subsection="run-details"', 1)[1]
+    pairs = re.findall(r'<code data-checksum="([^"]+)">([a-f0-9]{64})</code>', details)
+    assert len(pairs) == 5
+    return dict(pairs)
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_run_details_checksums_match_packaged_files(tmp_path: Path, profile: str) -> None:
+    rendered = _checksums(_sample_report("town", tmp_path, "en", profile))
+    directory = rules.rules_dir()
+    rule_paths = (
+        "findings.yaml",
+        "status.yaml",
+        "service_plans.yaml",
+        "risky_file_types.yaml",
+        f"mappings/{profile}.yaml",
+    )
+    expected = {
+        Path(path).name: sha256(directory.joinpath(path).read_bytes()).hexdigest()
+        for path in rule_paths
+    }
+    assert rendered == dict(rules.rule_file_checksums(profile)) == expected
+
+
+def test_checksums_use_the_five_rule_reads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    original = _checksums(_sample_report("town", tmp_path / "original", "en", "opendesk"))
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules.rules_dir())), copied)
+    path = copied / "status.yaml"
+    raw = path.read_bytes().replace(b"\n", b"\r\n") + b"\r\n# Edited for this test.\r\n"
+    path.write_bytes(raw)
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    real_read = rules.read_text
+    reads: Counter[str] = Counter()
+
+    def record_read(path: Path) -> str:
+        reads[path.name] += 1
+        return real_read(path)
+
+    monkeypatch.setattr(rules, "read_text", record_read)
+    monkeypatch.setattr(catalogue, "read_text", record_read)
+
+    after = _checksums(_sample_report("town", tmp_path / "edited", "en", "opendesk"))
+
+    assert after == (original | {"status.yaml": sha256(raw).hexdigest()})
+    assert after["status.yaml"] != original["status.yaml"]
+    assert reads == Counter(dict.fromkeys(original, 1))
+
+
+@pytest.mark.parametrize("with_date", [True, False])
+def test_run_details_use_dates_and_roles_without_filenames(tmp_path: Path, with_date: bool) -> None:
+    scan = tmp_path / "private-scan-name.json"
+    scan.write_bytes(_sample_scan("town").read_bytes())
+    inputs = tmp_path / "private-inputs-name.yaml"
+    text = _sample_inputs("town").read_text(encoding="utf-8")
+    inputs.write_text(
+        text if with_date else text.replace('as_of: "2026-11-10"', "as_of: null"), encoding="utf-8"
+    )
+
+    html = _rebuild(scan, tmp_path / "out", "en", inputs=inputs)
+
+    details = html.split('data-subsection="run-details"', 1)[1]
+    strings = load_locale("en")
+    assert scan.name not in html and inputs.name not in html
+    assert __version__ in details
+    assert strings["appendix"]["scan_role"] in details
+    assert strings["appendix"]["inputs_role"] in details
+    data = json.loads(scan.read_text(encoding="utf-8"))
+    assert f'<time datetime="{data["generated_at"]}">' in details
+    periods = sorted({row["period"] for row in data["findings"] if row["period"]})
+    assert re.findall(r'data-reporting-period="([^"]+)"', details) == periods
+    if with_date:
+        assert '<time datetime="2026-11-10">10 November 2026</time>' in details
+    else:
+        assert strings["common"]["date_not_supplied"] in details
+    appendix = html.split('data-section="appendix"', 1)[1]
+    for formula in strings["costs"]["formulas"]:
+        assert formula in unescape(appendix)
+
+
+def test_workload_evidence_stays_in_the_document_with_localised_reasons(tmp_path: Path) -> None:
+    html = _sample_report("town", tmp_path, "en", "opendesk")
+    document = ReportDocument(html)
+    details = [
+        attrs
+        for tag, attrs in document.tags
+        if tag == "details" and "data-evidence-workload" in attrs
+    ]
+    assert details and all("open" not in attrs for attrs in details)
+    data = json.loads(_sample_scan("town").read_text(encoding="utf-8"))
+    assert {row["workload"] for row in data["findings"]} == {
+        attrs["data-evidence-workload"] for attrs in details
+    }
+    assert {row["id"] for row in data["findings"]} <= {
+        attrs.get("data-finding") for tag, attrs in document.tags if tag == "tr"
+    }
+    readiness = html.split('data-section="readiness"', 1)[1].split('data-section="moves"', 1)[0]
+    visible = unescape(re.sub(r"<[^>]*>", "", readiness))
+    reason_codes = set(re.findall(r'data-reason="([^"]+)"', readiness))
+    assert "needs_recipient_export" in reason_codes
+    assert all(code not in visible for code in reason_codes)
+    assert "Source · —" not in visible

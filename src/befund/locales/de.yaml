@@ -44,6 +44,74 @@ status:
   needs_work: Handlungsbedarf
   blocker: Hindernis
   unknown: Unbekannt
+costs:
+  title: Kostenvergleich über fünf Jahre
+  inputs: Kostenangaben
+  input: Angabe
+  results: Kosten je Szenario
+  category: Kostenposition
+  stay: Verbleib
+  partial_exit: Teilausstieg
+  full_exit: Vollausstieg
+  subtotal: Zwischensumme
+  total: Gesamtkosten für fünf Jahre
+  difference: Unterschied zum Verbleib
+  not_provided: Nicht angegeben
+  not_applicable: Entfällt
+  invented_amounts: Die Beträge in dieser Tabelle beruhen auf frei erfundenen Preisen für das Beispiel.
+  rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
+  provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
+  missing: 'Fehlende Angaben für das Szenario „{scenario}“'
+  origins:
+    invented: Erfunden für das Beispiel
+    sample_input: Beispielangabe
+    provided: Bereitgestellt
+    calculated: Aus den bereitgestellten Angaben berechnet
+    calculated_with_examples: Aus Beispieldaten berechnet
+  input_fields:
+    microsoft_licences_per_year: Bisherige Microsoft-Lizenzen pro Jahr
+    other_it_per_year: Sonstige bisherige IT-Kosten pro Jahr
+    users: Zahl der Nutzenden im Zielsystem
+    retained_microsoft_licences_per_year: Beibehaltene Microsoft-Lizenzen pro Jahr
+    hosting_per_user_per_month: Hosting pro Person und Monat
+    operations_per_year: Betrieb des Zielsystems pro Jahr
+    other_recurring_per_year: Sonstige Kosten des Zielsystems pro Jahr
+    one_time_migration: Einmalige Migration
+    application_adaptation: Anpassung von Anwendungen
+    external_advice: Externe Beratung
+    training_days_per_person: Schulungstage pro Person
+    training_day_rate: Schulungskosten pro Person und Tag
+    training_staff: Zahl der zu schulenden Personen
+    productivity_loss: Kosten durch Produktivitätsverluste
+    parallel_running_months: Monate mit Parallelbetrieb
+  groups:
+    running: Laufende Kosten
+    direct_project: Direkte Projektkosten
+    productivity_loss: Produktivitätsverluste
+    parallel_running: Parallelbetrieb
+  line_items:
+    microsoft_licences: Bisherige Microsoft-Lizenzen
+    other_it: Sonstige bisherige IT-Kosten
+    retained_licences: Beibehaltene Microsoft-Lizenzen
+    hosting: Hosting
+    operations: Betrieb des Zielsystems
+    other_recurring: Sonstige laufende Kosten des Zielsystems
+    one_time_migration: Einmalige Migration
+    application_adaptation: Anpassung von Anwendungen
+    external_advice: Externe Beratung
+    training: Schulung
+    productivity_loss: Kosten durch Produktivitätsverluste
+    parallel_running: Bisherige Microsoft-Lizenzen im Parallelbetrieb
+  formulas_title: Berechnung der Kosten
+  formulas:
+    - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenblöcke der Umstellung betragen null.
+    - Bei beiden Ausstiegsszenarien ziehen Sie die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
+    - Multiplizieren Sie den monatlichen Hostingpreis pro Person mit der Zahl der Nutzenden und mit 60. Das Hosting beginnt im ersten Monat. Die Jahreskosten für Betrieb, sonstige Kosten des Zielsystems und sonstige bisherige IT-Kosten werden jeweils mit fünf multipliziert.
+    - Die direkten Projektkosten umfassen einmalige Migration, Anpassung von Anwendungen, externe Beratung und Schulung. Die Schulungskosten ergeben sich aus Schulungstagen pro Person mal Tagessatz pro Person mal Zahl der zu schulenden Personen.
+    - Für die Produktivitätsverluste gilt der dafür eingegebene Betrag.
+    - Für den Parallelbetrieb multiplizieren Sie die bisherigen jährlichen Microsoft-Lizenzkosten mit den Monaten des Parallelbetriebs und teilen das Ergebnis durch 12.
+    - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenblöcken der Umstellung. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
+    - Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.
 readiness:
   title: Bereitschaft nach Bereich
   counts: Anzahl der Bereiche je Status
@@ -123,6 +191,10 @@ appendix:
   mapping_date: Geprüft am
   run_details: Angaben zur Berichtserstellung
   checksums: SHA-256-Prüfsummen der verwendeten Regeldateien
+  scan_role: Datum der Erhebungsdatei
+  inputs_role: Datum der Eingabedatei
+  scan_periods: Berichtszeiträume der Erhebung
+  no_scan_periods: Die Erhebung enthält keine Berichtszeiträume.
 footer:
   repository_pending: Adresse des Quellcode-Repositorys ausstehend
 provenance:
@@ -300,10 +372,13 @@ common:
   'yes': 'Ja'
   'no': 'Nein'
 months: [Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November, Dezember]
+short_months: [Jan., Feb., März, Apr., Mai, Juni, Juli, Aug., Sept., Okt., Nov., Dez.]
 format:
   thousands_separator: '.'
   decimal_separator: ','
+  money: '{amount} {currency}'
   date: '{day}. {month} {year}'
+  day_and_month: '{day}. {month}'
   period: '{start} bis {end}'
   storage_units: [B, kB, MB, GB, TB]
 cli:

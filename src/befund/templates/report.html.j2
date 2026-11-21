@@ -4,7 +4,7 @@
 {%- endmacro %}
 {% macro reason_detail(code) -%}
   {% set reason, fix = reason_text(code) %}
-  <span data-reason="{{ code }}">{{ reason }} {{ fix }} <code>{{ code }}</code></span>
+  <span data-reason="{{ code }}">{{ reason }} {{ fix }}</span>
 {%- endmacro %}
 {% macro finding_date(finding) -%}
   {% if finding.collected_at %}{{ format.date(finding.collected_at) }}
@@ -20,23 +20,25 @@
 {%- endmacro %}
 {% macro evidence_summary(finding, compact=false) -%}
   <div data-provenance="{{ finding.provenance }}">
-    {{ value_text(finding) }}
+    {% if finding.value is not none %}{{ value_text(finding) }}{% endif %}
     <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
-    <small class="evidence-meta">
-      {% if not compact %}
-        <span>{{ strings.found.source }} · {{ finding_source(finding) }}</span>
-        <span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>
-        <span>{{ strings.found.period }} · {{ format.period(finding.period) if finding.period else strings.common.unavailable }}</span>
-        <span>{{ strings.found.coverage }} · {{ finding_coverage(finding) }}</span>
-      {% else %}
+    {% set provided = finding.provenance == 'provided' %}
+    {% set partial = finding.coverage and finding.coverage.kind != 'complete' %}
+    {% if not compact and (finding.source or finding.collected_at or finding.period or finding.coverage or provided) %}
+      <small class="evidence-meta">
+        {% if finding.source %}<span>{{ strings.found.source }} · {{ finding_source(finding) }}</span>{% endif %}
+        {% if finding.collected_at or provided %}<span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>{% endif %}
+        {% if finding.period %}<span>{{ strings.found.period }} · {{ format.period(finding.period) }}</span>{% endif %}
+        {% if finding.coverage %}<span>{{ strings.found.coverage }} · {{ finding_coverage(finding) }}</span>{% endif %}
+      </small>
+    {% elif compact and (provided or partial) %}
+      <small class="evidence-meta">
         {% if finding.provenance == 'provided' %}
           <span>{{ finding_source(finding) }} · {{ finding_date(finding) }}</span>
         {% endif %}
-        {% if finding.coverage and finding.coverage.kind != 'complete' %}
-          <span>{{ finding_coverage(finding) }}</span>
-        {% endif %}
-      {% endif %}
-    </small>
+        {% if partial %}<span>{{ finding_coverage(finding) }}</span>{% endif %}
+      </small>
+    {% endif %}
   </div>
 {%- endmacro %}
 {% macro alternative_evidence(finding, compact=false) -%}
@@ -100,6 +102,53 @@
       </li>
     {% endfor %}
   </ul>
+{%- endmacro %}
+{% set costs = strings.costs %}
+{% set prices_invented = inputs and inputs.amounts_are_invented %}
+{% macro cost_columns(label) -%}
+  <thead role="rowgroup">
+    <tr role="row">
+      {{ column(label) }}
+      {% for result in scenarios %}{{ column(costs[result.id]) }}{% endfor %}
+    </tr>
+  </thead>
+{%- endmacro %}
+{% macro cost_caption() -%}
+  {% if prices_invented %}<caption data-invented-amounts>{{ costs.invented_amounts }}</caption>{% endif %}
+{%- endmacro %}
+{% macro cost_input_row(field, amounts, shared=false) -%}
+  {% set quantity = field in ('users', 'training_staff', 'training_days_per_person', 'parallel_running_months') %}
+  <tr data-cost-input="{{ field }}" role="row">
+    <th scope="row" role="rowheader" data-label="{{ costs.input }}">
+      {{ costs.input_fields[field] }}
+      {% if amounts|reject('none')|list %}
+        {% set origin = 'invented' if prices_invented and not quantity else ('sample_input' if sample_inputs and quantity else 'provided') %}
+        <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
+      {% endif %}
+    </th>
+    {% for result in scenarios %}
+      {% set amount = amounts[loop.index0] %}
+      <td role="cell" data-label="{{ costs[result.id] }}">
+        {% if loop.first and not shared %}{{ costs.not_applicable }}
+        {% elif amount is none %}<span data-provenance="unknown">{{ costs.not_provided }}</span>
+        {% elif amount is integer %}{{ format.integer(amount) }}
+        {% elif quantity %}{{ format.number(amount) }}
+        {% else %}{{ format.money(amount, cost_currency) }}{% endif %}
+      </td>
+    {% endfor %}
+  </tr>
+{%- endmacro %}
+{% macro cost_heading(text, known) -%}
+  <th scope="row" role="rowheader" data-label="{{ costs.category }}">
+    {{ text }}
+    {% if known %}
+      {% set origin = 'calculated_with_examples' if prices_invented else 'calculated' %}
+      <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
+    {% endif %}
+  </th>
+{%- endmacro %}
+{% macro cost_amount(amount) -%}
+  {{ strings.status.unknown if amount is none else format.money(amount, cost_currency) }}
 {%- endmacro %}
 <!doctype html>
 <html lang="{{ lang }}">
@@ -216,10 +265,7 @@
       hyphens: auto;
     }
     thead th { background: var(--surface); box-sizing: border-box; }
-    .evidence thead th:nth-child(1) { width: 15%; }
-    .evidence thead th:nth-child(2) { width: 16%; }
-    .evidence thead th:nth-child(n+3):nth-child(-n+5) { width: 12%; }
-    .evidence thead th:nth-child(n+6) { width: 11%; }
+    .evidence thead th:first-child { width: 31%; }
     .collectors thead th:nth-child(1) { width: 24%; }
     .collectors thead th:nth-child(2) { width: 16%; }
     .collectors thead th:nth-child(4) { width: 18%; }
@@ -294,6 +340,21 @@
     .readiness li + li, .moves li + li, .not-examined li + li,
     .mapping-gaps li + li, .path-workloads li + li { margin-block-start: .4rem; }
     .evidence-meta { display: flex; flex-wrap: wrap; column-gap: .65rem; }
+    .workload-evidence, .cost-inputs { border-block-end: 1px solid var(--line); }
+    .workload-evidence summary, .cost-inputs summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 650;
+      padding-block: .55rem;
+    }
+    .cost-inputs { margin-block-end: 1rem; }
+    .cost-table { table-layout: fixed; }
+    .cost-table thead th:first-child { width: 34%; }
+    .cost-table td { font-variant-numeric: tabular-nums; }
+    .cost-table .subtotals, .cost-table .totals { background: var(--surface); }
+    .cost-table .totals td { font-weight: 650; }
+    .run-details dt { font-weight: 650; }
+    .run-details dd { margin: 0 0 .55rem; }
     .rule-details dd, .software-counts dd, .mapping-details dd { margin: 0 0 .8rem; }
     .rule-details dt, .software-counts dt, .mapping-details dt { font-weight: 650; }
     footer {
@@ -304,9 +365,9 @@
     }
     @media screen and (max-width: 40rem) {
       .headlines { grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr)); }
-      table, caption, tbody, tr, th, td { display: block; }
-      table { font-size: 1rem; }
-      thead {
+      table:not(.cost-table), table:not(.cost-table) :is(caption, tbody, tr, th, td) { display: block; }
+      table:not(.cost-table) { font-size: 1rem; }
+      table:not(.cost-table) thead, .cost-table thead th:first-child {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -315,21 +376,27 @@
         clip-path: inset(50%);
         white-space: nowrap;
       }
-      tbody tr {
+      table:not(.cost-table) tbody tr {
         margin-block-end: .6rem;
         border: 1px solid var(--line);
         border-radius: .25rem;
       }
-      tbody :is(th, td) { border: 0; padding: .35rem .65rem; }
-      tbody th { background: var(--surface); }
-      tbody td + td { border-block-start: 1px solid var(--line); }
-      td[data-label]::before {
+      table:not(.cost-table) tbody :is(th, td) { border: 0; padding: .35rem .65rem; }
+      table:not(.cost-table) tbody th { background: var(--surface); }
+      table:not(.cost-table) tbody td + td { border-block-start: 1px solid var(--line); }
+      table:not(.cost-table, .evidence) td[data-label]::before {
         display: block;
         content: attr(data-label);
         color: var(--muted);
         font-size: .85rem;
         font-weight: 650;
       }
+      .cost-table, .cost-table :is(caption, thead, tbody) { display: block; }
+      .cost-table { font-size: .9rem; }
+      .cost-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .cost-table :is(th, td) { padding: .35rem .4rem; }
+      .cost-table tbody th { grid-column: 1 / -1; }
+      .cost-table th[scope="row"] { border-bottom: 0; padding-block-end: 0; }
     }
     @page { margin: 15mm; }
     @media print {
@@ -348,6 +415,12 @@
       th, td { padding: .3rem; }
       tr, .headlines li, .mapping-gaps li, .path-workloads li { break-inside: avoid; }
       tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
+      .workload-evidence summary, .cost-inputs summary { break-after: avoid; }
+      .workload-evidence::details-content, .cost-inputs::details-content {
+        content-visibility: visible;
+        display: block;
+        block-size: auto;
+      }
     }
   </style>
 </head>
@@ -436,54 +509,116 @@
           </div>
         {% endif %}
       {% endif %}
-      <h3 id="evidence-title">{{ strings.found.evidence }}</h3>
-      <div class="table-scroll" role="region" aria-labelledby="evidence-title" tabindex="0">
-        <table class="evidence" role="table">
-          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
-          <thead role="rowgroup">
-            <tr role="row">
-              {{ column(strings.found.finding) }}
-              {{ column(strings.found.value) }}
-              {{ column(strings.found.provenance) }}
-              {{ column(strings.found.collector) }}
-              {{ column(strings.found.source) }}
-              {{ column(strings.found.collected) }}
-              {{ column(strings.found.period) }}
-              {{ column(strings.found.coverage) }}
-            </tr>
-          </thead>
-          {% for workload, rows in groups if rows %}
+      <h3>{{ strings.found.evidence }}</h3>
+      {% for workload, rows in groups if rows %}
+        <details class="workload-evidence" data-evidence-workload="{{ workload.id }}">
+          <summary id="evidence-{{ workload.id }}">{{ label(workload.label) }}</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-{{ workload.id }}" tabindex="0">
+            <table class="evidence" role="table">
+              {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+              <thead role="rowgroup">
+                <tr role="row">
+                  {{ column(strings.found.finding) }}
+                  {{ column(strings.found.value) }}
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                {% for entry, finding in rows %}
+                  <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}" role="row">
+                    <th scope="row" role="rowheader" data-label="{{ strings.found.finding }}">{{ label(entry.label) }}</th>
+                    <td role="cell" data-label="{{ strings.found.value }}">
+                      {{ evidence_pair(finding) }}
+                      {% if finding.collector %}
+                        <small>{{ strings.found.collector }} · {{ code_label('collector', finding.collector) }}</small>
+                      {% endif %}
+                      {% if finding.missing_reason %}<small>{{ reason_detail(finding.missing_reason) }}</small>{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+                {% set note = strings.found.notes.get(workload.id) %}
+                {% if scan.source_kind == 'sample' and note %}
+                  <tr role="row"><td class="table-note" role="cell" colspan="2" data-label="{{ strings.found.note }}">{{ note }}</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      {% endfor %}
+    </section>
+    <section data-section="costs">
+      <h2>{{ costs.title }}</h2>
+      {% if inputs is none %}<p>{{ costs.provide_inputs }}</p>{% endif %}
+      <details class="cost-inputs">
+        <summary id="cost-inputs-title">{{ costs.inputs }}</summary>
+        <div class="table-scroll" role="region" aria-labelledby="cost-inputs-title" tabindex="0">
+          <table class="cost-table" role="table">
+            {{ cost_caption() }}
+            {{ cost_columns(costs.input) }}
             <tbody role="rowgroup">
+              {% for field, amount in current_costs.items() %}
+                {{ cost_input_row(field, [amount] * (scenarios|length), shared=true) }}
+              {% endfor %}
+              {% for field in target_costs[0] %}
+                {{ cost_input_row(field, (none, target_costs[0][field], target_costs[1][field])) }}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <h3 id="cost-results-title">{{ costs.results }}</h3>
+      <div class="table-scroll" role="region" aria-labelledby="cost-results-title" tabindex="0">
+        <table class="cost-table" role="table">
+          {{ cost_caption() }}
+          {{ cost_columns(costs.category) }}
+          {% for block in cost_blocks %}
+            <tbody data-block="{{ block.id }}" role="rowgroup">
               <tr role="row">
-                <th scope="rowgroup" role="rowheader" colspan="8" data-label="{{ label(workload.label) }}">{{ label(workload.label) }}</th>
+                <th scope="rowgroup" role="rowheader" colspan="{{ scenarios|length + 1 }}" data-label="{{ costs.category }}">{{ costs.groups[block.id] }}</th>
               </tr>
-              {% for entry, finding in rows %}
-                <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}" role="row">
-                  <th scope="row" role="rowheader" data-label="{{ strings.found.finding }}">{{ label(entry.label) }}</th>
-                  <td role="cell" data-label="{{ strings.found.value }}">
-                    {{ value_text(finding) }}
-                    {% if finding.missing_reason %}
-                      {% set reason, fix = reason_text(finding.missing_reason) %}
-                      <small data-reason="{{ finding.missing_reason }}">{{ reason }} {{ fix }}</small>
-                    {% endif %}
-                    {{ alternative_evidence(finding) }}
-                  </td>
-                  <td role="cell" data-label="{{ strings.found.provenance }}"><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
-                  <td role="cell" data-label="{{ strings.found.collector }}">{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.source }}">{{ finding_source(finding) }}</td>
-                  <td role="cell" data-label="{{ strings.found.collected }}">{{ finding_date(finding) }}</td>
-                  <td role="cell" data-label="{{ strings.found.period }}">{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ finding_coverage(finding) }}</td>
+              {% for id, lines in block.lines %}
+                <tr role="row" data-cost-line="{{ id }}">
+                  {{ cost_heading(costs.line_items[id], lines|reject('none')|rejectattr('amount', 'none')|list) }}
+                  {% for line in lines %}
+                    {% set result = scenarios[loop.index0] %}
+                    <td role="cell" data-label="{{ costs[result.id] }}"{% if line %} data-amount="{{ plain_amount(line.amount) }}"{% endif %}>
+                      {{ cost_amount(line.amount) if line else costs.not_applicable }}
+                    </td>
+                  {% endfor %}
                 </tr>
               {% endfor %}
-              {% set note = strings.found.notes.get(workload.id) %}
-              {% if scan.source_kind == 'sample' and note %}
-                <tr role="row"><td class="table-note" role="cell" colspan="8" data-label="{{ strings.found.note }}">{{ note }}</td></tr>
-              {% endif %}
+              <tr class="subtotals" role="row">
+                {{ cost_heading(costs.subtotal, block.totals|reject('none')|list) }}
+                {% for amount in block.totals %}
+                  <td role="cell" data-label="{{ costs[scenarios[loop.index0].id] }}" data-amount="{{ plain_amount(amount) }}">{{ cost_amount(amount) }}</td>
+                {% endfor %}
+              </tr>
             </tbody>
           {% endfor %}
+          <tbody role="rowgroup">
+            <tr class="totals" role="row">
+              {{ cost_heading(costs.total, scenarios|rejectattr('total', 'none')|list) }}
+              {% for result in scenarios %}
+                <td data-scenario="{{ result.id }}" data-total="{{ plain_amount(result.total) }}" role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.total) }}</td>
+              {% endfor %}
+            </tr>
+            <tr role="row">
+              {{ cost_heading(costs.difference, scenarios|rejectattr('difference_to_stay', 'none')|list) }}
+              {% for result in scenarios %}
+                <td role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.difference_to_stay) }}</td>
+              {% endfor %}
+            </tr>
+          </tbody>
         </table>
       </div>
+      <p class="muted">{{ costs.rounding }}</p>
+      {% for result in scenarios if result.missing_inputs %}
+        <h3>{{ costs.missing.format(scenario=costs[result.id]) }}</h3>
+        <ul>
+          {% for path in result.missing_inputs %}
+            <li data-missing-cost="{{ path }}">{{ costs.input_fields[path.split('.')[-1]] }}</li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
     </section>
     <section data-section="readiness">
       <h2 id="readiness-title">{{ strings.readiness.title }}</h2>
@@ -554,18 +689,20 @@
           </tbody>
         </table>
       </div>
-      <h3 data-subsection="not-examined">{{ strings.readiness.not_examined }}</h3>
-      <ul class="not-examined">
-        {% for row in statuses if row.reason_code %}
-          <li data-unexamined-workload="{{ row.workload }}"><strong>{{ workload_labels[row.workload] }}</strong> · {{ reason_detail(row.reason_code) }}</li>
-        {% endfor %}
-        {% for finding in unknown_findings %}
-          <li data-unexamined-finding="{{ finding.id }}"><strong>{{ finding_labels[finding.id] }}</strong> · {{ reason_detail(finding.missing_reason) }}</li>
-        {% endfor %}
-        {% for collector in skipped_collectors %}
-          <li data-unexamined-collector="{{ collector.id }}"><strong>{{ code_label('collector', collector.id) }}</strong> · {{ reason_detail(collector.reason) }}</li>
-        {% endfor %}
-      </ul>
+      <div data-subsection="not-examined">
+        <h3>{{ strings.readiness.not_examined }}</h3>
+        <ul class="not-examined">
+          {% for row in statuses if row.reason_code %}
+            <li data-unexamined-workload="{{ row.workload }}"><strong>{{ workload_labels[row.workload] }}</strong> · {{ reason_detail(row.reason_code) }}</li>
+          {% endfor %}
+          {% for finding in unknown_findings %}
+            <li data-unexamined-finding="{{ finding.id }}"><strong>{{ finding_labels[finding.id] }}</strong> · {{ reason_detail(finding.missing_reason) }}</li>
+          {% endfor %}
+          {% for collector in skipped_collectors %}
+            <li data-unexamined-collector="{{ collector.id }}"><strong>{{ code_label('collector', collector.id) }}</strong> · {{ reason_detail(collector.reason) }}</li>
+          {% endfor %}
+        </ul>
+      </div>
     </section>
     <section data-section="moves">
       <h2 id="moves-title">{{ strings.moves.title }}</h2>
@@ -804,17 +941,42 @@
       {% for workload in mapping.no_function %}
         <p><strong>{{ workload_labels[workload] }}</strong> · {{ strings.moves.no_function }}</p>
       {% endfor %}
-      <h3 data-subsection="run-details">{{ strings.appendix.run_details }}</h3>
-      <dl class="report-meta">
-        <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>
-        <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
-      </dl>
-      <p>{{ strings.appendix.checksums }}</p>
+      <h3>{{ costs.formulas_title }}</h3>
       <ul>
-        {% for name, checksum in checksums.items() %}
-          <li><code>{{ name }}</code> · <code data-checksum="{{ name }}">{{ checksum }}</code></li>
-        {% endfor %}
+        {% for formula in costs.formulas %}<li>{{ formula }}</li>{% endfor %}
       </ul>
+      <div data-subsection="run-details">
+        <h3>{{ strings.appendix.run_details }}</h3>
+        <dl class="report-meta">
+          <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>
+          <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
+        </dl>
+        <dl class="run-details">
+          <dt>{{ strings.appendix.scan_role }}</dt>
+          <dd><time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></dd>
+          <dt>{{ strings.appendix.scan_periods }}</dt>
+          <dd>
+            {% if scan_periods %}
+              <ul>
+                {% for period in scan_periods %}
+                  <li data-reporting-period="{{ period }}">{{ format.period(period) }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}{{ strings.appendix.no_scan_periods }}{% endif %}
+          </dd>
+          <dt>{{ strings.appendix.inputs_role }}</dt>
+          <dd>
+            {% if inputs and inputs.as_of %}<time datetime="{{ inputs.as_of }}">{{ format.date(inputs.as_of) }}</time>
+            {% else %}{{ strings.common.date_not_supplied }}{% endif %}
+          </dd>
+        </dl>
+        <p>{{ strings.appendix.checksums }}</p>
+        <ul>
+          {% for name, checksum in checksums.items() %}
+            <li><code>{{ name }}</code> · <code data-checksum="{{ name }}">{{ checksum }}</code></li>
+          {% endfor %}
+        </ul>
+      </div>
     </section>
   </main>
   <footer data-section="footer">

@@ -44,6 +44,74 @@ status:
   needs_work: Needs work
   blocker: Blocker
   unknown: Unknown
+costs:
+  title: Five-year cost comparison
+  inputs: Cost inputs
+  input: Input
+  results: Costs by scenario
+  category: Cost category
+  stay: Stay
+  partial_exit: Partial exit
+  full_exit: Full exit
+  subtotal: Subtotal
+  total: Five-year total
+  difference: Difference from staying
+  not_provided: Not provided
+  not_applicable: Not applicable
+  invented_amounts: Amounts in this table are based on invented prices for the demonstration.
+  rounding: Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
+  provide_inputs: Supply a cost input file with the report command's --inputs option.
+  missing: 'Missing inputs for {scenario}'
+  origins:
+    invented: Invented amount
+    sample_input: Sample input
+    provided: Provided
+    calculated: Calculated from inputs
+    calculated_with_examples: Calculated from sample inputs
+  input_fields:
+    microsoft_licences_per_year: Current Microsoft licences per year
+    other_it_per_year: Existing other IT costs per year
+    users: Users on the target system
+    retained_microsoft_licences_per_year: Retained Microsoft licences per year
+    hosting_per_user_per_month: Hosting per user per month
+    operations_per_year: Target system operations per year
+    other_recurring_per_year: Other target costs per year
+    one_time_migration: One-time migration
+    application_adaptation: Application adaptation
+    external_advice: External advice
+    training_days_per_person: Training days per person
+    training_day_rate: Training cost per person per day
+    training_staff: People to train
+    productivity_loss: Cost of productivity loss
+    parallel_running_months: Months running both systems
+  groups:
+    running: Running costs
+    direct_project: Direct project costs
+    productivity_loss: Productivity loss
+    parallel_running: Parallel running
+  line_items:
+    microsoft_licences: Current Microsoft licences
+    other_it: Existing other IT costs
+    retained_licences: Retained Microsoft licences
+    hosting: Hosting
+    operations: Target system operations
+    other_recurring: Other recurring target costs
+    one_time_migration: One-time migration
+    application_adaptation: Application adaptation
+    external_advice: External advice
+    training: Training
+    productivity_loss: Cost of productivity loss
+    parallel_running: Current Microsoft licences during parallel running
+  formulas_title: How the costs are calculated
+  formulas:
+    - Staying costs five times the annual Microsoft licence cost and five times the annual cost of other existing IT. The three change costs are zero.
+    - In each exit scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.
+    - Multiply the monthly hosting cost per user by the number of users and by 60. Hosting starts in the first month. Multiply each annual cost for operations, other target costs and other existing IT by five.
+    - Direct project costs add one-time migration, application adaptation, external advice and training. Training costs are the days per person times the cost per person per day times the number of people to train.
+    - The productivity loss block uses the amount entered for productivity loss.
+    - Parallel running costs the full annual Microsoft licence amount times the number of parallel months, divided by 12.
+    - The five-year total adds running costs and the three change costs. The comparison subtracts the total for staying from each scenario's total.
+    - A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.
 readiness:
   title: Readiness by workload
   counts: Workload counts by status
@@ -123,6 +191,10 @@ appendix:
   mapping_date: Checked on
   run_details: Run details
   checksums: SHA-256 checksums of the rule files used
+  scan_role: Scan file date
+  inputs_role: Inputs file date
+  scan_periods: Reporting periods in the scan
+  no_scan_periods: The scan supplies no reporting periods.
 footer:
   repository_pending: Repository address pending
 provenance:
@@ -300,10 +372,13 @@ common:
   'yes': 'Yes'
   'no': 'No'
 months: [January, February, March, April, May, June, July, August, September, October, November, December]
+short_months: [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
 format:
   thousands_separator: ','
   decimal_separator: '.'
+  money: '{currency} {amount}'
   date: '{day} {month} {year}'
+  day_and_month: '{day} {month}'
   period: '{start} to {end}'
   storage_units: [B, kB, MB, GB, TB]
 cli:

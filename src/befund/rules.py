@@ -144,6 +144,23 @@ def rules_dir() -> Traversable:
     return files("befund").joinpath("rules")
 
 
+def rule_file_checksums(profile: str) -> tuple[tuple[str, str], ...]:
+    if profile not in PROFILES:
+        raise InputError("unsupported_profile", file=PROJECT_NAME, field="--profile")
+    directory = rules_dir()
+    names = (
+        "findings.yaml",
+        "status.yaml",
+        "service_plans.yaml",
+        "risky_file_types.yaml",
+        f"mappings/{profile}.yaml",
+    )
+    sources = (directory.joinpath(name) for name in names)
+    return tuple(
+        (source.name, sha256(read_text(source).encode()).hexdigest()) for source in sources
+    )
+
+
 class _RuleReader:
     def __init__(self, file_name: str) -> None:
         self.file_name = file_name

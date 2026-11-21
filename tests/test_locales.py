@@ -94,18 +94,35 @@ def test_template_uses_locale_for_visible_text() -> None:
 
 
 @pytest.mark.parametrize(
-    ("lang", "integer", "storage", "date", "period"),
+    ("lang", "integer", "storage", "date", "period", "cross_year"),
     [
-        ("en", "1,234,567", "312.4 GB", "2 November 2026", "6 May 2026 to 1 November 2026"),
-        ("de", "1.234.567", "312,4 GB", "2. November 2026", "6. Mai 2026 bis 1. November 2026"),
+        (
+            "en",
+            "1,234,567",
+            "312.4 GB",
+            "2 November 2026",
+            "6 May to 1 Nov 2026",
+            "1 Dec 2025 to 1 Nov 2026",
+        ),
+        (
+            "de",
+            "1.234.567",
+            "312,4 GB",
+            "2. November 2026",
+            "6. Mai bis 1. Nov. 2026",
+            "1. Dez. 2025 bis 1. Nov. 2026",
+        ),
     ],
 )
-def test_formatter(lang: str, integer: str, storage: str, date: str, period: str) -> None:
+def test_formatter(
+    lang: str, integer: str, storage: str, date: str, period: str, cross_year: str
+) -> None:
     formatter = Formatter(lang)
     assert formatter.integer(1234567) == integer
     assert formatter.storage(312400000000) == storage
     assert formatter.date("2026-11-02") == date
     assert formatter.period("2026-05-06/2026-11-01") == period
+    assert formatter.period("2025-12-01/2026-11-01") == cross_year
 
 
 @pytest.mark.parametrize(

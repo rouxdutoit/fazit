@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from collections import Counter
+from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from functools import partial
 from importlib.resources import files
 
@@ -8,9 +10,10 @@ from jinja2 import Environment, StrictUndefined
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
 from .catalogue import Catalogue, load_catalogue
+from .costs import CostLine, ScenarioResult, compute_scenarios
 from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES, Formatter, code_label, reason_text
-from .inputs import Inputs, combine, provided_findings
+from .inputs import Inputs, combine, empty_inputs, provided_findings
 from .model import Coverage, Finding, FindingValue, Scan
 from .parsing import read_text
 from .rules import (
@@ -112,6 +115,37 @@ def _finding_labels(
     return labels
 
 
+@dataclass(frozen=True)
+class _CostTableBlock:
+    id: str
+    lines: tuple[tuple[str, tuple[CostLine | None, ...]], ...]
+    totals: tuple[Decimal | None, ...]
+
+
+def _cost_table_blocks(scenarios: tuple[ScenarioResult, ...]) -> tuple[_CostTableBlock, ...]:
+    groups_by_scenario = ((result.running, *result.blocks) for result in scenarios)
+    blocks = []
+    for groups in zip(*groups_by_scenario, strict=True):
+        scenario_lines = tuple({line.id: line for line in group.lines} for group in groups)
+        ids = dict.fromkeys(id for lines in scenario_lines for id in lines)
+        blocks.append(
+            _CostTableBlock(
+                groups[0].id,
+                tuple((id, tuple(lines.get(id) for lines in scenario_lines)) for id in ids),
+                tuple(group.total for group in groups),
+            )
+        )
+    return tuple(blocks)
+
+
+def _plain_amount(amount: Decimal | None) -> str:
+    if amount is None:
+        return "unknown"
+    whole, _, fraction = f"{amount:f}".partition(".")
+    fraction = fraction.rstrip("0")
+    return f"{whole}.{fraction}" if fraction else whole
+
+
 def render_report(
     scan: Scan,
     *,
@@ -126,10 +160,13 @@ def render_report(
     strings = formatter.strings
     catalogue = catalogue if catalogue is not None else load_catalogue()
     checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}
-    plans = load_service_plans(catalogue, checksums=checksums)
     status_rules = load_status_rules(catalogue, checksums=checksums)
+    plans = load_service_plans(catalogue, checksums=checksums)
     risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
     mapping = load_mapping(profile, catalogue, checksums=checksums)
+    scan_periods = sorted({item.period for item in scan.findings if item.period is not None})
+    cost_inputs = inputs if inputs is not None else empty_inputs()
+    scenarios = compute_scenarios(cost_inputs)
     if inputs is not None:
         provided += provided_findings(inputs, catalogue)
     scan, other_evidence = combine(scan, provided)
@@ -165,8 +202,16 @@ def render_report(
     )
     return template.render(
         scan=scan,
+        scan_periods=scan_periods,
         inputs=inputs,
+        sample_inputs=sample_inputs,
         input_source="sample.interview" if sample_inputs else "inputs_yaml",
+        scenarios=scenarios,
+        cost_blocks=_cost_table_blocks(scenarios),
+        current_costs=vars(cost_inputs.current_costs),
+        target_costs=(vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit)),
+        cost_currency=cost_inputs.currency or "",
+        plain_amount=_plain_amount,
         lang=lang,
         strings=strings,
         label=partial(_label, strings),
