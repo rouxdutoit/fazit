@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mit Fazit prüfen Sie, was ein Umstieg von Microsoft 365 auf Open-Source-Software erfordert. Das Programm erstellt den Bericht lokal auf Ihrem Rechner.">
+  <title>Fazit — Einen Umstieg von Microsoft 365 prüfen</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">Fazit</a>
+      <nav class="bar-links" aria-label="Abschnitte">
+        <a href="#report">Bericht</a>
+        <a href="#how">Ablauf</a>
+        <a href="#safeguards">Daten und Zugriff</a>
+        <a href="#status">Stand</a>
+        <a href="#pilots">Pilotprüfungen</a>
+      </nav>
+      <div class="bar-actions">
+        <a class="language" href="/" lang="en" hreflang="en">English</a>
+        <details class="menu" data-menu>
+          <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
+          <nav class="menu-panel" aria-label="Abschnitte">
+            <a href="#report">Bericht</a>
+            <a href="#how">Ablauf</a>
+            <a href="#safeguards">Daten und Zugriff</a>
+            <a href="#status">Stand</a>
+            <a href="#pilots">Pilotprüfungen</a>
+          </nav>
+        </details>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="hero-name">Fazit</p>
+      <h1 id="hero-title">Sehen Sie, was ein Abschied von <span>Microsoft 365</span> bedeuten würde, auf Ihrem eigenen Rechner.</h1>
+      <p class="hero-sub">Ein kostenloses Kommandozeilenprogramm mit offenem Quellcode unter der Lizenz AGPL-3.0-or-later.</p>
+      <div class="hero-actions">
+        <a class="btn btn-solid" href="/demo/de/">Beispielbericht ansehen</a>
+        <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+      </div>
+      <div class="command" aria-labelledby="command-label" role="group">
+        <p class="command-label" id="command-label">Nach Veröffentlichung auf PyPI</p>
+        <div class="command-line">
+          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">uvx fazit demo</span></code>
+          <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." aria-describedby="demo-command" hidden>Kopieren</button>
+        </div>
+        <p class="copy-message" role="status"></p>
+      </div>
+      <p class="release-note">Frühe Version. Das Beispiel läuft bereits. Als Nächstes folgt die Bestandsaufnahme mit Daten Ihrer Organisation.</p>
+    </section>
+
+    <section class="sec grid" id="report" aria-labelledby="report-title">
+      <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Fazit erstellt eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können den Bericht speichern, weitergeben und ohne Internetverbindung öffnen.</p>
+        <dl class="rows">
+          <div>
+            <dt>Bestand</dt>
+            <dd>Was die vorliegenden Daten über die Nutzung von Microsoft 365 in 15 Bereichen zeigen, von E-Mail und Dateien bis hin zu Telefonie, Geräteverwaltung und Anbindungen an Fachanwendungen.</dd>
+          </div>
+          <div>
+            <dt>Stand je Bereich</dt>
+            <dd>Für jeden Bereich nennt der Bericht den Status und die zugehörigen Belege. Der Status lautet „Bereit“, „Handlungsbedarf“, „Hindernis“ oder „Unbekannt“.</dd>
+          </div>
+          <div>
+            <dt>Mögliche Alternativen</dt>
+            <dd>Welche Funktionen sich durch Open-Source-Software ersetzen lassen und welche Abhängigkeiten Sie zuerst klären sollten.</dd>
+          </div>
+          <div>
+            <dt>Kosten über fünf Jahre</dt>
+            <dd>Der Bericht vergleicht den Verbleib bei Microsoft 365, einen teilweisen und einen vollständigen Umstieg. Er berücksichtigt verbleibende Lizenzen, Projektkosten, Produktivitätsverluste und Parallelbetrieb.</dd>
+          </div>
+        </dl>
+        <p class="section-link"><a href="/demo/de/">Beispielbericht ansehen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="how" aria-labelledby="how-title">
+      <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
+      <div class="sec-body">
+        <ol class="steps">
+          <li>
+            <h3>Installieren</h3>
+            <p><a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">Installieren Sie uv</a>. Nach Veröffentlichung des Pakets kann <code>uvx</code> Fazit und die benötigten Pakete beim ersten Aufruf herunterladen.</p>
+          </li>
+          <li>
+            <h3>Ausführen</h3>
+            <p>Wenn Ihnen der Quellcode lokal vorliegt, starten Sie das mitgelieferte Beispiel im Projektverzeichnis mit <code>uv run fazit demo --lang de</code>. Für Englisch verwenden Sie <code>--lang en</code>.</p>
+          </li>
+          <li>
+            <h3>Bericht lesen</h3>
+            <p>Öffnen Sie die HTML-Datei auf Ihrem Rechner. Der Bericht zeigt, was geprüft wurde und was noch unbekannt ist.</p>
+          </li>
+        </ol>
+        <div class="subsection">
+          <h3>Datenquellen</h3>
+          <dl class="rows stages">
+            <div><dt>Verfügbar</dt><dd>Mitgelieferte Beispieldaten.</dd></div>
+            <div><dt>Als Nächstes</dt><dd>Exporte aus dem Microsoft 365 Admin Center, die Fazit lokal verarbeitet.</dd></div>
+            <div><dt>Für später geplant</dt><dd>Anmeldung bei Microsoft 365 mit reinem Lesezugriff.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
+      <h2 class="sec-label" id="safeguards-title">Was Fazit nie tut</h2>
+      <div class="sec-body">
+        <ul class="safeguards">
+          <li>Fazit hat keinen Schreibzugriff auf Microsoft 365.</li>
+          <li>Die Daten der Bestandsaufnahme bleiben auf Ihrem Rechner. Für Fazit gibt es keinen Server, kein Benutzerkonto und keine Telemetrie.</li>
+          <li>Fazit speichert keine Anmeldetoken auf einem Datenträger.</li>
+          <li>Im Bericht stehen keine Namen von Personen und keine E-Mail-Adressen.</li>
+          <li>Beim Öffnen lädt der Bericht nichts aus dem Internet.</li>
+        </ul>
+        <div class="subsection">
+          <h3>So prüfen Sie es selbst</h3>
+          <p>Richten Sie das Beispiel ein und trennen Sie dann die Netzwerkverbindung. Führen Sie das Beispiel erneut aus und öffnen Sie den Bericht im Browser.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="claims" aria-labelledby="claims-title">
+      <h2 class="sec-label" id="claims-title">Aussagekraft und Grenzen</h2>
+      <div class="sec-body">
+        <h3>Was der Bericht belegt</h3>
+        <p>Fazit hält fest, was die Daten belegen. Zu jedem Befund nennt der Bericht Quelle, Datum, Bezugszeitraum und Umfang der Prüfung. Fehlen Belege, nennt er den Grund. Der Bericht kennzeichnet jede Zahl als gemessen, von Ihrer Organisation angegeben oder unbekannt. Eine ausgelassene Prüfung verbessert den Status nie.</p>
+        <div class="subsection">
+          <h3>Was offenbleibt</h3>
+          <p>Der Bericht enthält kein Gesamturteil zum Umstieg. Die Entscheidung liegt bei Ihrer Organisation. Ist ein Bereich noch nicht bereit, zeigt der Bericht, was Sie klären müssen.</p>
+          <p>Fehlen wesentliche Zahlen Ihrer Organisation, bleiben die Gesamtkosten unbekannt. Dateinamen geben Hinweise darauf, welche Dokumente Sie prüfen sollten. Ob eine Datei Makros enthält, lässt sich erst anhand ihres Inhalts feststellen.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="sources" aria-labelledby="sources-title">
+      <h2 class="sec-label" id="sources-title">Fachliche Grundlagen</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Die Bestandsaufnahme orientiert sich am Aufbau zweier öffentlicher Untersuchungen.</p>
+        <ul class="sources">
+          <li>
+            <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/">Evaluation von openDesk für die Stadt Zürich</a>
+            <span>Berner Fachhochschule</span>
+          </li>
+          <li>
+            <a href="https://www.digitale-verwaltung-schweiz.ch/application/files/6017/8970/5022/Studie_Alternativen_zu_M365_und_Konsequenzen_bei_einem_Wechsel_September_2026.pdf">Alternativen zu M365 und Konsequenzen bei einem Wechsel (PDF)</a>
+            <span>Studie im Auftrag der Digitalen Verwaltung Schweiz</span>
+          </li>
+        </ul>
+        <div class="subsection">
+          <h3>Open-Source-Projekte</h3>
+          <p>Fazit ordnet Funktionen aus Microsoft 365 möglichen Alternativen in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi und Keycloak zu.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="status" aria-labelledby="status-title">
+      <h2 class="sec-label" id="status-title">Stand der Entwicklung</h2>
+      <div class="sec-body">
+        <ul class="roadmap">
+          <li><strong>Heute.</strong> Aus den mitgelieferten Beispieldaten entsteht ein offline lesbarer Bericht auf Deutsch oder Englisch. Die Veröffentlichung auf PyPI steht noch aus.</li>
+          <li><strong>Als Nächstes.</strong> Bestandsaufnahme für Organisationen anhand ihrer exportierten Nutzungsberichte.</li>
+          <li><strong>Später.</strong> Prüfung der Berechtigungen und Erfassung der Anzahl von Lizenzen und Verzeichniseinträgen nach einer Anmeldung mit Leserechten.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="sec grid" id="pilots" aria-labelledby="pilots-title">
+      <h2 class="sec-label" id="pilots-title">Erste Pilotprüfungen</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Für Organisationen mit 200 bis 2.000 Beschäftigten bieten wir drei kostenlose Bestandsaufnahmen an, je eine in Deutschland, Österreich und der Schweiz.</p>
+        <p>Ihre Daten bleiben bei Ihrer Organisation. Ob wir Ihre Organisation öffentlich nennen dürfen, entscheiden Sie gesondert. Die Teilnahme verpflichtet Sie weder zum Kauf noch zur Umstellung.</p>
+        <p>Öffentliche Stellen erhalten eine einseitige Vereinbarung für ihr internes Freigabeverfahren.</p>
+        <p class="section-link"><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="development" aria-labelledby="development-title">
+      <h2 class="sec-label" id="development-title">So entsteht Fazit</h2>
+      <div class="sec-body">
+        <p>Claude und Codex unterstützen die Entwicklung von Fazit und prüfen gegenseitig ihre Arbeit. Die Projektverantwortlichen leiten die Entwicklung und verantworten das Ergebnis. Jede Zusage, die für die heutige Version gilt, belegt ein Test, den Sie selbst ausführen können. Die Zusagen zur Anmeldung erhalten ihre Tests, sobald es die Anmeldung gibt.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/de/">Fazit</a>
+        <nav class="foot-cols" aria-label="Fußnavigation">
+          <div>
+            <p class="foot-heading">Projekt</p>
+            <ul><li><a href="/demo/de/">Beispielbericht</a></li><li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li></ul>
+          </div>
+          <div>
+            <p class="foot-heading">Rechtliches</p>
+            <ul><li><a href="/de/impressum/">Impressum</a></li><li><a href="/de/privacy/">Datenschutz</a></li></ul>
+          </div>
+          <div>
+            <p class="foot-heading">Kontakt</p>
+            <ul><li><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></li></ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
+        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
