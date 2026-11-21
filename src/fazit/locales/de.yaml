@@ -3,6 +3,7 @@ header:
   title: Bestandsaufnahme zu Microsoft 365
   scan_date: Stand der Erhebung
   tool_version: Programmversion
+  target_profile: Zielprofil
   local: Das Programm hat den Bericht auf diesem Rechner aus der Erhebungsdatei erstellt und keine Netzwerkverbindung aufgebaut.
   offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
   sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
@@ -49,6 +50,25 @@ readiness:
   missing: Noch benötigte Angaben
   conflict: Trotz der gemeldeten Null wurden bei der Erhebung betroffene Elemente gefunden, daher gilt für die Einstufung die erhobene Mindestzahl.
   not_examined: Nicht untersucht
+moves:
+  title: Funktionen im Zielsystem
+  microsoft: Funktion bei Microsoft
+  replacement: Ersatz im Zielsystem
+  coverage: Abdeckung und Prüfdatum
+  evidence: Ergebnisse der Bestandsaufnahme
+  workload_status: Status und Begründung für den Bereich
+  no_evidence: Für diesen Bereich liegen keine Ergebnisse vor.
+  no_function: In diesem Bereich ist keine Funktion zu übertragen.
+  no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
+mapping_coverage:
+  in_suite: Im Paket enthalten
+  in_suite_with_limits: Mit Einschränkungen im Paket enthalten
+  announced: Angekündigt
+  component_vendor_solution: Lösung des Komponentenherstellers
+  open_source_community: Open-Source-Lösung aus der Gemeinschaft
+  open_source_third_party: Open-Source-Lösung eines Drittanbieters
+  proprietary_third_party: Proprietäre Lösung eines Drittanbieters
+  not_available: Nicht verfügbar
 attention:
   title: Prüfbedarf
   files: Dateitypen für die weitere Prüfung
@@ -57,6 +77,27 @@ attention:
   count: Gemeldete Anzahl
   none_reported: Für diesen Dateityp wurden keine Dateien gemeldet.
   software: Reine Windows-Anwendungen
+  cannot_be_moved: Nicht direkt übertragbar
+  gap_scope: Für diese Funktionen ist im gewählten Profil keine direkte Übernahme belegt.
+  needed_here: Für diese Organisation erforderlich
+  no_gaps: Das Profil führt keine Funktionen auf, für die eine direkte Übernahme ungeklärt ist.
+path:
+  title: Möglicher Ablauf
+  blocker: Bestätigte Hindernisse
+  unknown: Zuerst zu klärende Fragen
+  ready: Bereiche, in denen die Bestandsaufnahme kein Hindernis zeigt
+  empty:
+    blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
+    unknown: Der Status ist für alle Bereiche bekannt.
+    ready: Kein Bereich erfüllt die Voraussetzungen für den Status „Bereit“.
+  pilot_evidence: Der Bericht enthält keine Angaben zu einzelnen Abteilungen und kann daher keine Abteilung für einen Pilotbetrieb benennen.
+  pilot_choice: Die für die Umstellung Verantwortlichen wählen die Pilotgruppe gemeinsam mit der Organisation aus.
+  sequence: Typischer Ablauf einer Umstellung
+  steps:
+    - Eine Pilotgruppe erprobt das neue System.
+    - Dateien, die konvertiert werden müssen, werden vorbereitet und geprüft.
+    - Die Organisation stellt schrittweise um und betreibt beide Systeme vorübergehend parallel.
+    - Nach Abschluss der Umstellung schaltet die Organisation das bisherige System ab.
 appendix:
   title: Anhang
   schema_version: Schemaversion
@@ -70,6 +111,10 @@ appendix:
   rule_file: Regeldatei
   ready_evidence: Erforderliche Datengrundlage für den Status „Bereit“
   condition_exists: liegt vor
+  mapping: Zuordnung der Funktionen
+  mapping_file: Zuordnungsdatei
+  mapping_reference: Dokumentation
+  mapping_date: Geprüft am
   run_details: Angaben zur Berichtserstellung
   checksums: SHA-256-Prüfsummen der verwendeten Regeldateien
 footer:
@@ -278,6 +323,7 @@ errors:
   schema_version: Im Feld {field} der Datei {file} steht Version {found}, während das Programm Version {supported} unterstützt.
   unsupported_language: Geben Sie für {field} bei {file} den Wert en oder de an.
   unsupported_sample: Geben Sie für {field} bei {file} den Wert town oder nonprofit an.
+  unsupported_profile: Geben Sie für {field} bei {file} den Wert opendesk, nextcloud oder generic an.
   out_dir: Das Ausgabeverzeichnis {file} für {field} konnte nicht angelegt oder geöffnet werden.
   destination_is_link: Die Ausgabedatei {file} für {field} ist eine symbolische Verknüpfung.
   write_failed: Die Ausgabedatei {file} konnte unter {field} nicht geschrieben werden.

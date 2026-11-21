@@ -2,6 +2,7 @@
 import re
 from dataclasses import replace
 from datetime import date
+from html import unescape
 from importlib.resources import files
 from pathlib import Path
 from shutil import copytree
@@ -28,12 +29,15 @@ from fazit.model import (
 from fazit.parsing import parse_yaml, read_text
 from fazit.report import SECTION_ORDER, render_report
 from fazit.rules import (
+    COVERAGE_LADDER,
+    PROFILES,
     MissingEvidence,
     StatusRuleSet,
     WorkloadStatus,
     classify_product,
     evaluate,
     licence_findings,
+    load_mapping,
     load_risky_file_types,
     load_service_plans,
     load_status_rules,
@@ -42,6 +46,27 @@ from fazit.rules import (
 
 LICENSING_REFERENCE = (
     "https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference"
+)
+FUNCTION_IDS = (
+    "identity_management",
+    "mail_and_calendar",
+    "personal_files",
+    "team_files",
+    "sharepoint_workflows",
+    "chat",
+    "video_meetings",
+    "teams_chat_history",
+    "office_editing",
+    "vba_macros",
+    "device_management",
+    "desktop_operating_system",
+    "windows_applications",
+    "automation_and_low_code",
+    "telephony",
+    "single_sign_on",
+    "security_and_compliance",
+    "forms_tasks_bookings",
+    "application_integrations",
 )
 
 
@@ -53,6 +78,125 @@ def catalogue() -> Catalogue:
 def sample_scan(sample: str, catalogue: Catalogue) -> Scan:
     source = files("fazit").joinpath("demo", sample, "scan.json")
     return load_scan_text(read_text(source), source.name, catalogue)
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_shipped_mapping_covers_every_workload(catalogue: Catalogue, profile: str) -> None:
+    mapping = load_mapping(profile, catalogue)
+    rows = {row.function: row for row in mapping.functions}
+    source = rules_dir().joinpath("mappings", mapping.file_name)
+
+    assert read_text(source).startswith("# SPDX-License-Identifier: AGPL-3.0-or-later\n")
+    assert mapping.profile == profile and mapping.file_name == f"{profile}.yaml"
+    assert mapping.product_profile is (profile != "generic")
+    assert tuple(rows) == FUNCTION_IDS and len(mapping.functions) == len(rows)
+    assert mapping.no_function == ("licences",)
+    assert set(mapping.no_function) | {row.workload for row in rows.values()} == set(
+        catalogue.workload_ids
+    )
+    assert all(row.coverage in COVERAGE_LADDER for row in rows.values())
+    for key in ("teams_chat_history", "vba_macros", "sharepoint_workflows"):
+        assert rows[key].coverage == "not_available"
+    if mapping.product_profile:
+        assert all(
+            row.reference_url and row.reference_url.startswith("https://") for row in rows.values()
+        )
+        assert all(isinstance(row.checked_on, date) for row in rows.values())
+    else:
+        assert all(row.reference_url is None and row.checked_on is None for row in rows.values())
+        assert {row.coverage for row in rows.values()} <= set(COVERAGE_LADDER[4:])
+    if profile == "opendesk":
+        assert "Nubus" in rows["identity_management"].replacement["en"]
+        assert "Keycloak" in rows["single_sign_on"].replacement["en"]
+
+
+def test_generic_mapping_names_no_target_products() -> None:
+    generic = read_text(rules_dir().joinpath("mappings", "generic.yaml"))
+    target_products = (
+        "openDesk",
+        "Nubus",
+        "Keycloak",
+        "Open-Xchange",
+        "OX App Suite",
+        "Nextcloud",
+        "Element",
+        "Jitsi",
+        "Collabora Online",
+        "OpenProject",
+        "Euro-Office",
+        "Windmill",
+        "Team Folders",
+        "OIDC Identity Provider",
+    )
+    for product in target_products:
+        assert not re.search(rf"\b{re.escape(product)}\b", generic, re.IGNORECASE), product
+
+
+@pytest.mark.parametrize(
+    ("change", "field"),
+    [
+        ("missing_de", "functions[0].replacement.de"),
+        ("unknown_workload", "functions[0].workload"),
+        ("repeated_function", "functions[1].function"),
+        ("wrong_profile", "profile"),
+        ("bad_coverage", "functions[0].coverage"),
+        ("omit_reference", "functions[0].reference_url"),
+        ("omit_date", "functions[0].checked_on"),
+        ("bad_reference", "functions[0].reference_url"),
+        ("bad_date", "functions[0].checked_on"),
+        ("unmapped_workload", "no_function"),
+        ("overlap", "no_function"),
+        ("bad_product_flag", "product_profile"),
+        ("unknown_need", "functions[0].need_finding"),
+        ("count_as_need", "functions[0].need_finding"),
+        ("other_workload_need", "functions[0].need_finding"),
+    ],
+)
+def test_bad_mapping_names_the_file_and_field(
+    tmp_path: Path, catalogue: Catalogue, change: str, field: str
+) -> None:
+    directory = tmp_path / "mappings"
+    directory.mkdir()
+    path = directory / "opendesk.yaml"
+    data = parse_yaml(read_text(rules_dir().joinpath("mappings", path.name)), path.name)
+    first, second, *_ = data["functions"]
+    match change:
+        case "missing_de":
+            del first["replacement"]["de"]
+        case "unknown_workload":
+            first["workload"] = "unrecognised"
+        case "repeated_function":
+            second["function"] = first["function"]
+        case "wrong_profile":
+            data["profile"] = "nextcloud"
+        case "bad_coverage":
+            first["coverage"] = "fully_equivalent"
+        case "omit_reference":
+            del first["reference_url"]
+        case "omit_date":
+            del first["checked_on"]
+        case "bad_reference":
+            first["reference_url"] = "http://example.invalid/"
+        case "bad_date":
+            first["checked_on"] = "2026-02-30"
+        case "unmapped_workload":
+            data["no_function"] = []
+        case "overlap":
+            data["no_function"].append(first["workload"])
+        case "bad_product_flag":
+            data["product_profile"] = "true"
+        case "unknown_need":
+            first["need_finding"] = "directory.unrecognised"
+        case "count_as_need":
+            first["need_finding"] = "directory.user_count"
+        case "other_workload_need":
+            first["need_finding"] = "telephony.in_use"
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
+
+    with pytest.raises(InputError) as caught:
+        load_mapping("opendesk", catalogue, tmp_path)
+
+    assert (caught.value.file, caught.value.field) == (path.name, field)
 
 
 def test_shipped_service_plans_cite_the_reference(catalogue: Catalogue) -> None:
@@ -567,6 +711,9 @@ def test_partial_positive_overrides_a_provided_zero_and_displays_both(
     assert "At least 4 applications" in row and 'data-provenance="measured"' in row
     assert "0 applications" in row and 'data-provenance="provided"' in row
     assert load_locale("en")["readiness"]["conflict"] in row
+    move = re.search(r'<tr data-function="application_integrations".*?</tr>', html, re.S)
+    assert move is not None and "At least 4 applications" in move[0]
+    assert "0 applications" in move[0] and "6 of 8 scanned" in move[0]
 
 
 @pytest.mark.parametrize(
@@ -865,3 +1012,145 @@ def test_removing_an_extension_changes_the_next_demo(
     assert report.is_file()
     section = _attention(report.read_text(encoding="utf-8"))
     assert "<code>.pptm</code>" in section and "<code>.potm</code>" not in section
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_attention_lists_each_unavailable_function_from_the_profile(
+    catalogue: Catalogue, profile: str
+) -> None:
+    mapping = load_mapping(profile, catalogue)
+    gaps = [row for row in mapping.functions if row.coverage == "not_available"]
+    html = render_report(sample_scan("town", catalogue), lang="en", profile=profile)
+    section = _attention(html)
+    details = dict(re.findall(r'<li data-gap="([^"]+)"([^>]*)>.*?</li>', section, re.S))
+
+    assert 'data-subsection="cannot-be-moved"' in section
+    assert list(details) == [row.function for row in gaps]
+    for row in gaps:
+        entry = re.search(rf'<li data-gap="{row.function}".*?</li>', section, re.S)
+        assert entry is not None and "data-status=" not in entry[0]
+        assert row.microsoft["en"] in unescape(entry[0])
+        assert row.note and row.note["en"] in unescape(entry[0])
+        if row.reference_url and row.checked_on:
+            assert row.reference_url in unescape(entry[0])
+            assert row.checked_on.isoformat() in entry[0]
+        else:
+            assert load_locale("en")["moves"]["no_project_check"] in entry[0]
+
+
+@pytest.mark.parametrize(
+    ("answer", "coverage", "expected"),
+    [
+        (True, None, "yes"),
+        (False, None, "no"),
+        (None, None, "unknown"),
+        (True, "partial", "unknown"),
+    ],
+)
+def test_gap_need_uses_only_its_declared_complete_answer(
+    catalogue: Catalogue,
+    complete_evidence: dict[str, Finding],
+    answer: bool | None,
+    coverage: str | None,
+    expected: str,
+) -> None:
+    profile = load_mapping("opendesk", catalogue)
+    finding = complete_evidence["teams.chat_history_must_be_kept"]
+    gap = next(row for row in profile.functions if row.need_finding == finding.id)
+    assert gap.coverage == "not_available"
+    scan = sample_scan("town", catalogue)
+    scan = replace(scan, findings=tuple(item for item in scan.findings if item.id != finding.id))
+    provided = (
+        ()
+        if answer is None
+        else (replace(finding, value=answer, coverage=Coverage(coverage) if coverage else None),)
+    )
+    section = _attention(render_report(scan, lang="en", provided=provided))
+    entry = re.search(rf'<li data-gap="{gap.function}".*?</li>', section, re.S)
+
+    assert entry is not None and f'data-need="{expected}"' in entry[0]
+    strings = load_locale("en")
+    assert strings["attention"]["needed_here"] in entry[0]
+    if expected == "unknown":
+        assert 'data-provenance="unknown"' in entry[0]
+        assert "data-reason=" in entry[0]
+    else:
+        assert 'data-provenance="provided"' in entry[0]
+    for row in profile.functions:
+        if row.coverage == "not_available" and row.need_finding is None:
+            assert f'data-gap="{row.function}" data-need="unknown"' in section
+
+
+def test_marking_a_mapping_unavailable_adds_it_to_the_gap_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules_dir())), copied)
+    path = copied / "mappings" / "opendesk.yaml"
+    data = parse_yaml(read_text(path), path.name)
+    changed = next(row for row in data["functions"] if row["coverage"] == "in_suite")
+    changed["coverage"] = "not_available"
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+
+    result = CliRunner().invoke(app, ["demo", "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 0, result.output
+    report = Path(result.stdout.splitlines()[-1])
+    assert report.is_file()
+    section = _attention(report.read_text(encoding="utf-8"))
+    assert f'data-gap="{changed["function"]}" data-need="unknown"' in section
+
+
+def test_suggested_path_lists_only_the_designated_workload_statuses(
+    catalogue: Catalogue, complete_evidence: dict[str, Finding]
+) -> None:
+    scan = sample_scan("town", catalogue)
+    mail_gap = scan.finding("mail.shared_mailbox_count")
+    assert mail_gap is not None and mail_gap.provenance == "unknown"
+    complete_evidence[mail_gap.id] = mail_gap
+    problem_values = {
+        "licences.contract_terms_known": False,
+        "directory.guest_count": 1,
+        "sharepoint.custom_solutions_in_use": True,
+        "teams.teams_with_guests_count": 1,
+        "office_files.kind.macro": 1,
+        "device_management.in_use": True,
+        "windows_software.application_count": 1,
+        "power_platform.in_use": True,
+        "telephony.in_use": True,
+        "security_compliance.protection_or_retention_in_use": True,
+        "identity_access.sso_application_count": 1,
+        "small_apps.in_use": True,
+        "integrations.application_count": 1,
+    }
+    for finding_id, value in problem_values.items():
+        _set_value(complete_evidence, finding_id, value)
+    scan = replace(
+        scan, findings=tuple(complete_evidence[entry.id] for entry in catalogue.findings)
+    )
+    html = render_report(scan, lang="en")
+    path = re.search(r'<section data-section="path">.*?</section>', html, re.S)
+
+    assert path is not None and "%" not in path[0]
+    matches = re.findall(r'<ul data-path-status="([^"]+)"[^>]*>(.*?)</ul>', path[0], re.S)
+    assert [
+        (status, re.findall(r'data-path-workload="([^"]+)"', items)) for status, items in matches
+    ] == [("blocker", ["telephony"]), ("unknown", ["mail"]), ("ready", ["onedrive"])]
+    assert "no replacement" in matches[0][1]
+    assert load_locale("en")["reason"]["needs_recipient_export"]["fix"] in matches[1][1]
+    strings = load_locale("en")["path"]
+    for key in ("blocker", "unknown", "ready", "pilot_evidence", "pilot_choice"):
+        assert strings[key] in unescape(path[0])
+    assert re.findall(r"<li>(.*?)</li>", unescape(path[0]), re.S) == strings["steps"]
+
+
+def test_suggested_path_explains_empty_lists(catalogue: Catalogue) -> None:
+    html = render_report(sample_scan("town", catalogue), lang="en")
+    path = re.search(r'<section data-section="path">.*?</section>', html, re.S)
+    strings = load_locale("en")["path"]["empty"]
+
+    assert path is not None
+    for status in ("blocker", "ready"):
+        assert strings[status] in path[0]
+        assert f'data-path-status="{status}"' not in path[0]

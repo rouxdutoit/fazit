@@ -7,6 +7,7 @@ import socket
 from dataclasses import replace
 from datetime import date, tzinfo
 from hashlib import sha256
+from html import unescape
 from importlib.resources import files
 from pathlib import Path
 from shutil import copytree
@@ -45,13 +46,129 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
         "header",
         "found",
         "readiness",
+        "moves",
         "attention",
+        "path",
         "appendix",
         "footer",
     ]
     header = load_locale("en")["header"]
     assert all(header[key] in html for key in ("local", "offline", "sample"))
     assert 'data-finding="directory.user_count"' in html
+    moves = _section(html, "moves")
+    assert "Nubus" in moves and "Keycloak" in moves
+
+
+def _section(html: str, name: str) -> str:
+    section = re.search(rf'<section data-section="{name}">.*?</section>', html, re.S)
+    assert section is not None, name
+    return section[0]
+
+
+@pytest.mark.parametrize("profile", rules.PROFILES)
+def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, profile: str) -> None:
+    source = files("fazit").joinpath("demo", "town", "scan.json")
+    result = runner.invoke(
+        app, ["report", str(source), "--profile", profile, "--out", str(tmp_path)]
+    )
+
+    assert result.exit_code == 0, result.output
+    report = Path(result.stdout.strip())
+    assert report.is_file() and report.parent == tmp_path
+    html = report.read_text(encoding="utf-8")
+    mapping = rules.load_mapping(profile, load_catalogue())
+    strings = load_locale("en")
+    moves = _section(html, "moves")
+    assert mapping.label["en"] in html.split("</header>", 1)[0]
+    assert "<caption data-sample>" in moves
+    assert re.findall(r'<tr data-function="([^"]+)"', moves) == [
+        row.function for row in mapping.functions
+    ]
+    readiness = dict(
+        re.findall(
+            r'<tr data-workload="([^"]+)" data-status="([^"]+)"', _section(html, "readiness")
+        )
+    )
+    appendix = _section(html, "appendix")
+    assert mapping.file_name in appendix and mapping.description["en"] in appendix
+    for row in mapping.functions:
+        move = re.search(rf'<tr data-function="{row.function}".*?</tr>', moves, re.S)
+        detail = re.search(rf'<dd data-mapping-details="{row.function}".*?</dd>', appendix, re.S)
+        assert move is not None and detail is not None
+        status = readiness[row.workload]
+        assert f'data-status="{status}"' in move[0] and strings["status"][status] in move[0]
+        for text in (
+            row.microsoft["en"],
+            row.replacement["en"],
+            strings["mapping_coverage"][row.coverage],
+        ):
+            assert text in unescape(move[0])
+        assert move[0].count("data-move-evidence=") <= 3
+        if row.checked_on is None:
+            assert strings["moves"]["no_project_check"] in move[0]
+            assert strings["moves"]["no_project_check"] in detail[0]
+        else:
+            assert row.checked_on.isoformat() in move[0] and row.checked_on.isoformat() in detail[0]
+            assert row.reference_url and row.reference_url in unescape(detail[0])
+        if row.note:
+            assert row.note["en"] in unescape(detail[0])
+    assert "href=" not in moves and "href=" not in appendix
+    assert strings["moves"]["no_function"] in moves
+    assert "Other systems send mail" in moves and strings["provenance"]["provided"] in moves
+    assert strings["source"]["sample.interview"] in moves
+    assert strings["readiness"]["incomplete"] in moves
+
+
+def test_changed_mapping_is_read_once_and_rendered_as_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules.rules_dir())), copied)
+    path = copied / "mappings" / "opendesk.yaml"
+    data = parse_yaml(read_text(path), path.name)
+    mail = next(row for row in data["functions"] if row["function"] == "mail_and_calendar")
+    markup = '<img src="https://example.invalid/mapping">'
+    mail["replacement"]["en"] = markup
+    raw = yaml.safe_dump(data, sort_keys=False, allow_unicode=True).replace("\n", "\r\n").encode()
+    path.write_bytes(raw)
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    real_read = rules.read_text
+    reads = []
+
+    def record_read(path: Path) -> str:
+        reads.append(path.name)
+        return real_read(path)
+
+    monkeypatch.setattr(rules, "read_text", record_read)
+    result = runner.invoke(app, ["demo", "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 0, result.output
+    report = Path(result.stdout.splitlines()[-1])
+    assert report.is_file()
+    html = report.read_text(encoding="utf-8")
+    assert markup in unescape(_section(html, "moves")) and markup not in html
+    assert not re.search(r"<img\b", html)
+    assert f'data-checksum="{path.name}">{sha256(raw).hexdigest()}</code>' in html
+    assert reads.count(path.name) == 1
+
+
+def test_cli_names_a_broken_mapping_file_and_field(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules.rules_dir())), copied)
+    path = copied / "mappings" / "opendesk.yaml"
+    data = parse_yaml(read_text(path), path.name)
+    del data["functions"][0]["replacement"]["de"]
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    out = tmp_path / "out"
+    result = runner.invoke(app, ["demo", "--out", str(out)])
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert result.stderr.splitlines() == [
+        "Error: Supply a value for functions[0].replacement.de in opendesk.yaml."
+    ]
 
 
 def test_demo_rejects_an_output_path_that_is_a_file(tmp_path: Path) -> None:
@@ -111,13 +228,15 @@ def _sample_scan(name: str) -> Scan:
     return load_scan_text(read_text(source), source.name, load_catalogue())
 
 
+@pytest.mark.parametrize("profile", rules.PROFILES)
 @pytest.mark.parametrize("lang", ["en", "de"])
 @pytest.mark.parametrize(("sample", "date"), [("town", "2026-11-02"), ("nonprofit", "2026-11-05")])
-def test_cli_renders_both_samples_in_both_languages(
-    tmp_path: Path, lang: str, sample: str, date: str
+def test_cli_renders_every_profile_in_both_languages_for_both_samples(
+    tmp_path: Path, lang: str, sample: str, date: str, profile: str
 ) -> None:
     result = runner.invoke(
-        app, ["demo", "--lang", lang, "--sample", sample, "--out", str(tmp_path)]
+        app,
+        ["demo", "--lang", lang, "--sample", sample, "--profile", profile, "--out", str(tmp_path)],
     )
 
     assert result.exit_code == 0, result.output
@@ -137,6 +256,12 @@ def test_cli_renders_both_samples_in_both_languages(
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
     assert load_locale(lang)["header"]["sample"] in html
+    mapping = rules.load_mapping(profile, load_catalogue())
+    assert mapping.label[lang] in html.split("</header>", 1)[0]
+    moves = _section(html, "moves")
+    assert moves.count("data-function=") == len(mapping.functions)
+    if not mapping.product_profile:
+        assert load_locale(lang)["moves"]["no_project_check"] in moves
 
 
 @pytest.mark.parametrize("sample", ["town", "nonprofit"])
@@ -353,6 +478,8 @@ def test_cli_localises_bad_output_directory(tmp_path: Path) -> None:
     [
         (["--lang", "planted"], "Error:", "--lang"),
         (["--lang", "de", "--sample", "planted"], "Fehler:", "--sample"),
+        (["--profile", "planted"], "Error:", "--profile"),
+        (["--lang", "de", "--profile", "planted"], "Fehler:", "--profile"),
     ],
 )
 def test_cli_rejects_unsupported_options_without_echoing_the_value(

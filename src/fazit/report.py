@@ -19,9 +19,11 @@ from .rules import (
     evaluate,
     evidence_conflicts,
     licence_findings,
+    load_mapping,
     load_risky_file_types,
     load_service_plans,
     load_status_rules,
+    mapping_need,
     select_evidence,
 )
 
@@ -137,6 +139,7 @@ def render_report(
     scan: Scan,
     *,
     lang: str,
+    profile: str = "opendesk",
     catalogue: Catalogue | None = None,
     provided: tuple[Finding, ...] = (),
 ) -> str:
@@ -147,6 +150,7 @@ def render_report(
     plans = load_service_plans(catalogue, checksums=checksums)
     status_rules = load_status_rules(catalogue, checksums=checksums)
     risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
+    mapping = load_mapping(profile, catalogue, checksums=checksums)
     derived = licence_findings(scan, plans, catalogue)
     products = () if scan.licences is None else scan.licences.products
     licences = [(product, classify_product(product, plans)) for product in products]
@@ -157,6 +161,10 @@ def render_report(
         by_id, status_rules, catalogue, collectors={item.id: item for item in scan.collectors}
     )
     counts = Counter(row.status for row in statuses)
+    move_evidence = {row.workload: [] for row in statuses}
+    for finding in by_id.values():
+        if finding.value is not None:
+            move_evidence[finding.workload].append(finding)
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     headlines = []
     software = []
@@ -191,6 +199,15 @@ def render_report(
         statuses=statuses,
         status_counts=[(status, counts[status]) for status in STATUSES],
         status_rules=status_rules,
+        mapping=mapping,
+        status_by_workload={row.workload: row for row in statuses},
+        move_evidence=move_evidence,
+        mapping_need=mapping_need,
+        mapping_gaps=[
+            (item, by_id.get(item.need_finding) if item.need_finding else None)
+            for item in mapping.functions
+            if item.coverage == "not_available"
+        ],
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         software=software,
         alternatives=evidence.alternatives,

@@ -13,6 +13,7 @@ from .model import load_scan, load_scan_text, scan_to_json
 from .output import write_inside
 from .parsing import parse_yaml, read_text, reject_at_signs
 from .report import render_report, report_file_name
+from .rules import PROFILES
 
 app = typer.Typer(
     add_completion=False,
@@ -20,6 +21,7 @@ app = typer.Typer(
     pretty_exceptions_enable=False,
     invoke_without_command=True,
 )
+_PROFILE_HELP = f"Target profile ({', '.join(PROFILES)})."
 
 
 @app.callback()
@@ -56,6 +58,7 @@ def demo(
     out: Annotated[Path, typer.Option(help="Directory for the output files.")] = Path("report"),
     lang: Annotated[str, typer.Option(help="Report language (en or de).")] = DEFAULT_LANGUAGE,
     sample: Annotated[str, typer.Option(help="Bundled sample (town or nonprofit).")] = "town",
+    profile: Annotated[str, typer.Option(help=_PROFILE_HELP)] = "opendesk",
 ) -> None:
     """Build a report from bundled sample data."""
     try:
@@ -70,7 +73,7 @@ def demo(
         inputs_text = read_text(inputs)
         reject_at_signs(parse_yaml(inputs_text, inputs.name), inputs.name)
 
-        html = render_report(scan, lang=lang, catalogue=catalogue)
+        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue)
         stamp = f"{scan.generated_at[:10]}-{lang}"
         scan_path = write_inside(out, f"scan-{stamp}.json", scan_to_json(scan))
         inputs_path = write_inside(out, f"inputs-{stamp}.yaml", inputs_text)
@@ -89,13 +92,14 @@ def report(
     scan_json: Annotated[Path, typer.Argument(help="Scan JSON file to rebuild the report from.")],
     lang: Annotated[str, typer.Option(help="Report language (en or de).")] = DEFAULT_LANGUAGE,
     out: Annotated[Path, typer.Option(help="Directory for the report.")] = Path("report"),
+    profile: Annotated[str, typer.Option(help=_PROFILE_HELP)] = "opendesk",
 ) -> None:
     """Build a report from an existing scan file."""
     try:
         _check_language(lang)
         catalogue = load_catalogue()
         scan = load_scan(scan_json, catalogue)
-        html = render_report(scan, lang=lang, catalogue=catalogue)
+        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue)
         path = write_inside(out, report_file_name(scan.generated_at, lang=lang), html)
     except InputError as error:
         _exit_with_error(ctx, lang, error)

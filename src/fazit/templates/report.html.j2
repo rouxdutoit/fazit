@@ -11,23 +11,35 @@
   {%- elif finding.provenance == 'provided' %}{{ strings.common.date_not_supplied }}
   {%- else %}{{ strings.common.unavailable }}{% endif %}
 {%- endmacro %}
-{% macro evidence_summary(finding) -%}
+{% macro evidence_summary(finding, compact=false) -%}
   <div data-provenance="{{ finding.provenance }}">
     {{ value_text(finding) }}
     <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
     <small class="evidence-meta">
-      <span>{{ strings.found.source }} · {{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</span>
-      <span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>
-      <span>{{ strings.found.period }} · {{ format.period(finding.period) if finding.period else strings.common.unavailable }}</span>
-      <span>{{ strings.found.coverage }} · {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+      {% if not compact %}
+        <span>{{ strings.found.source }} · {{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</span>
+        <span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>
+        <span>{{ strings.found.period }} · {{ format.period(finding.period) if finding.period else strings.common.unavailable }}</span>
+        <span>{{ strings.found.coverage }} · {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+      {% else %}
+        {% if finding.provenance == 'provided' and finding.source %}
+          <span>{{ code_label('source', finding.source) }}</span>
+        {% endif %}
+        {% if finding.coverage and finding.coverage.kind != 'complete' %}
+          <span>{{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+        {% endif %}
+      {% endif %}
     </small>
   </div>
 {%- endmacro %}
+{% macro evidence_pair(finding, compact=false) -%}
+  {{ evidence_summary(finding, compact) }}
+  {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id], compact) }}{% endif %}
+  {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+{%- endmacro %}
 {% macro attention_evidence(finding) -%}
   {% if finding and finding.provenance != 'unknown' %}
-    {{ evidence_summary(finding) }}
-    {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id]) }}{% endif %}
-    {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+    {{ evidence_pair(finding) }}
     {% if finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial' %}
       <small>{{ reason_detail('answer_not_provided') }}</small>
     {% endif %}
@@ -40,6 +52,21 @@
 {%- endmacro %}
 {% macro status_label(status) -%}
   <span class="status {{ status }}"><span class="status-shape" aria-hidden="true"></span> {{ strings.status[status] }}</span>
+{%- endmacro %}
+{% macro workload_status(row) -%}
+  {{ status_label(row.status) }}
+  {% if row.incomplete %}<small>{{ strings.readiness.incomplete }}</small>{% endif %}
+{%- endmacro %}
+{% macro status_reason(row) -%}
+  {% if row.deciding %}{{ row.deciding.reason[lang] }}
+  {% elif row.reason_code %}{{ reason_detail(row.reason_code) }}
+  {% else %}{{ status_rules.workloads[row.workload].ready_reason[lang] }}{% endif %}
+{%- endmacro %}
+{% macro mapping_date(row) -%}
+  {% if row.checked_on %}
+    {% set day = row.checked_on.isoformat() %}
+    <time datetime="{{ day }}">{{ format.date(day) }}</time>
+  {% else %}{{ strings.moves.no_project_check }}{% endif %}
 {%- endmacro %}
 {% macro conditions_list(conditions) -%}
   <ul>
@@ -233,19 +260,21 @@
       padding: 0;
       list-style: none;
     }
-    .readiness, .licences { table-layout: fixed; }
+    .readiness, .licences, .moves { table-layout: fixed; }
     .readiness thead th:first-child, .readiness thead th:nth-child(2) { width: 15%; }
     .readiness thead th:nth-child(3) { width: 34%; }
+    .moves thead th:nth-child(-n+3) { width: 17%; }
     .licences thead th:first-child { width: 29%; }
     .licences thead th:nth-child(2), .licences thead th:nth-child(3) { width: 12%; }
     .risky-files thead th:first-child { width: 18%; }
     .risky-files thead th:nth-child(2) { width: 16%; }
     .risky-files thead th:nth-child(3) { width: 31%; }
-    .readiness ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
-    .readiness li + li, .not-examined li + li { margin-block-start: .4rem; }
+    .readiness ul, .moves ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
+    .readiness li + li, .moves li + li, .not-examined li + li,
+    .mapping-gaps li + li, .path-workloads li + li { margin-block-start: .4rem; }
     .evidence-meta { display: flex; flex-wrap: wrap; column-gap: .65rem; }
-    .rule-details dd, .software-counts dd { margin: 0 0 .8rem; }
-    .rule-details dt, .software-counts dt { font-weight: 650; }
+    .rule-details dd, .software-counts dd, .mapping-details dd { margin: 0 0 .8rem; }
+    .rule-details dt, .software-counts dt, .mapping-details dt { font-weight: 650; }
     footer {
       padding-block-start: .65rem;
       border-block-start: 1px solid var(--line);
@@ -296,7 +325,7 @@
       .table-scroll { overflow: visible; }
       table { font-size: .9em; }
       th, td { padding: .3rem; }
-      tr, .headlines li { break-inside: avoid; }
+      tr, .headlines li, .mapping-gaps li, .path-workloads li { break-inside: avoid; }
       tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
     }
   </style>
@@ -310,6 +339,7 @@
         <dd><time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></dd>
       </div>
       <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
+      <div><dt>{{ strings.header.target_profile }}</dt><dd>{{ mapping.label[lang] }}</dd></div>
     </dl>
     <p>{{ strings.header.local }}</p>
     <p class="muted">{{ strings.header.offline }}</p>
@@ -464,16 +494,12 @@
               <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} role="row">
                 <th scope="row" role="rowheader" data-label="{{ strings.readiness.workload }}">{{ workload_labels[row.workload] }}</th>
                 <td role="cell" data-label="{{ strings.appendix.status }}">
-                  {{ status_label(row.status) }}
-                  {% if row.incomplete %}<small>{{ strings.readiness.incomplete }}</small>{% endif %}
+                  {{ workload_status(row) }}
                 </td>
                 <td role="cell" data-label="{{ strings.appendix.reason }}">
-                  {% if row.deciding %}{{ row.deciding.reason[lang] }}
-                  {% elif row.reason_code %}
-                    {% if row.reason_code not in row.missing|map(attribute='reason_code')|list %}
-                      {{ reason_detail(row.reason_code) }}
-                    {% endif %}
-                  {% else %}{{ status_rules.workloads[row.workload].ready_reason[lang] }}{% endif %}
+                  {% if not row.reason_code or row.reason_code not in row.missing|map(attribute='reason_code')|list %}
+                    {{ status_reason(row) }}
+                  {% endif %}
                   {% if row.notes %}
                     <ul>
                       {% for rule in row.notes %}<li>{{ rule.reason[lang] }}</li>{% endfor %}
@@ -498,9 +524,7 @@
                       {% for finding in row.evidence %}
                         <li data-evidence="{{ finding.id }}">
                           <strong>{{ finding_labels[finding.id] }}</strong>
-                          {{ evidence_summary(finding) }}
-                          {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id]) }}{% endif %}
-                          {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+                          {{ evidence_pair(finding) }}
                         </li>
                       {% endfor %}
                     </ul>
@@ -523,6 +547,55 @@
           <li data-unexamined-collector="{{ collector.id }}"><strong>{{ code_label('collector', collector.id) }}</strong> · {{ reason_detail(collector.reason) }}</li>
         {% endfor %}
       </ul>
+    </section>
+    <section data-section="moves">
+      <h2 id="moves-title">{{ strings.moves.title }}</h2>
+      <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
+        <table class="moves" role="table">
+          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          <thead role="rowgroup">
+            <tr role="row">
+              {{ column(strings.moves.microsoft) }}
+              {{ column(strings.moves.replacement) }}
+              {{ column(strings.moves.coverage) }}
+              {{ column(strings.moves.evidence) }}
+              {{ column(strings.moves.workload_status) }}
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {% for item in mapping.functions %}
+              {% set row = status_by_workload[item.workload] %}
+              <tr data-function="{{ item.function }}" data-workload="{{ item.workload }}" data-status="{{ row.status }}" role="row">
+                <th scope="row" role="rowheader" data-label="{{ strings.moves.microsoft }}">{{ item.microsoft[lang] }}</th>
+                <td role="cell" data-label="{{ strings.moves.replacement }}">{{ item.replacement[lang] }}</td>
+                <td role="cell" data-label="{{ strings.moves.coverage }}">
+                  {{ strings.mapping_coverage[item.coverage] }}
+                  <small>{{ mapping_date(item) }}</small>
+                </td>
+                <td role="cell" data-label="{{ strings.moves.evidence }}">
+                  {% if move_evidence[item.workload] %}
+                    <ul>
+                      {% for finding in move_evidence[item.workload][:3] %}
+                        <li data-move-evidence="{{ finding.id }}">
+                          <strong>{{ finding_labels[finding.id] }}</strong>
+                          {{ evidence_pair(finding, compact=true) }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}<span data-provenance="unknown">{{ strings.moves.no_evidence }}</span>{% endif %}
+                </td>
+                <td role="cell" data-label="{{ strings.moves.workload_status }}">
+                  {{ workload_status(row) }}
+                  <div>{{ status_reason(row) }}</div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% for workload in mapping.no_function %}
+        <p><strong>{{ workload_labels[workload] }}</strong> · {{ strings.moves.no_function }}</p>
+      {% endfor %}
     </section>
     <section data-section="attention">
       <h2>{{ strings.attention.title }}</h2>
@@ -564,6 +637,56 @@
           <dd data-software-count="{{ entry.id }}">{{ attention_evidence(finding) }}</dd>
         {% endfor %}
       </dl>
+      <div data-subsection="cannot-be-moved">
+        <h3>{{ strings.attention.cannot_be_moved }}</h3>
+        {% if mapping_gaps %}
+          <p>{{ strings.attention.gap_scope }}</p>
+          <ul class="mapping-gaps">
+            {% for item, finding in mapping_gaps %}
+              {% set need = mapping_need(finding) %}
+              <li data-gap="{{ item.function }}" data-need="{{ need }}">
+                <strong>{{ item.microsoft[lang] }}</strong>
+                <p>{{ item.note[lang] if item.note else strings.mapping_coverage.not_available }}</p>
+                <p data-provenance="{{ 'unknown' if need == 'unknown' else finding.provenance }}">
+                  <strong>{{ strings.attention.needed_here }}</strong> · {{ strings.status.unknown if need == 'unknown' else strings.common[need] }}
+                  {% if need == 'unknown' %}
+                    <small>{{ reason_detail(finding.missing_reason if finding and finding.missing_reason else 'not_established') }}</small>
+                  {% else %}
+                    <small>
+                      {{ finding_labels[finding.id] }} · <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
+                      · {{ code_label('source', finding.source) }} · {{ finding_date(finding) }}
+                    </small>
+                  {% endif %}
+                </p>
+                <small>{{ strings.appendix.mapping_reference }} · {{ item.reference_url or strings.common.unavailable }}</small>
+                <small>{{ strings.appendix.mapping_date }} · {{ mapping_date(item) }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}<p>{{ strings.attention.no_gaps }}</p>{% endif %}
+      </div>
+    </section>
+    <section data-section="path">
+      <h2>{{ strings.path.title }}</h2>
+      {% for status in ('blocker', 'unknown', 'ready') %}
+        <h3>{{ strings.path[status] }}</h3>
+        {% set rows = statuses|selectattr('status', 'equalto', status)|list %}
+        {% if rows %}
+          <ul data-path-status="{{ status }}" class="path-workloads">
+            {% for row in rows %}
+              <li data-path-workload="{{ row.workload }}">
+                <strong>{{ workload_labels[row.workload] }}</strong> · {{ status_reason(row) }}
+                {% if row.incomplete %}<small>{{ strings.readiness.incomplete }}</small>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}<p>{{ strings.path.empty[status] }}</p>{% endif %}
+      {% endfor %}
+      <p>{{ strings.path.pilot_evidence }} {{ strings.path.pilot_choice }}</p>
+      <h3>{{ strings.path.sequence }}</h3>
+      <ol>
+        {% for step in strings.path.steps %}<li>{{ step }}</li>{% endfor %}
+      </ol>
     </section>
     <section data-section="appendix">
       <h2>{{ strings.appendix.title }}</h2>
@@ -616,6 +739,23 @@
           </dd>
         {% endfor %}
       </dl>
+      <h3>{{ strings.appendix.mapping }}</h3>
+      <p>{{ mapping.description[lang] }}</p>
+      <p>{{ strings.appendix.mapping_file }} · <code>{{ mapping.file_name }}</code></p>
+      <dl class="mapping-details">
+        {% for item in mapping.functions %}
+          <dt>{{ item.microsoft[lang] }} <small>{{ workload_labels[item.workload] }}</small></dt>
+          <dd data-mapping-details="{{ item.function }}">
+            <p>{{ item.replacement[lang] }} · {{ strings.mapping_coverage[item.coverage] }}</p>
+            {% if item.note %}<p>{{ item.note[lang] }}</p>{% endif %}
+            <small>{{ strings.appendix.mapping_reference }} · {{ item.reference_url or strings.common.unavailable }}</small>
+            <small>{{ strings.appendix.mapping_date }} · {{ mapping_date(item) }}</small>
+          </dd>
+        {% endfor %}
+      </dl>
+      {% for workload in mapping.no_function %}
+        <p><strong>{{ workload_labels[workload] }}</strong> · {{ strings.moves.no_function }}</p>
+      {% endfor %}
       <h3 data-subsection="run-details">{{ strings.appendix.run_details }}</h3>
       <dl class="report-meta">
         <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>

@@ -3,6 +3,7 @@ header:
   title: Microsoft 365 inventory
   scan_date: Evidence date
   tool_version: Tool version
+  target_profile: Target profile
   local: This tool built the report on this computer from the scan file and contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
@@ -49,6 +50,25 @@ readiness:
   missing: Evidence still needed
   conflict: The measurement found affected items despite the supplied zero, so the status uses the measured lower bound.
   not_examined: Not examined
+moves:
+  title: What moves where
+  microsoft: Microsoft function
+  replacement: Target replacement
+  coverage: Coverage and check date
+  evidence: What we found
+  workload_status: Workload status and reason
+  no_evidence: The evidence does not establish any findings for this workload.
+  no_function: There is no function to move.
+  no_project_check: This row has no project-specific documentation check.
+mapping_coverage:
+  in_suite: In the suite
+  in_suite_with_limits: In the suite with limits
+  announced: Announced
+  component_vendor_solution: Solution from the component vendor
+  open_source_community: Open source community solution
+  open_source_third_party: Open source third-party solution
+  proprietary_third_party: Proprietary third-party solution
+  not_available: Not available
 attention:
   title: Needs attention
   files: File types to review
@@ -57,6 +77,27 @@ attention:
   count: Reported count
   none_reported: None were reported.
   software: Windows-only software
+  cannot_be_moved: Cannot be moved
+  gap_scope: A direct transfer for these functions has not been established for the selected profile.
+  needed_here: Needed by this organisation
+  no_gaps: This profile lists no functions that cannot be moved.
+path:
+  title: Suggested path
+  blocker: Confirmed blockers
+  unknown: Unknowns to resolve first
+  ready: Areas where the evidence shows no obstacle
+  empty:
+    blocker: The evidence identified no blocker.
+    unknown: All workloads have a known status.
+    ready: No workload meets the evidence requirements for Ready.
+  pilot_evidence: The report has no department-level evidence, so it cannot identify a department for a pilot.
+  pilot_choice: The people responsible for the move choose the pilot group with the organisation.
+  sequence: How a move typically proceeds
+  steps:
+    - A pilot group tries the new system.
+    - Files that need conversion are prepared and tested.
+    - The organisation moves in waves with both systems running side by side.
+    - The organisation switches off the old system after the move is complete.
 appendix:
   title: Appendix
   schema_version: Schema version
@@ -70,6 +111,10 @@ appendix:
   rule_file: Rule file
   ready_evidence: Evidence required for Ready
   condition_exists: is available
+  mapping: Function mapping
+  mapping_file: Mapping file
+  mapping_reference: Documentation
+  mapping_date: Checked on
   run_details: Run details
   checksums: SHA-256 checksums of the rule files used
 footer:
@@ -278,6 +323,7 @@ errors:
   schema_version: The field {field} in {file} contains version {found}, and this tool supports {supported}.
   unsupported_language: Choose en or de for {field} in {file}.
   unsupported_sample: Choose town or nonprofit for {field} in {file}.
+  unsupported_profile: Choose opendesk, nextcloud or generic for {field} in {file}.
   out_dir: The output directory {file} for {field} could not be created or opened.
   destination_is_link: The output file {file} for {field} is a symbolic link.
   write_failed: The output file {file} could not be written under {field}.

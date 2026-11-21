@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
-from collections.abc import Collection, Mapping, MutableMapping
+from collections.abc import Collection, MutableMapping
+from collections.abc import Mapping as MappingABC
 from dataclasses import dataclass, replace
 from datetime import date
 from hashlib import sha256
@@ -10,6 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Never
 
+from . import PROJECT_NAME
 from .catalogue import Catalogue
 from .errors import InputError
 from .model import Collector, Finding, FindingValue, Product, Scan
@@ -18,6 +20,7 @@ from .parsing import parse_yaml, read_text
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
 _GUID = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
 _LICENCE_REFERENCE = re.compile(r"https://learn\.microsoft\.com/[^\s]+")
+_MAPPING_REFERENCE = re.compile(r"https://[^/\s?#]+(?:[/?#][^\s]*)?")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _SIGNALS = ("add_on", "bundled")
 _PRODUCT_COUNT = "licences.product_count"
@@ -27,6 +30,17 @@ _EXTENSION = re.compile(r"[a-z0-9]+")
 _RISKY_FINDING_PREFIX = "office_files.kind."
 _OPERATORS = ("exists", "==", ">", ">=")
 STATUSES = ("ready", "needs_work", "blocker", "unknown")
+PROFILES = ("opendesk", "nextcloud", "generic")
+COVERAGE_LADDER = (
+    "in_suite",
+    "in_suite_with_limits",
+    "announced",
+    "component_vendor_solution",
+    "open_source_community",
+    "open_source_third_party",
+    "proprietary_third_party",
+    "not_available",
+)
 
 
 @dataclass(frozen=True)
@@ -39,7 +53,7 @@ class ServicePlan:
     signal: str
     reference_url: str
     checked_on: date
-    note: Mapping[str, str] | None
+    note: MappingABC[str, str] | None
 
 
 @dataclass(frozen=True)
@@ -55,19 +69,19 @@ class StatusRule:
     id: str
     when: tuple[Condition, ...]
     status: str
-    reason: Mapping[str, str]
+    reason: MappingABC[str, str]
 
 
 @dataclass(frozen=True)
 class WorkloadRules:
     ready: tuple[Condition, ...]
-    ready_reason: Mapping[str, str]
+    ready_reason: MappingABC[str, str]
     rules: tuple[StatusRule, ...]
 
 
 @dataclass(frozen=True)
 class StatusRuleSet:
-    workloads: Mapping[str, WorkloadRules]
+    workloads: MappingABC[str, WorkloadRules]
     file_name: str
 
 
@@ -97,9 +111,33 @@ class WorkloadStatus:
 class RiskyKind:
     id: str
     finding_id: str
-    label: Mapping[str, str]
-    note: Mapping[str, str]
+    label: MappingABC[str, str]
+    note: MappingABC[str, str]
     extensions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class FunctionMapping:
+    function: str
+    workload: str
+    microsoft: MappingABC[str, str]
+    replacement: MappingABC[str, str]
+    coverage: str
+    reference_url: str | None
+    checked_on: date | None
+    note: MappingABC[str, str] | None
+    need_finding: str | None = None
+
+
+@dataclass(frozen=True)
+class Mapping:
+    profile: str
+    label: MappingABC[str, str]
+    description: MappingABC[str, str]
+    product_profile: bool
+    no_function: tuple[str, ...]
+    functions: tuple[FunctionMapping, ...]
+    file_name: str
 
 
 def rules_dir() -> Traversable:
@@ -138,7 +176,7 @@ class _RuleReader:
             self.fail(field, "invalid_code")
         return value
 
-    def bilingual(self, value: object, field: str) -> Mapping[str, str]:
+    def bilingual(self, value: object, field: str) -> MappingABC[str, str]:
         text = self.fields(value, field, ("en", "de"))
         for lang, sentence in text.items():
             if not isinstance(sentence, str) or not sentence.strip():
@@ -164,6 +202,98 @@ def _read_rules(
     if checksums is not None:
         checksums[source.name] = sha256(text.encode("utf-8")).hexdigest()
     return _RuleReader(source.name), data
+
+
+def _function_mapping(
+    item: object, field: str, reader: _RuleReader, catalogue: Catalogue, product_profile: bool
+) -> FunctionMapping:
+    references = ("reference_url", "checked_on")
+    row = reader.fields(
+        item,
+        field,
+        ("function", "workload", "microsoft", "replacement", "coverage")
+        + (references if product_profile else ()),
+        ("note", "need_finding") + (() if product_profile else references),
+    )
+    workload = reader.choice(row["workload"], f"{field}.workload", catalogue.workload_ids)
+    steps = COVERAGE_LADDER if product_profile else COVERAGE_LADDER[4:]
+    coverage = reader.choice(row["coverage"], f"{field}.coverage", steps)
+    reference_url = None
+    checked_on = None
+    if product_profile:
+        reference_url = reader.matches(
+            row["reference_url"], f"{field}.reference_url", _MAPPING_REFERENCE
+        )
+        checked_on = reader.check_date(row["checked_on"], f"{field}.checked_on")
+    else:
+        for key in references:
+            if row.get(key) is not None:
+                reader.fail(f"{field}.{key}")
+    need_finding = row.get("need_finding")
+    if need_finding is not None:
+        entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
+        if entry is None or entry.workload != workload or entry.type != "boolean":
+            reader.fail(f"{field}.need_finding")
+    return FunctionMapping(
+        function=reader.matches(row["function"], f"{field}.function", _RULE_ID),
+        workload=workload,
+        microsoft=reader.bilingual(row["microsoft"], f"{field}.microsoft"),
+        replacement=reader.bilingual(row["replacement"], f"{field}.replacement"),
+        coverage=coverage,
+        reference_url=reference_url,
+        checked_on=checked_on,
+        note=reader.bilingual(row["note"], f"{field}.note") if "note" in row else None,
+        need_finding=need_finding,
+    )
+
+
+def load_mapping(
+    profile: str,
+    catalogue: Catalogue,
+    directory: Path | None = None,
+    *,
+    checksums: MutableMapping[str, str] | None = None,
+) -> Mapping:
+    if profile not in PROFILES:
+        raise InputError("unsupported_profile", file=PROJECT_NAME, field="--profile")
+    name = f"mappings/{profile}.yaml"
+    reader, data = _read_rules(name, directory / name if directory is not None else None, checksums)
+    root = reader.fields(
+        data,
+        "$",
+        ("profile", "label", "description", "product_profile", "no_function", "functions"),
+    )
+    reader.choice(root["profile"], "profile", (profile,))
+    product_profile = root["product_profile"]
+    if type(product_profile) is not bool:
+        reader.fail("product_profile")
+    workload_ids = catalogue.workload_ids
+    no_function = []
+    for index, item in enumerate(reader.rows(root["no_function"], "no_function", allow_empty=True)):
+        field = f"no_function[{index}]"
+        workload = reader.choice(item, field, workload_ids)
+        if workload in no_function:
+            reader.fail(field, "duplicate_id")
+        no_function.append(workload)
+    functions: dict[str, FunctionMapping] = {}
+    for index, item in enumerate(reader.rows(root["functions"], "functions")):
+        field = f"functions[{index}]"
+        row = _function_mapping(item, field, reader, catalogue, product_profile)
+        if row.function in functions:
+            reader.fail(f"{field}.function", "duplicate_id")
+        functions[row.function] = row
+    covered = {row.workload for row in functions.values()}
+    if covered.intersection(no_function) or covered.union(no_function) != set(workload_ids):
+        reader.fail("no_function")
+    return Mapping(
+        profile=profile,
+        label=reader.bilingual(root["label"], "label"),
+        description=reader.bilingual(root["description"], "description"),
+        product_profile=product_profile,
+        no_function=tuple(no_function),
+        functions=tuple(functions.values()),
+        file_name=reader.file_name,
+    )
 
 
 def _service_plan(
@@ -318,7 +448,7 @@ def _literal_matches(value: object, kind: str) -> bool:
 
 
 def _conditions(
-    value: object, field: str, reader: _RuleReader, types: Mapping[str, str]
+    value: object, field: str, reader: _RuleReader, types: MappingABC[str, str]
 ) -> tuple[Condition, ...]:
     conditions = []
     for index, item in enumerate(reader.rows(value, field)):
@@ -348,7 +478,7 @@ def _workload_rules(
     item: object,
     field: str,
     reader: _RuleReader,
-    types: Mapping[str, str],
+    types: MappingABC[str, str],
     rule_ids: set[str],
 ) -> WorkloadRules:
     block = reader.fields(item, field, ("ready", "rules"))
@@ -404,6 +534,12 @@ def _complete(finding: Finding | None) -> bool:
     return finding.coverage.kind == "complete"
 
 
+def mapping_need(finding: Finding | None) -> str:
+    if finding is not None and type(finding.value) is bool and _complete(finding):
+        return "yes" if finding.value else "no"
+    return "unknown"
+
+
 def _positive_partial(finding: Finding) -> bool:
     return (
         finding.provenance in ("measured", "provided")
@@ -441,7 +577,7 @@ def _gap(
     condition: Condition,
     finding: Finding | None,
     provided_ids: Collection[str],
-    collectors: Mapping[str, Collector],
+    collectors: MappingABC[str, Collector],
 ) -> MissingEvidence | None:
     expected_answer = condition.provenance == "provided" or (
         condition.provenance is None and condition.finding in provided_ids
@@ -510,9 +646,9 @@ def _unknown_code(
 def _evaluate_workload(
     workload: str,
     block: WorkloadRules,
-    findings: Mapping[str, Finding],
+    findings: MappingABC[str, Finding],
     provided_ids: Collection[str],
-    collectors: Mapping[str, Collector],
+    collectors: MappingABC[str, Collector],
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
         (*block.ready, *(item for rule in block.rules for item in rule.when))
@@ -558,11 +694,11 @@ def _evaluate_workload(
 
 
 def evaluate(
-    findings: Mapping[str, Finding],
+    findings: MappingABC[str, Finding],
     rule_set: StatusRuleSet,
     catalogue: Catalogue,
     *,
-    collectors: Mapping[str, Collector] | None = None,
+    collectors: MappingABC[str, Collector] | None = None,
 ) -> tuple[WorkloadStatus, ...]:
     provided_ids = {entry.id for entry in catalogue.findings if entry.provided != "no"}
     return tuple(

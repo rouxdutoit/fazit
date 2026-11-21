@@ -13,6 +13,7 @@ from fazit import report as report_module
 from fazit.cli import app
 from fazit.i18n import load_locale
 from fazit.report import SECTION_ORDER
+from fazit.rules import PROFILES
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 RESOURCE_ELEMENTS = {
@@ -61,8 +62,10 @@ class ReportDocument(HTMLParser):
             self.styles.append(data)
 
 
-def _rebuild(scan: Path, out: Path, lang: str) -> str:
-    result = runner.invoke(app, ["report", str(scan), "--lang", lang, "--out", str(out)])
+def _rebuild(scan: Path, out: Path, lang: str, *, profile: str = "opendesk") -> str:
+    result = runner.invoke(
+        app, ["report", str(scan), "--lang", lang, "--profile", profile, "--out", str(out)]
+    )
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.strip())
     assert path.is_file() and path.parent == out
@@ -75,9 +78,12 @@ def _sample_scan(sample: str) -> Path:
 
 
 @pytest.mark.parametrize(("sample", "lang"), [*SAMPLES, ("planted", "en")])
-def test_report_cannot_fetch_resources(tmp_path: Path, sample: str, lang: str) -> None:
+@pytest.mark.parametrize("profile", PROFILES)
+def test_report_cannot_fetch_resources(
+    tmp_path: Path, sample: str, lang: str, profile: str
+) -> None:
     scan = PLANTED_SCAN if sample == "planted" else _sample_scan(sample)
-    document = ReportDocument(_rebuild(scan, tmp_path, lang))
+    document = ReportDocument(_rebuild(scan, tmp_path, lang, profile=profile))
 
     policies = []
     for tag, attrs in document.tags:
