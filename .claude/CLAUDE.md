@@ -75,3 +75,7 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 > Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
 <!-- GSD:profile-end -->
+
+## Engineering standards
+
+Read `AGENTS.md` at the repository root before changing code. It holds the rules both Claude and Codex follow here: what the tool must never do, code and report standards, tests, and what "done" means. Product code on this project is written by Codex (GPT-6.2-Sol, max effort) under Claude's coordination; Claude subagents plan, check and review.
