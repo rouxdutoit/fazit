@@ -30,6 +30,7 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D12. `.dotx` leaves the risky-file list**; it cannot contain macros. An `.xlsm` extension is reported as "may contain macros", never as a confirmed blocker.
 - **D13. Tenant-wide file inventory is deferred** until paid assessments show it changes a decision. If built, it runs on customer-nominated libraries with a separately granted read permission, and capped scans are labelled partial.
 - **D14. Distribution is `uvx` plus a signed, self-contained Windows build.**
+- **D15. `pyyaml` is added to the dependency list.** The handoff mandates YAML files for rules, locales and inputs but does not list a YAML parser. No other dependency is added without a new entry here.
 
 ### Milestone order
 
