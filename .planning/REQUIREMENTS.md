@@ -201,7 +201,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 58 total
 - Mapped to phases: 58
 - Unmapped: 0 ✓
-- Phase 1 (Demo and Report): 30
+- Phase 1 (Demo and Report): 31
 - Phase 2 (Import): 6
 - Phase 3 (Doctor, Sign-in and Live Counts): 16
 - Phase 4 (Documentation, Packaging and Release): 5

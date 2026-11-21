@@ -31,6 +31,9 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D13. Tenant-wide file inventory is deferred** until paid assessments show it changes a decision. If built, it runs on customer-nominated libraries with a separately granted read permission, and capped scans are labelled partial.
 - **D14. Distribution is `uvx` plus a signed, self-contained Windows build.**
 - **D15. `pyyaml` is added to the dependency list.** The handoff mandates YAML files for rules, locales and inputs but does not list a YAML parser. No other dependency is added without a new entry here.
+- **D16. `hatchling` is the build backend, pinned to an exact version.** It is needed to build the package and is not a runtime dependency.
+- **D17. No package release younger than 14 days is installed.** `pyproject.toml` sets uv's `exclude-newer` to a fixed date, moved forward deliberately. A release that is a few days old has not been looked at by anyone yet.
+- **D18. Command-line help is English only.** Everything in the report and every message the tool prints exists in German and English. Help text for commands and options stays in English, because the language is not known until the arguments have been parsed.
 
 ### Milestone order
 

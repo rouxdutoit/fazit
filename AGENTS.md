@@ -41,7 +41,7 @@ Each of these has a test. A change that weakens one of those tests is rejected.
 ## Words
 
 - Plain language a council IT officer can read and trust. No marketing words.
-- Every user-facing string exists in `locales/en.yaml` and `locales/de.yaml`. German is written as German: formal "Sie", administrative register, not a word-for-word translation.
+- Every string in the report, and every message the tool prints, exists in `locales/en.yaml` and `locales/de.yaml`. Command and option help is English only (`DECISIONS.md` D18). German is written as German: formal "Sie", administrative register, not a word-for-word translation.
 
 ## Tests
 
