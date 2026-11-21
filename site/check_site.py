@@ -1,32 +1,69 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check local site links and verify the checked-in demo reports."""
+"""Check the bilingual static site and verify the checked-in demo reports."""
 
 import re
+import struct
 from collections import Counter
+from collections.abc import Iterator
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from itertools import pairwise
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import unquote, urljoin, urlsplit
+from xml.etree import ElementTree
 
 from typer.testing import CliRunner
 
 from fazit.cli import app
 
 ROOT = Path(__file__).resolve().parent
-DEMO_REPORTS = {ROOT / "demo" / lang / "index.html": lang for lang in ("en", "de")}
+ORIGIN = "https://fazit.dev"
+LANGUAGES = ("en", "de")
+DEMO_ROUTES = ("/demo/en/", "/demo/de/")
+PAGE_PAIRS = (
+    ("/", "/de/"),
+    *(
+        (f"/{page}/", f"/de/{page}/")
+        for page in ("pilots", "integrators", "security", "impressum", "privacy")
+    ),
+    DEMO_ROUTES,
+    ("/404.html", "/de/404.html"),
+)
+SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
+XHTML_NS = "http://www.w3.org/1999/xhtml"
 VOID = set("area base br col embed hr img input link meta param source track wbr".split())
+CSS_REFS = re.compile(r"""url\(\s*["']?([^"')]+)["']?\s*\)|@import\s*["']([^"']+)""", re.I)
+
+
+@dataclass(frozen=True)
+class Reference:
+    name: str
+    value: str
+    line: int
+    plain_link: bool = False
+    dimensions: tuple[int, int] | None = None
+
+
+def css_references(css: str, first_line: int) -> Iterator[Reference]:
+    for match in CSS_REFS.finditer(css):
+        value = (match[1] or match[2]).strip()
+        yield Reference("CSS URL", value, first_line + css.count("\n", 0, match.start()))
 
 
 class Page(HTMLParser):
     def __init__(self, path: Path) -> None:
         super().__init__()
-        self.path = path
         self.tags: Counter[str] = Counter()
         self.ids: Counter[str] = Counter()
         self.stack: list[str] = []
         self.headings: list[int] = []
-        self.links: list[tuple[str, str, str, int]] = []
+        self.references: list[Reference] = []
+        self.canonicals: list[str] = []
+        self.alternates: list[tuple[str, str]] = []
+        self.switches: list[tuple[str, str, str]] = []
+        self.meta: dict[str, str] = {}
         self.errors: list[str] = []
         self.language = ""
         self.doctype = False
@@ -40,16 +77,74 @@ class Page(HTMLParser):
         self.tags[tag] += 1
         if tag not in VOID:
             self.stack.append(tag)
-        values = dict(attrs)
+        values = {name: value or "" for name, value in attrs}
+        line = self.getpos()[0]
         if tag == "html":
-            self.language = values.get("lang") or ""
+            self.language = values.get("lang", "")
         if element_id := values.get("id"):
             self.ids[element_id] += 1
         if re.fullmatch(r"h[1-6]", tag):
             self.headings.append(int(tag[1]))
-        for name, value in attrs:
-            if name in {"href", "src"}:
-                self.links.append((tag, name, value or "", self.getpos()[0]))
+        if tag in {"base", "embed", "iframe", "object"}:
+            self.errors.append(f"Unexpected <{tag}> on line {line}.")
+        if tag == "script" and values.get("src") != "/site.js":
+            self.errors.append(f"Expected the local script on line {line}.")
+        if any(name.startswith("on") or name == "ping" for name in values):
+            self.errors.append(f"Event handlers and link tracking are disallowed on line {line}.")
+        self.record_metadata(tag, values, line)
+        self.record_references(tag, values, line)
+
+    def record_metadata(self, tag: str, attrs: dict[str, str], line: int) -> None:
+        href = attrs.get("href", "")
+        hreflang = attrs.get("hreflang", "")
+        if tag == "link":
+            relations = attrs.get("rel", "").lower().split()
+            if "canonical" in relations:
+                self.canonicals.append(href)
+            if "alternate" in relations:
+                self.alternates.append((hreflang, href))
+        if tag == "a" and "language" in attrs.get("class", "").split():
+            self.switches.append((href, hreflang, attrs.get("lang", "")))
+        if tag == "meta":
+            if attrs.get("http-equiv", "").lower() == "refresh":
+                self.errors.append(f"Unexpected meta refresh on line {line}.")
+            key = attrs.get("property") or attrs.get("name", "")
+            self.meta[key] = attrs.get("content", "")
+            if key in {"og:url", "og:image", "twitter:image"}:
+                self.references.append(Reference(key, self.meta[key], line))
+
+    def record_references(self, tag: str, attrs: dict[str, str], line: int) -> None:
+        dimensions = None
+        if tag == "img" or (tag == "source" and "picture" in self.stack):
+            dimensions = self.image_dimensions(attrs, line)
+        if tag == "img" and (not attrs.get("src") or not attrs.get("alt", "").strip()):
+            self.errors.append(f"Expected an image src and alt text on line {line}.")
+        for name in ("href", "src", "poster", "background", "xlink:href", "action", "formaction"):
+            if name in attrs:
+                self.references.append(
+                    Reference(name, attrs[name], line, tag == "a" and name == "href", dimensions)
+                )
+        for name in ("srcset", "imagesrcset"):
+            if name in attrs:
+                for candidate in attrs[name].split(","):
+                    url = candidate.strip().split(maxsplit=1)
+                    self.references.append(
+                        Reference(name, url[0] if url else "", line, dimensions=dimensions)
+                    )
+        self.references.extend(css_references(attrs.get("style", ""), line))
+
+    def image_dimensions(self, attrs: dict[str, str], line: int) -> tuple[int, int] | None:
+        width, height = attrs.get("width", ""), attrs.get("height", "")
+        if not all(re.fullmatch(r"[1-9][0-9]*", value) for value in (width, height)):
+            self.errors.append(f"Expected positive image width and height on line {line}.")
+            return None
+        return int(width), int(height)
+
+    def handle_data(self, data: str) -> None:
+        if self.stack and self.stack[-1] == "style":
+            self.references.extend(css_references(data, self.getpos()[0]))
+        if self.stack and self.stack[-1] == "script" and data.strip():
+            self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.handle_starttag(tag, attrs)
@@ -62,9 +157,9 @@ class Page(HTMLParser):
         else:
             self.stack.pop()
 
-    def check_structure(self, *, require_skip_link: bool) -> None:
-        if not self.doctype or self.language not in {"en", "de"}:
-            self.errors.append("Expected an HTML doctype and an en or de document language.")
+    def check_structure(self, lang: str, *, demo: bool) -> None:
+        if not self.doctype or self.language != lang:
+            self.errors.append(f"Expected an HTML doctype and document language {lang}.")
         if self.stack:
             self.errors.append(f"Unclosed tags {self.stack}.")
         for tag in ("html", "head", "title", "body", "main", "h1"):
@@ -77,39 +172,163 @@ class Page(HTMLParser):
         for element_id, count in self.ids.items():
             if count > 1:
                 self.errors.append(f"Duplicate id {element_id!r}.")
-        if require_skip_link and not any(
-            tag == "a" and value == "#main" for tag, _, value, _ in self.links
-        ):
+        if not demo and not any(ref.plain_link and ref.value == "#main" for ref in self.references):
             self.errors.append("Missing skip link to #main.")
 
+    def check_metadata(self, route: str, other_lang: str, pair: dict[str, str]) -> None:
+        if self.switches != [(pair[other_lang], other_lang, other_lang)]:
+            self.errors.append("The language switch must link to the corresponding page.")
+        if self.canonicals != [ORIGIN + route]:
+            self.errors.append("Expected one canonical URL for the page.")
+        if Counter(self.alternates) != Counter(alternates(pair).items()):
+            self.errors.append("Expected English and German hreflang links for the page pair.")
+        expected = {
+            "og:url": ORIGIN + route,
+            "og:image": ORIGIN + "/og.png",
+            "og:image:width": "1200",
+            "og:image:height": "630",
+            "twitter:card": "summary_large_image",
+            "twitter:image": ORIGIN + "/og.png",
+        }
+        for key, value in expected.items():
+            if self.meta.get(key) != value:
+                self.errors.append(f"Incorrect or missing metadata {key}.")
+        for key in ("title", "description", "image:alt"):
+            for prefix in ("og", "twitter"):
+                if not self.meta.get(f"{prefix}:{key}", "").strip():
+                    self.errors.append(f"Missing metadata {prefix}:{key}.")
 
-def check_reference(
-    source: Path, tag: str, name: str, value: str, pages: dict[Path, Page]
-) -> str | None:
-    raw = urlsplit(value)
-    if raw.scheme or raw.netloc:
-        if tag == "a" and name == "href" and raw.scheme in {"https", "mailto", "tel"}:
-            return None
-        return f"{name}={value!r} is an external resource or unsupported link."
-    if not value:
-        return f"{name} is empty."
-    origin = "/" + source.relative_to(ROOT).as_posix()
-    url = urlsplit(urljoin(origin, value))
-    target = (ROOT / unquote(url.path).lstrip("/")).resolve()
-    if url.path.endswith("/"):
-        target /= "index.html"
+
+def alternates(pair: dict[str, str]) -> dict[str, str]:
+    return {lang: ORIGIN + route for lang, route in pair.items()}
+
+
+def route_for(path: Path) -> str:
+    relative = path.relative_to(ROOT)
+    if relative.name == "index.html":
+        return "/" if relative.parent == Path(".") else f"/{relative.parent.as_posix()}/"
+    return f"/{relative.as_posix()}"
+
+
+def local_path(route: str) -> Path:
+    path = ROOT / unquote(route).lstrip("/")
+    return (path / "index.html" if route.endswith("/") else path).resolve()
+
+
+def png_dimensions(path: Path) -> tuple[int, int] | None:
+    with path.open("rb") as image:
+        header = image.read(24)
+    if len(header) != 24 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
+        return None
+    width, height = struct.unpack(">II", header[16:24])
+    return width, height
+
+
+def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str | None:
+    if not ref.value.strip():
+        return f"{ref.name} is empty."
+    raw = urlsplit(ref.value)
+    if raw.scheme in {"https", "mailto", "tel"} and ref.plain_link and raw.netloc != "fazit.dev":
+        return None
+    resolved = urlsplit(urljoin(ORIGIN + route, ref.value))
+    if resolved.scheme != "https" or resolved.netloc != "fazit.dev":
+        return f"{ref.name}={ref.value!r} is an external resource or unsupported link."
+    target = local_path(resolved.path or "/")
     if not target.is_relative_to(ROOT) or not target.is_file():
-        return f"{name}={value!r} does not resolve to a file in the site."
-    if url.fragment and target in pages and unquote(url.fragment) not in pages[target].ids:
-        return f"{name}={value!r} does not resolve to an element."
+        return f"{ref.name}={ref.value!r} does not resolve to a file in the site."
+    if (
+        resolved.fragment
+        and target in pages
+        and unquote(resolved.fragment) not in pages[target].ids
+    ):
+        return f"{ref.name}={ref.value!r} does not resolve to an element."
+    if ref.dimensions and target.suffix == ".png" and png_dimensions(target) != ref.dimensions:
+        return f"{ref.name}={ref.value!r} does not match its declared width and height."
     return None
+
+
+def check_sitemap(expected: dict[str, dict[str, str]]) -> list[str]:
+    try:
+        urls = ElementTree.parse(ROOT / "sitemap.xml").getroot()
+    except (OSError, ElementTree.ParseError) as error:
+        return [f"sitemap.xml: {error}"]
+    if urls.tag != f"{{{SITEMAP_NS}}}urlset":
+        return ["sitemap.xml: Expected the sitemap urlset namespace."]
+    locations = Counter(node.findtext(f"{{{SITEMAP_NS}}}loc") for node in urls)
+    errors = []
+    if locations != Counter(expected.keys()):
+        errors.append("sitemap.xml: Expected exactly one canonical URL per page.")
+    for node in urls:
+        location = node.findtext(f"{{{SITEMAP_NS}}}loc", "")
+        links = Counter(
+            (item.get("hreflang"), item.get("href"))
+            for item in node.findall(f"{{{XHTML_NS}}}link")
+            if item.get("rel") == "alternate"
+        )
+        if location in expected and links != Counter(expected[location].items()):
+            errors.append(f"sitemap.xml: Incorrect alternates for {location}.")
+    return errors
+
+
+def check_security_txt(now: datetime) -> list[str]:
+    path = ROOT / ".well-known" / "security.txt"
+    if not path.is_file():
+        return [".well-known/security.txt: File is missing."]
+    fields: dict[str, list[str]] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line and not line.startswith("#"):
+            key, separator, value = line.partition(": ")
+            if not separator or not value:
+                return [f".well-known/security.txt: Invalid field {line!r}."]
+            fields.setdefault(key, []).append(value)
+    expected = {
+        "Contact": [
+            "https://github.com/rouxdutoit/fazit/security/advisories/new",
+            "mailto:hello@rouxdutoit.com",
+        ],
+        "Preferred-Languages": ["de, en"],
+        "Canonical": [ORIGIN + "/.well-known/security.txt"],
+        "Policy": [ORIGIN + "/security/"],
+    }
+    errors = [
+        f".well-known/security.txt: Incorrect or missing {field}."
+        for field, values in expected.items()
+        if fields.get(field) != values
+    ]
+    expires = fields.get("Expires", [])
+    try:
+        if len(expires) != 1 or not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", expires[0]):
+            raise ValueError
+        if datetime.fromisoformat(expires[0]) <= now:
+            errors.append(".well-known/security.txt: Expires must be in the future.")
+    except ValueError:
+        errors.append(".well-known/security.txt: Expected one UTC expiry timestamp.")
+    return errors
+
+
+def check_demo_links() -> list[str]:
+    headers = (ROOT / "_headers").read_text(encoding="utf-8")
+    apache = (ROOT / ".htaccess").read_text(encoding="utf-8")
+    errors = []
+    pair = dict(zip(LANGUAGES, DEMO_ROUTES, strict=True))
+    alternate_links = [
+        f'<{url}>; rel="alternate"; hreflang="{lang}"' for lang, url in alternates(pair).items()
+    ]
+    for route in DEMO_ROUTES:
+        header = ", ".join([f'<{ORIGIN}{route}>; rel="canonical"', *alternate_links])
+        if f"\n{route}\n  Link: {header}\n" not in headers:
+            errors.append(f"_headers: Missing canonical and language Link header for {route}.")
+        if f"Header always set Link '{header}'" not in apache:
+            errors.append(f".htaccess: Missing canonical and language Link header for {route}.")
+    return errors
 
 
 def check_demo_reports() -> list[str]:
     errors = []
     runner = CliRunner()
     with TemporaryDirectory(prefix="fazit-site-") as temporary:
-        for target, lang in DEMO_REPORTS.items():
+        for lang, route in zip(LANGUAGES, DEMO_ROUTES, strict=True):
+            target = local_path(route)
             out = Path(temporary) / lang
             command = ("demo", "--lang", lang, "--sample", "town", "--profile", "opendesk")
             result = runner.invoke(app, [*command, "--out", str(out)])
@@ -125,27 +344,64 @@ def check_demo_reports() -> list[str]:
     return errors
 
 
+def check_assets() -> list[str]:
+    errors = []
+    for filename, dimensions in (("og.png", (1200, 630)), ("apple-touch-icon.png", (180, 180))):
+        image = ROOT / filename
+        if not image.is_file() or png_dimensions(image) != dimensions:
+            errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
+    for preview in (ROOT / "images").glob("readiness-*.png"):
+        if preview.stat().st_size >= 150_000:
+            errors.append(f"{preview.relative_to(ROOT)}: Must be under 150 KB.")
+    if f"Sitemap: {ORIGIN}/sitemap.xml" not in (ROOT / "robots.txt").read_text().splitlines():
+        errors.append("robots.txt: Missing sitemap URL.")
+    return errors
+
+
+def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
+    errors = []
+    sitemap = {}
+    for en, de in PAGE_PAIRS:
+        pair = {"en": en, "de": de}
+        for lang, other in (("en", "de"), ("de", "en")):
+            route = pair[lang]
+            sitemap[ORIGIN + route] = alternates(pair)
+            page = pages.get(local_path(route))
+            if page is None:
+                errors.append(f"{route}: Page is missing.")
+                continue
+            demo = route in DEMO_ROUTES
+            page.check_structure(lang, demo=demo)
+            if not demo:
+                page.check_metadata(route, other, pair)
+    for path, page in pages.items():
+        if ORIGIN + route_for(path) not in sitemap:
+            errors.append(f"{path.relative_to(ROOT)}: Page has no declared language pair.")
+        errors.extend(f"{path.relative_to(ROOT)}: {error}" for error in page.errors)
+    return errors, sitemap
+
+
 def main() -> int:
     pages = {
         path: Page(path)
         for path in sorted(ROOT.rglob("*.html"))
         if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
     }
-    references = []
-    errors = check_demo_reports()
-    for path, page in pages.items():
-        page.check_structure(require_skip_link=path not in DEMO_REPORTS)
-        errors.extend(f"{path.relative_to(ROOT)}: {error}" for error in page.errors)
-        references.extend((path, *ref) for ref in page.links)
+    errors, sitemap = check_pages(pages)
+    errors.extend(check_sitemap(sitemap))
+    errors.extend(check_security_txt(datetime.now(UTC)))
+    errors.extend(check_assets())
+    errors.extend(check_demo_links())
+    errors.extend(check_demo_reports())
 
+    references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"
-    for line, text in enumerate(stylesheet.read_text(encoding="utf-8").splitlines(), 1):
-        for value in re.findall(r"""url\(\s*["']?([^"')]+)["']?\s*\)""", text):
-            references.append((stylesheet, "css", "url", value.strip(), line))
-
-    for path, tag, name, value, line in references:
-        if error := check_reference(path, tag, name, value, pages):
-            errors.append(f"{path.relative_to(ROOT)}:{line}: {error}")
+    references.extend(
+        (stylesheet, ref) for ref in css_references(stylesheet.read_text(encoding="utf-8"), 1)
+    )
+    for path, ref in references:
+        if error := check_reference(route_for(path), ref, pages):
+            errors.append(f"{path.relative_to(ROOT)}:{ref.line}: {error}")
 
     for error in errors:
         print(error)

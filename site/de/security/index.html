@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Lesen Sie die Schutzmaßnahmen von Fazit, prüfen Sie den Betrieb ohne Netzwerk oder melden Sie vertraulich eine Schwachstelle.">
+  <title>Sicherheit und Datenschutz · Fazit</title>
+  <link rel="canonical" href="https://fazit.dev/de/security/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/security/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Sicherheit und Datenschutz · Fazit">
+  <meta property="og:description" content="Lesen Sie die Schutzmaßnahmen von Fazit, prüfen Sie den Betrieb ohne Netzwerk oder melden Sie vertraulich eine Schwachstelle.">
+  <meta property="og:url" content="https://fazit.dev/de/security/">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sicherheit und Datenschutz · Fazit">
+  <meta name="twitter:description" content="Lesen Sie die Schutzmaßnahmen von Fazit, prüfen Sie den Betrieb ohne Netzwerk oder melden Sie vertraulich eine Schwachstelle.">
+  <meta name="twitter:image" content="https://fazit.dev/og.png">
+  <meta name="twitter:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">Fazit</a>
+      <nav class="bar-links" aria-label="Hauptnavigation">
+        <div class="nav-group">
+          <a href="/de/#report">Bericht</a>
+          <a href="/de/#how">Ablauf</a>
+          <a href="/de/#safeguards">Daten und Zugriff</a>
+          <a href="/de/#status">Stand</a>
+        </div>
+        <div class="nav-group">
+          <a href="/de/pilots/">Pilotprüfungen</a>
+          <a href="/de/integrators/">IT-Dienstleister</a>
+          <a href="/de/security/" aria-current="page">Sicherheit</a>
+          <a href="/demo/de/">Beispielbericht</a>
+        </div>
+      </nav>
+      <a class="language" href="/security/" lang="en" hreflang="en">English</a>
+      <details class="menu" data-menu>
+        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
+        <nav class="menu-panel" aria-label="Hauptnavigation">
+          <div class="nav-group">
+            <a href="/de/#report">Bericht</a>
+            <a href="/de/#how">Ablauf</a>
+            <a href="/de/#safeguards">Daten und Zugriff</a>
+            <a href="/de/#status">Stand</a>
+          </div>
+          <div class="nav-group">
+            <a href="/de/pilots/">Pilotprüfungen</a>
+            <a href="/de/integrators/">IT-Dienstleister</a>
+            <a href="/de/security/" aria-current="page">Sicherheit</a>
+            <a href="/demo/de/">Beispielbericht</a>
+          </div>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-intro">
+      <h1>Sicherheit und Datenschutz</h1>
+      <p>Die aktuelle Version von Fazit läuft auf Ihrem Rechner und enthält keinen Code für Netzwerkzugriffe. Anmeldung und Direkterhebung sind geplant.</p>
+      <a class="btn btn-outline" href="#disclosure">Schwachstelle melden</a>
+    </div>
+
+    <section class="sec grid" id="principles" aria-labelledby="principles-title">
+      <h2 class="sec-label" id="principles-title">Grundsätze</h2>
+      <div class="sec-body">
+        <dl class="rows">
+          <div><dt>Nur Lesezugriff</dt><dd>Für die Direkterhebung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie <code>GET</code> verwenden.</dd></div>
+          <div><dt>Lokale Verarbeitung</dt><dd>Die Prüfdaten bleiben auf dem Rechner, und Nutzungsberichte sollen offline eingelesen werden. Die Direkterhebung ist auf <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> begrenzt und verzichtet auf Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe.</dd></div>
+          <div><dt>Tokens im Arbeitsspeicher</dt><dd>Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.</dd></div>
+          <div><dt>Nur Metadaten</dt><dd>Die Erhebung beschränkt sich auf Anzahlen, Größen und codierte Nachweise. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.</dd></div>
+          <div><dt>Personenbezogene Daten</dt><dd>Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in <code>inputs.yaml</code> in den Bericht übernommen werden.</dd></div>
+          <div><dt>Bericht ohne Netzwerk</dt><dd>Der Bericht ist eine einzelne HTML-Datei mit eingebetteten Formatvorlagen und Systemschriften. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.</dd></div>
+          <div><dt>Ein Befehl</dt><dd>Nach der Einrichtung erstellt ein Befehl den Bericht aus Beispieldaten oder einer vorhandenen Erhebung. Für die spätere Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</dd></div>
+          <div><dt>Nachvollziehbare Zahlen</dt><dd>Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.</dd></div>
+        </dl>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en">Grundsätze in den Projektentscheidungen lesen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="offline" aria-labelledby="offline-title">
+      <h2 class="sec-label" id="offline-title">Betrieb ohne Netzwerk prüfen</h2>
+      <div class="sec-body">
+        <ol class="steps">
+          <li>Richten Sie Git und uv ein, klonen Sie das <a href="https://github.com/rouxdutoit/fazit">Repository</a> und führen Sie einmal <code>uv run fazit demo --lang de</code> aus. Dabei werden die benötigten Pakete installiert.</li>
+          <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run --offline fazit demo --lang de</code> aus.</li>
+          <li>Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.</li>
+        </ol>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Test des installierten Pakets ansehen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
+      <h2 class="sec-label" id="evidence-title">Grenzen der Aussagekraft</h2>
+      <div class="sec-body">
+        <p>Fazit prüft die Erhebung und die Eingaben auf Widersprüche und kennzeichnet die Herkunft jeder Zahl. Auch in sich schlüssige, erfundene Angaben können zu einem Bericht führen. Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.</p>
+        <p>Der Anhang dokumentiert die angegebene Herkunft der Erhebung sowie das Programm und die Version, mit denen sie laut Erhebungsdatei erstellt wurde.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="print" aria-labelledby="print-title">
+      <h2 class="sec-label" id="print-title">PDF ohne Dateipfad erstellen</h2>
+      <div class="sec-body">
+        <p>Ihr Browser kann beim Drucken den lokalen Dateipfad ergänzen. Schalten Sie in den Druckeinstellungen <strong>Kopf- und Fußzeilen</strong> aus. Prüfen Sie vor dem Speichern oder Weitergeben in der Vorschau, ob der Pfad ausgeblendet ist.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="disclosure" aria-labelledby="disclosure-title">
+      <h2 class="sec-label" id="disclosure-title">Schwachstelle melden</h2>
+      <div class="sec-body">
+        <p>Nutzen Sie das <a href="https://github.com/rouxdutoit/fazit/security/advisories/new">vertrauliche Meldeformular auf GitHub</a>. Falls es nicht verfügbar ist, schreiben Sie an <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>.</p>
+        <p>Behandeln Sie die Meldung vertraulich und verwenden Sie fiktive Beispiele anstelle echter Erhebungsdateien oder Berichte.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/de/">Fazit</a>
+        <nav class="foot-cols" aria-label="Fußnavigation">
+          <div>
+            <p class="foot-heading">Projekt</p>
+            <ul>
+              <li><a href="/demo/de/">Beispielbericht</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Rechtliches</p>
+            <ul>
+              <li><a href="/de/impressum/">Impressum</a></li>
+              <li><a href="/de/privacy/">Datenschutz</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Kontakt</p>
+            <ul><li><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></li></ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
+        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

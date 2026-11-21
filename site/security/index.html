@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Read Fazit’s safeguards, verify offline operation or report a vulnerability privately.">
+  <title>Security and privacy · Fazit</title>
+  <link rel="canonical" href="https://fazit.dev/security/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/security/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Security and privacy · Fazit">
+  <meta property="og:description" content="Read Fazit’s safeguards, verify offline operation or report a vulnerability privately.">
+  <meta property="og:url" content="https://fazit.dev/security/">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Security and privacy · Fazit">
+  <meta name="twitter:description" content="Read Fazit’s safeguards, verify offline operation or report a vulnerability privately.">
+  <meta name="twitter:image" content="https://fazit.dev/og.png">
+  <meta name="twitter:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="/" aria-label="Fazit home">Fazit</a>
+      <nav class="bar-links" aria-label="Main navigation">
+        <div class="nav-group">
+          <a href="/#report">Report</a>
+          <a href="/#how">How it works</a>
+          <a href="/#safeguards">Safeguards</a>
+          <a href="/#status">Status</a>
+        </div>
+        <div class="nav-group">
+          <a href="/pilots/">Pilots</a>
+          <a href="/integrators/">Integrators</a>
+          <a href="/security/" aria-current="page">Security</a>
+          <a href="/demo/en/">Sample report</a>
+        </div>
+      </nav>
+      <a class="language" href="/de/security/" lang="de" hreflang="de">Deutsch</a>
+      <details class="menu" data-menu>
+        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></summary>
+        <nav class="menu-panel" aria-label="Main navigation">
+          <div class="nav-group">
+            <a href="/#report">Report</a>
+            <a href="/#how">How it works</a>
+            <a href="/#safeguards">Safeguards</a>
+            <a href="/#status">Status</a>
+          </div>
+          <div class="nav-group">
+            <a href="/pilots/">Pilots</a>
+            <a href="/integrators/">Integrators</a>
+            <a href="/security/" aria-current="page">Security</a>
+            <a href="/demo/en/">Sample report</a>
+          </div>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-intro">
+      <h1>Security and privacy</h1>
+      <p>The current version of Fazit runs on your computer and contains no network code. Sign-in and live collection are planned.</p>
+      <a class="btn btn-outline" href="#disclosure">Report a vulnerability</a>
+    </div>
+
+    <section class="sec grid" id="principles" aria-labelledby="principles-title">
+      <h2 class="sec-label" id="principles-title">Principles</h2>
+      <div class="sec-body">
+        <dl class="rows">
+          <div><dt>Read-only</dt><dd>Live collection will request read permissions and use a list of approved read endpoints. Requests that can change the tenant are excluded, including requests that use <code>GET</code>.</dd></div>
+          <div><dt>Local processing</dt><dd>Fazit keeps assessment data on the computer and will import usage exports offline. Live collection will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</dd></div>
+          <div><dt>Tokens in memory</dt><dd>When sign-in is added, access and refresh tokens will stay in memory.</dd></div>
+          <div><dt>Metadata only</dt><dd>Collection is limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</dd></div>
+          <div><dt>Personal data</dt><dd>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</dd></div>
+          <div><dt>Offline report</dt><dd>The report is one HTML file with built-in styles and system fonts. It opens and prints without a network connection, JavaScript or external resources.</dd></div>
+          <div><dt>One command</dt><dd>After setup, one command builds a report from bundled sample data or an existing scan. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</dd></div>
+          <div><dt>Honest figures</dt><dd>The report uses supplied costs and labels example figures. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</dd></div>
+        </dl>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="offline" aria-labelledby="offline-title">
+      <h2 class="sec-label" id="offline-title">Verify offline operation</h2>
+      <div class="sec-body">
+        <ol class="steps">
+          <li>Set up Git and uv, clone the <a href="https://github.com/rouxdutoit/fazit">repository</a> and run <code>uv run fazit demo</code> once to install the dependencies.</li>
+          <li>Disconnect the computer from the network. In the same directory, run <code>uv run --offline fazit demo</code>.</li>
+          <li>Open the HTML file named on the last line and open the print preview. Both work while disconnected.</li>
+        </ol>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
+      <h2 class="sec-label" id="evidence-title">Limits of the evidence</h2>
+      <div class="sec-body">
+        <p>Fazit checks the scan and inputs for contradictions and labels the source of each figure. An internally consistent fabrication can still produce a report. The report depends on the people and tools that produced its evidence.</p>
+        <p>The appendix records the scan’s stated origin, producer and version.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="print" aria-labelledby="print-title">
+      <h2 class="sec-label" id="print-title">Print a PDF without file paths</h2>
+      <div class="sec-body">
+        <p>Your browser may add the local file path when you print. Turn off <strong>Headers and footers</strong> in the print settings, then check the preview for the file path before you save or share the PDF.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="disclosure" aria-labelledby="disclosure-title">
+      <h2 class="sec-label" id="disclosure-title">Report a vulnerability</h2>
+      <div class="sec-body">
+        <p>Use <a href="https://github.com/rouxdutoit/fazit/security/advisories/new">GitHub’s private vulnerability form</a>. If the form is unavailable, email <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>.</p>
+        <p>Keep the report private and use fictional examples in place of real scans or reports.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/">Fazit</a>
+        <nav class="foot-cols" aria-label="Footer">
+          <div>
+            <p class="foot-heading">Project</p>
+            <ul>
+              <li><a href="/demo/en/">Sample report</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Legal</p>
+            <ul>
+              <li><a href="/impressum/">Legal notice</a></li>
+              <li><a href="/privacy/">Privacy</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Contact</p>
+            <ul><li><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></li></ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · No cookies or analytics</p>
+        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

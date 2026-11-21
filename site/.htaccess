@@ -1,0 +1,25 @@
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://fazit.dev%{REQUEST_URI} [R=301,L,NE]
+
+ErrorDocument 404 /404.html
+<If "%{REQUEST_URI} =~ m#^/de/#">
+  ErrorDocument 404 /de/404.html
+</If>
+
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+Header always set Referrer-Policy "no-referrer"
+Header always set X-Content-Type-Options "nosniff"
+Header always set Permissions-Policy "interest-cohort=(), camera=(), microphone=(), geolocation=()"
+Header always set Cross-Origin-Opener-Policy "same-origin"
+
+<If "%{REQUEST_URI} =~ m#^/demo/en/(index[.]html)?$#">
+  Header always set Link '<https://fazit.dev/demo/en/>; rel="canonical", <https://fazit.dev/demo/en/>; rel="alternate"; hreflang="en", <https://fazit.dev/demo/de/>; rel="alternate"; hreflang="de"'
+</If>
+<If "%{REQUEST_URI} =~ m#^/demo/de/(index[.]html)?$#">
+  Header always set Link '<https://fazit.dev/demo/de/>; rel="canonical", <https://fazit.dev/demo/en/>; rel="alternate"; hreflang="en", <https://fazit.dev/demo/de/>; rel="alternate"; hreflang="de"'
+</If>
+
+<Files "security.txt">
+  Header always set Content-Type "text/plain; charset=utf-8"
+</Files>

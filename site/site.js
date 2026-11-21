@@ -2,7 +2,6 @@
   const root = document.documentElement;
   const systemTheme = matchMedia("(prefers-color-scheme: dark)");
   const storageKey = "fazit-theme";
-  root.classList.add("js");
 
   try {
     const saved = localStorage.getItem(storageKey);
@@ -18,7 +17,15 @@
       : systemTheme.matches;
 
     if (theme) {
-      const showTheme = () => theme.setAttribute("aria-pressed", String(isDark()));
+      const darkPreviews = document.querySelectorAll("[data-dark-preview]");
+      const showTheme = () => {
+        const dark = isDark();
+        theme.setAttribute("aria-pressed", String(dark));
+        if (!root.dataset.theme) return;
+        for (const source of darkPreviews) {
+          source.media = dark ? (source.dataset.darkPreview || "all") : "not all";
+        }
+      };
       showTheme();
       theme.hidden = false;
       systemTheme.addEventListener("change", showTheme);

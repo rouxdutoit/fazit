@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://fazit.dev/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/pilots/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/pilots/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/pilots/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/pilots/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/pilots/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/pilots/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/integrators/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/integrators/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/security/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/security/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/security/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/security/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/demo/en/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/demo/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/demo/de/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/demo/de/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/demo/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/demo/de/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/impressum/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/impressum/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/impressum/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/impressum/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/impressum/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/impressum/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/privacy/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/privacy/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/privacy/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/privacy/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/404.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/404.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/404.html"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/404.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/404.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/404.html"/>
+  </url>
+</urlset>

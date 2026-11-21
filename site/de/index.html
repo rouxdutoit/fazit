@@ -3,9 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Mit Fazit prüfen Sie, was ein Umstieg von Microsoft 365 auf Open-Source-Software erfordert. Das Programm erstellt den Bericht lokal auf Ihrem Rechner.">
-  <title>Fazit — Einen Umstieg von Microsoft 365 prüfen</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
+  <title>Fazit · Den Umstieg von Microsoft 365 prüfen</title>
+  <link rel="canonical" href="https://fazit.dev/de/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Fazit · Den Umstieg von Microsoft 365 prüfen">
+  <meta property="og:description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
+  <meta property="og:url" content="https://fazit.dev/de/">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fazit · Den Umstieg von Microsoft 365 prüfen">
+  <meta name="twitter:description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
+  <meta name="twitter:image" content="https://fazit.dev/og.png">
+  <meta name="twitter:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -13,73 +34,108 @@
   <a class="skip" href="#main">Zum Inhalt springen</a>
   <header class="bar">
     <div class="bar-in">
-      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">Fazit</a>
-      <nav class="bar-links" aria-label="Abschnitte">
-        <a href="#report">Bericht</a>
-        <a href="#how">Ablauf</a>
-        <a href="#safeguards">Daten und Zugriff</a>
-        <a href="#status">Stand</a>
-        <a href="#pilots">Pilotprüfungen</a>
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">Fazit</a>
+      <nav class="bar-links" aria-label="Hauptnavigation">
+        <div class="nav-group">
+          <a href="#report">Bericht</a>
+          <a href="#how">Ablauf</a>
+          <a href="#safeguards">Daten und Zugriff</a>
+          <a href="#status">Stand</a>
+        </div>
+        <div class="nav-group">
+          <a href="/de/pilots/">Pilotprüfungen</a>
+          <a href="/de/integrators/">IT-Dienstleister</a>
+          <a href="/de/security/">Sicherheit</a>
+          <a href="/demo/de/">Beispielbericht</a>
+        </div>
       </nav>
-      <div class="bar-actions">
-        <a class="language" href="/" lang="en" hreflang="en">English</a>
-        <details class="menu" data-menu>
-          <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
-          <nav class="menu-panel" aria-label="Abschnitte">
+      <a class="language" href="/" lang="en" hreflang="en">English</a>
+      <details class="menu" data-menu>
+        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
+        <nav class="menu-panel" aria-label="Hauptnavigation">
+          <div class="nav-group">
             <a href="#report">Bericht</a>
             <a href="#how">Ablauf</a>
             <a href="#safeguards">Daten und Zugriff</a>
             <a href="#status">Stand</a>
-            <a href="#pilots">Pilotprüfungen</a>
-          </nav>
-        </details>
-      </div>
+          </div>
+          <div class="nav-group">
+            <a href="/de/pilots/">Pilotprüfungen</a>
+            <a href="/de/integrators/">IT-Dienstleister</a>
+            <a href="/de/security/">Sicherheit</a>
+            <a href="/demo/de/">Beispielbericht</a>
+          </div>
+        </nav>
+      </details>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
       <p class="hero-name">Fazit</p>
-      <h1 id="hero-title">Sehen Sie, was ein Abschied von <span>Microsoft 365</span> bedeuten würde, auf Ihrem eigenen Rechner.</h1>
-      <p class="hero-sub">Ein kostenloses Kommandozeilenprogramm mit offenem Quellcode unter der Lizenz AGPL-3.0-or-later.</p>
+      <h1 id="hero-title">Den Umstieg von Microsoft 365 prüfen</h1>
+      <p class="hero-sub">Ermitteln Sie, welche Funktionen Ihre Organisation nutzt, was vor einem Umstieg auf Open Source zu klären ist und wie sich die Kosten unterscheiden. Das kostenlose Programm erstellt den Bericht auf Ihrem Rechner.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/de/">Beispielbericht ansehen</a>
         <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
       </div>
-      <div class="command" aria-labelledby="command-label" role="group">
+      <div class="command" role="group" aria-labelledby="command-label">
         <p class="command-label" id="command-label">Beispiel aus dem Quellcode starten</p>
         <div class="command-line">
-          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</span></code>
-          <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." aria-describedby="demo-command" hidden>Kopieren</button>
+          <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
+          <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden>Kopieren</button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
-      <p class="release-note">Frühe Version. Das Beispiel läuft bereits. Als Nächstes folgt die Bestandsaufnahme mit Daten Ihrer Organisation.</p>
     </section>
+
+    <figure class="report-preview">
+      <picture>
+        <source media="(max-width: 600px) and (prefers-color-scheme: dark)" data-dark-preview="(max-width: 600px)" srcset="/images/readiness-de-mobile-dark.png" width="800" height="1270">
+        <source media="(max-width: 600px)" srcset="/images/readiness-de-mobile-light.png" width="800" height="1270">
+        <source media="(prefers-color-scheme: dark)" data-dark-preview="" srcset="/images/readiness-de-dark.png" width="2016" height="870">
+        <img src="/images/readiness-de-light.png" width="2016" height="870" alt="Bereitschaft nach Bereich mit vier Statusstufen und den Nachweisen zum Lizenzbefund der Stadtverwaltung." decoding="async">
+      </picture>
+      <figcaption>
+        <span>Originalausgabe von Fazit für die mitgelieferte fiktive Stadtverwaltung.</span>
+        <a href="/demo/de/#readiness-title">Abschnitt zur Bereitschaft öffnen</a>
+      </figcaption>
+    </figure>
 
     <section class="sec grid" id="report" aria-labelledby="report-title">
       <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
       <div class="sec-body">
-        <p class="sec-intro">Fazit erstellt eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können den Bericht speichern, weitergeben und ohne Internetverbindung öffnen.</p>
+        <p class="sec-intro">Sie erhalten eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können sie speichern, ohne Internetverbindung lesen und ausdrucken.</p>
         <dl class="rows">
-          <div>
-            <dt>Bestand</dt>
-            <dd>Was die vorliegenden Daten über die Nutzung von Microsoft 365 in 15 Bereichen zeigen, von E-Mail und Dateien bis hin zu Telefonie, Geräteverwaltung und Anbindungen an Fachanwendungen.</dd>
-          </div>
-          <div>
-            <dt>Stand je Bereich</dt>
-            <dd>Für jeden Bereich nennt der Bericht den Status und die zugehörigen Belege. Der Status lautet „Bereit“, „Handlungsbedarf“, „Hindernis“ oder „Unbekannt“.</dd>
-          </div>
-          <div>
-            <dt>Mögliche Alternativen</dt>
-            <dd>Welche Funktionen sich durch Open-Source-Software ersetzen lassen und welche Abhängigkeiten Sie zuerst klären sollten.</dd>
-          </div>
-          <div>
-            <dt>Kosten über fünf Jahre</dt>
-            <dd>Der Bericht vergleicht den Verbleib bei Microsoft 365, einen teilweisen und einen vollständigen Umstieg. Er berücksichtigt verbleibende Lizenzen, Projektkosten, Produktivitätsverluste und Parallelbetrieb.</dd>
-          </div>
+          <div><dt>Berichtsangaben</dt><dd>Im Kopf stehen Datum, Datenquelle und Zielprofil. Die Fußzeile nennt Fazit.</dd></div>
+          <div><dt>Bestandsaufnahme</dt><dd>Der Bericht zeigt, was die vorliegenden Nachweise über Ihre Nutzung von Microsoft 365 aussagen.</dd></div>
+          <div><dt>Kosten über fünf Jahre</dt><dd>Verglichen werden Verbleib, teilweiser und vollständiger Umstieg. Verbleibende Lizenzen, Projektkosten, verlorene Arbeitszeit und Parallelbetrieb fließen ein.</dd></div>
+          <div><dt>Bereitschaft je Bereich</dt><dd>„Bereit“, „Handlungsbedarf“, „Hindernis“ oder „Unbekannt“, jeweils mit Begründung und Datengrundlage. Offene Prüfungen sind gekennzeichnet.</dd></div>
+          <div><dt>Mögliche Alternativen</dt><dd>Welche Funktionen das gewählte Zielprofil abdeckt und welche Lücken dokumentiert sind.</dd></div>
+          <div><dt>Punkte zur Prüfung</dt><dd>Zu prüfende Dateitypen, reine Windows-Anwendungen und Funktionen, deren direkte Übernahme ungeklärt ist.</dd></div>
+          <div><dt>Weiteres Vorgehen</dt><dd>Hindernisse, offene Fragen und Bereiche, die für einen Pilotbetrieb infrage kommen.</dd></div>
+          <div><dt>Anhang</dt><dd>Erhebungsmethoden, Prüfregeln, Zuordnungen, Kostenberechnung und Angaben zum Programmlauf.</dd></div>
         </dl>
-        <p class="section-link"><a href="/demo/de/">Beispielbericht ansehen</a></p>
+        <div class="subsection">
+          <h3>Fünfzehn Prüfbereiche</h3>
+          <ul class="areas">
+            <li>Lizenzen</li>
+            <li>Verzeichnisdienst</li>
+            <li>E-Mail</li>
+            <li>OneDrive</li>
+            <li>SharePoint</li>
+            <li>Teams</li>
+            <li>Office-Dateien</li>
+            <li>Geräteverwaltung</li>
+            <li>Reine Windows-Anwendungen</li>
+            <li>Power Platform</li>
+            <li>Telefonie</li>
+            <li>Identität und Zugriff</li>
+            <li>Sicherheit und Compliance</li>
+            <li>Kleinere Anwendungen</li>
+            <li>Anbindungen an Fachanwendungen</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -88,66 +144,54 @@
       <div class="sec-body">
         <ol class="steps">
           <li>
-            <h3>Installieren</h3>
-            <p><a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">Installieren Sie uv</a> und Git, um das Beispiel aus dem Quellcode zu starten. Nach der Veröffentlichung auf PyPI können Sie <code>uvx fazit demo</code> ausführen.</p>
+            <h3>Vorbereiten</h3>
+            <p>Installieren Sie Git und <a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">uv</a>. Beim ersten Start werden die benötigten Python-Pakete geladen. Das Beispiel läuft ohne Microsoft-Konto.</p>
           </li>
           <li>
-            <h3>Ausführen</h3>
-            <p>Wenn Ihnen der Quellcode lokal vorliegt, starten Sie das mitgelieferte Beispiel im Projektverzeichnis mit <code>uv run fazit demo --lang de</code>. Für Englisch verwenden Sie <code>--lang en</code>.</p>
+            <h3>Beispiel ausführen</h3>
+            <p>Der Befehl oben erzeugt das Beispiel auf Englisch. Für den deutschen Bericht führen Sie im Projektverzeichnis <code>uv run fazit demo --lang de</code> aus.</p>
           </li>
           <li>
-            <h3>Bericht lesen</h3>
-            <p>Öffnen Sie die HTML-Datei auf Ihrem Rechner. Der Bericht zeigt, was geprüft wurde und was noch unbekannt ist.</p>
+            <h3>Bericht öffnen</h3>
+            <p>Öffnen Sie die HTML-Datei, deren Pfad Fazit am Ende ausgibt. Der Bericht dokumentiert die Nachweise für jeden Befund und zeigt, was noch zu prüfen ist.</p>
           </li>
         </ol>
-        <div class="subsection">
-          <h3>Datenquellen</h3>
-          <dl class="rows stages">
-            <div><dt>Verfügbar</dt><dd>Mitgelieferte Beispieldaten.</dd></div>
-            <div><dt>Als Nächstes</dt><dd>Exporte aus dem Microsoft 365 Admin Center, die Fazit lokal verarbeitet.</dd></div>
-            <div><dt>Für später geplant</dt><dd>Anmeldung bei Microsoft 365 mit reinem Lesezugriff.</dd></div>
-          </dl>
-        </div>
       </div>
     </section>
 
     <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title">Was Fazit nie tut</h2>
+      <h2 class="sec-label" id="safeguards-title">Was Fazit ausschließt</h2>
       <div class="sec-body">
         <ul class="safeguards">
-          <li>Fazit hat keinen Schreibzugriff auf Microsoft 365.</li>
-          <li>Die Daten der Bestandsaufnahme bleiben auf Ihrem Rechner. Für Fazit gibt es keinen Server, kein Benutzerkonto und keine Telemetrie.</li>
-          <li>Fazit speichert keine Anmeldetoken auf einem Datenträger.</li>
-          <li>Fazit übernimmt keine erfassten Personennamen oder E-Mail-Adressen. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen, die Sie in <code>inputs.yaml</code> eintragen, erscheinen im Bericht.</li>
-          <li>Beim Öffnen lädt der Bericht nichts aus dem Internet.</li>
+          <li>Schreibzugriffe auf Microsoft 365 sowie Aufrufe außerhalb der Freigabeliste für Lesezugriffe.</li>
+          <li>Eine Übertragung von Prüfdaten. Die aktuelle Version baut keine Netzwerkverbindung auf. Anmeldung und Direkterhebung bleiben später auf die Microsoft-Anmeldung und Microsoft Graph beschränkt.</li>
+          <li>Die Speicherung von Anmeldetokens oder erhobenen Personennamen und E-Mail-Adressen. Der Bericht kann den von Ihnen eingetragenen Namen Ihrer Organisation und die Namen reiner Windows-Anwendungen enthalten.</li>
+          <li>Das Nachladen externer Ressourcen aus dem Bericht.</li>
+          <li>Erfundene Ergebnisse oder eine bessere Einstufung durch ausgelassene Prüfungen.</li>
         </ul>
         <div class="subsection">
-          <h3>So prüfen Sie es selbst</h3>
-          <p>Richten Sie das Beispiel ein und trennen Sie dann die Netzwerkverbindung. Führen Sie das Beispiel erneut aus und öffnen Sie den Bericht im Browser.</p>
+          <h3>Selbst nachprüfen</h3>
+          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung. Führen Sie <code>uv run --offline fazit demo --lang de</code> aus und öffnen Sie den Bericht im Browser.</p>
+          <p class="section-link"><a href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
         </div>
       </div>
     </section>
 
     <section class="sec grid" id="claims" aria-labelledby="claims-title">
-      <h2 class="sec-label" id="claims-title">Aussagekraft und Grenzen</h2>
+      <h2 class="sec-label" id="claims-title">Was die Befunde aussagen</h2>
       <div class="sec-body">
-        <h3>Was der Bericht belegt</h3>
-        <p>Fazit hält fest, was die Daten belegen. Zu jedem Befund nennt der Bericht Quelle, Datum, Bezugszeitraum und Umfang der Prüfung. Fehlen Belege, nennt er den Grund. Der Bericht kennzeichnet jede Zahl als gemessen, von Ihrer Organisation angegeben oder unbekannt. Eine ausgelassene Prüfung verbessert den Status nie.</p>
-        <div class="subsection">
-          <h3>Was offenbleibt</h3>
-          <p>Der Bericht enthält kein Gesamturteil zum Umstieg. Die Entscheidung liegt bei Ihrer Organisation. Ist ein Bereich noch nicht bereit, zeigt der Bericht, was Sie klären müssen.</p>
-          <p>Fehlen wesentliche Zahlen Ihrer Organisation, bleiben die Gesamtkosten unbekannt. Dateinamen geben Hinweise darauf, welche Dokumente Sie prüfen sollten. Ob eine Datei Makros enthält, lässt sich erst anhand ihres Inhalts feststellen.</p>
-        </div>
+        <p>Der Bericht nennt zu jedem Befund, soweit vorhanden, Quelle, Datum, Berichtszeitraum und Umfang der Erhebung. Er kennzeichnet Zahlen als erhoben, bereitgestellt oder unbekannt. Bei fehlenden Nachweisen nennt er den Grund und den nächsten Prüfschritt. Fehlen erforderliche Kostenangaben, bleibt die Summe unbekannt.</p>
+        <p>Fazit bewertet jeden Bereich einzeln. Eine Gesamtbewertung gibt es nicht. Über den Umstieg entscheidet Ihre Organisation.</p>
+        <p>Auch in sich schlüssige, erfundene Angaben können die Prüfung bestehen, weshalb die Aussagekraft des Berichts von den Personen und Programmen abhängt, die die Nachweise erstellt haben.</p>
       </div>
     </section>
 
     <section class="sec grid" id="sources" aria-labelledby="sources-title">
       <h2 class="sec-label" id="sources-title">Fachliche Grundlagen</h2>
       <div class="sec-body">
-        <p class="sec-intro">Die Bestandsaufnahme orientiert sich am Aufbau zweier öffentlicher Untersuchungen.</p>
         <ul class="sources">
           <li>
-            <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/">Evaluation von openDesk für die Stadt Zürich</a>
+            <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/">Evaluation openDesk für die Stadt Zürich</a>
             <span>Berner Fachhochschule</span>
           </li>
           <li>
@@ -156,37 +200,39 @@
           </li>
         </ul>
         <div class="subsection">
-          <h3>Open-Source-Projekte</h3>
-          <p>Fazit ordnet Funktionen aus Microsoft 365 möglichen Alternativen in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi und Keycloak zu.</p>
+          <h3>Zielprojekte</h3>
+          <p>Die Profile für <a href="https://docs.opendesk.eu/">openDesk</a> und <a href="https://nextcloud.com/">Nextcloud</a> zeigen, welche Funktionen Projekte wie Collabora Online, Open-Xchange, Element, Jitsi und Keycloak abdecken. Für andere Umgebungen, etwa Arbeitsplätze mit Linux und LibreOffice, können Sie das allgemeine Profil verwenden.</p>
         </div>
       </div>
     </section>
 
     <section class="sec grid" id="status" aria-labelledby="status-title">
-      <h2 class="sec-label" id="status-title">Stand der Entwicklung</h2>
+      <h2 class="sec-label" id="status-title">Projektstand</h2>
       <div class="sec-body">
-        <ul class="roadmap">
-          <li><strong>Heute.</strong> Aus den mitgelieferten Beispieldaten entsteht ein offline lesbarer Bericht auf Deutsch oder Englisch. Die Veröffentlichung auf PyPI steht noch aus.</li>
-          <li><strong>Als Nächstes.</strong> Bestandsaufnahme für Organisationen anhand ihrer exportierten Nutzungsberichte.</li>
-          <li><strong>Später.</strong> Prüfung der Berechtigungen und Erfassung der Anzahl von Lizenzen und Verzeichniseinträgen nach einer Anmeldung mit Leserechten.</li>
-        </ul>
+        <dl class="rows stages">
+          <div><dt>Verfügbar</dt><dd>Sie können Fazit aus dem Quellcode starten und Berichte aus Beispieldaten oder einer vorhandenen Erhebungsdatei erstellen. Das Paket ist noch nicht auf PyPI veröffentlicht.</dd></div>
+          <div><dt>Als Nächstes</dt><dd>Fazit soll CSV-Exporte aus dem Microsoft 365 Admin Center lokal einlesen und die zusammengefassten Daten behalten.</dd></div>
+          <div><dt>Später</dt><dd>Berechtigungen prüfen und nach einer Anmeldung mit reinem Lesezugriff Anzahlen zu Lizenzen und Verzeichniseinträgen erheben.</dd></div>
+        </dl>
       </div>
     </section>
 
-    <section class="sec grid" id="pilots" aria-labelledby="pilots-title">
-      <h2 class="sec-label" id="pilots-title">Erste Pilotprüfungen</h2>
+    <section class="sec grid" id="participate" aria-labelledby="participate-title">
+      <h2 class="sec-label" id="participate-title">Mit Fazit arbeiten</h2>
       <div class="sec-body">
-        <p class="sec-intro">Für Organisationen mit 200 bis 2.000 Beschäftigten bieten wir drei kostenlose Bestandsaufnahmen an, je eine in Deutschland, Österreich und der Schweiz.</p>
-        <p>Ihre Daten bleiben bei Ihrer Organisation. Ob wir Ihre Organisation öffentlich nennen dürfen, entscheiden Sie gesondert. Die Teilnahme verpflichtet Sie weder zum Kauf noch zur Umstellung.</p>
-        <p>Öffentliche Stellen erhalten eine einseitige Vereinbarung für ihr internes Freigabeverfahren.</p>
-        <p class="section-link"><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></p>
+        <dl class="rows">
+          <div><dt><a href="/de/pilots/">Pilotprüfungen</a></dt><dd>Je eine kostenlose Prüfung für eine Organisation in Deutschland, Österreich und der Schweiz.</dd></div>
+          <div><dt><a href="/de/integrators/">Für IT-Dienstleister</a></dt><dd>Einsatz in eigenen Bestandsaufnahmen und Aufnahmekriterien für das geplante Verzeichnis.</dd></div>
+          <div><dt><a href="/de/security/">Sicherheit und Datenschutz</a></dt><dd>Prüfen Sie die Schutzmaßnahmen oder melden Sie vertraulich eine Schwachstelle.</dd></div>
+        </dl>
       </div>
     </section>
 
     <section class="sec grid" id="development" aria-labelledby="development-title">
-      <h2 class="sec-label" id="development-title">So entsteht Fazit</h2>
+      <h2 class="sec-label" id="development-title">Wie Fazit entsteht</h2>
       <div class="sec-body">
-        <p>Claude und Codex unterstützen die Entwicklung von Fazit und prüfen gegenseitig ihre Arbeit. Die Projektverantwortlichen leiten die Entwicklung und verantworten das Ergebnis. Jede Zusage, die für die heutige Version gilt, belegt ein Test, den Sie selbst ausführen können. Die Zusagen zur Anmeldung erhalten ihre Tests, sobald es die Anmeldung gibt.</p>
+        <p>Claude und Codex unterstützen die Entwicklung und prüfen gegenseitig ihren Code. Der Projektverantwortliche leitet die Arbeit und verantwortet das Ergebnis. Für jede Schutzmaßnahme der aktuellen Version gibt es einen Test, den Sie selbst ausführen können. Die Tests für die Direkterhebung folgen mit der Anmeldung.</p>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Tests im Quellcode ansehen</a></p>
       </div>
     </section>
   </main>
@@ -198,11 +244,17 @@
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
-            <ul><li><a href="/demo/de/">Beispielbericht</a></li><li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li></ul>
+            <ul>
+              <li><a href="/demo/de/">Beispielbericht</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
+            </ul>
           </div>
           <div>
             <p class="foot-heading">Rechtliches</p>
-            <ul><li><a href="/de/impressum/">Impressum</a></li><li><a href="/de/privacy/">Datenschutz</a></li></ul>
+            <ul>
+              <li><a href="/de/impressum/">Impressum</a></li>
+              <li><a href="/de/privacy/">Datenschutz</a></li>
+            </ul>
           </div>
           <div>
             <p class="foot-heading">Kontakt</p>

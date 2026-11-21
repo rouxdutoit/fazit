@@ -3,9 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Fazit is a free, open source tool for assessing a move from Microsoft 365. It runs on your computer and produces an offline report.">
-  <title>Fazit — Assess a move from Microsoft 365</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Fazit builds local reports on Microsoft 365 dependencies, readiness and five-year costs.">
+  <title>Fazit · Assess a move from Microsoft 365</title>
+  <link rel="canonical" href="https://fazit.dev/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Fazit · Assess a move from Microsoft 365">
+  <meta property="og:description" content="Fazit builds local reports on Microsoft 365 dependencies, readiness and five-year costs.">
+  <meta property="og:url" content="https://fazit.dev/">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fazit · Assess a move from Microsoft 365">
+  <meta name="twitter:description" content="Fazit builds local reports on Microsoft 365 dependencies, readiness and five-year costs.">
+  <meta name="twitter:image" content="https://fazit.dev/og.png">
+  <meta name="twitter:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -13,73 +34,108 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="bar">
     <div class="bar-in">
-      <a class="wordmark" href="/" aria-label="Fazit home">Fazit</a>
-      <nav class="bar-links" aria-label="Sections">
-        <a href="#report">Report</a>
-        <a href="#how">How it works</a>
-        <a href="#safeguards">Safeguards</a>
-        <a href="#status">Status</a>
-        <a href="#pilots">Pilots</a>
+      <a class="wordmark" href="/" aria-label="Fazit home" aria-current="page">Fazit</a>
+      <nav class="bar-links" aria-label="Main navigation">
+        <div class="nav-group">
+          <a href="#report">Report</a>
+          <a href="#how">How it works</a>
+          <a href="#safeguards">Safeguards</a>
+          <a href="#status">Status</a>
+        </div>
+        <div class="nav-group">
+          <a href="/pilots/">Pilots</a>
+          <a href="/integrators/">Integrators</a>
+          <a href="/security/">Security</a>
+          <a href="/demo/en/">Sample report</a>
+        </div>
       </nav>
-      <div class="bar-actions">
-        <a class="language" href="/de/" lang="de" hreflang="de">Deutsch</a>
-        <details class="menu" data-menu>
-          <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></summary>
-          <nav class="menu-panel" aria-label="Sections">
+      <a class="language" href="/de/" lang="de" hreflang="de">Deutsch</a>
+      <details class="menu" data-menu>
+        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></summary>
+        <nav class="menu-panel" aria-label="Main navigation">
+          <div class="nav-group">
             <a href="#report">Report</a>
             <a href="#how">How it works</a>
             <a href="#safeguards">Safeguards</a>
             <a href="#status">Status</a>
-            <a href="#pilots">Pilots</a>
-          </nav>
-        </details>
-      </div>
+          </div>
+          <div class="nav-group">
+            <a href="/pilots/">Pilots</a>
+            <a href="/integrators/">Integrators</a>
+            <a href="/security/">Security</a>
+            <a href="/demo/en/">Sample report</a>
+          </div>
+        </nav>
+      </details>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
       <p class="hero-name">Fazit</p>
-      <h1 id="hero-title">See what leaving <span>Microsoft 365</span> would take, on your own machine.</h1>
-      <p class="hero-sub">A free, open source command-line tool licensed under AGPL-3.0-or-later.</p>
+      <h1 id="hero-title">Assess a move from Microsoft 365</h1>
+      <p class="hero-sub">A free, open source tool that shows what your organisation relies on, what needs work and how the costs compare. It creates the report on your computer.</p>
       <div class="hero-actions">
-        <a class="btn btn-solid" href="/demo/en/">View the sample report</a>
+        <a class="btn btn-solid" href="/demo/en/">View sample report</a>
         <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Source code</a>
       </div>
-      <div class="command" aria-labelledby="command-label" role="group">
+      <div class="command" role="group" aria-labelledby="command-label">
         <p class="command-label" id="command-label">Try the demo from source</p>
         <div class="command-line">
-          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</span></code>
-          <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." aria-describedby="demo-command" hidden>Copy</button>
+          <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
+          <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden>Copy</button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
-      <p class="release-note">Early release. The demo works today; assessing a real organisation comes next.</p>
     </section>
+
+    <figure class="report-preview">
+      <picture>
+        <source media="(max-width: 600px) and (prefers-color-scheme: dark)" data-dark-preview="(max-width: 600px)" srcset="/images/readiness-en-mobile-dark.png" width="800" height="1228">
+        <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.png" width="800" height="1228">
+        <source media="(prefers-color-scheme: dark)" data-dark-preview="" srcset="/images/readiness-en-dark.png" width="2016" height="834">
+        <img src="/images/readiness-en-light.png" width="2016" height="834" alt="The readiness section shows four status labels and the evidence behind the town’s licence finding." decoding="async">
+      </picture>
+      <figcaption>
+        <span>Actual Fazit output from the bundled fictional town sample.</span>
+        <a href="/demo/en/#readiness-title">Open the readiness section</a>
+      </figcaption>
+    </figure>
 
     <section class="sec grid" id="report" aria-labelledby="report-title">
       <h2 class="sec-label" id="report-title">What you get</h2>
       <div class="sec-body">
-        <p class="sec-intro">Fazit writes a single HTML report in German or English. You can save it, share it and open it offline.</p>
+        <p class="sec-intro">One self-contained HTML report in English or German, ready to save, read offline or print.</p>
         <dl class="rows">
-          <div>
-            <dt>Inventory</dt>
-            <dd>What the available data shows about your use of Microsoft 365 across 15 areas, from email and files to telephony, device management and business application integrations.</dd>
-          </div>
-          <div>
-            <dt>Readiness</dt>
-            <dd>Each area is marked Ready, Needs work, Blocker or Unknown. The report gives the evidence for each status.</dd>
-          </div>
-          <div>
-            <dt>Possible replacements</dt>
-            <dd>Which functions could move to open source software and which dependencies need attention first.</dd>
-          </div>
-          <div>
-            <dt>Five-year costs</dt>
-            <dd>Compare staying with Microsoft 365, moving some areas and moving all areas. The comparison includes retained licences, project costs, productivity losses and parallel running.</dd>
-          </div>
+          <div><dt>Report details</dt><dd>The header records the date, source and target profile. The footer identifies Fazit.</dd></div>
+          <div><dt>Inventory</dt><dd>What the available evidence shows about your use of Microsoft 365.</dd></div>
+          <div><dt>Five-year costs</dt><dd>Compare staying, a partial move and a full move. The figures include retained licences, project costs, lost working time and parallel running.</dd></div>
+          <div><dt>Readiness by area</dt><dd>Ready, Needs work, Blocker or Unknown, with reasons, evidence and what was left unexamined.</dd></div>
+          <div><dt>What moves where</dt><dd>Possible replacements under the chosen target profile, with documented gaps.</dd></div>
+          <div><dt>What needs attention</dt><dd>File types to review, Windows-only applications and functions whose direct transfer is unverified.</dd></div>
+          <div><dt>Suggested path</dt><dd>Blockers, questions to resolve and areas that may be suitable for a pilot.</dd></div>
+          <div><dt>Appendix</dt><dd>Collection methods, rules, mappings, cost calculations and run details.</dd></div>
         </dl>
-        <p class="section-link"><a href="/demo/en/">View the sample report</a></p>
+        <div class="subsection">
+          <h3>Fifteen areas assessed</h3>
+          <ul class="areas">
+            <li>Licences</li>
+            <li>Directory</li>
+            <li>Mail</li>
+            <li>OneDrive</li>
+            <li>SharePoint</li>
+            <li>Teams</li>
+            <li>Office files</li>
+            <li>Device management</li>
+            <li>Windows-only software</li>
+            <li>Power Platform</li>
+            <li>Telephony</li>
+            <li>Identity and access</li>
+            <li>Security and compliance</li>
+            <li>Small applications</li>
+            <li>Integrations</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -88,63 +144,51 @@
       <div class="sec-body">
         <ol class="steps">
           <li>
-            <h3>Install</h3>
-            <p><a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a> and Git to run the demo from source. After the PyPI release, you can run <code>uvx fazit demo</code>.</p>
+            <h3>Set up</h3>
+            <p>Install Git and <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a>. The first run downloads the Python dependencies. The demo runs without a Microsoft account.</p>
           </li>
           <li>
-            <h3>Run</h3>
-            <p>From a local copy of the source, run <code>uv run fazit demo --lang en</code> to try the bundled sample. Use <code>--lang de</code> for German.</p>
+            <h3>Run the demo</h3>
+            <p>Use the command above for the town sample in English. In the clone, run <code>uv run fazit demo --lang de</code> for German.</p>
           </li>
           <li>
-            <h3>Read the report</h3>
-            <p>Open the HTML file on your computer. The report shows what was checked and what is still unknown.</p>
+            <h3>Open the report</h3>
+            <p>Open the HTML file named on the last line. The report shows the evidence for each finding and what to check next.</p>
           </li>
         </ol>
-        <div class="subsection">
-          <h3>Inputs</h3>
-          <dl class="rows stages">
-            <div><dt>Available now</dt><dd>Bundled sample data.</dd></div>
-            <div><dt>Planned next</dt><dd>Files exported from the Microsoft 365 admin centre, processed locally.</dd></div>
-            <div><dt>Planned later</dt><dd>Read-only sign-in to Microsoft 365.</dd></div>
-          </dl>
-        </div>
       </div>
     </section>
 
     <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title">What it never does</h2>
+      <h2 class="sec-label" id="safeguards-title">What Fazit never does</h2>
       <div class="sec-body">
         <ul class="safeguards">
-          <li>Fazit has no write access to Microsoft 365.</li>
-          <li>Assessment data stays on your computer. There is no Fazit server, account or telemetry.</li>
-          <li>Fazit never stores sign-in tokens on disk.</li>
-          <li>Fazit excludes collected personal names and email addresses. The organisation name and Windows-only application names you enter in <code>inputs.yaml</code> appear in the report.</li>
-          <li>The report loads nothing from the internet when you open it.</li>
+          <li>Write to a Microsoft tenant or call an endpoint outside the read allowlist.</li>
+          <li>Send assessment data off your computer. The current version contacts no host. Live sign-in and collection will be limited to Microsoft sign-in and Graph.</li>
+          <li>Save tokens or collected names and email addresses to disk. The report can show the organisation and Windows-only application names you enter.</li>
+          <li>Load external resources from the report.</li>
+          <li>Invent results or improve a status when a check is skipped.</li>
         </ul>
         <div class="subsection">
           <h3>Check it yourself</h3>
-          <p>Once the demo is set up, disconnect from the network. Run the demo again and open the report in your browser.</p>
+          <p>After the first run, disconnect from the network. Run <code>uv run --offline fazit demo</code> and open the report in your browser.</p>
+          <p class="section-link"><a href="/security/#offline">How to verify offline operation</a></p>
         </div>
       </div>
     </section>
 
     <section class="sec grid" id="claims" aria-labelledby="claims-title">
-      <h2 class="sec-label" id="claims-title">What it claims, and what it does not</h2>
+      <h2 class="sec-label" id="claims-title">Reading the findings</h2>
       <div class="sec-body">
-        <h3>What the evidence shows</h3>
-        <p>Fazit reports what it can establish and gives a status per area. Findings include the source, date, reporting period and coverage, with a reason where evidence is missing. Each figure is marked as measured, supplied by your organisation or unknown. A skipped check never improves a status.</p>
-        <div class="subsection">
-          <h3>Where the evidence stops</h3>
-          <p>Your organisation decides whether to leave Microsoft 365. Fazit gives no overall go or no-go verdict. When an area is not yet ready, the report shows what needs attention.</p>
-          <p>Cost totals stay unknown if key figures from your organisation are missing. File names can flag documents for review. Confirming macros requires looking inside the file.</p>
-        </div>
+        <p>Each finding shows its source, date, reporting period and coverage where available. The report marks figures as measured, provided or unknown. Missing evidence comes with a reason and a next step. Cost totals stay unknown when required amounts are missing.</p>
+        <p>The report gives a status per area and has no overall score or verdict. Your organisation decides whether to move.</p>
+        <p>An internally consistent fabrication can pass Fazit’s checks, so the report depends on the people and tools that supplied the evidence.</p>
       </div>
     </section>
 
     <section class="sec grid" id="sources" aria-labelledby="sources-title">
       <h2 class="sec-label" id="sources-title">Built on</h2>
       <div class="sec-body">
-        <p class="sec-intro">Two public evaluations inform the structure of the assessment.</p>
         <ul class="sources">
           <li>
             <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/" hreflang="de">openDesk evaluation for the City of Zurich</a>
@@ -156,37 +200,39 @@
           </li>
         </ul>
         <div class="subsection">
-          <h3>Open source projects</h3>
-          <p>Fazit maps Microsoft 365 functions to potential replacements in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi and Keycloak.</p>
+          <h3>Target projects</h3>
+          <p>The <a href="https://docs.opendesk.eu/">openDesk</a> and <a href="https://nextcloud.com/">Nextcloud</a> profiles describe functions covered by projects such as Collabora Online, Open-Xchange, Element, Jitsi and Keycloak. Use the generic profile to consider other setups, such as desktops with Linux and LibreOffice.</p>
         </div>
       </div>
     </section>
 
     <section class="sec grid" id="status" aria-labelledby="status-title">
-      <h2 class="sec-label" id="status-title">Status</h2>
+      <h2 class="sec-label" id="status-title">Project status</h2>
       <div class="sec-body">
-        <ul class="roadmap">
-          <li><strong>Now.</strong> The demo produces an offline report from bundled sample data in German or English. The PyPI release is pending.</li>
-          <li><strong>Next.</strong> Assess an organisation using its exported usage reports.</li>
-          <li><strong>Later.</strong> Check permissions and collect licence and directory counts through a read-only sign-in.</li>
-        </ul>
+        <dl class="rows stages">
+          <div><dt>Now</dt><dd>Run from source. Fazit builds reports from bundled examples or an existing scan file. The PyPI package has yet to be published.</dd></div>
+          <div><dt>Next</dt><dd>Import Microsoft 365 admin-centre CSV exports locally and keep the aggregates.</dd></div>
+          <div><dt>Later</dt><dd>Check permissions and collect licence and directory counts with read-only sign-in.</dd></div>
+        </dl>
       </div>
     </section>
 
-    <section class="sec grid" id="pilots" aria-labelledby="pilots-title">
-      <h2 class="sec-label" id="pilots-title">Founding pilots</h2>
+    <section class="sec grid" id="participate" aria-labelledby="participate-title">
+      <h2 class="sec-label" id="participate-title">Using Fazit</h2>
       <div class="sec-body">
-        <p class="sec-intro">We offer three free pilot assessments for organisations with 200 to 2,000 staff, one each in Germany, Austria and Switzerland.</p>
-        <p>Your data stays with your organisation. You decide separately whether we may name your organisation publicly. Taking part carries no obligation to buy anything or to migrate.</p>
-        <p>Public bodies receive a one-page agreement for their approval process.</p>
-        <p class="section-link"><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></p>
+        <dl class="rows">
+          <div><dt><a href="/pilots/">Pilots</a></dt><dd>Three free assessments, one each in Germany, Austria and Switzerland.</dd></div>
+          <div><dt><a href="/integrators/">For integrators</a></dt><dd>Use Fazit in your own assessments and see how the public list of firms will work.</dd></div>
+          <div><dt><a href="/security/">Security and privacy</a></dt><dd>Check the safeguards or report a vulnerability privately.</dd></div>
+        </dl>
       </div>
     </section>
 
     <section class="sec grid" id="development" aria-labelledby="development-title">
       <h2 class="sec-label" id="development-title">How it is made</h2>
       <div class="sec-body">
-        <p>Fazit is written with AI assistance from Claude and Codex, which review each other’s work. The maintainers direct development and are responsible for the tool. Every promise that applies to today’s version has a test anyone can run. The promises about sign-in get their tests when sign-in arrives.</p>
+        <p>Claude and Codex help write and review the code. A human maintainer directs the work and is responsible for it. Every safeguard in the current version has a test you can run. Tests for live collection will accompany sign-in.</p>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Browse the tests</a></p>
       </div>
     </section>
   </main>
@@ -198,11 +244,17 @@
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
-            <ul><li><a href="/demo/en/">Sample report</a></li><li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li></ul>
+            <ul>
+              <li><a href="/demo/en/">Sample report</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li>
+            </ul>
           </div>
           <div>
             <p class="foot-heading">Legal</p>
-            <ul><li><a href="/impressum/">Legal notice</a></li><li><a href="/privacy/">Privacy</a></li></ul>
+            <ul>
+              <li><a href="/impressum/">Legal notice</a></li>
+              <li><a href="/privacy/">Privacy</a></li>
+            </ul>
           </div>
           <div>
             <p class="foot-heading">Contact</p>
