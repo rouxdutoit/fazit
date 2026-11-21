@@ -3,6 +3,7 @@
 import re
 from collections import Counter
 from html.parser import HTMLParser
+from itertools import pairwise
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
 
@@ -63,7 +64,7 @@ class Page(HTMLParser):
             if self.tags[tag] != 1:
                 self.errors.append(f"Expected one <{tag}> element.")
         if self.headings[:1] != [1] or any(
-            after > before + 1 for before, after in zip(self.headings, self.headings[1:])
+            after > before + 1 for before, after in pairwise(self.headings)
         ):
             self.errors.append("Heading levels are out of order.")
         for element_id, count in self.ids.items():

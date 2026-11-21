@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Fazit is a free, open source tool for assessing a move from Microsoft 365. It runs on your computer and produces an offline report.">
-  <title>Fazit — Assess a move from Microsoft 365</title>
+  <meta name="description" content="Befund is a free, open source tool for assessing a move from Microsoft 365. It runs on your computer and produces an offline report.">
+  <title>Befund — Assess a move from Microsoft 365</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
@@ -13,7 +13,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="bar">
     <div class="bar-in">
-      <a class="wordmark" href="/" aria-label="Fazit home">Fazit</a>
+      <a class="wordmark" href="/" aria-label="Befund home">Befund</a>
       <nav class="bar-links" aria-label="Sections">
         <a href="#report">Report</a>
         <a href="#how">How it works</a>
@@ -39,17 +39,17 @@
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
-      <p class="hero-name">Fazit</p>
+      <p class="hero-name">Befund</p>
       <h1 id="hero-title">See what leaving <span>Microsoft 365</span> would take, on your own machine.</h1>
       <p class="hero-sub">A free, open source command-line tool licensed under AGPL-3.0-or-later.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/en/">View the sample report</a>
-        <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Source code</a>
+        <a class="btn btn-outline" href="https://github.com/rouxdutoit/befund">Source code</a>
       </div>
       <div class="command" aria-labelledby="command-label" role="group">
         <p class="command-label" id="command-label">After publication on PyPI</p>
         <div class="command-line">
-          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">uvx fazit demo</span></code>
+          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">uvx befund demo</span></code>
           <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." aria-describedby="demo-command" hidden>Copy</button>
         </div>
         <p class="copy-message" role="status"></p>
@@ -60,7 +60,7 @@
     <section class="sec grid" id="report" aria-labelledby="report-title">
       <h2 class="sec-label" id="report-title">What you get</h2>
       <div class="sec-body">
-        <p class="sec-intro">Fazit writes a single HTML report in German or English. You can save it, share it and open it offline.</p>
+        <p class="sec-intro">Befund writes a single HTML report in German or English. You can save it, share it and open it offline.</p>
         <dl class="rows">
           <div>
             <dt>Inventory</dt>
@@ -89,11 +89,11 @@
         <ol class="steps">
           <li>
             <h3>Install</h3>
-            <p><a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a>. Once the package is published, <code>uvx</code> can download Fazit and its dependencies on the first run.</p>
+            <p><a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a>. Once the package is published, <code>uvx</code> can download Befund and its dependencies on the first run.</p>
           </li>
           <li>
             <h3>Run</h3>
-            <p>From a local copy of the source, run <code>uv run fazit demo --lang en</code> to try the bundled sample. Use <code>--lang de</code> for German.</p>
+            <p>From a local copy of the source, run <code>uv run befund demo --lang en</code> to try the bundled sample. Use <code>--lang de</code> for German.</p>
           </li>
           <li>
             <h3>Read the report</h3>
@@ -115,9 +115,9 @@
       <h2 class="sec-label" id="safeguards-title">What it never does</h2>
       <div class="sec-body">
         <ul class="safeguards">
-          <li>Fazit has no write access to Microsoft 365.</li>
-          <li>Assessment data stays on your computer. There is no Fazit server, account or telemetry.</li>
-          <li>Fazit never stores sign-in tokens on disk.</li>
+          <li>Befund has no write access to Microsoft 365.</li>
+          <li>Assessment data stays on your computer. There is no Befund server, account or telemetry.</li>
+          <li>Befund never stores sign-in tokens on disk.</li>
           <li>The report contains no personal names or email addresses.</li>
           <li>The report loads nothing from the internet when you open it.</li>
         </ul>
@@ -132,10 +132,10 @@
       <h2 class="sec-label" id="claims-title">What it claims, and what it does not</h2>
       <div class="sec-body">
         <h3>What the evidence shows</h3>
-        <p>Fazit reports what it can establish and gives a status per area. Findings include the source, date, reporting period and coverage, with a reason where evidence is missing. Each figure is marked as measured, supplied by your organisation or unknown. A skipped check never improves a status.</p>
+        <p>Befund reports what it can establish and gives a status per area. Findings include the source, date, reporting period and coverage, with a reason where evidence is missing. Each figure is marked as measured, supplied by your organisation or unknown. A skipped check never improves a status.</p>
         <div class="subsection">
           <h3>Where the evidence stops</h3>
-          <p>Your organisation decides whether to leave Microsoft 365. Fazit gives no overall go or no-go verdict. When an area is not yet ready, the report shows what needs attention.</p>
+          <p>Your organisation decides whether to leave Microsoft 365. Befund gives no overall go or no-go verdict. When an area is not yet ready, the report shows what needs attention.</p>
           <p>Cost totals stay unknown if key figures from your organisation are missing. File names can flag documents for review. Confirming macros requires looking inside the file.</p>
         </div>
       </div>
@@ -157,7 +157,7 @@
         </ul>
         <div class="subsection">
           <h3>Open source projects</h3>
-          <p>Fazit maps Microsoft 365 functions to potential replacements in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi and Keycloak.</p>
+          <p>Befund maps Microsoft 365 functions to potential replacements in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi and Keycloak.</p>
         </div>
       </div>
     </section>
@@ -186,7 +186,7 @@
     <section class="sec grid" id="development" aria-labelledby="development-title">
       <h2 class="sec-label" id="development-title">How it is made</h2>
       <div class="sec-body">
-        <p>Fazit is written with AI assistance from Claude and Codex, which review each other’s work. The maintainers direct development and are responsible for the tool. Every promise that applies to today’s version has a test anyone can run. The promises about sign-in get their tests when sign-in arrives.</p>
+        <p>Befund is written with AI assistance from Claude and Codex, which review each other’s work. The maintainers direct development and are responsible for the tool. Every promise that applies to today’s version has a test anyone can run. The promises about sign-in get their tests when sign-in arrives.</p>
       </div>
     </section>
   </main>
@@ -194,11 +194,11 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/">Fazit</a>
+        <a class="wordmark" href="/">Befund</a>
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
-            <ul><li><a href="/demo/en/">Sample report</a></li><li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li></ul>
+            <ul><li><a href="/demo/en/">Sample report</a></li><li><a href="https://github.com/rouxdutoit/befund">Source code</a></li></ul>
           </div>
           <div>
             <p class="foot-heading">Legal</p>

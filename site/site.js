@@ -1,7 +1,7 @@
 (() => {
   const root = document.documentElement;
   const systemTheme = matchMedia("(prefers-color-scheme: dark)");
-  const storageKey = "fazit-theme";
+  const storageKey = "befund-theme";
   root.classList.add("js");
 
   try {
