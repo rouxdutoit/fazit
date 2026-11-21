@@ -173,3 +173,14 @@ None yet. This phase sets them: dataclass models, data files inside the package,
 ---
 *Phase: 01-demo-and-report*
 *Context gathered: 2026-11-21*
+
+### Planner interpretations accepted by the orchestrator (2026-11-21)
+
+- Phase 1 has seven plans, not five (D-39).
+- One `as_of` date per `inputs.yaml`, applied to every provided finding (D-49).
+- An assigned Teams Phone add-on with no answer about a replacement is `Unknown`, with the add-on shown as a note; it is a `Blocker` only when the answer says no replacement is available (D-65 read with D-43).
+- Running cost is shown above the three blocks, which hold the cost of the change (D-63).
+- `generic` mapping rows cite no project page and say so in the report (D-45, D-61).
+- The appendix lists dropped field names only when they are plain lower-case identifiers; others are counted (D-40).
+- Service plan identifiers are verified by the executor against Microsoft's page at build time (D-60).
+- The installed-package offline test needs `uv` and a prior `uv sync` (D-52).

@@ -32,7 +32,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A user copies `inputs.example.yaml`, fills in some costs, runs `report scan.json --inputs inputs.yaml` with a different `--lang` or `--profile` on a `scan.json` that carries a schema version, and gets a rebuilt report comparing stay, partial exit and full exit over five years; every cost left empty reads "not provided" and every total that depends on it reads unknown.
   4. A user changes a mapping, a status rule or the risky file-type list in a YAML file and sees the change in the next report, whose appendix lists the rules applied and the full mapping; a broken file stops the run with a message that names the file and the field.
   5. Anyone who clones the repository finds the AGPL licence, `CONTRIBUTING.md`, `SECURITY.md` and a README in English and German that shows the `demo` command first and says the code is written with AI assistance, and can run the test suite, locally or in CI and with no tenant, to see it prove that reports load nothing external, contain no person names or email addresses by default, and have the same keys in both locales.
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans, run one at a time in this order:
+- [ ] 01-01-PLAN.md — Walking skeleton and evidence model: `demo` writes one real report; catalogue of fifteen workloads, allowlist loader, two samples, two languages
+- [ ] 01-02-PLAN.md — `report` command, writes that stay inside `--out`, proof of privacy and of offline use, visual design
+- [ ] 01-03-PLAN.md — Judgement: licence signals, status rules for fifteen workloads with reason and fix on every Unknown, risky file types
+- [ ] 01-04-PLAN.md — Mappings by function for three profiles with coverage ladder and check dates, "Cannot be moved", suggested path without a verdict
+- [ ] 01-05-PLAN.md — Manual inputs: `inputs.yaml`, provided evidence, example file and interview checklist in two languages
+- [ ] 01-06-PLAN.md — Costs: three five-year scenarios in running cost and three blocks, run details, nine sections in every report
+- [ ] 01-07-PLAN.md — Repository basics and final proof: licence, CONTRIBUTING, SECURITY, README in two languages, CI, installed package offline, M0 note
 **UI hint**: yes
 
 ### Phase 2: Import
@@ -89,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Demo and Report | 0/TBD | Not started | - |
+| 1. Demo and Report | 0/7 | Not started | - |
 | 2. Import | 0/TBD | Not started | - |
 | 3. Doctor, Sign-in and Live Counts | 0/TBD | Not started | - |
 | 4. Documentation, Packaging and Release | 0/TBD | Not started | - |
