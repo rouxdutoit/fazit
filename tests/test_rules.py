@@ -311,7 +311,8 @@ def test_sample_licence_findings_match_assigned_products(
 def _product_findings(catalogue: Catalogue, *products: Product) -> dict[str, Finding]:
     scan = sample_scan("town", catalogue)
     assert scan.licences is not None
-    scan = replace(scan, licences=replace(scan.licences, products=products))
+    coverage = Coverage("complete", len(products), 0, len(products))
+    scan = replace(scan, licences=replace(scan.licences, products=products, coverage=coverage))
     return {
         item.id: item for item in licence_findings(scan, load_service_plans(catalogue), catalogue)
     }
@@ -348,12 +349,14 @@ def test_unmapped_pairs_are_unknown_without_erasing_classified_assignments(
     bad_plan_guid = replace(
         phone, service_plans=(replace(phone.service_plans[0], guid=phone.sku_guid),)
     )
-    for product in (wrong_product, bad_plan_guid):
+    for product, reason in (
+        (wrong_product, "licence_not_classified"),
+        (bad_plan_guid, "licence_plan_list_incomplete"),
+    ):
         findings = _product_findings(catalogue, product)
         del findings["licences.product_count"]
         assert all(
-            (signal.value, signal.provenance, signal.missing_reason)
-            == (None, "unknown", "licence_not_classified")
+            (signal.value, signal.provenance, signal.missing_reason) == (None, "unknown", reason)
             for signal in findings.values()
         )
         assert classify_product(product, load_service_plans(catalogue)) == (None,)
@@ -364,6 +367,39 @@ def test_unmapped_pairs_are_unknown_without_erasing_classified_assignments(
         findings = _product_findings(catalogue, *products)
         assert findings["telephony.licence_add_on_assigned"].value is True
         assert findings["teams.licence_add_on_assigned"].value is None
+
+
+def test_incomplete_roster_preserves_confirmed_assignments(catalogue: Catalogue) -> None:
+    scan = sample_scan("town", catalogue)
+    assert scan.licences is not None
+    suite, phone, reporting = scan.licences.products
+    baseline = _product_findings(catalogue, suite, phone, reporting)
+    remaining = tuple(plan for plan in suite.service_plans if plan.name != "EXCHANGE_S_ENTERPRISE")
+    partial = replace(suite, service_plans=(*remaining, remaining[0]))
+    assert len(partial.service_plans) == len(suite.service_plans)
+    findings = _product_findings(catalogue, partial, phone, reporting)
+
+    for finding_id, complete in baseline.items():
+        observed = findings[finding_id]
+        if finding_id == "mail.licence_bundled_assigned" or complete.value is False:
+            assert (observed.value, observed.provenance, observed.missing_reason) == (
+                None,
+                "unknown",
+                "licence_plan_list_incomplete",
+            )
+        else:
+            assert observed == complete
+
+
+def test_render_report_checks_in_memory_licence_coverage(catalogue: Catalogue) -> None:
+    scan = sample_scan("town", catalogue)
+    assert scan.licences is not None
+    suite, _, reporting = scan.licences.products
+    scan = replace(scan, licences=replace(scan.licences, products=(suite, reporting)))
+
+    with pytest.raises(InputError, match="invalid_licence_coverage") as caught:
+        render_report(scan, lang="en", catalogue=catalogue)
+    assert (caught.value.file, caught.value.field) == ("scan.json", "licences.coverage")
 
 
 def test_audio_conferencing_is_a_meetings_signal(catalogue: Catalogue) -> None:

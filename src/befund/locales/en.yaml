@@ -287,6 +287,9 @@ reason:
   licence_plan_list_missing:
     label: An assigned product has no service plan list in the inventory.
     fix: Supply the list of service plans for that product.
+  licence_plan_list_incomplete:
+    label: Plan list incomplete for a known product.
+    fix: Check the export and supply the complete list of service plans for the product.
   coverage_partial:
     label: The measurement covers only part of the scope.
     fix: Check the remaining items before drawing a conclusion about the whole scope.
@@ -422,6 +425,7 @@ errors:
   duplicate_id: The identifier at {field} in {file} is already listed.
   non_finite_number: Supply a finite number for {field} in {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
+  invalid_licence_coverage: Complete coverage in {field} in {file} requires the scanned and total counts to match the number of listed licence products, with zero failures.
   invalid_collector: The collection method for {field} in {file} must have run.
   invalid_evidence_source: The collection method or source at {field} in {file} is invalid for {finding}.
   file_not_found: The file {file} could not be found at {field}.

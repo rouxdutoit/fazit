@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
+from collections import defaultdict
 from collections.abc import Collection, Iterator, MutableMapping
 from collections.abc import Mapping as MappingABC
 from dataclasses import dataclass, replace
@@ -25,6 +26,11 @@ _MAPPING_REFERENCE = re.compile(r"https://[^/\s?#]+(?:[/?#][^\s]*)?")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _SIGNALS = ("add_on", "bundled")
 _PLAN_CLASSES = (*_SIGNALS, "no_workload")
+_PLAN_GAP_REASONS = (
+    "licence_plan_list_incomplete",
+    "licence_plan_list_missing",
+    "licence_not_classified",
+)
 _PRODUCT_COUNT = "licences.product_count"
 _RULE_ID = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 _EXTENSION = re.compile(r"[a-z0-9]+")
@@ -411,20 +417,28 @@ def classify_product(
 def _licence_signals(
     products: tuple[Product, ...], plans: tuple[ServicePlan, ...]
 ) -> tuple[set[tuple[str, str]], str | None]:
+    rosters: defaultdict[tuple[str, str], set[str]] = defaultdict(set)
+    for plan in plans:
+        rosters[sku_key(plan.sku_part_number, plan.sku_guid)].add(plan.guid)
+
     assigned: set[tuple[str, str]] = set()
-    gap = None
+    gaps: set[str] = set()
     for product in products:
+        key = product.key
+        if key is not None and (expected := rosters.get(key)):
+            if not expected.issubset(plan.guid for plan in product.service_plans):
+                gaps.add("licence_plan_list_incomplete")
         if not product.assigned:
             continue
         if not product.service_plans:
-            gap = "licence_plan_list_missing"
+            gaps.add("licence_plan_list_missing")
             continue
         for match in classify_product(product, plans):
             if match is None:
-                gap = gap or "licence_not_classified"
+                gaps.add("licence_not_classified")
             elif match.workload is not None:
                 assigned.add((match.workload, match.signal))
-    return assigned, gap
+    return assigned, next((code for code in _PLAN_GAP_REASONS if code in gaps), None)
 
 
 def licence_findings(
@@ -433,6 +447,7 @@ def licence_findings(
     licences = scan.licences
     if licences is None:
         return ()
+    licences.check_complete_coverage("scan.json")
     coverage = licences.coverage
     collector = scan.collector(licences.collector)
     coverage_gap = None
@@ -773,7 +788,7 @@ def _problem_result(
 def _unknown_code(
     gaps: tuple[MissingEvidence, ...], bundled: Finding | None, provided_ids: Collection[str]
 ) -> str:
-    for code in ("licence_plan_list_missing", "licence_not_classified", "confirmation_conflict"):
+    for code in (*_PLAN_GAP_REASONS, "confirmation_conflict"):
         if any(gap.reason_code == code for gap in gaps):
             return code
     if bundled is not None and bundled.value is True and _complete(bundled):

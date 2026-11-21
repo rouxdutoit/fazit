@@ -177,7 +177,9 @@ def test_licence_inventory_requires_a_source_bound_to_its_collector(
 
 
 def test_empty_licence_inventory_leaves_absence_unknown(tmp_path: Path, town_scan: dict) -> None:
-    town_scan["licences"]["products"] = []
+    town_scan["licences"].update(
+        products=[], coverage={"kind": "complete", "scanned": 0, "failed": 0, "total": 0}
+    )
     answers = """
 confirmations:
   licences.contract_terms_known: true
@@ -202,6 +204,69 @@ confirmations:
     assert "Licence products found: 0" not in html
 
 
+def test_complete_licence_inventory_rejects_a_missing_product(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    licences = town_scan["licences"]
+    licences["coverage"] = {"kind": "complete", "scanned": 3, "failed": 0, "total": 3}
+    baseline = _html(_report(tmp_path / "all-products", town_scan, NO_TELEPHONY))
+    assert 'data-status="blocker"' in _readiness(baseline, "telephony")
+
+    licences["products"] = [
+        item for item in licences["products"] if item["sku_part_number"] != "MCOEV"
+    ]
+    assert len(licences["products"]) == 2
+    incomplete = tmp_path / "missing-product"
+    result = _report(incomplete, town_scan, NO_TELEPHONY)
+
+    assert result.exit_code == 2 and not result.stdout, result.output
+    assert len(result.stderr.splitlines()) == 1
+    assert "inventory.json" in result.stderr and "licences.coverage" in result.stderr
+    assert not (incomplete / "out").exists()
+
+
+@pytest.mark.parametrize(
+    ("sku", "removed", "assigned", "baseline_status"),
+    [
+        ("BUSINESS_VOICE_DIRECTROUTING", "MCOEV", 12, "blocker"),
+        ("SPE_E3", "EXCHANGE_S_ENTERPRISE", 85, "ready"),
+        ("SPE_E3", "EXCHANGE_S_ENTERPRISE", 0, "ready"),
+    ],
+)
+def test_missing_roster_plan_leaves_add_on_absence_unknown(
+    tmp_path: Path, town_scan: dict, sku: str, removed: str, assigned: int, baseline_status: str
+) -> None:
+    roster = [plan for plan in load_service_plans(load_catalogue()) if plan.sku_part_number == sku]
+    product = {
+        "sku_part_number": sku,
+        "sku_guid": roster[0].sku_guid,
+        "purchased": assigned,
+        "assigned": assigned,
+        "service_plans": [{"name": plan.name, "guid": plan.guid} for plan in roster],
+    }
+    town_scan["licences"].update(
+        products=[product], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
+    )
+    baseline = _html(_report(tmp_path / "complete-roster", town_scan, NO_TELEPHONY))
+    assert f'data-status="{baseline_status}"' in _readiness(baseline, "telephony")
+
+    service_plans = product["service_plans"]
+    (missing,) = [plan for plan in service_plans if plan["name"] == removed]
+    service_plans.remove(missing)
+    html = _html(_report(tmp_path / "incomplete-roster", town_scan, NO_TELEPHONY))
+    row = _readiness(html, "telephony")
+
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_plan_list_incomplete"' in row
+    assert "Plan list incomplete for a known product." in row
+    evidence = re.search(
+        r'<li data-evidence="telephony\.licence_add_on_assigned">.*?</li>', row, re.S
+    )
+    assert evidence is not None
+    assert 'data-provenance="unknown"' in evidence[0]
+    assert not re.search(r"\b(?:No|Measured)\b", evidence[0])
+
+
 @pytest.mark.parametrize("plan_list", ["empty", "omitted", "null"])
 def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     tmp_path: Path, town_scan: dict, plan_list: str
@@ -219,7 +284,8 @@ def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     html = _html(_report(tmp_path / "no-plans", town_scan, NO_TELEPHONY))
     row = _readiness(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
-    assert 'data-reason="licence_plan_list_missing"' in row
+    assert 'data-reason="licence_plan_list_incomplete"' in row
+    assert 'data-reason="licence_plan_list_missing"' in html
 
 
 def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
@@ -242,7 +308,8 @@ def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
     row = _readiness(html, "telephony")
 
     assert 'data-status="unknown" data-incomplete' in row
-    assert 'data-reason="licence_not_classified"' in row
+    assert 'data-reason="licence_plan_list_incomplete"' in row
+    assert 'data-reason="licence_not_classified"' in html
     evidence = re.search(
         r'<li data-evidence="telephony\.licence_add_on_assigned">.*?</li>', row, re.S
     )
@@ -299,6 +366,7 @@ confirmations:
     licences["products"] = [
         item for item in licences["products"] if item["sku_part_number"] != "PBI_PREMIUM_PER_USER"
     ]
+    licences["coverage"] = {"kind": "complete", "scanned": 2, "failed": 0, "total": 2}
     checked = _html(_report(tmp_path / "complete-licences", town_scan, answers))
     assert 'data-status="blocker"' in _readiness(checked, "telephony")
     assert 'data-status="ready"' in _readiness(checked, "power_platform")
@@ -364,6 +432,7 @@ def test_telephony_rule_reads_the_provided_confirmation(
     town_scan["licences"]["products"] = [
         item for item in town_scan["licences"]["products"] if item["sku_part_number"] != "MCOEV"
     ]
+    town_scan["licences"]["coverage"] = {"kind": "complete", "scanned": 2, "failed": 0, "total": 2}
     answers = f"""
 confirmations:
   telephony.in_use: {str(provided).lower()}

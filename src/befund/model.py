@@ -116,6 +116,13 @@ class Licences:
     coverage: Coverage
     products: tuple[Product, ...]
 
+    def check_complete_coverage(self, file_name: str) -> None:
+        count = len(self.products)
+        if self.coverage.kind == "complete" and self.coverage != Coverage(
+            "complete", scanned=count, failed=0, total=count
+        ):
+            raise InputError("invalid_licence_coverage", file=file_name, field="licences.coverage")
+
 
 @dataclass(frozen=True)
 class Scan:
@@ -436,13 +443,15 @@ class _ScanReader:
                 parts.add(part_number)
                 guids.add(guid)
             products.append(product)
-        return Licences(
+        licences = Licences(
             collector=collector,
             source=source,
             collected_at=self.timestamp(row["collected_at"], "licences.collected_at"),
             coverage=self.coverage(row["coverage"], "licences.coverage"),
             products=tuple(products),
         )
+        licences.check_complete_coverage(self.file_name)
+        return licences
 
     def scan(self, value: object) -> Scan:
         reject_at_signs(value, self.file_name)

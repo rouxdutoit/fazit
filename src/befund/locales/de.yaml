@@ -287,6 +287,9 @@ reason:
   licence_plan_list_missing:
     label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Dienstpläne.
     fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
+  licence_plan_list_incomplete:
+    label: Die Dienstplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
+    fix: Prüfen Sie den Export und reichen Sie die vollständige Liste der Dienstpläne für das Produkt nach.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
@@ -422,6 +425,7 @@ errors:
   duplicate_id: Die Kennung in {field} ist in der Datei {file} bereits vorhanden.
   non_finite_number: Geben Sie für {field} in der Datei {file} eine endliche Zahl an.
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
+  invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
   invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
   invalid_evidence_source: Das Erhebungsverfahren oder die Quelle unter {field} in der Datei {file} ist für {finding} ungültig.
   file_not_found: Die Datei {file} für {field} wurde nicht gefunden.

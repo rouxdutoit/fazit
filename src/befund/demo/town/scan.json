@@ -607,7 +607,10 @@
     "source": "sample.licences",
     "collected_at": "2026-11-02T09:00:00Z",
     "coverage": {
-      "kind": "complete"
+      "kind": "complete",
+      "scanned": 3,
+      "failed": 0,
+      "total": 3
     },
     "products": [
       {

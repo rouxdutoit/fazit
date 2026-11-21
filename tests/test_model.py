@@ -98,7 +98,7 @@ def scan_data() -> dict:
             "collector": "licences",
             "source": "sample.licences",
             "collected_at": "2026-11-02",
-            "coverage": {"kind": "complete"},
+            "coverage": {"kind": "complete", "scanned": 1, "failed": 0, "total": 1},
             "products": [
                 {
                     "sku_part_number": "sample_SKU",
@@ -388,6 +388,7 @@ def test_licences_preserve_identifiers_counts_and_service_plans(
 ) -> None:
     licences = _load(scan_data, catalogue).licences
     assert licences is not None and licences.collector == "licences"
+    assert licences.coverage == Coverage("complete", 1, 0, 1)
     (product,) = licences.products
     (plan,) = product.service_plans
     assert (product.sku_part_number, product.sku_guid[-1]) == ("sample_SKU", "f")
@@ -395,6 +396,16 @@ def test_licences_preserve_identifiers_counts_and_service_plans(
     assert (plan.name, plan.guid) == ("sample_PLAN", "00000000-0000-4000-8000-000000000002")
     scan_data["licences"] = None
     assert _load(scan_data, catalogue).licences is None
+
+
+@pytest.mark.parametrize("coverage", [Coverage("complete"), Coverage("complete", 0, 0, 0)])
+def test_complete_licences_require_coverage_for_all_listed_products(
+    scan_data: dict, catalogue: Catalogue, coverage: Coverage
+) -> None:
+    scan_data["licences"]["coverage"] = asdict(coverage)
+    with pytest.raises(InputError, match="invalid_licence_coverage") as caught:
+        _load(scan_data, catalogue)
+    assert (caught.value.file, caught.value.field) == ("scan.json", "licences.coverage")
 
 
 @pytest.mark.parametrize(
