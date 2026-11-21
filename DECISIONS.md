@@ -39,6 +39,7 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D21. Fifteen areas are assessed, not nine.** Public evaluations found their real gaps outside mail and files: telephony, Power Platform, identity, device management, security and compliance, small apps such as Forms and Planner, and integrations with business applications. Licence data shows which of these an organisation pays for, without reading any content.
 - **D22. Costs are shown in three blocks:** direct project cost, productivity loss, and parallel running. Comparing licences with hosting alone understates the cost of leaving.
 - **D23. A "second source" scenario is deferred.** Keeping Microsoft 365 and building a fallback for chosen areas is a real option for many organisations. It is not in v1.
+- **D24. The tool is called Fazit.** German for "conclusion" or "bottom line"; it reads naturally to the audience and in the formal register. Package, command and module are `fazit` (free on PyPI and npm on 2026-11-21). The working name `m365-exit-scan` is dropped because "M365" is Microsoft's trademark. A TMview search on 2026-11-21 found no live FAZIT word mark for software (class 9) or IT services (class 42) in the EU, Germany or Switzerland; expired German marks in those classes and live marks in unrelated classes exist. TMview is not an official register, so a formal clearance search is still needed before the first public release. The GitHub handle `fazit` is taken; the repository lives under the maintainer's account.
 
 ### Milestone order
 
