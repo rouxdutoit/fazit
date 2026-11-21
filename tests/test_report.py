@@ -3,7 +3,7 @@ import json
 import re
 from html.parser import HTMLParser
 from importlib.resources import files
-from itertools import pairwise
+from itertools import combinations, pairwise
 from pathlib import Path
 
 import pytest
@@ -185,6 +185,13 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
                 low, high = sorted((_luminance(colors[foreground]), _luminance(colors[background])))
                 contrast = (high + 0.05) / (low + 0.05)
                 assert contrast >= 4.5, (scheme, foreground, background, contrast)
+        assert "--status-unknown" in colors
+        status_colors = [
+            colors[f"--status-{status}"] for status in ("ready", "needs-work", "blocker")
+        ]
+        for left, right in combinations(status_colors, 2):
+            low, high = sorted((_luminance(left), _luminance(right)))
+            assert (high + 0.05) / (low + 0.05) >= 1.5, (scheme, left, right)
     assert re.search(r"@media[^{}]+\(max-width:\s*40rem\)", css)
     assert re.search(r"content:\s*attr\(data-label\)", css)
     assert re.search(r"@page\s*\{\s*margin:", css)

@@ -263,6 +263,13 @@ findings:
     label: finding.power_platform.in_use
     provided: answer
     headline: false
+  - id: telephony.in_use
+    workload: telephony
+    type: boolean
+    unit: null
+    label: finding.telephony.in_use
+    provided: answer
+    headline: false
   - id: telephony.replacement_available
     workload: telephony
     type: boolean
@@ -337,7 +344,9 @@ codes:
     - collector_skipped
     - not_in_scan
     - licensed_use_not_measured
+    - licence_not_classified
     - coverage_partial
+    - coverage_unknown
     - not_established
     - not_recognised
   permissions:

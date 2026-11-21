@@ -2,6 +2,57 @@
 {% macro column(text) -%}
   <th scope="col" role="columnheader" data-label="{{ text }}">{{ text }}</th>
 {%- endmacro %}
+{% macro reason_detail(code) -%}
+  {% set reason, fix = reason_text(code) %}
+  <span data-reason="{{ code }}">{{ reason }} {{ fix }} <code>{{ code }}</code></span>
+{%- endmacro %}
+{% macro finding_date(finding) -%}
+  {% if finding.collected_at %}{{ format.date(finding.collected_at) }}
+  {%- elif finding.provenance == 'provided' %}{{ strings.common.date_not_supplied }}
+  {%- else %}{{ strings.common.unavailable }}{% endif %}
+{%- endmacro %}
+{% macro evidence_summary(finding) -%}
+  <div data-provenance="{{ finding.provenance }}">
+    {{ value_text(finding) }}
+    <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
+    <small class="evidence-meta">
+      <span>{{ strings.found.source }} · {{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</span>
+      <span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>
+      <span>{{ strings.found.period }} · {{ format.period(finding.period) if finding.period else strings.common.unavailable }}</span>
+      <span>{{ strings.found.coverage }} · {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+    </small>
+  </div>
+{%- endmacro %}
+{% macro attention_evidence(finding) -%}
+  {% if finding and finding.provenance != 'unknown' %}
+    {{ evidence_summary(finding) }}
+    {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id]) }}{% endif %}
+    {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+    {% if finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial' %}
+      <small>{{ reason_detail('answer_not_provided') }}</small>
+    {% endif %}
+  {% else %}
+    <div data-provenance="unknown">
+      <span class="prov">{{ strings.provenance.unknown }}</span>
+      <small>{{ reason_detail(finding.missing_reason if finding else 'answer_not_provided') }}</small>
+    </div>
+  {% endif %}
+{%- endmacro %}
+{% macro status_label(status) -%}
+  <span class="status {{ status }}"><span class="status-shape" aria-hidden="true"></span> {{ strings.status[status] }}</span>
+{%- endmacro %}
+{% macro conditions_list(conditions) -%}
+  <ul>
+    {% for condition in conditions %}
+      <li>
+        {{ finding_labels[condition.finding] }}
+        {% if condition.op == 'exists' %}{{ strings.appendix.condition_exists }}
+        {% else %}{{ condition.op }} {{ literal_text(condition.value) }}{% endif %}
+        {% if condition.provenance %}<span class="prov">{{ strings.provenance[condition.provenance] }}</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{%- endmacro %}
 <!doctype html>
 <html lang="{{ lang }}">
 <head>
@@ -19,6 +70,10 @@
       --line: #bfccd5;
       --accent: #255b7b;
       --surface: #eff4f7;
+      --status-ready: #a9d4ed;
+      --status-needs-work: #c56321;
+      --status-blocker: #762e16;
+      --status-unknown: #888888;
     }
     @media screen and (prefers-color-scheme: dark) {
       :root {
@@ -29,6 +84,10 @@
         --line: #506270;
         --accent: #a7d3ef;
         --surface: #22323f;
+        --status-ready: #b4dff6;
+        --status-needs-work: #d7813a;
+        --status-blocker: #a84b27;
+        --status-unknown: #a0a0a0;
       }
     }
     body {
@@ -119,6 +178,74 @@
     th[scope="rowgroup"] { color: var(--accent); padding-block-start: .8rem; }
     caption { text-align: start; color: var(--muted); padding-block-end: .5rem; }
     .table-note { color: var(--muted); }
+    .readiness-bar {
+      display: flex;
+      gap: .1rem;
+      height: 1rem;
+      margin-block: .7rem;
+    }
+    .status {
+      display: inline-flex;
+      align-items: baseline;
+      gap: .4em;
+      color: var(--text);
+      font-weight: 650;
+    }
+    .status-shape {
+      display: inline-block;
+      flex: none;
+      box-sizing: border-box;
+      align-self: center;
+      inline-size: .8em;
+      block-size: .8em;
+      background: var(--status-fill);
+      border: 1px solid var(--text);
+    }
+    .ready { --status-fill: var(--status-ready); }
+    .needs_work { --status-fill: var(--status-needs-work); }
+    .blocker { --status-fill: var(--status-blocker); }
+    .unknown { --status-fill: var(--status-unknown); }
+    .ready .status-shape, .unknown .status-shape { border-radius: 50%; }
+    .needs_work .status-shape {
+      border: 0;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    .unknown .status-shape { border-style: dashed; background: transparent; }
+    .status-segment { border: 1px solid var(--text); background-color: var(--status-fill); }
+    .status-segment.ready {
+      background-image: radial-gradient(var(--text) 1px, transparent 1px);
+      background-size: 5px 5px;
+    }
+    .status-segment.needs_work {
+      background-image: repeating-linear-gradient(45deg, transparent 0 4px, #172833 4px 5px);
+    }
+    .status-segment.blocker {
+      background-image: repeating-linear-gradient(90deg, transparent 0 3px, #ffffff 3px 4px);
+    }
+    .status-segment.unknown {
+      border-style: dashed;
+      background-image: repeating-linear-gradient(0deg, transparent 0 4px, #172833 4px 5px);
+    }
+    .status-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .25rem 1rem;
+      padding: 0;
+      list-style: none;
+    }
+    .readiness, .licences { table-layout: fixed; }
+    .readiness thead th:first-child, .readiness thead th:nth-child(2) { width: 15%; }
+    .readiness thead th:nth-child(3) { width: 34%; }
+    .licences thead th:first-child { width: 29%; }
+    .licences thead th:nth-child(2), .licences thead th:nth-child(3) { width: 12%; }
+    .risky-files thead th:first-child { width: 18%; }
+    .risky-files thead th:nth-child(2) { width: 16%; }
+    .risky-files thead th:nth-child(3) { width: 31%; }
+    .readiness ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
+    .readiness li + li, .not-examined li + li { margin-block-start: .4rem; }
+    .evidence-meta { display: flex; flex-wrap: wrap; column-gap: .65rem; }
+    .rule-details dd, .software-counts dd { margin: 0 0 .8rem; }
+    .rule-details dt, .software-counts dt { font-weight: 650; }
     footer {
       padding-block-start: .65rem;
       border-block-start: 1px solid var(--line);
@@ -196,7 +323,7 @@
           {% set provenance = finding.provenance if finding else 'unknown' %}
           <li data-provenance="{{ provenance }}">
             <strong>{{ label(entry.label) }}</strong>
-            {% if finding and finding.value is not none %}<span class="figure">{{ value_text(entry, finding) }}</span>{% endif %}
+            {% if finding and finding.value is not none %}<span class="figure">{{ value_text(finding) }}</span>{% endif %}
             <span class="prov">{{ strings.provenance[provenance] }}</span>
             {% if provenance == 'unknown' %}
               {% set code = finding.missing_reason if finding else ('not_in_scan' if entry.provided == 'no' else 'answer_not_provided') %}
@@ -208,6 +335,51 @@
           </li>
         {% endfor %}
       </ul>
+      {% if product_count %}
+        <h3 id="licences-title">{{ strings.licences.title }}</h3>
+        <p data-provenance="{{ product_count.provenance }}">
+          {{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}
+          <span class="prov">{{ strings.provenance[product_count.provenance] }}</span>
+          <small>{{ code_label('source', product_count.source) }} · {{ format.date(product_count.collected_at) }} · {{ coverage_text(product_count.coverage) }}</small>
+        </p>
+        {% if licences %}
+          <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
+            <table class="licences" role="table">
+              {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+              <thead role="rowgroup">
+                <tr role="row">
+                  {{ column(strings.licences.product) }}
+                  {{ column(strings.licences.purchased) }}
+                  {{ column(strings.licences.assigned) }}
+                  {{ column(strings.licences.plans) }}
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                {% for product, matches in licences %}
+                  <tr data-product="{{ product.sku_part_number }}" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.sku_part_number }} <small class="prov">{{ strings.provenance.measured }}</small></th>
+                    <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
+                    <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}</td>
+                    <td role="cell" data-label="{{ strings.licences.plans }}">
+                      {% for plan in matches if plan is not none %}
+                        <div><code>{{ plan.name }}</code> · {{ workload_labels[plan.workload] }} · {{ strings.licences[plan.signal] }}</div>
+                      {% endfor %}
+                      {% set unclassified = matches|select('none')|list|length %}
+                      {% if unclassified %}
+                        {{ strings.licences.unclassified.format(count=format.integer(unclassified)) }}
+                        {% set reason, fix = reason_text('licence_not_classified') %}
+                        <small data-reason="licence_not_classified">{{ reason }} {{ fix }}</small>
+                      {% elif not matches %}
+                        {{ strings.common.unavailable }}
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      {% endif %}
       <h3 id="evidence-title">{{ strings.found.evidence }}</h3>
       <div class="table-scroll" role="region" aria-labelledby="evidence-title" tabindex="0">
         <table class="evidence" role="table">
@@ -233,18 +405,26 @@
                 <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}" role="row">
                   <th scope="row" role="rowheader" data-label="{{ strings.found.finding }}">{{ label(entry.label) }}</th>
                   <td role="cell" data-label="{{ strings.found.value }}">
-                    {{ value_text(entry, finding) }}
+                    {{ value_text(finding) }}
                     {% if finding.missing_reason %}
                       {% set reason, fix = reason_text(finding.missing_reason) %}
                       <small data-reason="{{ finding.missing_reason }}">{{ reason }} {{ fix }}</small>
+                    {% endif %}
+                    {% if finding.id in alternatives %}
+                      {% set other = alternatives[finding.id] %}
+                      <div data-provenance="{{ other.provenance }}">
+                        {{ value_text(other) }} <span class="prov">{{ strings.provenance[other.provenance] }}</span>
+                        <small>{{ code_label('source', other.source) }}</small>
+                      </div>
+                      {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
                     {% endif %}
                   </td>
                   <td role="cell" data-label="{{ strings.found.provenance }}"><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
                   <td role="cell" data-label="{{ strings.found.collector }}">{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
                   <td role="cell" data-label="{{ strings.found.source }}">{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.collected }}">{{ format.date(finding.collected_at) if finding.collected_at else (strings.common.date_not_supplied if finding.provenance == 'provided' else strings.common.unavailable) }}</td>
+                  <td role="cell" data-label="{{ strings.found.collected }}">{{ finding_date(finding) }}</td>
                   <td role="cell" data-label="{{ strings.found.period }}">{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ coverage_text(finding.coverage) }}</td>
+                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</td>
                 </tr>
               {% endfor %}
               {% set note = strings.found.notes.get(workload.id) %}
@@ -255,6 +435,135 @@
           {% endfor %}
         </table>
       </div>
+    </section>
+    <section data-section="readiness">
+      <h2 id="readiness-title">{{ strings.readiness.title }}</h2>
+      <div class="readiness-bar" aria-hidden="true">
+        {% for status, count in status_counts if count %}
+          <span class="status-segment {{ status }}" data-segment="{{ status }}" data-count="{{ count }}" style="flex-grow: {{ count }}"></span>
+        {% endfor %}
+      </div>
+      <ul class="status-legend" role="list" aria-label="{{ strings.readiness.counts }}">
+        {% for status, count in status_counts %}
+          <li>{{ status_label(status) }} · {{ format.integer(count) }}</li>
+        {% endfor %}
+      </ul>
+      <div class="table-scroll" role="region" aria-labelledby="readiness-title" tabindex="0">
+        <table class="readiness" role="table">
+          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          <thead role="rowgroup">
+            <tr role="row">
+              {{ column(strings.readiness.workload) }}
+              {{ column(strings.appendix.status) }}
+              {{ column(strings.appendix.reason) }}
+              {{ column(strings.readiness.evidence) }}
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {% for row in statuses %}
+              <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} role="row">
+                <th scope="row" role="rowheader" data-label="{{ strings.readiness.workload }}">{{ workload_labels[row.workload] }}</th>
+                <td role="cell" data-label="{{ strings.appendix.status }}">
+                  {{ status_label(row.status) }}
+                  {% if row.incomplete %}<small>{{ strings.readiness.incomplete }}</small>{% endif %}
+                </td>
+                <td role="cell" data-label="{{ strings.appendix.reason }}">
+                  {% if row.deciding %}{{ row.deciding.reason[lang] }}
+                  {% elif row.reason_code %}
+                    {% if row.reason_code not in row.missing|map(attribute='reason_code')|list %}
+                      {{ reason_detail(row.reason_code) }}
+                    {% endif %}
+                  {% else %}{{ status_rules.workloads[row.workload].ready_reason[lang] }}{% endif %}
+                  {% if row.notes %}
+                    <ul>
+                      {% for rule in row.notes %}<li>{{ rule.reason[lang] }}</li>{% endfor %}
+                    </ul>
+                  {% endif %}
+                  {% if row.missing %}
+                    <p><strong>{{ strings.readiness.missing }}</strong></p>
+                    <ul>
+                      {% for gap in row.missing %}
+                        <li data-missing="{{ gap.finding_id }}">
+                          <strong>{{ finding_labels[gap.finding_id] }}</strong>
+                          {% if gap.collector %}<small>{{ code_label('collector', gap.collector) }}</small>{% endif %}
+                          {{ reason_detail(gap.reason_code) }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </td>
+                <td role="cell" data-label="{{ strings.readiness.evidence }}">
+                  {% if row.evidence %}
+                    <ul>
+                      {% for finding in row.evidence %}
+                        <li data-evidence="{{ finding.id }}">
+                          <strong>{{ finding_labels[finding.id] }}</strong>
+                          {{ evidence_summary(finding) }}
+                          {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id]) }}{% endif %}
+                          {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}{{ strings.common.unavailable }}{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <h3 data-subsection="not-examined">{{ strings.readiness.not_examined }}</h3>
+      <ul class="not-examined">
+        {% for row in statuses if row.reason_code %}
+          <li data-unexamined-workload="{{ row.workload }}"><strong>{{ workload_labels[row.workload] }}</strong> · {{ reason_detail(row.reason_code) }}</li>
+        {% endfor %}
+        {% for finding in unknown_findings %}
+          <li data-unexamined-finding="{{ finding.id }}"><strong>{{ finding_labels[finding.id] }}</strong> · {{ reason_detail(finding.missing_reason) }}</li>
+        {% endfor %}
+        {% for collector in skipped_collectors %}
+          <li data-unexamined-collector="{{ collector.id }}"><strong>{{ code_label('collector', collector.id) }}</strong> · {{ reason_detail(collector.reason) }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section data-section="attention">
+      <h2>{{ strings.attention.title }}</h2>
+      <h3 id="risky-files-title">{{ strings.attention.files }}</h3>
+      <div class="table-scroll" role="region" aria-labelledby="risky-files-title" tabindex="0">
+        <table class="risky-files" role="table">
+          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          <thead role="rowgroup">
+            <tr role="row">
+              {{ column(strings.attention.file_kind) }}
+              {{ column(strings.attention.extensions) }}
+              {{ column(strings.attention.count) }}
+              {{ column(strings.found.note) }}
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {% for kind, finding in risky_files %}
+              <tr data-kind="{{ kind.id }}" role="row">
+                <th scope="row" role="rowheader" data-label="{{ strings.attention.file_kind }}">{{ kind.label[lang] }}</th>
+                <td role="cell" data-label="{{ strings.attention.extensions }}">
+                  {% for extension in kind.extensions %}<code>.{{ extension }}</code>{{ ', ' if not loop.last }}{% endfor %}
+                </td>
+                <td role="cell" data-label="{{ strings.attention.count }}">
+                  {{ attention_evidence(finding) }}
+                  {% if finding and finding.value == 0 and (not finding.coverage or finding.coverage.kind == 'complete') %}
+                    <small>{{ strings.attention.none_reported }}</small>
+                  {% endif %}
+                </td>
+                <td role="cell" data-label="{{ strings.found.note }}">{{ kind.note[lang] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <h3>{{ strings.attention.software }}</h3>
+      <dl class="software-counts">
+        {% for entry, finding in software %}
+          <dt>{{ label(entry.label) }}</dt>
+          <dd data-software-count="{{ entry.id }}">{{ attention_evidence(finding) }}</dd>
+        {% endfor %}
+      </dl>
     </section>
     <section data-section="appendix">
       <h2>{{ strings.appendix.title }}</h2>
@@ -290,10 +599,34 @@
       {% if scan.dropped_count %}
         <p data-ignored-count="{{ scan.dropped_count }}">{{ strings.appendix.ignored.format(count=format.integer(scan.dropped_count)) }}</p>
       {% endif %}
+      <h3>{{ strings.appendix.rules }}</h3>
+      <p>{{ strings.appendix.rule_file }} · <code>{{ status_rules.file_name }}</code></p>
+      <dl class="rule-details">
+        {% for row in statuses %}
+          <dt>{{ workload_labels[row.workload] }}</dt>
+          <dd>
+            {{ strings.appendix.ready_evidence }}
+            {{ conditions_list(status_rules.workloads[row.workload].ready) }}
+            {% for rule in status_rules.workloads[row.workload].rules if rule == row.deciding or rule in row.notes %}
+              <div data-rule="{{ rule.id }}">
+                <code>{{ rule.id }}</code> · {{ status_label(rule.status) }} · {{ rule.reason[lang] }}
+                {{ conditions_list(rule.when) }}
+              </div>
+            {% endfor %}
+          </dd>
+        {% endfor %}
+      </dl>
+      <h3 data-subsection="run-details">{{ strings.appendix.run_details }}</h3>
       <dl class="report-meta">
         <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>
         <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
       </dl>
+      <p>{{ strings.appendix.checksums }}</p>
+      <ul>
+        {% for name, checksum in checksums.items() %}
+          <li><code>{{ name }}</code> · <code data-checksum="{{ name }}">{{ checksum }}</code></li>
+        {% endfor %}
+      </ul>
     </section>
   </main>
   <footer data-section="footer">

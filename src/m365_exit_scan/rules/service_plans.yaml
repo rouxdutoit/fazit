@@ -1,0 +1,1164 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# The same plan may be a suite entitlement or an assigned add-on depending on the SKU.
+# This list covers selected suites and separately licensed products. Other pairs remain unclassified.
+plans:
+  - sku_part_number: AAD_PREMIUM
+    sku_guid: 078d2b04-f1bd-4111-bbd4-b4b1b354cef4
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: add_on
+    reference_url: &reference https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
+    checked_on: &checked_on "2026-11-21"
+  - sku_part_number: AAD_PREMIUM_FACULTY
+    sku_guid: 30fc3c36-5a95-4956-ba57-c09c2a600bb9
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: AAD_PREMIUM_P2
+    sku_guid: 84a661c4-e949-4bd2-a560-ed7766fcaf2b
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: AAD_PREMIUM_P2
+    sku_guid: 84a661c4-e949-4bd2-a560-ed7766fcaf2b
+    name: AAD_PREMIUM_P2
+    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
+    workload: identity_access
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: AAD_PREMIUM_USGOV_GCCHIGH
+    sku_guid: de597797-22fb-4d65-a9fe-b7dbe8893914
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE
+    sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE
+    sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE
+    sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
+    name: MCOPSTN1
+    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING
+    sku_guid: d52db95a-5ecb-46b6-beb0-190ab5cda4a8
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING
+    sku_guid: d52db95a-5ecb-46b6-beb0-190ab5cda4a8
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING_MED
+    sku_guid: 8330dae3-d349-44f7-9cad-1b23c64baabe
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING_MED
+    sku_guid: 8330dae3-d349-44f7-9cad-1b23c64baabe
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2
+    sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2
+    sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2
+    sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
+    name: MCOPSTN1
+    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
+    sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
+    sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
+    sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
+    name: MCOPSTN1
+    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: FLOW_O365_P2
+    guid: 76846ad7-7776-4c40-a281-a386362dd1b9
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: FORMS_PLAN_E3
+    guid: 2789c901-c14e-48ab-a76a-be334d9d793a
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: POWERAPPS_O365_P2
+    guid: c68f8d98-5534-41c8-bf36-22fa496fa792
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPACK
+    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: FLOW_O365_P3
+    guid: 07699545-9485-468e-95b6-2fca3738be01
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: FORMS_PLAN_E5
+    guid: e212cbc7-0961-4c40-9825-01117710dcb1
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: POWERAPPS_O365_P3
+    guid: 9c0dab89-a30c-4117-86e7-97bda240acd2
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: ENTERPRISEPREMIUM
+    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: EXCHANGEARCHIVE
+    sku_guid: 90b5e015-709a-4b8b-b08e-3200f994494c
+    name: EXCHANGE_S_ARCHIVE
+    guid: da040e0a-b393-4bea-bb76-928b3fa1cf5a
+    workload: security_compliance
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: FLOW_PER_USER
+    sku_guid: 4a51bf65-409c-4a91-b845-1121b571cc9d
+    name: FLOW_PER_USER
+    guid: c5002c70-f725-4367-b409-f0eff4fee6c0
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: INTUNE_A
+    sku_guid: 061f9ace-7d42-4136-88ac-31dc755f143f
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: INTUNE_A_D
+    sku_guid: 2b317a4a-77a6-4188-9437-b68a77b4e2c6
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: INTUNE_A_D_GOV
+    sku_guid: 2c21e77a-e0d6-4570-b38a-7ff2dc17d2ca
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: FLOW_O365_P2_GOV
+    guid: c537f360-6a00-4ace-a7f5-9128d0ac1e4b
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G3_GOV
+    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
+    name: POWERAPPS_O365_P2_GOV
+    guid: 0a20c815-5e81-4727-9bdc-2b5a117850c3
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: AAD_PREMIUM_P2
+    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: FLOW_O365_P3_GOV
+    guid: 8055d84a-c172-42eb-b997-6c2ae4628246
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: POWERAPPS_O365_P3_GOV
+    guid: 0eacfc38-458a-40d3-9eab-9671258f1a3e
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: M365_G5_GCC
+    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
+    name: WINDEFATP
+    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV
+    sku_guid: e43b5b99-8dfb-405f-9987-dc307f34bcbd
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_DOD
+    sku_guid: d01d9287-694b-44f3-bcc5-ada78c8d953e
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_FACULTY
+    sku_guid: d979703c-028d-4de5-acbf-7955566b69b9
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_GCCHIGH
+    sku_guid: 7035277a-5e49-4abc-a24f-0ec49c501bb5
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_STUDENT
+    sku_guid: 1f338bbc-767e-4a1e-a2d4-b73207cc5b93
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_TELSTRA
+    sku_guid: ffaf2d68-1c95-4eb3-9ddd-59b81fba0f61
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_USGOV_DOD
+    sku_guid: b0e7de67-e503-4934-b729-53d595ba5cd1
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOEV_USGOV_GCCHIGH
+    sku_guid: 985fcb26-7b94-475b-b512-89356697be71
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOMEETADV
+    sku_guid: 0c266dff-15dd-4b49-8397-2bb16070ed52
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOMEETADV_FACULTY
+    sku_guid: c2cda955-3359-44e5-989f-852ca0cfa02f
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOPSTN1
+    sku_guid: 0dab259f-bf13-4952-b7f8-7db8f131b28d
+    name: MCOPSTN1
+    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOPSTN2
+    sku_guid: d3b4fe1f-9992-4930-8acb-ca6ec609365e
+    name: MCOPSTN2
+    guid: 5a10155d-f5c1-411a-a8ec-e99aae125390
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOTEAMS_ESSENTIALS
+    sku_guid: ae2343d1-0999-43f6-ae18-d816516f6e78
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: MCOTEAMS_ESSENTIALS
+    sku_guid: ae2343d1-0999-43f6-ae18-d816516f6e78
+    name: MCOPSTN1
+    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+    workload: telephony
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_ESSENTIALS
+    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
+    name: FLOW_O365_P1
+    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_ESSENTIALS
+    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
+    name: FORMS_PLAN_E1
+    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_ESSENTIALS
+    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
+    name: POWERAPPS_O365_P1
+    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_ESSENTIALS
+    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_PREMIUM
+    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
+    name: FLOW_O365_P1
+    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_PREMIUM
+    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
+    name: FORMS_PLAN_E1
+    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_PREMIUM
+    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_PREMIUM
+    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
+    name: POWERAPPS_O365_P1
+    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: O365_BUSINESS_PREMIUM
+    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: PBI_PREMIUM_PER_USER
+    sku_guid: c1d032e0-5619-4761-9b5c-75b6831e1711
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: PBI_PREMIUM_PER_USER
+    sku_guid: c1d032e0-5619-4761-9b5c-75b6831e1711
+    name: BI_AZURE_P3
+    guid: 0bf3c642-7bb5-4ccc-884e-59d09df0266c
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: PBI_PREMIUM_PER_USER_ADDON
+    sku_guid: de376a03-6e5b-42ec-855f-093fb50b8ca5
+    name: BI_AZURE_P3
+    guid: 0bf3c642-7bb5-4ccc-884e-59d09df0266c
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: PBI_PREMIUM_PER_USER_DEPT
+    sku_guid: f168a3fb-7bcf-4a27-98c3-c235ea4b78b4
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: PBI_PREMIUM_PER_USER_FACULTY
+    sku_guid: 060d8061-f606-4e69-a4e7-e8fff75ea1f5
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: POWERAPPS_PER_USER
+    sku_guid: b30411f5-fea1-4a59-9ad9-3db7c7ead579
+    name: POWERAPPS_PER_USER
+    guid: ea2cf03b-ac60-46ae-9c1d-eeaeb63cec86
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: POWER_BI_PRO
+    sku_guid: f8a1db68-be16-40ed-86d5-cb42ce701560
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: POWER_BI_PRO_CE
+    sku_guid: 420af87e-8177-4146-a780-3786adaffbca
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: POWER_BI_PRO_DEPT
+    sku_guid: 3a6a908c-09c5-406a-8170-8ebb63c42882
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: POWER_BI_PRO_FACULTY
+    sku_guid: de5f128b-46d7-4cfc-b915-a89ba060ea56
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: FLOW_O365_P1
+    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: FORMS_PLAN_E1
+    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: POWERAPPS_O365_P1
+    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPB
+    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: FLOW_O365_P2
+    guid: 76846ad7-7776-4c40-a281-a386362dd1b9
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: FORMS_PLAN_E3
+    guid: 2789c901-c14e-48ab-a76a-be334d9d793a
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: POWERAPPS_O365_P2
+    guid: c68f8d98-5534-41c8-bf36-22fa496fa792
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E3
+    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: AAD_PREMIUM_P2
+    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: FLOW_O365_P3
+    guid: 07699545-9485-468e-95b6-2fca3738be01
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: FORMS_PLAN_E5
+    guid: e212cbc7-0961-4c40-9825-01117710dcb1
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: MCOMEETADV
+    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+    workload: teams
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: POWERAPPS_O365_P3
+    guid: 9c0dab89-a30c-4117-86e7-97bda240acd2
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5
+    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
+    name: WINDEFATP
+    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: AAD_PREMIUM
+    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: AAD_PREMIUM_P2
+    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
+    workload: identity_access
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: BI_AZURE_P2
+    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: FLOW_O365_P3_GCCHIGH
+    guid: ee939cf0-7cd1-4262-9f72-9eaa45dbba69
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: FORMS_PLAN_E5_AR_GCCHIGH
+    guid: cf1b2895-e3fd-4b33-9594-2ab924104547
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: INTUNE_A
+    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+    workload: device_management
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: MCOEV
+    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+    workload: telephony
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: MIP_S_CLP1
+    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: POWERAPPS_O365_P3_GCCHIGH
+    guid: b50a9096-5b07-4ded-a5e4-a492fb94b6ee
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: SPE_E5_USGOV_GCCHIGH
+    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
+    name: WINDEFATP
+    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
+    workload: security_compliance
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK
+    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
+    name: FLOW_O365_P1
+    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK
+    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
+    name: FORMS_PLAN_E1
+    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK
+    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK
+    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
+    name: POWERAPPS_O365_P1
+    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK
+    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_GOV
+    sku_guid: 3f4babde-90ec-47c6-995d-d223749065d1
+    name: FLOW_O365_P1_GOV
+    guid: ad6c8870-6356-474c-901c-64d7da8cea48
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_GOV
+    sku_guid: 3f4babde-90ec-47c6-995d-d223749065d1
+    name: POWERAPPS_O365_P1_GOV
+    guid: c42aa49a-f357-45d5-9972-bc29df885fee
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
+    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
+    name: FLOW_O365_P1_GCCHIGH
+    guid: e923bad8-588e-44d5-acd0-b226daa7b4de
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
+    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
+    name: FORMS_PLAN_E1_AR_GCCHIGH
+    guid: 9c37c053-dfe3-4421-b6d4-bac8b86d42bd
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
+    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
+    name: MICROSOFTBOOKINGS
+    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
+    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
+    name: POWERAPPS_O365_P1_GCCHIGH
+    guid: 3913e44e-824e-490c-a182-82785d769b45
+    workload: power_platform
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
+    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
+    name: PROJECTWORKMANAGEMENT
+    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
+    workload: small_apps
+    signal: bundled
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: THREAT_INTELLIGENCE
+    sku_guid: 3dd6cf57-d688-4eed-ba52-9e40b5468c3e
+    name: ATP_ENTERPRISE
+    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+    workload: security_compliance
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on
+  - sku_part_number: WIN_DEF_ATP
+    sku_guid: 111046dd-295b-4d6d-9724-d52ac90bd1f2
+    name: WINDEFATP
+    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
+    workload: security_compliance
+    signal: add_on
+    reference_url: *reference
+    checked_on: *checked_on

@@ -6,20 +6,23 @@ import re
 import socket
 from dataclasses import replace
 from datetime import date, tzinfo
+from hashlib import sha256
 from importlib.resources import files
 from pathlib import Path
+from shutil import copytree
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
-from m365_exit_scan import __version__, i18n, model
+from m365_exit_scan import __version__, i18n, model, rules
 from m365_exit_scan import report as report_module
 from m365_exit_scan.catalogue import load_catalogue
 from m365_exit_scan.cli import app
 from m365_exit_scan.errors import InputError
 from m365_exit_scan.i18n import load_locale
 from m365_exit_scan.model import Coverage, Scan, load_scan, load_scan_text
-from m365_exit_scan.parsing import read_text
+from m365_exit_scan.parsing import parse_yaml, read_text
 from m365_exit_scan.report import render_report, report_file_name
 
 runner = CliRunner()
@@ -38,7 +41,14 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     ]
     assert report.is_file()
     html = report.read_text(encoding="utf-8")
-    assert re.findall(r'data-section="([^"]+)"', html) == ["header", "found", "appendix", "footer"]
+    assert re.findall(r'data-section="([^"]+)"', html) == [
+        "header",
+        "found",
+        "readiness",
+        "attention",
+        "appendix",
+        "footer",
+    ]
     header = load_locale("en")["header"]
     assert all(header[key] in html for key in ("local", "offline", "sample"))
     assert 'data-finding="directory.user_count"' in html
@@ -178,8 +188,125 @@ def test_provided_answer_source_is_independent_of_scan_source() -> None:
         for finding in scan.findings
     )
     html = render_report(replace(scan, findings=findings), lang="en")
-    assert strings["source"]["inputs_yaml"] in html
-    assert strings["source"]["sample.interview"] not in html
+    device_row = re.search(r'<tr data-finding="device_management.device_count".*?</tr>', html, re.S)
+    assert device_row is not None
+    assert strings["source"]["inputs_yaml"] in device_row[0]
+    assert strings["source"]["sample.interview"] not in device_row[0]
+    mail_row = re.search(r'<tr data-finding="mail.other_systems_send_mail".*?</tr>', html, re.S)
+    assert mail_row is not None
+    assert strings["source"]["sample.interview"] in mail_row[0]
+    assert strings["source"]["inputs_yaml"] not in mail_row[0]
+
+
+@pytest.mark.parametrize(("sample", "lang"), [("town", "en"), ("nonprofit", "de")])
+def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> None:
+    scan_path = files("m365_exit_scan").joinpath("demo", sample, "scan.json")
+    result = runner.invoke(app, ["report", str(scan_path), "--lang", lang, "--out", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    path = Path(result.stdout.strip())
+    assert path.is_file() and not result.stderr
+    html = path.read_text(encoding="utf-8")
+    strings = load_locale(lang)
+    section = re.search(r'<section data-section="readiness">.*?</section>', html, re.S)
+    assert section is not None and "%" not in section[0]
+    table = section[0]
+    rows = re.findall(
+        r'<tr data-workload="([^"]+)" data-status="([^"]+)"[^>]*>.*?</tr>', table, re.S
+    )
+    catalogue = load_catalogue()
+    assert [workload for workload, _ in rows] == list(catalogue.workload_ids)
+    assert "<caption data-sample>" in table
+    assert [workload for workload, status in rows if status == "ready"] == (
+        ["telephony"] if sample == "nonprofit" else []
+    )
+    for workload, status in rows:
+        row = re.search(rf'<tr data-workload="{workload}".*?</tr>', table, re.S)
+        assert row is not None and strings["status"][status] in row[0]
+    segments = re.findall(r'data-segment="([^"]+)" data-count="(\d+)"', table)
+    assert segments == [
+        (status, str(total))
+        for status in rules.STATUSES
+        if (total := sum(result == status for _, result in rows))
+    ]
+    assert sum(int(total) for _, total in segments) == len(catalogue.workloads)
+    assert 'data-subsection="not-examined"' in table
+    assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in table} == {
+        key for key, status in rows if status == "unknown"
+    }
+    scan = _sample_scan(sample)
+    for finding in scan.findings:
+        if finding.provenance == "unknown":
+            assert f'data-unexamined-finding="{finding.id}"' in table
+    for collector in scan.collectors:
+        if collector.status == "skipped":
+            assert f'data-unexamined-collector="{collector.id}"' in table
+    if sample == "town":
+        mail = re.search(r'<tr data-workload="mail".*?</tr>', table, re.S)
+        assert mail is not None and 'data-status="needs_work" data-incomplete' in mail[0]
+        assert strings["collector"]["exchange_recipients"] in mail[0]
+        for text in strings["reason"]["needs_recipient_export"].values():
+            assert text in mail[0]
+        assert 'data-reason="needs_recipient_export"' in mail[0]
+        assert 'data-rule="mail-other-systems"' in html
+    else:
+        onedrive = re.search(r'<tr data-workload="onedrive".*?</tr>', table, re.S)
+        assert onedrive is not None
+        for text in (
+            "52,5 GB",
+            strings["provenance"]["measured"],
+            strings["source"]["sample.onedrive_usage"],
+            "5. November 2026",
+            "9. Mai 2026 bis 4. November 2026",
+            "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen",
+        ):
+            assert text in onedrive[0]
+
+    appendix = html.split('data-section="appendix"', 1)[1]
+    assert appendix.count(strings["appendix"]["ready_evidence"]) == len(catalogue.workloads)
+    assert "status.yaml" in appendix
+
+
+def test_changed_rule_changes_demo_status_and_escapes_the_reason(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    original = runner.invoke(app, ["report", str(scan), "--out", str(tmp_path / "original")])
+    assert original.exit_code == 0, original.output
+    html = Path(original.stdout.strip()).read_text(encoding="utf-8")
+    assert 'data-workload="directory" data-status="needs_work"' in html
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules.rules_dir())), copied)
+    rule_path = copied / "status.yaml"
+    markup = '<img src="https://example.invalid/rule">'
+    data = parse_yaml(read_text(rule_path), rule_path.name)
+    guest_rule = next(
+        rule for rule in data["workloads"]["directory"]["rules"] if rule["id"] == "directory-guests"
+    )
+    guest_rule["status"] = "blocker"
+    guest_rule["reason"]["en"] = markup
+    source = yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
+    raw = source.replace("\n", "\r\n").encode("utf-8")
+    rule_path.write_bytes(raw)
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    real_read = rules.read_text
+    reads = []
+
+    def record_read(path: Path) -> str:
+        reads.append(path.name)
+        return real_read(path)
+
+    monkeypatch.setattr(rules, "read_text", record_read)
+    result = runner.invoke(app, ["demo", "--out", str(tmp_path / "changed")])
+
+    assert result.exit_code == 0, result.output
+    report = Path(result.stdout.splitlines()[-1])
+    assert report.is_file()
+    html = report.read_text(encoding="utf-8")
+    assert 'data-workload="directory" data-status="blocker"' in html
+    assert "directory-guests" in html and "&lt;img src=" in html and markup not in html
+    assert not re.search(r"<img\b", html)
+    assert f'data-checksum="status.yaml">{sha256(raw).hexdigest()}</code>' in html
+    assert reads.count("status.yaml") == 1
 
 
 def test_nonprofit_partial_coverage_has_all_counts_and_localised_dates() -> None:

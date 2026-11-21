@@ -507,7 +507,20 @@
       "collected_at": null,
       "period": null,
       "coverage": null,
-      "missing_reason": "not_collected_in_this_version"
+      "missing_reason": "answer_not_provided"
+    },
+    {
+      "id": "telephony.in_use",
+      "workload": "telephony",
+      "value": false,
+      "unit": null,
+      "provenance": "provided",
+      "collector": null,
+      "source": "sample.interview",
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": null
     },
     {
       "id": "telephony.replacement_available",
@@ -520,7 +533,7 @@
       "collected_at": null,
       "period": null,
       "coverage": null,
-      "missing_reason": "not_collected_in_this_version"
+      "missing_reason": "answer_not_provided"
     },
     {
       "id": "identity_access.sso_application_count",
@@ -597,26 +610,26 @@
     },
     "products": [
       {
-        "sku_part_number": "SAMPLE_SMALL_SUITE",
-        "sku_guid": "00000000-0000-4000-8000-000000000004",
+        "sku_part_number": "O365_BUSINESS_ESSENTIALS",
+        "sku_guid": "3b555118-da6a-4418-894f-7df1e2096870",
         "purchased": 20,
         "assigned": 20,
         "service_plans": [
           {
             "name": "FLOW_O365_P1",
-            "guid": "00000000-0000-4000-8000-000000000065"
-          },
-          {
-            "name": "POWERAPPS_O365_P1",
-            "guid": "00000000-0000-4000-8000-000000000066"
+            "guid": "0f9b09cb-62d1-4ff4-9129-43f4996f83f4"
           },
           {
             "name": "FORMS_PLAN_E1",
-            "guid": "00000000-0000-4000-8000-00000000006c"
+            "guid": "159f4cd6-e380-449f-a816-af1a9ef76344"
+          },
+          {
+            "name": "POWERAPPS_O365_P1",
+            "guid": "92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c"
           },
           {
             "name": "PROJECTWORKMANAGEMENT",
-            "guid": "00000000-0000-4000-8000-00000000006d"
+            "guid": "b737dad2-2f6c-4c65-90e3-ca563267e8b9"
           }
         ]
       }

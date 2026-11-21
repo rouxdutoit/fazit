@@ -23,6 +23,40 @@ found:
   partial_zero: '{value} in the items checked'
   notes:
     directory: Internal accounts include shared and service accounts, so there can be more accounts than staff. Guests are counted separately.
+licences:
+  title: Licence products
+  product: Product code
+  product_count: 'Licence products found: {count}'
+  purchased: Purchased
+  assigned: Assigned
+  plans: Service plan classification
+  bundled: Included in the product
+  add_on: Separately licensed
+  unclassified: 'Unclassified service plans in this product: {count}.'
+  add_on_assigned: 'Separate licence assigned for {workload}'
+  bundled_assigned: 'Included licence assigned for {workload}'
+status:
+  ready: Ready
+  needs_work: Needs work
+  blocker: Blocker
+  unknown: Unknown
+readiness:
+  title: Readiness by workload
+  counts: Workload counts by status
+  workload: Workload
+  evidence: Evidence
+  incomplete: Evidence incomplete
+  missing: Evidence still needed
+  conflict: The measurement found affected items despite the supplied zero, so the status uses the measured lower bound.
+  not_examined: Not examined
+attention:
+  title: Needs attention
+  files: File types to review
+  file_kind: File type
+  extensions: Extensions
+  count: Reported count
+  none_reported: None were reported.
+  software: Windows-only software
 appendix:
   title: Appendix
   schema_version: Schema version
@@ -32,6 +66,12 @@ appendix:
   permissions: Permissions used
   sample_permissions: This report used no Microsoft permissions.
   ignored: Ignored fields or findings that this version does not recognise ({count}).
+  rules: Readiness rules
+  rule_file: Rule file
+  ready_evidence: Evidence required for Ready
+  condition_exists: is available
+  run_details: Run details
+  checksums: SHA-256 checksums of the rule files used
 footer:
   repository_pending: Repository address pending
 provenance:
@@ -67,6 +107,8 @@ coverage:
   unknown: Coverage unknown
   scanned_of: '{scanned} of {total} scanned'
   scanned: '{scanned} scanned'
+  answers_of: '{scanned} of {total} answers supplied'
+  answers: '{scanned} answers supplied'
   failed: '{failed} failed'
   total: '{total} in scope'
 reason:
@@ -100,9 +142,15 @@ reason:
   licensed_use_not_measured:
     label: The licence includes this service, and its use is unverified.
     fix: Ask the service owner how the organisation uses it.
+  licence_not_classified:
+    label: This tool could not classify the licence.
+    fix: Check the product and service plan against the licensing reference.
   coverage_partial:
     label: The measurement covers only part of the scope.
     fix: Check the remaining items before drawing a conclusion about the whole scope.
+  coverage_unknown:
+    label: The extent of the measurement is unknown.
+    fix: Confirm which items the measurement covered or supply a complete figure.
   not_established:
     label: The available evidence leaves the answer open.
     fix: Review the finding with the person responsible for the service.
@@ -122,6 +170,21 @@ units:
   channels: channels
   devices: devices
   applications: applications
+  products: products
+unit_one:
+  users: account
+  groups: group
+  mailboxes: mailbox
+  bytes: byte
+  items: item
+  accounts: account
+  sites: site
+  files: file
+  teams: team
+  channels: channel
+  devices: device
+  applications: application
+  products: product
 workload:
   licences: Licences
   directory: Directory
@@ -172,6 +235,7 @@ finding:
   windows_software.application_count: Windows-only applications
   windows_software.without_web_version_count: Windows-only applications without a web version
   power_platform.in_use: Power Platform in use
+  telephony.in_use: Telephony runs through Microsoft
   telephony.replacement_available: Telephony replacement available
   identity_access.sso_application_count: Applications with Microsoft single sign-on
   identity_access.conditional_access_in_use: Conditional Access in use

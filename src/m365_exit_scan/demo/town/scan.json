@@ -198,15 +198,15 @@
     {
       "id": "mail.other_systems_send_mail",
       "workload": "mail",
-      "value": null,
+      "value": true,
       "unit": null,
-      "provenance": "unknown",
+      "provenance": "provided",
       "collector": null,
-      "source": null,
+      "source": "sample.interview",
       "collected_at": null,
       "period": null,
       "coverage": null,
-      "missing_reason": "not_collected_in_this_version"
+      "missing_reason": null
     },
     {
       "id": "onedrive.account_count",
@@ -508,7 +508,20 @@
       "collected_at": null,
       "period": null,
       "coverage": null,
-      "missing_reason": "not_collected_in_this_version"
+      "missing_reason": "answer_not_provided"
+    },
+    {
+      "id": "telephony.in_use",
+      "workload": "telephony",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "answer_not_provided"
     },
     {
       "id": "telephony.replacement_available",
@@ -521,7 +534,7 @@
       "collected_at": null,
       "period": null,
       "coverage": null,
-      "missing_reason": "not_collected_in_this_version"
+      "missing_reason": "answer_not_provided"
     },
     {
       "id": "identity_access.sso_application_count",
@@ -598,74 +611,74 @@
     },
     "products": [
       {
-        "sku_part_number": "SAMPLE_OFFICE_SUITE",
-        "sku_guid": "00000000-0000-4000-8000-000000000001",
+        "sku_part_number": "SPE_E3",
+        "sku_guid": "05e9a617-0261-4cee-bb44-138d3ef5d965",
         "purchased": 90,
         "assigned": 85,
         "service_plans": [
           {
-            "name": "FLOW_O365_P1",
-            "guid": "00000000-0000-4000-8000-000000000065"
-          },
-          {
-            "name": "POWERAPPS_O365_P1",
-            "guid": "00000000-0000-4000-8000-000000000066"
-          },
-          {
             "name": "AAD_PREMIUM",
-            "guid": "00000000-0000-4000-8000-000000000067"
-          },
-          {
-            "name": "INTUNE_A",
-            "guid": "00000000-0000-4000-8000-000000000068"
+            "guid": "41781fb2-bc02-4b7c-bd55-b576c07bb09d"
           },
           {
             "name": "ATP_ENTERPRISE",
-            "guid": "00000000-0000-4000-8000-000000000069"
+            "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
           },
           {
-            "name": "WINDEFATP",
-            "guid": "00000000-0000-4000-8000-00000000006a"
+            "name": "FLOW_O365_P2",
+            "guid": "76846ad7-7776-4c40-a281-a386362dd1b9"
           },
           {
-            "name": "MIP_S_CLP1",
-            "guid": "00000000-0000-4000-8000-00000000006b"
+            "name": "FORMS_PLAN_E3",
+            "guid": "2789c901-c14e-48ab-a76a-be334d9d793a"
           },
           {
-            "name": "FORMS_PLAN_E1",
-            "guid": "00000000-0000-4000-8000-00000000006c"
-          },
-          {
-            "name": "PROJECTWORKMANAGEMENT",
-            "guid": "00000000-0000-4000-8000-00000000006d"
+            "name": "INTUNE_A",
+            "guid": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5"
           },
           {
             "name": "MICROSOFTBOOKINGS",
-            "guid": "00000000-0000-4000-8000-00000000006e"
+            "guid": "199a5c09-e0ca-4e37-8f7c-b05d533e1ea2"
+          },
+          {
+            "name": "MIP_S_CLP1",
+            "guid": "5136a095-5cf0-4aff-bec3-e84448b38ea5"
+          },
+          {
+            "name": "POWERAPPS_O365_P2",
+            "guid": "c68f8d98-5534-41c8-bf36-22fa496fa792"
+          },
+          {
+            "name": "PROJECTWORKMANAGEMENT",
+            "guid": "b737dad2-2f6c-4c65-90e3-ca563267e8b9"
           }
         ]
       },
       {
-        "sku_part_number": "SAMPLE_PHONE_ADD_ON",
-        "sku_guid": "00000000-0000-4000-8000-000000000002",
+        "sku_part_number": "MCOEV",
+        "sku_guid": "e43b5b99-8dfb-405f-9987-dc307f34bcbd",
         "purchased": 12,
         "assigned": 12,
         "service_plans": [
           {
             "name": "MCOEV",
-            "guid": "00000000-0000-4000-8000-00000000006f"
+            "guid": "4828c8ec-dc2e-4779-b502-87ac9ce28ab7"
           }
         ]
       },
       {
-        "sku_part_number": "SAMPLE_REPORTING_ADD_ON",
-        "sku_guid": "00000000-0000-4000-8000-000000000003",
+        "sku_part_number": "PBI_PREMIUM_PER_USER",
+        "sku_guid": "c1d032e0-5619-4761-9b5c-75b6831e1711",
         "purchased": 5,
         "assigned": 5,
         "service_plans": [
           {
             "name": "BI_AZURE_P2",
-            "guid": "00000000-0000-4000-8000-000000000070"
+            "guid": "70d33638-9c74-4d01-bfd3-562de28bd4ba"
+          },
+          {
+            "name": "BI_AZURE_P3",
+            "guid": "0bf3c642-7bb5-4ccc-884e-59d09df0266c"
           }
         ]
       }

@@ -23,6 +23,40 @@ found:
   partial_zero: '{value} im geprüften Bestand'
   notes:
     directory: Zu den internen Konten gehören gemeinsam genutzte Konten und Dienstkonten. Deshalb kann es mehr Konten als Beschäftigte geben. Gäste werden getrennt gezählt.
+licences:
+  title: Lizenzprodukte
+  product: Produktkennung
+  product_count: 'Erfasste Lizenzprodukte: {count}'
+  purchased: Erworben
+  assigned: Zugewiesen
+  plans: Einordnung der Dienstpläne
+  bundled: Im Produkt enthalten
+  add_on: Separat lizenziert
+  unclassified: 'Dienstpläne ohne Einordnung in diesem Produkt: {count}.'
+  add_on_assigned: 'Separat zugewiesene Lizenz für {workload}'
+  bundled_assigned: 'Im Produkt enthaltene, zugewiesene Lizenz für {workload}'
+status:
+  ready: Bereit
+  needs_work: Handlungsbedarf
+  blocker: Hindernis
+  unknown: Unbekannt
+readiness:
+  title: Bereitschaft nach Bereich
+  counts: Anzahl der Bereiche je Status
+  workload: Bereich
+  evidence: Datengrundlage
+  incomplete: Datengrundlage unvollständig
+  missing: Noch benötigte Angaben
+  conflict: Trotz der gemeldeten Null wurden bei der Erhebung betroffene Elemente gefunden, daher gilt für die Einstufung die erhobene Mindestzahl.
+  not_examined: Nicht untersucht
+attention:
+  title: Prüfbedarf
+  files: Dateitypen für die weitere Prüfung
+  file_kind: Dateityp
+  extensions: Dateiendungen
+  count: Gemeldete Anzahl
+  none_reported: Für diesen Dateityp wurden keine Dateien gemeldet.
+  software: Reine Windows-Anwendungen
 appendix:
   title: Anhang
   schema_version: Schemaversion
@@ -32,6 +66,12 @@ appendix:
   permissions: Verwendete Berechtigungen
   sample_permissions: Für diesen Bericht wurden keine Microsoft-Berechtigungen verwendet.
   ignored: Diese Programmversion hat unbekannte Felder oder Merkmale ausgelassen ({count}).
+  rules: Regeln für die Einstufung
+  rule_file: Regeldatei
+  ready_evidence: Erforderliche Datengrundlage für den Status „Bereit“
+  condition_exists: liegt vor
+  run_details: Angaben zur Berichtserstellung
+  checksums: SHA-256-Prüfsummen der verwendeten Regeldateien
 footer:
   repository_pending: Adresse des Quellcode-Repositorys ausstehend
 provenance:
@@ -67,6 +107,8 @@ coverage:
   unknown: Erhebungsumfang unbekannt
   scanned_of: '{scanned} von {total} geprüft'
   scanned: '{scanned} geprüft'
+  answers_of: '{scanned} von {total} Angaben liegen vor'
+  answers: '{scanned} Angaben liegen vor'
   failed: '{failed} fehlgeschlagen'
   total: '{total} im Erhebungsumfang'
 reason:
@@ -100,9 +142,15 @@ reason:
   licensed_use_not_measured:
     label: Die Lizenz umfasst den Dienst, dessen Nutzung noch ungeklärt ist.
     fix: Klären Sie mit der zuständigen Stelle, wie Ihre Organisation den Dienst nutzt.
+  licence_not_classified:
+    label: Das Programm konnte die Lizenz nicht einordnen.
+    fix: Gleichen Sie das Produkt und den Dienstplan mit der Lizenzreferenz ab.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
+  coverage_unknown:
+    label: Der Umfang der Erhebung ist unbekannt.
+    fix: Klären Sie, welche Elemente erfasst wurden, oder reichen Sie eine vollständige Angabe nach.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
@@ -122,6 +170,21 @@ units:
   channels: Kanäle
   devices: Geräte
   applications: Anwendungen
+  products: Produkte
+unit_one:
+  users: Konto
+  groups: Gruppe
+  mailboxes: Postfach
+  bytes: Byte
+  items: Element
+  accounts: Konto
+  sites: Website
+  files: Datei
+  teams: Team
+  channels: Kanal
+  devices: Gerät
+  applications: Anwendung
+  products: Produkt
 workload:
   licences: Lizenzen
   directory: Verzeichnisdienst
@@ -172,6 +235,7 @@ finding:
   windows_software.application_count: Anwendungen, die nur unter Windows laufen
   windows_software.without_web_version_count: Reine Windows-Anwendungen ohne Webversion
   power_platform.in_use: Power Platform im Einsatz
+  telephony.in_use: Telefonie läuft über Microsoft
   telephony.replacement_available: Alternative zur Telefonie verfügbar
   identity_access.sso_application_count: Anwendungen mit zentraler Anmeldung über Microsoft
   identity_access.conditional_access_in_use: Bedingter Zugriff im Einsatz

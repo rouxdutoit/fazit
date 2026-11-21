@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+kinds:
+  - id: macro
+    label:
+      en: May contain macros
+      de: Kann Makros enthalten
+    note:
+      en: The extension alone cannot establish whether a file contains macros or how important they are.
+      de: An der Dateiendung allein lässt sich weder erkennen, ob die Datei Makros enthält, noch welche Bedeutung diese haben.
+    extensions: [xlsm, xltm, xlam, docm, dotm, pptm, potm]
+  - id: access
+    label:
+      en: Microsoft Access
+      de: Microsoft Access
+    note:
+      en: Find out which databases and forms staff still use.
+      de: Klären Sie, welche Datenbanken und Formulare die Beschäftigten noch nutzen.
+    extensions: [accdb, mdb]
+  - id: publisher
+    label:
+      en: Microsoft Publisher
+      de: Microsoft Publisher
+    note:
+      en: Check which publications staff still need to edit.
+      de: Prüfen Sie, welche Publikationen die Beschäftigten weiterhin bearbeiten müssen.
+    extensions: [pub]
+  - id: visio
+    label:
+      en: Microsoft Visio
+      de: Microsoft Visio
+    note:
+      en: Check whether staff need to edit the diagrams or only view them.
+      de: Klären Sie, ob die Beschäftigten die Diagramme weiter bearbeiten müssen oder sie nur lesen.
+    extensions: [vsdx]
+  - id: onenote
+    label:
+      en: Microsoft OneNote
+      de: Microsoft OneNote
+    note:
+      en: Check which notebooks and attachments must be kept.
+      de: Prüfen Sie, welche Notizbücher und Anhänge erhalten bleiben müssen.
+    extensions: [one]

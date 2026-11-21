@@ -1,0 +1,341 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+workloads:
+  licences:
+    ready:
+      evidence:
+        - {finding: licences.product_count, op: exists}
+        - {finding: licences.contract_terms_known, op: '==', value: true}
+      reason:
+        en: The licence products have been recorded and the contract terms have been reviewed.
+        de: Die Lizenzprodukte sind erfasst und die Vertragsbedingungen sind geprüft.
+    rules:
+      - id: licences-terms-unknown
+        when: [{finding: licences.contract_terms_known, op: '==', value: false}]
+        status: needs_work
+        reason:
+          en: The contract terms still need review.
+          de: Die Vertragsbedingungen müssen noch geprüft werden.
+  directory:
+    ready:
+      evidence:
+        - {finding: directory.user_count, op: exists}
+        - {finding: directory.guest_count, op: '==', value: 0}
+        - {finding: directory.account_list_reviewed, op: '==', value: true}
+      reason:
+        en: The accounts have been counted and reviewed, and there are no guest accounts.
+        de: Die Konten sind gezählt und geprüft, und es gibt keine Gastkonten.
+    rules:
+      - id: directory-guests
+        when: [{finding: directory.guest_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Guest accounts require a decision about future access.
+          de: Für Gastkonten ist zu klären, wer künftig Zugriff benötigt.
+      - id: directory-accounts-not-reviewed
+        when: [{finding: directory.account_list_reviewed, op: '==', value: false}]
+        status: needs_work
+        reason:
+          en: The account list still needs review.
+          de: Die Kontenliste muss noch geprüft werden.
+  mail:
+    ready:
+      evidence:
+        - {finding: mail.mailbox_count, op: exists}
+        - {finding: mail.shared_mailbox_count, op: exists}
+        - {finding: mail.other_systems_send_mail, op: '==', value: false}
+      reason:
+        en: The mailbox inventory includes shared mailboxes, and no other systems send mail through Microsoft.
+        de: Die Bestandsaufnahme enthält auch freigegebene Postfächer, und keine anderen Systeme versenden E-Mails über Microsoft.
+    rules:
+      - id: mail-other-systems
+        when: [{finding: mail.other_systems_send_mail, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Other systems send mail through Microsoft and will need another way to send it.
+          de: Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
+  onedrive:
+    ready:
+      evidence:
+        - {finding: onedrive.account_count, op: exists}
+        - {finding: onedrive.storage_bytes, op: exists}
+        - {finding: onedrive.external_sharing_in_use, op: '==', value: false}
+      reason:
+        en: OneDrive accounts and storage have been inventoried, and there is no external sharing.
+        de: Die OneDrive-Konten und ihr Speicherbedarf sind erfasst, und es gibt keine Freigaben an Externe.
+    rules:
+      - id: onedrive-external-sharing
+        when: [{finding: onedrive.external_sharing_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: External recipients need a way to access shared files after the move.
+          de: Externe Empfänger benötigen nach dem Wechsel weiterhin Zugriff auf die für sie freigegebenen Dateien.
+  sharepoint:
+    ready:
+      evidence:
+        - {finding: sharepoint.site_count, op: exists}
+        - {finding: sharepoint.custom_solutions_in_use, op: '==', value: false}
+      reason:
+        en: The SharePoint sites have been counted, and the organisation uses no custom solutions.
+        de: Die SharePoint-Websites sind erfasst, und die Organisation setzt keine individuell angepassten Lösungen ein.
+    rules:
+      - id: sharepoint-custom-solutions
+        when: [{finding: sharepoint.custom_solutions_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Custom SharePoint solutions need to be reviewed before the sites move.
+          de: Prüfen Sie die individuell angepassten SharePoint-Lösungen, bevor die Websites umziehen.
+  teams:
+    ready:
+      evidence:
+        - {finding: teams.team_count, op: exists}
+        - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+        - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+      reason:
+        en: The teams have been counted, there are no guests, and the chat history does not need to be kept.
+        de: Die Teams sind erfasst, es gibt keine Gäste und der Chatverlauf muss nicht erhalten bleiben.
+    rules:
+      - id: teams-guests
+        when: [{finding: teams.teams_with_guests_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Teams with guests need a plan for managing external access after the move.
+          de: Klären Sie für Teams mit Gästen, wie der Zugriff von Externen nach dem Wechsel geregelt wird.
+      - id: teams-chat-history
+        when: [{finding: teams.chat_history_must_be_kept, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: The organisation needs a way to retain the Teams chat history.
+          de: Für den Chatverlauf aus Teams ist eine Aufbewahrungslösung erforderlich.
+      - id: teams-audio-conferencing
+        when: [{finding: teams.licence_add_on_assigned, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: An assigned licence for audio conferencing requires checking how participants dial in to meetings.
+          de: Prüfen Sie bei zugewiesenen Audiokonferenzlizenzen, wie sich Teilnehmende künftig in Besprechungen einwählen.
+  office_files:
+    ready:
+      evidence:
+        - {finding: office_files.kind.macro, op: '==', value: 0}
+        - {finding: office_files.kind.access, op: '==', value: 0}
+        - {finding: office_files.kind.publisher, op: '==', value: 0}
+        - {finding: office_files.kind.visio, op: '==', value: 0}
+        - {finding: office_files.kind.onenote, op: '==', value: 0}
+      reason:
+        en: The supplied counts show no files of the types listed for review.
+        de: Für die aufgeführten prüfbedürftigen Dateitypen wurden jeweils null Dateien gemeldet.
+    rules:
+      - id: office-macro
+        when: [{finding: office_files.kind.macro, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+          de: Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
+      - id: office-access
+        when: [{finding: office_files.kind.access, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Review how the organisation uses its Access databases before planning the move.
+          de: Prüfen Sie vor der Umstellung, wofür die Organisation ihre Access-Datenbanken nutzt.
+      - id: office-publisher
+        when: [{finding: office_files.kind.publisher, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Check how the organisation will open and edit its Publisher files.
+          de: Klären Sie, wie die Organisation ihre Publisher-Dateien künftig öffnet und bearbeitet.
+      - id: office-visio
+        when: [{finding: office_files.kind.visio, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Check how the organisation will open and edit its Visio files.
+          de: Klären Sie, wie die Organisation ihre Visio-Dateien künftig öffnet und bearbeitet.
+      - id: office-onenote
+        when: [{finding: office_files.kind.onenote, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Check how the organisation will move its OneNote notebooks.
+          de: Klären Sie, wie die Organisation ihre OneNote-Notizbücher übernimmt.
+  device_management:
+    ready:
+      evidence:
+        - {finding: device_management.in_use, op: '==', value: false}
+        - {finding: device_management.windows_device_count, op: '==', value: 0}
+        - {finding: device_management.licence_add_on_assigned, op: '==', value: false}
+      reason:
+        en: The evidence shows no Windows devices, Microsoft device management or separate device-management licences.
+        de: Die Angaben weisen keine Windows-Geräte, keine Geräteverwaltung von Microsoft und keine separaten Lizenzen für die Geräteverwaltung aus.
+    rules:
+      - id: devices-managed
+        when: [{finding: device_management.in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Devices managed through Microsoft need another management service.
+          de: Über Microsoft verwaltete Geräte benötigen künftig eine andere Geräteverwaltung.
+      - id: devices-windows
+        when: [{finding: device_management.windows_device_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Review which of the Windows devices can move to a different operating system.
+          de: Prüfen Sie, welche Windows-Geräte auf ein anderes Betriebssystem umgestellt werden können.
+      - id: devices-add-on
+        when: [{finding: device_management.licence_add_on_assigned, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Separate device-management licences are assigned and the functions they support need review.
+          de: Separate Lizenzen für die Geräteverwaltung sind zugewiesen, und die damit genutzten Funktionen sind zu prüfen.
+  windows_software:
+    ready:
+      evidence:
+        - {finding: windows_software.application_count, op: '==', value: 0}
+        - {finding: windows_software.without_web_version_count, op: '==', value: 0}
+      reason:
+        en: The supplied inventory confirms there are no Windows-only applications.
+        de: Die bereitgestellte Bestandsliste bestätigt, dass es keine reinen Windows-Anwendungen gibt.
+    rules:
+      - id: software-no-web-version
+        when: [{finding: windows_software.without_web_version_count, op: '>', value: 0}]
+        status: blocker
+        reason:
+          en: At least one Windows-only application has no web version and needs a separate solution.
+          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und benötigt eine gesonderte Lösung.
+      - id: software-present
+        when: [{finding: windows_software.application_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Check how staff will use the Windows-only applications after the move.
+          de: Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Wechsel nutzen können.
+  power_platform:
+    ready:
+      evidence:
+        - {finding: power_platform.in_use, op: '==', value: false}
+        - {finding: power_platform.licence_add_on_assigned, op: '==', value: false}
+      reason:
+        en: The organisation reports no Power Platform use, and there are no assigned separate licences.
+        de: Die Organisation meldet keine Nutzung der Power Platform, und es sind keine separaten Lizenzen zugewiesen.
+    rules:
+      - id: power-premium-licences
+        when: [{finding: power_platform.licence_add_on_assigned, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Separate Power Platform licences are assigned and the applications and processes they support need review.
+          de: Für die Power Platform sind separate Lizenzen zugewiesen, und die damit genutzten Anwendungen und Abläufe sind zu prüfen.
+      - id: power-in-use
+        when: [{finding: power_platform.in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: The Power Platform applications and processes in use need a replacement.
+          de: Die genutzten Anwendungen und Abläufe der Power Platform benötigen eine Alternative.
+  telephony:
+    ready:
+      evidence:
+        - {finding: telephony.licence_add_on_assigned, op: '==', value: false}
+        - {finding: telephony.in_use, op: '==', value: false, provenance: provided}
+      reason:
+        en: The organisation confirms no telephony runs through Microsoft, and no separate licence is assigned.
+        de: Die Organisation bestätigt, dass keine Telefonie über Microsoft läuft und keine separate Lizenz zugewiesen ist.
+    rules:
+      - id: telephony-no-replacement
+        when:
+          - {finding: telephony.licence_add_on_assigned, op: '==', value: true}
+          - {finding: telephony.replacement_available, op: '==', value: false, provenance: provided}
+        status: blocker
+        reason:
+          en: Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
+          de: Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
+      - id: telephony-add-on
+        when:
+          - {finding: telephony.licence_add_on_assigned, op: '==', value: true}
+          - {finding: telephony.replacement_available, op: '==', value: true, provenance: provided}
+        status: needs_work
+        reason:
+          en: Teams Phone licences are assigned and the available replacement needs testing.
+          de: Teams-Phone-Lizenzen sind zugewiesen, und die verfügbare Alternative muss erprobt werden.
+      - id: telephony-in-use-no-replacement
+        when:
+          - {finding: telephony.in_use, op: '==', value: true, provenance: provided}
+          - {finding: telephony.replacement_available, op: '==', value: false, provenance: provided}
+        status: blocker
+        reason:
+          en: The organisation confirms it runs telephony through Microsoft and has no replacement.
+          de: Die Organisation bestätigt, dass sie Telefonie über Microsoft betreibt und keine Alternative verfügbar ist.
+      - id: telephony-in-use
+        when:
+          - {finding: telephony.in_use, op: '==', value: true, provenance: provided}
+          - {finding: telephony.replacement_available, op: '==', value: true, provenance: provided}
+        status: needs_work
+        reason:
+          en: The organisation uses Microsoft telephony and needs to test the available replacement.
+          de: Die Organisation nutzt Telefonie über Microsoft und muss die verfügbare Alternative erproben.
+  identity_access:
+    ready:
+      evidence:
+        - {finding: identity_access.sso_application_count, op: '==', value: 0}
+        - {finding: identity_access.conditional_access_in_use, op: '==', value: false}
+      reason:
+        en: No applications require Microsoft single sign-on, and the organisation does not use Conditional Access.
+        de: Keine Anwendung benötigt die zentrale Anmeldung über Microsoft, und die Organisation nutzt keinen bedingten Zugriff.
+    rules:
+      - id: identity-sso-applications
+        when: [{finding: identity_access.sso_application_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
+          de: Anwendungen mit zentraler Anmeldung über Microsoft müssen an einen anderen Identitätsdienst angebunden werden.
+      - id: identity-conditional-access
+        when: [{finding: identity_access.conditional_access_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Review how the new identity service will enforce the organisation's access policies.
+          de: Prüfen Sie, wie der neue Identitätsdienst die Zugriffsrichtlinien der Organisation durchsetzt.
+      - id: identity-add-on
+        when: [{finding: identity_access.licence_add_on_assigned, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Separate identity licences are assigned and the access functions they support need review.
+          de: Für den Identitätsdienst sind separate Lizenzen zugewiesen, und die damit genutzten Zugriffsfunktionen sind zu prüfen.
+  security_compliance:
+    ready:
+      evidence:
+        - {finding: security_compliance.protection_or_retention_in_use, op: '==', value: false}
+        - {finding: security_compliance.licence_add_on_assigned, op: '==', value: false}
+      reason:
+        en: The organisation reports no Microsoft protection or retention in use, and no separate licence is assigned.
+        de: Die Organisation meldet keine genutzten Schutz- oder Aufbewahrungsfunktionen von Microsoft, und es ist keine separate Lizenz zugewiesen.
+    rules:
+      - id: security-in-use
+        when: [{finding: security_compliance.protection_or_retention_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: The organisation needs to carry its protection and retention requirements over to the replacement.
+          de: Die Anforderungen an Schutz und Aufbewahrung müssen in die Nachfolgelösung übernommen werden.
+      - id: security-add-on
+        when: [{finding: security_compliance.licence_add_on_assigned, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Separate security or compliance licences are assigned and the functions they support need review.
+          de: Separate Lizenzen für Sicherheit oder Regelkonformität sind zugewiesen, und die damit genutzten Funktionen sind zu prüfen.
+  small_apps:
+    ready:
+      evidence: [{finding: small_apps.in_use, op: '==', value: false}]
+      reason:
+        en: The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.
+        de: Die Organisation bestätigt, dass sie kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings nicht nutzt.
+    rules:
+      - id: small-apps-in-use
+        when: [{finding: small_apps.in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Check which forms, tasks or bookings the organisation needs to move to a replacement.
+          de: Klären Sie, welche Formulare, Aufgaben oder Buchungen die Organisation in eine Nachfolgelösung übernehmen muss.
+  integrations:
+    ready:
+      evidence: [{finding: integrations.application_count, op: '==', value: 0}]
+      reason:
+        en: The supplied count shows no applications integrated with Microsoft 365.
+        de: Laut bereitgestellter Angabe sind keine Anwendungen an Microsoft 365 angebunden.
+    rules:
+      - id: integrations-present
+        when: [{finding: integrations.application_count, op: '>', value: 0}]
+        status: needs_work
+        reason:
+          en: Applications connected to Microsoft 365 need their integrations reviewed before the move.
+          de: Prüfen Sie vor der Umstellung die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.

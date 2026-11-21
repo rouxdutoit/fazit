@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 from dataclasses import dataclass
+from hashlib import sha256
 from importlib.resources import files
 from pathlib import Path
 
@@ -39,6 +40,8 @@ class Catalogue:
     source_codes: frozenset[str]
     reason_codes: frozenset[str]
     permissions: frozenset[str]
+    file_name: str = "findings.yaml"
+    checksum: str | None = None
 
     @property
     def workload_ids(self) -> tuple[str, ...]:
@@ -131,7 +134,8 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
     source = (
         path if path is not None else files("m365_exit_scan").joinpath("rules", "findings.yaml")
     )
-    data = parse_yaml(read_text(source), source.name)
+    text = read_text(source)
+    data = parse_yaml(text, source.name)
     if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:
         raise InputError("invalid_field", file=source.name, field="$")
     workloads = _workloads(data["workloads"], source.name)
@@ -151,4 +155,6 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
         source_codes=_code_set(codes["sources"], source.name, "codes.sources"),
         reason_codes=_code_set(codes["reasons"], source.name, "codes.reasons"),
         permissions=_code_set(codes["permissions"], source.name, "codes.permissions", _PERMISSION),
+        file_name=source.name,
+        checksum=sha256(text.encode("utf-8")).hexdigest(),
     )
