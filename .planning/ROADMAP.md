@@ -14,7 +14,7 @@ The four phases follow the milestone order M0 to M3 agreed in `DECISIONS.md`.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Demo and Report** - `demo` and `report` produce the full German or English report from sample data, with rules, evidence and costs, and no Microsoft code
+- [x] **Phase 1: Demo and Report** - `demo` and `report` produce the full German or English report from sample data, with rules, evidence and costs, and no Microsoft code
 - [ ] **Phase 2: Import** - `import` turns admin-centre CSV exports into a real report locally, keeping aggregates only
 - [ ] **Phase 3: Doctor, Sign-in and Live Counts** - `doctor` and `scan` with browser sign-in, live licence and directory counts, and enforced host and endpoint allowlists
 - [ ] **Phase 4: Documentation, Packaging and Release** - bilingual guides, `uvx` from PyPI, signed Windows build, first tagged release
@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Demo and Report | 0/7 | Not started | - |
+| 1. Demo and Report | 11/11 | Complete | 2026-11-21 |
 | 2. Import | 0/TBD | Not started | - |
 | 3. Doctor, Sign-in and Live Counts | 0/TBD | Not started | - |
 | 4. Documentation, Packaging and Release | 0/TBD | Not started | - |
