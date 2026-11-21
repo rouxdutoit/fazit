@@ -39,9 +39,12 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 4. **M3:** documentation, packaging, signed Windows build, first tagged release.
 5. **Later, driven by paid pilots:** selected-library file inventory, on-premises Exchange and file-server import.
 
+### Decided by the founder, 2026-11-21
+
+- **F1. Yes to the services business.** The founder wants a business in which customers pay for focused time, with everything around that time automated as far as it will go. Consequence for the tool: whatever an assessment repeats (inventory, cost comparison, the report itself, the interview checklist that fills `inputs.yaml`) should be produced by the tool, so that paid time goes to the conversation and the recommendation.
+
 ### Open, for the founder
 
-- Whether you want a business in which every paying customer buys your time and the scanner earns nothing.
 - The funded scope in the Prototype Fund application (deadline 30 November 2026, 15:00 CET).
 - The project name. "M365" is Microsoft's mark; descriptive use is normally acceptable.
 

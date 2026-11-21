@@ -18,7 +18,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 
 ### Evidence model
 
-- [ ] **MODL-01**: `scan.json` has a documented, versioned schema that collectors write and rules and report only read
+- [ ] **MODL-01**: `scan.json` has a versioned schema that collectors write and rules and report only read (published documentation is DOCS-04)
 - [ ] **MODL-02**: Every finding records its source, collection date, reporting period, coverage, and the reason for any missing value
 - [ ] **MODL-03**: Every value is marked as measured, provided by the user, or unknown, and the report shows the three differently
 - [ ] **MODL-04**: Bundled sample data describes a fictional 85-person town office and a fictional 20-person non-profit
@@ -38,6 +38,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **COST-03**: Any missing cost input is shown as "not provided", and a total that depends on it is shown as unknown
 - [ ] **COST-04**: The tool contains no hardcoded prices
 - [ ] **COST-05**: `inputs.example.yaml` ships with comments in English and German
+- [ ] **COST-06**: An interview checklist in English and German lists the questions whose answers fill `inputs.yaml`, including user-provided counts for things the tool cannot measure in v1 (risky files, Windows-only software, devices)
 
 ### Report
 
@@ -137,12 +138,74 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| CLI-01 | Phase 1 | Pending |
+| CLI-02 | Phase 1 | Pending |
+| CLI-03 | Phase 2 | Pending |
+| CLI-04 | Phase 3 | Pending |
+| CLI-05 | Phase 3 | Pending |
+| CLI-06 | Phase 1 | Pending |
+| MODL-01 | Phase 1 | Pending |
+| MODL-02 | Phase 1 | Pending |
+| MODL-03 | Phase 1 | Pending |
+| MODL-04 | Phase 1 | Pending |
+| RULE-01 | Phase 1 | Pending |
+| RULE-02 | Phase 1 | Pending |
+| RULE-03 | Phase 1 | Pending |
+| RULE-04 | Phase 1 | Pending |
+| RULE-05 | Phase 1 | Pending |
+| COST-01 | Phase 1 | Pending |
+| COST-02 | Phase 1 | Pending |
+| COST-03 | Phase 1 | Pending |
+| COST-04 | Phase 1 | Pending |
+| COST-05 | Phase 1 | Pending |
+| COST-06 | Phase 1 | Pending |
+| REPT-01 | Phase 1 | Pending |
+| REPT-02 | Phase 1 | Pending |
+| REPT-03 | Phase 1 | Pending |
+| REPT-04 | Phase 1 | Pending |
+| REPT-05 | Phase 1 | Pending |
+| REPT-06 | Phase 1 | Pending |
+| I18N-01 | Phase 1 | Pending |
+| I18N-02 | Phase 1 | Pending |
+| IMPT-01 | Phase 2 | Pending |
+| IMPT-02 | Phase 2 | Pending |
+| IMPT-03 | Phase 2 | Pending |
+| IMPT-04 | Phase 2 | Pending |
+| IMPT-05 | Phase 2 | Pending |
+| AUTH-01 | Phase 3 | Pending |
+| AUTH-02 | Phase 3 | Pending |
+| AUTH-03 | Phase 3 | Pending |
+| AUTH-04 | Phase 3 | Pending |
+| COLL-01 | Phase 3 | Pending |
+| COLL-02 | Phase 3 | Pending |
+| COLL-03 | Phase 3 | Pending |
+| COLL-04 | Phase 3 | Pending |
+| COLL-05 | Phase 3 | Pending |
+| COLL-06 | Phase 3 | Pending |
+| SAFE-01 | Phase 3 | Pending |
+| SAFE-02 | Phase 3 | Pending |
+| SAFE-03 | Phase 3 | Pending |
+| SAFE-04 | Phase 1 | Pending |
+| SAFE-05 | Phase 1 | Pending |
+| SAFE-06 | Phase 3 | Pending |
+| SAFE-07 | Phase 1 | Pending |
+| DIST-01 | Phase 4 | Pending |
+| DIST-02 | Phase 4 | Pending |
+| DIST-03 | Phase 1 | Pending |
+| DOCS-01 | Phase 1 | Pending |
+| DOCS-02 | Phase 4 | Pending |
+| DOCS-03 | Phase 4 | Pending |
+| DOCS-04 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 57 total
-- Mapped to phases: 0
-- Unmapped: 57 ⚠️
+- v1 requirements: 58 total
+- Mapped to phases: 58
+- Unmapped: 0 ✓
+- Phase 1 (Demo and Report): 30
+- Phase 2 (Import): 6
+- Phase 3 (Doctor, Sign-in and Live Counts): 16
+- Phase 4 (Documentation, Packaging and Release): 5
 
 ---
 *Requirements defined: 2026-11-21*
-*Last updated: 2026-11-21 after initial definition*
+*Last updated: 2026-11-21 after roadmap creation*
