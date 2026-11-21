@@ -1,0 +1,216 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+header:
+  title: Microsoft 365 inventory
+  scan_date: Evidence date
+  tool_version: Tool version
+  local: This tool built the report on this computer from the scan file and contacted no host.
+  offline: To check, disconnect from the network and run the command again or open this file.
+  sample: The scan measurements in this report are simulated.
+found:
+  title: What we found
+  finding: Finding
+  value: Value
+  provenance: How we know
+  evidence: Evidence behind the figures
+  collector: Collection method
+  source: Source
+  collected: Collection date
+  period: Reporting period
+  coverage: Coverage
+  sample: Scan measurements are simulated.
+  partial_positive: 'At least {value}'
+  partial_zero: '{value} in the items checked'
+  notes:
+    directory: Internal accounts include shared and service accounts, so there can be more accounts than staff. Guests are counted separately.
+appendix:
+  title: Appendix
+  schema_version: Schema version
+  collectors: Collection methods
+  status: Status
+  reason: Reason and next step
+  permissions: Permissions used
+  sample_permissions: This report used no Microsoft permissions.
+  ignored: Ignored fields or findings that this version does not recognise ({count}).
+footer:
+  repository_pending: Repository address pending
+provenance:
+  measured: Measured
+  provided: Provided
+  unknown: Unknown
+collector:
+  licences: Licence inventory
+  directory: Directory inventory
+  mailbox_usage: Mailbox usage report
+  onedrive_usage: OneDrive usage report
+  sharepoint_site_usage: SharePoint site usage report
+  teams_usage: Teams usage report
+  exchange_recipients: Exchange recipient export
+collector_status:
+  ok: Completed
+  partial: Partial
+  skipped: Skipped
+source:
+  sample.licences: Sample licence inventory
+  sample.directory: Sample directory inventory
+  sample.mailbox_usage: Sample mailbox usage report
+  sample.onedrive_usage: Sample OneDrive usage report
+  sample.sharepoint_site_usage: Sample SharePoint site usage report
+  sample.teams_usage: Sample Teams usage report
+  sample.exchange_recipients: Sample Exchange recipient export
+  sample.interview: Sample interview answer
+  interview: Interview answer
+  inputs_yaml: Answer in the inputs file
+coverage:
+  complete: Complete
+  partial: Partial
+  unknown: Coverage unknown
+  scanned_of: '{scanned} of {total} scanned'
+  scanned: '{scanned} scanned'
+  failed: '{failed} failed'
+  total: '{total} in scope'
+reason:
+  not_in_export:
+    label: The export does not contain this figure.
+    fix: Check the export options and supply an export that includes it.
+  permission_denied:
+    label: The collection method lacked permission.
+    fix: Ask an administrator to check the required read permissions.
+  not_licensed:
+    label: The required licence was unavailable.
+    fix: Confirm which licences the organisation holds.
+  not_collected_in_this_version:
+    label: This version does not collect this figure.
+    fix: Ask the person responsible for the service for the information.
+  answer_not_provided:
+    label: The answer is missing.
+    fix: Confirm the answer and record it in the inputs file.
+  source_not_supplied:
+    label: The data source was missing.
+    fix: Supply the required export and rebuild the report.
+  needs_recipient_export:
+    label: Mailbox usage alone cannot establish the number of shared mailboxes.
+    fix: Supply an Exchange recipient export that includes the mailbox type.
+  collector_skipped:
+    label: The collection method did not run.
+    fix: Check the reason in the appendix and supply the missing evidence.
+  not_in_scan:
+    label: The scan does not include this finding.
+    fix: Check whether the source can supply this figure.
+  licensed_use_not_measured:
+    label: The licence includes this service, and its use is unverified.
+    fix: Ask the service owner how the organisation uses it.
+  coverage_partial:
+    label: The measurement covers only part of the scope.
+    fix: Check the remaining items before drawing a conclusion about the whole scope.
+  not_established:
+    label: The available evidence leaves the answer open.
+    fix: Review the finding with the person responsible for the service.
+  not_recognised:
+    label: This version does not recognise the reason.
+    fix: Check the export and the tool version.
+units:
+  users: accounts
+  groups: groups
+  mailboxes: mailboxes
+  bytes: bytes
+  items: items
+  accounts: accounts
+  sites: sites
+  files: files
+  teams: teams
+  channels: channels
+  devices: devices
+  applications: applications
+workload:
+  licences: Licences
+  directory: Directory
+  mail: Mail
+  onedrive: OneDrive
+  sharepoint: SharePoint
+  teams: Teams
+  office_files: Office files
+  device_management: Device management
+  windows_software: Windows-only software
+  power_platform: Power Platform
+  telephony: Telephony
+  identity_access: Identity and access
+  security_compliance: Security and compliance
+  small_apps: Small applications
+  integrations: Integrations
+finding:
+  licences.contract_terms_known: Licence terms reviewed
+  directory.user_count: Internal accounts
+  directory.licensed_user_count: Licensed accounts
+  directory.guest_count: Guests
+  directory.group_count: Groups
+  directory.account_list_reviewed: Account list reviewed
+  mail.mailbox_count: Mailboxes
+  mail.shared_mailbox_count: Shared mailboxes
+  mail.storage_bytes: Mail storage
+  mail.item_count: Mail items
+  mail.other_systems_send_mail: Other systems send mail through Microsoft
+  onedrive.account_count: OneDrive accounts
+  onedrive.storage_bytes: OneDrive storage
+  onedrive.external_sharing_in_use: External OneDrive sharing in use
+  sharepoint.site_count: SharePoint sites
+  sharepoint.storage_bytes: SharePoint storage
+  sharepoint.file_count: SharePoint files
+  sharepoint.custom_solutions_in_use: Custom SharePoint solutions in use
+  teams.team_count: Teams
+  teams.channel_count: Channels
+  teams.teams_with_guests_count: Teams with guests
+  teams.chat_history_must_be_kept: Teams chat history must be kept
+  office_files.kind.macro: Files that may contain macros
+  office_files.kind.access: Access databases
+  office_files.kind.publisher: Publisher files
+  office_files.kind.visio: Visio files
+  office_files.kind.onenote: OneNote files
+  device_management.device_count: Devices
+  device_management.windows_device_count: Windows devices
+  device_management.in_use: Microsoft device management in use
+  windows_software.application_count: Windows-only applications
+  windows_software.without_web_version_count: Windows-only applications without a web version
+  power_platform.in_use: Power Platform in use
+  telephony.replacement_available: Telephony replacement available
+  identity_access.sso_application_count: Applications with Microsoft single sign-on
+  identity_access.conditional_access_in_use: Conditional Access in use
+  security_compliance.protection_or_retention_in_use: Microsoft protection or retention in use
+  small_apps.in_use: Small Microsoft applications in use
+  integrations.application_count: Applications integrated with Microsoft 365
+common:
+  unavailable: '—'
+  date_not_supplied: Date not supplied
+  'yes': 'Yes'
+  'no': 'No'
+months: [January, February, March, April, May, June, July, August, September, October, November, December]
+format:
+  thousands_separator: ','
+  decimal_separator: '.'
+  date: '{day} {month} {year}'
+  period: '{start} to {end}'
+  storage_units: [B, kB, MB, GB, TB]
+cli:
+  error_prefix: 'Error: {message}'
+  version: '{version}'
+errors:
+  invalid_json: The JSON in {file} is invalid at {field}.
+  invalid_yaml: The YAML in {file} is invalid at {field}.
+  invalid_field: Check the value of {field} in {file}.
+  missing_field: Supply a value for {field} in {file}.
+  invalid_code: Choose a supported code for {field} in {file}.
+  contains_at: Remove text containing an at sign from {field} in {file}.
+  duplicate_key: Remove the repeated key at {field} in {file}.
+  duplicate_id: The identifier at {field} in {file} is already listed.
+  non_finite_number: Supply a finite number for {field} in {file}.
+  invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
+  invalid_collector: The collection method for {field} in {file} must have run.
+  file_not_found: The file {file} could not be found at {field}.
+  is_directory: The location {file} for {field} is a directory.
+  not_readable: The file {file} for {field} could not be read.
+  not_utf8: Save {file} for {field} as UTF-8 text.
+  schema_version: The field {field} in {file} contains version {found}, and this tool supports {supported}.
+  unsupported_language: Choose en or de for {field} in {file}.
+  unsupported_sample: Choose town or nonprofit for {field} in {file}.
+  out_dir: The output directory {file} for {field} could not be created or opened.
+  destination_is_link: The output file {file} for {field} is a symbolic link.
+  write_failed: The output file {file} could not be written under {field}.

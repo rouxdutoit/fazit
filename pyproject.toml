@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[project]
+name = "m365-exit-scan"
+version = "0.1.0"
+description = "Build local reports on Microsoft 365 exit readiness."
+requires-python = ">=3.12"
+license = "AGPL-3.0-or-later"
+dependencies = [
+    "jinja2>=3.1.6",
+    "pyyaml>=6.0.3",
+    "typer>=0.28.0",
+]
+
+[project.scripts]
+m365-exit-scan = "m365_exit_scan.cli:main"
+
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+artifacts = ["src/m365_exit_scan/demo/*/scan.json"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/m365_exit_scan"]
+
+[tool.uv]
+exclude-newer = "2026-11-07T00:00:00Z"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ANN", "S506", "S701"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+]

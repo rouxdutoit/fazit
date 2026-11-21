@@ -1,0 +1,149 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <title>{{ strings.header.title }}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 1rem/1.5 system-ui, sans-serif; margin: 1rem auto; max-width: 70rem; padding: 0 1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: start; vertical-align: top; padding: .4rem; border-bottom: 1px solid; overflow-wrap: anywhere; }
+    caption { text-align: start; font-weight: 600; }
+    .table-scroll { overflow-x: auto; margin-block: .8rem; }
+    .evidence { min-width: 47rem; }
+    .headlines { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 1rem; padding: 0; list-style: none; }
+    .headlines li { border: 1px solid; padding: .65rem; }
+    .headlines strong, small { display: block; }
+    .prov { border: 1px solid; padding: .05rem .25rem; display: inline-block; }
+    [data-provenance="provided"] .prov { border-style: dotted; }
+    [data-provenance="unknown"] .prov { border-style: dashed; }
+    footer { margin-top: 2rem; }
+    @media print {
+      :root { color-scheme: light; }
+      body { font-size: 10pt; }
+      .table-scroll { overflow: visible; }
+      .evidence { min-width: 0; }
+      tr, .headlines li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header data-section="header">
+    <h1>{{ strings.header.title }}</h1>
+    <p>{{ strings.header.scan_date }} <time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></p>
+    <p>{{ strings.header.tool_version }} {{ tool_version }}</p>
+    <p>{{ strings.header.local }}</p>
+    <p>{{ strings.header.offline }}</p>
+    {% if scan.source_kind == "sample" %}<p>{{ strings.header.sample }}</p>{% endif %}
+  </header>
+  <main>
+    <section data-section="found">
+      <h2>{{ strings.found.title }}</h2>
+      <ul class="headlines">
+        {% for entry, finding in headlines %}
+          {% set provenance = finding.provenance if finding else 'unknown' %}
+          <li data-provenance="{{ provenance }}">
+            <strong>{{ label(entry.label) }}</strong>
+            {% if finding and finding.value is not none %}{{ value_text(entry, finding) }}{% endif %}
+            <span class="prov">{{ strings.provenance[provenance] }}</span>
+            {% if provenance == 'unknown' %}
+              {% set code = finding.missing_reason if finding else ('not_in_scan' if entry.provided == 'no' else 'answer_not_provided') %}
+              {% set reason, fix = reason_text(code) %}
+              <small data-reason="{{ code }}">{{ reason }} {{ fix }}</small>
+            {% elif provenance == 'provided' %}
+              <small>{{ code_label('source', finding.source) }}</small>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="table-scroll" role="region" aria-label="{{ strings.found.evidence }}" tabindex="0">
+        <table class="evidence">
+          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          <thead>
+            <tr>
+              <th scope="col">{{ strings.found.finding }}</th>
+              <th scope="col">{{ strings.found.value }}</th>
+              <th scope="col">{{ strings.found.provenance }}</th>
+              <th scope="col">{{ strings.found.collector }}</th>
+              <th scope="col">{{ strings.found.source }}</th>
+              <th scope="col">{{ strings.found.collected }}</th>
+              <th scope="col">{{ strings.found.period }}</th>
+              <th scope="col">{{ strings.found.coverage }}</th>
+            </tr>
+          </thead>
+          {% for workload, rows in groups if rows %}
+            <tbody>
+              <tr><th scope="rowgroup" colspan="8">{{ label(workload.label) }}</th></tr>
+              {% for entry, finding in rows %}
+                <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}">
+                  <th scope="row">{{ label(entry.label) }}</th>
+                  <td>
+                    {{ value_text(entry, finding) }}
+                    {% if finding.missing_reason %}
+                      {% set reason, fix = reason_text(finding.missing_reason) %}
+                      <small data-reason="{{ finding.missing_reason }}">{{ reason }} {{ fix }}</small>
+                    {% endif %}
+                  </td>
+                  <td><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
+                  <td>{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
+                  <td>{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</td>
+                  <td>{{ format.date(finding.collected_at) if finding.collected_at else (strings.common.date_not_supplied if finding.provenance == 'provided' else strings.common.unavailable) }}</td>
+                  <td>{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
+                  <td>{{ coverage_text(finding.coverage) }}</td>
+                </tr>
+              {% endfor %}
+              {% set note = strings.found.notes.get(workload.id) %}
+              {% if scan.source_kind == 'sample' and note %}<tr><td colspan="8">{{ note }}</td></tr>{% endif %}
+            </tbody>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+    <section data-section="appendix">
+      <h2>{{ strings.appendix.title }}</h2>
+      <h3>{{ strings.appendix.collectors }}</h3>
+      {% if scan.source_kind == 'sample' %}<p>{{ strings.appendix.sample_permissions }}</p>{% endif %}
+      <div class="table-scroll" role="region" aria-label="{{ strings.appendix.collectors }}" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ strings.found.collector }}</th>
+              <th scope="col">{{ strings.appendix.status }}</th>
+              <th scope="col">{{ strings.appendix.reason }}</th>
+              <th scope="col">{{ strings.appendix.permissions }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for collector in scan.collectors %}
+              <tr data-collector="{{ collector.id }}">
+                <th scope="row">{{ code_label('collector', collector.id) }}</th>
+                <td>{{ code_label('collector_status', collector.status) }}</td>
+                <td>
+                  {% if collector.reason %}
+                    {% set reason, fix = reason_text(collector.reason) %}
+                    <span data-reason="{{ collector.reason }}">{{ reason }}</span> {{ fix }}
+                  {% else %}{{ strings.common.unavailable }}{% endif %}
+                </td>
+                <td>{{ collector.permissions_used|join(', ') or strings.common.unavailable }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if scan.dropped_count %}
+        <p data-ignored-count="{{ scan.dropped_count }}">{{ strings.appendix.ignored.format(count=format.integer(scan.dropped_count)) }}</p>
+      {% endif %}
+      <dl>
+        <dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd>
+        <dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd>
+      </dl>
+    </section>
+  </main>
+  <footer data-section="footer">
+    <p>{{ project_name }} · {{ repository_url or strings.footer.repository_pending }}</p>
+  </footer>
+</body>
+</html>

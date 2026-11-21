@@ -1,0 +1,216 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+header:
+  title: Bestandsaufnahme zu Microsoft 365
+  scan_date: Stand der Erhebung
+  tool_version: Programmversion
+  local: Das Programm hat den Bericht auf diesem Rechner aus der Erhebungsdatei erstellt und keine Netzwerkverbindung aufgebaut.
+  offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
+  sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
+found:
+  title: Ergebnisse der Bestandsaufnahme
+  finding: Merkmal
+  value: Wert
+  provenance: Herkunft des Werts
+  evidence: Datengrundlage der Ergebnisse
+  collector: Erhebungsverfahren
+  source: Datenquelle
+  collected: Erhebungsdatum
+  period: Berichtszeitraum
+  coverage: Umfang der Erhebung
+  sample: Die Messwerte der Erhebung sind simuliert.
+  partial_positive: 'Mindestens {value}'
+  partial_zero: '{value} im geprüften Bestand'
+  notes:
+    directory: Zu den internen Konten gehören gemeinsam genutzte Konten und Dienstkonten. Deshalb kann es mehr Konten als Beschäftigte geben. Gäste werden getrennt gezählt.
+appendix:
+  title: Anhang
+  schema_version: Schemaversion
+  collectors: Erhebungsverfahren
+  status: Status
+  reason: Grund und nächster Schritt
+  permissions: Verwendete Berechtigungen
+  sample_permissions: Für diesen Bericht wurden keine Microsoft-Berechtigungen verwendet.
+  ignored: Diese Programmversion hat unbekannte Felder oder Merkmale ausgelassen ({count}).
+footer:
+  repository_pending: Adresse des Quellcode-Repositorys ausstehend
+provenance:
+  measured: Erhoben
+  provided: Bereitgestellt
+  unknown: Unbekannt
+collector:
+  licences: Lizenzbestand
+  directory: Bestandsaufnahme im Verzeichnisdienst
+  mailbox_usage: Bericht zur Postfachnutzung
+  onedrive_usage: Bericht zur OneDrive-Nutzung
+  sharepoint_site_usage: Bericht zur Nutzung von SharePoint-Websites
+  teams_usage: Bericht zur Teams-Nutzung
+  exchange_recipients: Export der Exchange-Empfänger
+collector_status:
+  ok: Abgeschlossen
+  partial: Teilweise abgeschlossen
+  skipped: Übersprungen
+source:
+  sample.licences: Lizenzbestand aus Beispieldaten
+  sample.directory: Verzeichnisbestand aus Beispieldaten
+  sample.mailbox_usage: Postfachnutzung aus Beispieldaten
+  sample.onedrive_usage: OneDrive-Nutzung aus Beispieldaten
+  sample.sharepoint_site_usage: SharePoint-Nutzung aus Beispieldaten
+  sample.teams_usage: Teams-Nutzung aus Beispieldaten
+  sample.exchange_recipients: Exchange-Empfänger aus Beispieldaten
+  sample.interview: Beispielangabe aus einem Gespräch
+  interview: Angabe aus dem Gespräch
+  inputs_yaml: Angabe in der Eingabedatei
+coverage:
+  complete: Vollständig
+  partial: Teilweise
+  unknown: Erhebungsumfang unbekannt
+  scanned_of: '{scanned} von {total} geprüft'
+  scanned: '{scanned} geprüft'
+  failed: '{failed} fehlgeschlagen'
+  total: '{total} im Erhebungsumfang'
+reason:
+  not_in_export:
+    label: Die Angabe fehlt im Export.
+    fix: Prüfen Sie die Exporteinstellungen und stellen Sie einen Export mit dieser Angabe bereit.
+  permission_denied:
+    label: Die Leseberechtigung für die Erhebung fehlte.
+    fix: Lassen Sie die erforderlichen Berechtigungen durch die Administration prüfen.
+  not_licensed:
+    label: Die erforderliche Lizenz war nicht verfügbar.
+    fix: Prüfen Sie, über welche Lizenzen Ihre Organisation verfügt.
+  not_collected_in_this_version:
+    label: Diese Programmversion erhebt die Angabe nicht.
+    fix: Fragen Sie bei der für den Dienst zuständigen Stelle nach.
+  answer_not_provided:
+    label: Die Angabe fehlt.
+    fix: Klären Sie die Frage und ergänzen Sie die Eingabedatei.
+  source_not_supplied:
+    label: Die Datenquelle lag nicht vor.
+    fix: Stellen Sie den erforderlichen Export bereit und erstellen Sie den Bericht erneut.
+  needs_recipient_export:
+    label: Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor.
+    fix: Stellen Sie einen Export der Exchange-Empfänger mit Angabe des Postfachtyps bereit.
+  collector_skipped:
+    label: Das Erhebungsverfahren wurde übersprungen.
+    fix: Prüfen Sie den Grund im Anhang und reichen Sie die fehlenden Daten nach.
+  not_in_scan:
+    label: Das Merkmal fehlt in der Erhebung.
+    fix: Prüfen Sie, ob die Datenquelle diese Angabe liefern kann.
+  licensed_use_not_measured:
+    label: Die Lizenz umfasst den Dienst, dessen Nutzung noch ungeklärt ist.
+    fix: Klären Sie mit der zuständigen Stelle, wie Ihre Organisation den Dienst nutzt.
+  coverage_partial:
+    label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
+    fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
+  not_established:
+    label: Die vorliegenden Daten lassen die Frage offen.
+    fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
+  not_recognised:
+    label: Diese Programmversion kennt den Grund nicht.
+    fix: Prüfen Sie den Export und die Programmversion.
+units:
+  users: Konten
+  groups: Gruppen
+  mailboxes: Postfächer
+  bytes: Byte
+  items: Elemente
+  accounts: Konten
+  sites: Websites
+  files: Dateien
+  teams: Teams
+  channels: Kanäle
+  devices: Geräte
+  applications: Anwendungen
+workload:
+  licences: Lizenzen
+  directory: Verzeichnisdienst
+  mail: E-Mail
+  onedrive: OneDrive
+  sharepoint: SharePoint
+  teams: Teams
+  office_files: Office-Dateien
+  device_management: Geräteverwaltung
+  windows_software: Reine Windows-Anwendungen
+  power_platform: Power Platform
+  telephony: Telefonie
+  identity_access: Identitäten und Zugriff
+  security_compliance: Sicherheit und Regelkonformität
+  small_apps: Kleinere Anwendungen
+  integrations: Anwendungsanbindungen
+finding:
+  licences.contract_terms_known: Lizenzbedingungen geprüft
+  directory.user_count: Interne Konten
+  directory.licensed_user_count: Lizenzierte Konten
+  directory.guest_count: Gäste
+  directory.group_count: Gruppen
+  directory.account_list_reviewed: Kontenliste geprüft
+  mail.mailbox_count: Postfächer
+  mail.shared_mailbox_count: Freigegebene Postfächer
+  mail.storage_bytes: Speicherbedarf der Postfächer
+  mail.item_count: Elemente in den Postfächern
+  mail.other_systems_send_mail: E-Mail-Versand anderer Systeme über Microsoft
+  onedrive.account_count: OneDrive-Konten
+  onedrive.storage_bytes: Speicherbedarf in OneDrive
+  onedrive.external_sharing_in_use: Freigaben an Externe in OneDrive
+  sharepoint.site_count: SharePoint-Websites
+  sharepoint.storage_bytes: Speicherbedarf in SharePoint
+  sharepoint.file_count: Dateien in SharePoint
+  sharepoint.custom_solutions_in_use: Individuell angepasste SharePoint-Lösungen im Einsatz
+  teams.team_count: Teams
+  teams.channel_count: Kanäle
+  teams.teams_with_guests_count: Teams mit Gästen
+  teams.chat_history_must_be_kept: Chatverlauf aus Teams muss erhalten bleiben
+  office_files.kind.macro: Dateien, die Makros enthalten können
+  office_files.kind.access: Access-Datenbanken
+  office_files.kind.publisher: Publisher-Dateien
+  office_files.kind.visio: Visio-Dateien
+  office_files.kind.onenote: OneNote-Dateien
+  device_management.device_count: Geräte
+  device_management.windows_device_count: Windows-Geräte
+  device_management.in_use: Geräteverwaltung von Microsoft im Einsatz
+  windows_software.application_count: Anwendungen, die nur unter Windows laufen
+  windows_software.without_web_version_count: Reine Windows-Anwendungen ohne Webversion
+  power_platform.in_use: Power Platform im Einsatz
+  telephony.replacement_available: Alternative zur Telefonie verfügbar
+  identity_access.sso_application_count: Anwendungen mit zentraler Anmeldung über Microsoft
+  identity_access.conditional_access_in_use: Bedingter Zugriff im Einsatz
+  security_compliance.protection_or_retention_in_use: Schutz- oder Aufbewahrungsfunktionen von Microsoft im Einsatz
+  small_apps.in_use: Kleinere Microsoft-Anwendungen im Einsatz
+  integrations.application_count: An Microsoft 365 angebundene Anwendungen
+common:
+  unavailable: '—'
+  date_not_supplied: Datum nicht angegeben
+  'yes': 'Ja'
+  'no': 'Nein'
+months: [Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November, Dezember]
+format:
+  thousands_separator: '.'
+  decimal_separator: ','
+  date: '{day}. {month} {year}'
+  period: '{start} bis {end}'
+  storage_units: [B, kB, MB, GB, TB]
+cli:
+  error_prefix: 'Fehler: {message}'
+  version: '{version}'
+errors:
+  invalid_json: Die Datei {file} enthält an der Stelle {field} ungültiges JSON.
+  invalid_yaml: Die Datei {file} enthält an der Stelle {field} ungültiges YAML.
+  invalid_field: Prüfen Sie das Feld {field} in der Datei {file}.
+  missing_field: Ergänzen Sie das Feld {field} in der Datei {file}.
+  invalid_code: Geben Sie für {field} in der Datei {file} einen zulässigen Code an.
+  contains_at: Entfernen Sie Text mit einem At-Zeichen aus {field} in der Datei {file}.
+  duplicate_key: Entfernen Sie den doppelten Schlüssel an der Stelle {field} in der Datei {file}.
+  duplicate_id: Die Kennung in {field} ist in der Datei {file} bereits vorhanden.
+  non_finite_number: Geben Sie für {field} in der Datei {file} eine endliche Zahl an.
+  invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
+  invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
+  file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
+  is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
+  not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.
+  not_utf8: Speichern Sie die Datei {file} für {field} als UTF-8-Text.
+  schema_version: Im Feld {field} der Datei {file} steht Version {found}, während das Programm Version {supported} unterstützt.
+  unsupported_language: Geben Sie für {field} bei {file} den Wert en oder de an.
+  unsupported_sample: Geben Sie für {field} bei {file} den Wert town oder nonprofit an.
+  out_dir: Das Ausgabeverzeichnis {file} für {field} konnte nicht angelegt oder geöffnet werden.
+  destination_is_link: Die Ausgabedatei {file} für {field} ist eine symbolische Verknüpfung.
+  write_failed: Die Ausgabedatei {file} konnte unter {field} nicht geschrieben werden.
