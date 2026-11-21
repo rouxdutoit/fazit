@@ -95,6 +95,7 @@ def test_unregistered_licence_identifiers_are_private_in_both_commands(
     )
     private_guid = "f8c16d36-b9e3-460e-8ac2-54b6d950986f"
     phone["sku_part_number"] = SINGLE_TOKENS[0]
+    phone["sku_guid"] = "f646cd4c-ed8c-41f0-863c-77374eb67b47"
     reporting["sku_part_number"] = SINGLE_TOKENS[1]
     reporting["sku_guid"] = private_guid
     sample = _sample_directory(tmp_path, monkeypatch)
@@ -106,7 +107,7 @@ def test_unregistered_licence_identifiers_are_private_in_both_commands(
         out = tmp_path / f"{command[0]}-out"
         result = runner.invoke(cli.app, [*command, "--out", str(out)])
         assert result.exit_code == 0 and not result.stderr, result.output
-        _assert_no_private_text(result, out, *SINGLE_TOKENS, private_guid)
+        _assert_no_private_text(result, out, *SINGLE_TOKENS, phone["sku_guid"], private_guid)
         html = Path(result.stdout.splitlines()[-1]).read_text(encoding="utf-8")
         assert 'data-product="SPE_E3"' in html
         assert "Unregistered product 1" in html and "Unregistered product 2" in html

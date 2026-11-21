@@ -299,7 +299,9 @@ def test_combine_keeps_both_observations(
 
 
 @pytest.mark.parametrize("previous", [None, "unknown", "provided"])
-def test_combine_uses_new_answer(catalogue: Catalogue, previous: str | None) -> None:
+def test_combine_uses_new_answer_when_no_answer_disagrees(
+    catalogue: Catalogue, previous: str | None
+) -> None:
     sample = files("befund").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(sample), sample.name, catalogue)
     inputs = load_inputs_text(f"provided_counts: {{{COUNT_ID}: 17}}", "inputs.yaml", catalogue)
@@ -308,7 +310,7 @@ def test_combine_uses_new_answer(catalogue: Catalogue, previous: str | None) -> 
         "unknown": replace(
             supplied, value=None, provenance="unknown", missing_reason="answer_not_provided"
         ),
-        "provided": replace(supplied, value=2),
+        "provided": replace(supplied, source="interview", collected_at="2026-11-01"),
     }
     scan = replace(scan, findings=() if previous is None else (earlier[previous],))
 

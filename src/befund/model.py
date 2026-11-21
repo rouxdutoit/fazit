@@ -31,6 +31,7 @@ _TIMESTAMP = re.compile(
     rf"{_DATE}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]+)?)?"
     r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"
 )
+_FRACTIONAL_SECONDS = re.compile(r"[.,]([0-9]+)")
 _PERIOD = re.compile(rf"{_DATE}/{_DATE}")
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
 _FINDING_FIELDS = (
@@ -48,6 +49,22 @@ _FINDING_FIELDS = (
 )
 
 type FindingValue = int | bool
+
+
+def _timestamp_after(stamp: str, reference: str) -> bool:
+    time, limit = datetime.fromisoformat(stamp), datetime.fromisoformat(reference)
+    if len(stamp) == 10 or len(reference) == 10:
+        return time.date() > limit.date()
+    if time.tzinfo is None or limit.tzinfo is None:
+        time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None)
+    if time != limit:
+        return time > limit
+    # datetime truncates fractional seconds to microseconds.
+    fraction, cutoff = (
+        match[1].rstrip("0") if (match := _FRACTIONAL_SECONDS.search(value)) else ""
+        for value in (stamp, reference)
+    )
+    return fraction > cutoff
 
 
 @dataclass(frozen=True)
@@ -85,6 +102,14 @@ class Finding:
     period: str | None
     coverage: Coverage | None
     missing_reason: str | None
+
+    @property
+    def is_lower_bound(self) -> bool:
+        if type(self.value) is not int or self.value <= 0 or self.coverage is None:
+            return False
+        if self.provenance == "measured":
+            return self.coverage.kind != "complete"
+        return self.provenance == "provided" and self.coverage.kind == "partial"
 
 
 @dataclass(frozen=True)
@@ -134,6 +159,16 @@ class Scan:
     findings: tuple[Finding, ...]
     licences: Licences | None
     dropped_count: int = 0
+
+    @property
+    def is_sample(self) -> bool:
+        return (
+            self.source_kind == "sample"
+            or any(
+                finding.source and finding.source.startswith("sample.") for finding in self.findings
+            )
+            or (self.licences is not None and self.licences.source.startswith("sample."))
+        )
 
     def finding(self, finding_id: str) -> Finding | None:
         return next((finding for finding in self.findings if finding.id == finding_id), None)
@@ -239,7 +274,9 @@ class _ScanReader:
                 self.fail(f"{field}.id", "duplicate_id")
             status = self.code(row["status"], f"{field}.status", COLLECTOR_STATUSES)
             reason = row.get("reason")
-            if reason is not None or status != "ok":
+            if (status == "ok") != (reason is None):
+                self.fail(f"{field}.reason", "collector_reason_mismatch")
+            if reason is not None:
                 reason = self.code(reason, f"{field}.reason", self.catalogue.reason_codes)
             permissions = self.list(row["permissions_used"], f"{field}.permissions_used")
             collectors[collector_id] = Collector(
@@ -314,6 +351,8 @@ class _ScanReader:
     def check_finding_source(
         self, entry: FindingEntry, field: str, collector: str | None, source: str | None
     ) -> None:
+        if source in ("inputs_yaml", "sample.inputs_yaml"):
+            self.fail(f"{field}.source", "inputs_source_in_scan")
         if collector is not None:
             allowed = {code for method, code in entry.measured_by if method == collector}
             if not allowed:
@@ -342,8 +381,19 @@ class _ScanReader:
             if row[name] is not None:
                 self.fail(f"{field}.{name}")
 
-    def findings(self, value: object, collectors: dict[str, Collector]) -> tuple[Finding, ...]:
+    def check_finding_dates(self, finding: Finding, field: str, generated_at: str) -> None:
+        if (collected_at := finding.collected_at) is None:
+            return
+        if finding.period is not None and finding.period[-10:] > collected_at[:10]:
+            self.fail(f"{field}.period", "period_after_collection")
+        if _timestamp_after(collected_at, generated_at):
+            self.fail(f"{field}.collected_at", "collection_after_scan")
+
+    def findings(
+        self, value: object, collectors: dict[str, Collector], generated_at: str
+    ) -> tuple[Finding, ...]:
         findings = []
+        coverage_references: list[tuple[str, int, str]] = []
         seen: set[str] = set()
         for index, item in enumerate(self.list(value, "findings")):
             field = f"findings[{index}]"
@@ -357,8 +407,35 @@ class _ScanReader:
             if entry is None:
                 self.dropped_count += 1
             else:
-                findings.append(self.finding(item, field, entry, collectors))
+                finding = self.finding(item, field, entry, collectors)
+                self.check_finding_dates(finding, field, generated_at)
+                findings.append(finding)
+                if (
+                    entry.coverage_total_from
+                    and finding.coverage
+                    and finding.coverage.total is not None
+                ):
+                    coverage_references.append(
+                        (
+                            entry.coverage_total_from,
+                            finding.coverage.total,
+                            f"{field}.coverage.total",
+                        )
+                    )
+        self.check_coverage_totals(findings, coverage_references)
         return tuple(findings)
+
+    def check_coverage_totals(
+        self, findings: list[Finding], references: list[tuple[str, int, str]]
+    ) -> None:
+        by_id = {finding.id: finding for finding in findings}
+        for related, total, field in references:
+            count = by_id.get(related)
+            if count is None or type(count.value) is not int:
+                continue
+            exact = count.coverage is None or count.coverage.kind == "complete"
+            if total < count.value or (exact and total > count.value):
+                self.fail(field, "coverage_total_conflict", related=related)
 
     def guid(self, value: object, field: str) -> str:
         if not isinstance(value, str) or len(value) != 36:
@@ -383,20 +460,16 @@ class _ScanReader:
         row = self.fields(
             value,
             field,
-            required=(
-                "sku_part_number",
-                "sku_guid",
-                "purchased",
-                "assigned",
-            ),
-            optional=("service_plans",),
+            required=("purchased", "assigned"),
+            optional=("sku_part_number", "sku_guid", "service_plans"),
         )
-        sku_guid = row["sku_guid"]
-        sku_part_number = row["sku_part_number"]
-        if sku_guid is not None or sku_part_number is not None:
-            sku_guid = self.guid(sku_guid, f"{field}.sku_guid")
-            if not self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid):
-                self.fail(f"{field}.sku_part_number")
+        raw_guid = row.get("sku_guid")
+        sku_guid = None if raw_guid is None else self.guid(raw_guid, f"{field}.sku_guid")
+        sku_part_number = row.get("sku_part_number")
+        if sku_part_number is not None and not self.catalogue.accepts_sku_part_number(
+            sku_part_number, sku_guid
+        ):
+            self.fail(f"{field}.sku_part_number")
         plan_list = row.get("service_plans")
         plans = [] if plan_list is None else self.list(plan_list, f"{field}.service_plans")
         return Product(
@@ -434,14 +507,15 @@ class _ScanReader:
         for index, item in enumerate(self.list(row["products"], "licences.products")):
             field = f"licences.products[{index}]"
             product = self.product(item, field)
-            if (key := product.key) is not None:
-                part_number, guid = key
-                if part_number in parts:
-                    self.fail(f"{field}.sku_part_number", "duplicate_id")
-                if guid in guids:
-                    self.fail(f"{field}.sku_guid", "duplicate_id")
-                parts.add(part_number)
-                guids.add(guid)
+            part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
+            for name, identity, seen in (
+                ("sku_part_number", part_number, parts),
+                ("sku_guid", guid, guids),
+            ):
+                if identity:
+                    if identity in seen:
+                        self.fail(f"{field}.{name}", "duplicate_id")
+                    seen.add(identity)
             products.append(product)
         licences = Licences(
             collector=collector,
@@ -472,16 +546,22 @@ class _ScanReader:
             ),
         )
         collectors = self.collectors(row["collectors"])
-        return Scan(
+        generated_at = self.timestamp(row["generated_at"], "generated_at")
+        scan = Scan(
             schema_version=version,
             tool=self.tool(row["tool"]),
-            generated_at=self.timestamp(row["generated_at"], "generated_at"),
+            generated_at=generated_at,
             source_kind=self.code(row["source_kind"], "source_kind", SOURCE_KINDS),
             collectors=tuple(collectors.values()),
-            findings=self.findings(row["findings"], collectors),
+            findings=self.findings(row["findings"], collectors, generated_at),
             licences=self.licences(row["licences"], collectors),
             dropped_count=self.dropped_count,
         )
+        if scan.source_kind != "sample" and scan.is_sample:
+            self.fail("source_kind", "sample_source_conflict")
+        if scan.licences and _timestamp_after(scan.licences.collected_at, generated_at):
+            self.fail("licences.collected_at", "collection_after_scan")
+        return scan
 
 
 def load_scan_text(text: str, file_name: str, catalogue: Catalogue) -> Scan:

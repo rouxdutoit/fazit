@@ -415,19 +415,28 @@ def classify_product(
 
 
 def _licence_signals(
-    products: tuple[Product, ...], plans: tuple[ServicePlan, ...]
+    products: tuple[Product, ...], plans: tuple[ServicePlan, ...], file_name: str
 ) -> tuple[set[tuple[str, str]], str | None]:
     rosters: defaultdict[tuple[str, str], set[str]] = defaultdict(set)
     for plan in plans:
         rosters[sku_key(plan.sku_part_number, plan.sku_guid)].add(plan.guid)
+    parts = {part for part, _ in rosters}
+    guids = {guid for _, guid in rosters}
 
     assigned: set[tuple[str, str]] = set()
     gaps: set[str] = set()
-    for product in products:
-        key = product.key
-        if key is not None and (expected := rosters.get(key)):
+    for index, product in enumerate(products):
+        key = sku_key(product.sku_part_number or "", product.sku_guid or "")
+        part, guid = key
+        # Roster completeness applies to every known product in the inventory.
+        if expected := rosters.get(key):
             if not expected.issubset(plan.guid for plan in product.service_plans):
                 gaps.add("licence_plan_list_incomplete")
+        elif guid in guids or part in parts:
+            field = "sku_part_number" if guid in guids else "sku_guid"
+            raise InputError(
+                "sku_identity_mismatch", file=file_name, field=f"licences.products[{index}].{field}"
+            )
         if not product.assigned:
             continue
         if not product.service_plans:
@@ -442,12 +451,16 @@ def _licence_signals(
 
 
 def licence_findings(
-    scan: Scan, plans: tuple[ServicePlan, ...], catalogue: Catalogue
+    scan: Scan,
+    plans: tuple[ServicePlan, ...],
+    catalogue: Catalogue,
+    *,
+    file_name: str = "scan.json",
 ) -> tuple[Finding, ...]:
     licences = scan.licences
     if licences is None:
         return ()
-    licences.check_complete_coverage("scan.json")
+    licences.check_complete_coverage(file_name)
     coverage = licences.coverage
     collector = scan.collector(licences.collector)
     coverage_gap = None
@@ -473,8 +486,16 @@ def licence_findings(
         coverage=coverage,
         missing_reason=None if count else "licence_products_missing",
     )
-    assigned, classification_gap = _licence_signals(licences.products, plans)
+    assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
     absence_gap = product_count.missing_reason or classification_gap or coverage_gap
+    licensed_accounts = scan.finding("directory.licensed_user_count")
+    if (
+        licensed_accounts is not None
+        and type(licensed_accounts.value) is int
+        and licensed_accounts.value > 0
+        and not any(product.assigned for product in licences.products)
+    ):
+        absence_gap = "licence_assignments_conflict"
     findings = [product_count]
     for workload in catalogue.workload_ids:
         for signal in _SIGNALS:
@@ -600,35 +621,25 @@ def _complete(finding: Finding | None) -> bool:
 
 
 def mapping_need(finding: Finding | None) -> str:
-    if finding is None:
-        return "unknown"
-    if _positive_partial(finding):
-        return "yes"
-    if type(finding.value) in (bool, int) and _complete(finding):
+    if finding is not None and _complete(finding):
         return "yes" if finding.value else "no"
     return "unknown"
-
-
-def _positive_partial(finding: Finding) -> bool:
-    return (
-        finding.provenance in ("measured", "provided")
-        and finding.coverage is not None
-        and finding.coverage.kind == "partial"
-        and type(finding.value) is int
-        and finding.value > 0
-    )
 
 
 def evidence_conflicts(measured: Finding, provided: Finding) -> bool:
     return (
         measured.provenance == "measured"
-        and _positive_partial(measured)
         and provided.provenance == "provided"
         and _complete(provided)
         and type(measured.value) is int
         and type(provided.value) is int
-        and provided.value < measured.value
+        and measured.value > 0
+        and measured.value > provided.value
     )
+
+
+def provided_answers_conflict(first: Finding, second: Finding) -> bool:
+    return first.provenance == second.provenance == "provided" and first.value != second.value
 
 
 def select_evidence(recorded: Finding | None, supplied: Finding) -> Finding:
@@ -639,7 +650,7 @@ def select_evidence(recorded: Finding | None, supplied: Finding) -> Finding:
     if recorded.provenance == "measured":
         if _complete(recorded) or evidence_conflicts(recorded, supplied):
             return recorded
-        if not _complete(supplied) and _positive_partial(recorded):
+        if not _complete(supplied) and recorded.is_lower_bound:
             return recorded
     return supplied
 
@@ -684,9 +695,11 @@ def _observation_gaps(
         primary = findings.get(finding_id)
         if primary is None:
             continue
-        if evidence_conflicts(primary, alternative):
-            yield MissingEvidence(finding_id, "coverage_partial", primary.collector)
-        if (
+        if provided_answers_conflict(primary, alternative):
+            yield MissingEvidence(finding_id, "provided_answers_conflict", None)
+        elif evidence_conflicts(primary, alternative):
+            yield MissingEvidence(finding_id, "confirmation_conflict", None)
+        elif (
             finding_id in confirmations
             and {primary.provenance, alternative.provenance} == {"measured", "provided"}
             and primary.value is not None
@@ -775,10 +788,10 @@ def _problem_result(
     ):
         return _matches_condition(condition, finding)
     if (
-        gap.reason_code in ("coverage_partial", "answer_not_provided")
+        gap.reason_code in ("coverage_partial", "coverage_unknown", "answer_not_provided")
         and (condition.provenance is None or condition.provenance == finding.provenance)
         and condition.op != "=="
-        and _positive_partial(finding)
+        and finding.is_lower_bound
         and _matches_condition(condition, finding)
     ):
         return True
@@ -788,7 +801,12 @@ def _problem_result(
 def _unknown_code(
     gaps: tuple[MissingEvidence, ...], bundled: Finding | None, provided_ids: Collection[str]
 ) -> str:
-    for code in (*_PLAN_GAP_REASONS, "confirmation_conflict"):
+    for code in (
+        "licence_assignments_conflict",
+        *_PLAN_GAP_REASONS,
+        "provided_answers_conflict",
+        "confirmation_conflict",
+    ):
         if any(gap.reason_code == code for gap in gaps):
             return code
     if bundled is not None and bundled.value is True and _complete(bundled):
@@ -820,8 +838,17 @@ def _evaluate_workload(
         )
         for condition in conditions
     }
+    observation_gaps = tuple(
+        _observation_gaps(workload, conditions, findings, alternatives, collectors)
+    )
+    conflicted_answers = {
+        gap.finding_id: gap
+        for gap in observation_gaps
+        if gap.reason_code == "provided_answers_conflict"
+    }
     gaps = {
-        condition: _gap(condition, evidence, provided_ids, collectors)
+        condition: conflicted_answers.get(condition.finding)
+        or _gap(condition, evidence, provided_ids, collectors)
         for condition, evidence in observations.items()
     }
     results = {
@@ -843,9 +870,7 @@ def _evaluate_workload(
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
     bundled_id = f"{workload}.licence_bundled_assigned"
     bundled = findings.get(bundled_id)
-    missing.update(
-        dict.fromkeys(_observation_gaps(workload, conditions, findings, alternatives, collectors))
-    )
+    missing.update(dict.fromkeys(observation_gaps))
     missing.update(dict.fromkeys(_collector_gaps(ids, entries, collectors, missing)))
     ids.update(dict.fromkeys(gap.finding_id for gap in missing))
     if bundled is not None and bundled.value is True:

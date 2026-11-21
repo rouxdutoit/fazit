@@ -46,6 +46,8 @@ uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lan
 
 Use `--lang en` or `--lang de` to choose the report language and `--profile opendesk`, `--profile nextcloud` or `--profile generic` to choose the target. With `report`, these flags take precedence over the settings in the inputs file.
 
+Befund checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
+
 ## What the report shows
 
 1. Header with the scan date, the source of the data and how the report was made.

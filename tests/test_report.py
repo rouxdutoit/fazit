@@ -258,6 +258,8 @@ def _checksums(html: str) -> dict[str, str]:
 @pytest.mark.parametrize("lang", ["en", "de"])
 def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> None:
     data = json.loads(_sample_scan("town").read_bytes())
+    data["findings"] = [row for row in data["findings"] if row["source"] is None]
+    data["licences"] = None
     scan = tmp_path / "PrivateScanMarker.json"
     run_details = []
     for index, (source, version) in enumerate(
@@ -269,6 +271,7 @@ def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> N
         html = _rebuild(scan, tmp_path / f"out-{index}", lang)
         assert "PrivateScanMarker" not in html
         assert "scan.json" in html.split("</header>", 1)[0]
+        assert "data-sample" not in html
         run_details.append(html.split('data-subsection="run-details"', 1)[1])
 
     assert len(set(run_details)) == 3
@@ -335,6 +338,7 @@ def test_run_details_use_dates_and_roles_without_filenames(tmp_path: Path, with_
 
     html = _rebuild(scan, tmp_path / "out", "en", inputs=inputs)
 
+    header = html.split("</header>", 1)[0]
     details = html.split('data-subsection="run-details"', 1)[1]
     strings = load_locale("en")
     assert scan.name not in html and inputs.name not in html
@@ -347,8 +351,10 @@ def test_run_details_use_dates_and_roles_without_filenames(tmp_path: Path, with_
     assert re.findall(r'data-reporting-period="([^"]+)"', details) == periods
     if with_date:
         assert '<time datetime="2026-11-10">10 November 2026</time>' in details
+        assert '<time datetime="2026-11-10">10 November 2026</time>' in header
     else:
         assert strings["common"]["date_not_supplied"] in details
+        assert strings["common"]["date_not_supplied"] in header
     appendix = html.split('data-section="appendix"', 1)[1]
     for formula in strings["costs"]["formulas"]:
         assert formula in unescape(appendix)

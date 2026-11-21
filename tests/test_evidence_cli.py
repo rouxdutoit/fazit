@@ -65,6 +65,77 @@ def _readiness(html: str, workload: str) -> str:
     return row[0]
 
 
+def _reject_scan(tmp_path: Path, scan: dict, field: str, answers: str | None = None) -> str:
+    result = _report(tmp_path, scan, answers)
+    assert result.exit_code == 2 and not result.stdout, result.output
+    assert len(result.stderr.splitlines()) == 1
+    assert "inventory.json" in result.stderr and field in result.stderr
+    assert not (tmp_path / "out").exists()
+    return result.stderr
+
+
+@pytest.mark.parametrize("source_kind", ["live", "import"])
+@pytest.mark.parametrize("sample_evidence", ["findings", "licences"])
+def test_report_rejects_simulated_evidence_in_a_non_sample_scan(
+    tmp_path: Path, town_scan: dict, source_kind: str, sample_evidence: str
+) -> None:
+    town_scan["source_kind"] = source_kind
+    if sample_evidence == "licences":
+        town_scan["findings"] = []
+    else:
+        town_scan["licences"] = None
+
+    _reject_scan(tmp_path / "mislabeled", town_scan, "source_kind")
+
+
+@pytest.mark.parametrize(
+    ("status", "reason"), [("ok", "permission_denied"), ("partial", None), ("skipped", None)]
+)
+def test_report_rejects_a_collector_reason_that_disagrees_with_status(
+    tmp_path: Path, town_scan: dict, status: str, reason: str | None
+) -> None:
+    index = next(i for i, row in enumerate(town_scan["collectors"]) if row["id"] == "teams_usage")
+    town_scan["collectors"][index].update(status=status, reason=reason)
+
+    _reject_scan(tmp_path / "collector-reason", town_scan, f"collectors[{index}].reason")
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("period", "2030-12-01/2030-12-31"),
+        ("collected_at", "2026-11-03"),
+        ("collected_at", "2026-11-02T08:30:00-01:00"),
+        ("collected_at", "2026-11-02T09:00:00.0000001Z"),
+    ],
+)
+def test_report_rejects_impossible_finding_dates(
+    tmp_path: Path, town_scan: dict, field: str, value: str
+) -> None:
+    finding = _finding(town_scan, "teams.teams_with_guests_count")
+    finding[field] = value
+    index = town_scan["findings"].index(finding)
+
+    _reject_scan(tmp_path / "impossible-date", town_scan, f"findings[{index}].{field}")
+
+
+@pytest.mark.parametrize("stamp", ["2026-11-02", "2026-11-02T10:00:00+01:00"])
+def test_report_accepts_same_day_and_equal_offset_timestamps(
+    tmp_path: Path, town_scan: dict, stamp: str
+) -> None:
+    _finding(town_scan, "teams.teams_with_guests_count")["collected_at"] = stamp
+
+    _html(_report(tmp_path / "possible-date", town_scan))
+
+
+def test_report_rejects_a_licence_collection_later_than_the_scan(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    town_scan["licences"]["collected_at"] = "2030-12-31"
+
+    _reject_scan(tmp_path / "impossible-licence-date", town_scan, "licences.collected_at")
+
+
 def test_supplied_zero_preserves_a_skipped_observation(tmp_path: Path, town_scan: dict) -> None:
     finding_id = "integrations.application_count"
     _measure(town_scan, finding_id, 3, "directory")
@@ -134,6 +205,7 @@ def test_incomplete_bound_collector_is_reported_without_a_scan_finding(
 def test_shared_mailboxes_require_the_exchange_recipient_export(
     tmp_path: Path, town_scan: dict
 ) -> None:
+    _finding(town_scan, "mail.other_systems_send_mail")["value"] = False
     answers = "confirmations: {mail.other_systems_send_mail: false}"
     original = _html(_report(tmp_path / "missing", town_scan, answers))
     row = _readiness(original, "mail")
@@ -177,6 +249,7 @@ def test_licence_inventory_requires_a_source_bound_to_its_collector(
 
 
 def test_empty_licence_inventory_leaves_absence_unknown(tmp_path: Path, town_scan: dict) -> None:
+    town_scan["findings"].remove(_finding(town_scan, "directory.licensed_user_count"))
     town_scan["licences"].update(
         products=[], coverage={"kind": "complete", "scanned": 0, "failed": 0, "total": 0}
     )
@@ -226,6 +299,104 @@ def test_complete_licence_inventory_rejects_a_missing_product(
 
 
 @pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("sku_part_number", "MCOEV"),
+        ("sku_part_number", "UNREGISTERED_PART"),
+        ("sku_part_number", None),
+        ("sku_guid", "00000000-0000-4000-8000-000000000001"),
+        ("sku_guid", None),
+    ],
+)
+def test_report_rejects_conflicting_registered_sku_identifiers(
+    tmp_path: Path, town_scan: dict, field: str, value: str | None
+) -> None:
+    suite = town_scan["licences"]["products"][0]
+    assert suite["sku_part_number"] == "SPE_E3"
+    suite["assigned"] = 0
+    suite["service_plans"] = [
+        plan for plan in suite["service_plans"] if plan["name"] != "EXCHANGE_S_ENTERPRISE"
+    ]
+    suite[field] = value
+    town_scan["licences"].update(
+        products=[suite], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
+    )
+
+    error = _reject_scan(tmp_path / "sku-mismatch", town_scan, f"licences.products[0].{field}")
+    if value is not None:
+        assert value not in error
+
+
+@pytest.mark.parametrize(
+    "identity",
+    [
+        {"sku_part_number": None, "sku_guid": None},
+        {"sku_part_number": "UNREGISTERED_PART"},
+        {"sku_guid": "00000000-0000-4000-8000-000000000001"},
+        {},
+    ],
+)
+def test_only_assigned_unidentified_products_leave_licence_signals_unknown(
+    tmp_path: Path, town_scan: dict, identity: dict[str, str | None]
+) -> None:
+    products = town_scan["licences"]["products"]
+    assert products[1]["sku_part_number"] == "MCOEV"
+    products[1] = {**identity, "purchased": 0, "assigned": 0, "service_plans": []}
+    html = _html(_report(tmp_path / "unassigned", town_scan, NO_TELEPHONY))
+    row = _readiness(html, "telephony")
+    assert 'data-status="ready"' in row and 'data-provenance="measured"' in row
+
+    products[1].update(purchased=12, assigned=12)
+    html = _html(_report(tmp_path / "assigned", town_scan, NO_TELEPHONY))
+    row = _readiness(html, "telephony")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-provenance="unknown"' in row
+    assert 'data-reason="licence_plan_list_missing"' in row
+    assert 'data-status="needs_work"' in _readiness(html, "power_platform")
+
+
+@pytest.mark.parametrize("empty_inventory", [False, True])
+def test_licensed_accounts_make_zero_assignments_inconclusive(
+    tmp_path: Path, town_scan: dict, empty_inventory: bool
+) -> None:
+    licences = town_scan["licences"]
+    assert _finding(town_scan, "directory.licensed_user_count")["value"] == 85
+    for product in licences["products"]:
+        product["assigned"] = 0
+    if empty_inventory:
+        licences.update(
+            products=[], coverage={"kind": "complete", "scanned": 0, "failed": 0, "total": 0}
+        )
+
+    html = _html(_report(tmp_path / "contradictory-assignments", town_scan, NO_TELEPHONY))
+    row = _readiness(html, "telephony")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_assignments_conflict"' in row
+    assert "Licence assignments contradict licensed accounts." in row
+    for workload in load_catalogue().workload_ids:
+        assert f'data-unexamined-finding="{workload}.licence_add_on_assigned"' in html
+
+
+@pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])
+def test_report_rejects_coverage_total_contradicting_team_count(
+    tmp_path: Path, town_scan: dict, parent_kind: str
+) -> None:
+    parent = _finding(town_scan, "teams.team_count")
+    assert parent["value"] == 31
+    parent["coverage"] = {"kind": parent_kind}
+    guest_count = _finding(town_scan, "teams.teams_with_guests_count")
+    guest_count["coverage"] = {"kind": "complete", "scanned": 0, "failed": 0, "total": 0}
+    town_scan["findings"].reverse()
+    index = town_scan["findings"].index(guest_count)
+
+    _reject_scan(tmp_path / "coverage-total", town_scan, f"findings[{index}].coverage.total")
+
+    total = 31 if parent_kind == "complete" else 32
+    guest_count["coverage"].update(scanned=total, total=total)
+    _html(_report(tmp_path / "consistent-total", town_scan))
+
+
+@pytest.mark.parametrize(
     ("sku", "removed", "assigned", "baseline_status"),
     [
         ("BUSINESS_VOICE_DIRECTROUTING", "MCOEV", 12, "blocker"),
@@ -247,6 +418,8 @@ def test_missing_roster_plan_leaves_add_on_absence_unknown(
     town_scan["licences"].update(
         products=[product], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
     )
+    if not assigned:
+        _finding(town_scan, "directory.licensed_user_count")["value"] = 0
     baseline = _html(_report(tmp_path / "complete-roster", town_scan, NO_TELEPHONY))
     assert f'data-status="{baseline_status}"' in _readiness(baseline, "telephony")
 
@@ -516,12 +689,149 @@ def test_measured_lower_bound_takes_precedence_over_a_smaller_provided_total(
     assert load_locale("en")["readiness"]["conflict"] in evidence[0]
 
 
+@pytest.mark.parametrize("kind", ["complete", "partial", "unknown"])
+def test_measured_positive_count_cannot_be_overridden_by_zero(
+    tmp_path: Path, town_scan: dict, kind: str
+) -> None:
+    finding_id = "integrations.application_count"
+    finding = _measure(town_scan, finding_id, 3, "directory", kind=kind)
+    finding["coverage"].update(scanned=6 if kind == "complete" else 3, failed=0, total=6)
+    answers = f'as_of: "2026-11-02"\nprovided_counts: {{{finding_id}: 0}}'
+
+    html = _html(_report(tmp_path / "conflicting-counts", town_scan, answers))
+    row = _readiness(html, "integrations")
+    assert 'data-status="needs_work" data-incomplete' in row
+    assert load_locale("en")["readiness"]["conflict"] in row
+    bounds = "" if kind == "complete" else "At least "
+    assert re.findall(r'data-provenance="(?:measured|provided)">\s*([^\n]+ applications)', row) == [
+        f"{bounds}3 applications",
+        "0 applications",
+    ]
+    assert 'data-path-status="ready" data-path-workload="integrations"' not in html
+
+    scan_only = _readiness(_html(_report(tmp_path / "scan-only", town_scan)), "integrations")
+    assert 'data-status="needs_work"' in scan_only
+    assert ("data-incomplete" in scan_only) is (kind != "complete")
+
+
 def test_measured_storage_lower_bound_rounds_down(tmp_path: Path, town_scan: dict) -> None:
     _measure(town_scan, "mail.storage_bytes", 1250, "mailbox_usage", kind="partial")
     html = _html(_report(tmp_path / "storage", town_scan))
 
     assert "At least 1.2 kB" in html
     assert "At least 1.3 kB" not in html
+
+
+@pytest.mark.parametrize(
+    ("recorded", "inputs_date"), [(True, "2026-11-01"), (False, "2026-11-03"), (True, None)]
+)
+def test_disagreeing_provided_answers_remain_visible_and_undecided(
+    tmp_path: Path, town_scan: dict, recorded: bool, inputs_date: str | None
+) -> None:
+    finding = _finding(town_scan, "small_apps.in_use")
+    finding.update(
+        value=recorded,
+        provenance="provided",
+        source="interview",
+        collected_at="2026-11-02",
+        missing_reason=None,
+    )
+    date_input = f'as_of: "{inputs_date}"\n' if inputs_date else ""
+    answers = f"{date_input}confirmations: {{small_apps.in_use: {str(not recorded).lower()}}}"
+
+    html = _html(_report(tmp_path / "disagreeing-answers", town_scan, answers))
+    row = _readiness(html, "small_apps")
+    strings = load_locale("en")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="provided_answers_conflict"' in row
+    assert sorted(re.findall(r'data-provenance="provided">\s*(Yes|No)', row)) == ["No", "Yes"]
+    assert strings["source"]["interview"] in row and strings["source"]["inputs_yaml"] in row
+    assert "2 November 2026" in row
+    supplied_date = (
+        f"{int(inputs_date[-2:])} November 2026"
+        if inputs_date
+        else strings["common"]["date_not_supplied"]
+    )
+    assert supplied_date in row
+    assert 'data-path-status="ready" data-path-workload="small_apps"' not in html
+
+
+@pytest.mark.parametrize("source", ["inputs_yaml", "sample.inputs_yaml"])
+def test_scan_cannot_supply_software_answers_under_an_inputs_source(
+    tmp_path: Path, town_scan: dict, source: str
+) -> None:
+    finding = _finding(town_scan, "windows_software.application_count")
+    index = town_scan["findings"].index(finding)
+    for row in town_scan["findings"]:
+        if row["workload"] == "windows_software":
+            row.update(value=0, provenance="provided", source=source, missing_reason=None)
+
+    _reject_scan(
+        tmp_path / "missing-list",
+        town_scan,
+        f"findings[{index}].source",
+        "organisation_name: Example organisation",
+    )
+
+
+@pytest.mark.parametrize(
+    ("collector_status", "in_use", "reason"),
+    [
+        ("partial", True, "permission_denied"),
+        ("partial", False, "permission_denied"),
+        ("skipped", False, "permission_denied"),
+        ("ok", True, "confirmation_conflict"),
+        ("ok", False, None),
+    ],
+)
+def test_transfer_need_agrees_with_the_readiness_evidence(
+    tmp_path: Path, town_scan: dict, collector_status: str, in_use: bool, reason: str | None
+) -> None:
+    failure = None if collector_status == "ok" else "permission_denied"
+    town_scan["collectors"].append(
+        {"id": "telephony", "status": collector_status, "reason": failure, "permissions_used": []}
+    )
+    if collector_status == "skipped":
+        _finding(town_scan, "telephony.in_use").update(
+            collector="telephony", missing_reason=failure
+        )
+    else:
+        _measure(town_scan, "telephony.in_use", False, "telephony")
+    inputs = f"""
+confirmations:
+  telephony.in_use: {str(in_use).lower()}
+  telephony.replacement_available: false
+"""
+
+    html = _html(_report(tmp_path / "transfer-evidence", town_scan, inputs))
+    row = _readiness(html, "telephony")
+    assert 'data-status="blocker"' in row
+    gap = re.search(r'<li data-gap="telephony".*?</li>', html, re.S)
+    assert gap is not None
+    if reason is None:
+        assert 'data-need="no"' in gap[0] and 'data-provenance="measured"' in gap[0]
+    else:
+        assert "data-incomplete" in row
+        assert f'data-reason="{reason}"' in row and f'data-reason="{reason}"' in gap[0]
+        assert 'data-need="unknown"' in gap[0] and 'data-provenance="unknown"' in gap[0]
+        assert 'data-provenance="measured"' not in gap[0]
+
+
+def test_header_shows_both_file_dates_when_samples_are_mixed(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    source = files("befund").joinpath("demo", "nonprofit", "inputs.yaml")
+    html = _html(_report(tmp_path / "mixed-samples", town_scan, source.read_text(encoding="utf-8")))
+    header = html.split("</header>", 1)[0]
+    scan = re.search(r'<div data-input-role="scan">.*?</div>', header, re.S)
+    inputs = re.search(r'<div data-input-role="inputs">.*?</div>', header, re.S)
+
+    assert scan is not None and inputs is not None and scan.end() <= inputs.start()
+    assert "scan.json" in scan[0] and f'datetime="{town_scan["generated_at"]}"' in scan[0]
+    assert "inputs.yaml" in inputs[0] and 'datetime="2026-11-12"' in inputs[0]
+    assert "Linden Bridge Association" in header and "inventory.json" not in header
+    assert "answers.yaml" not in header
+    assert 'data-status="ready"' in _readiness(html, "sharepoint")
 
 
 @pytest.mark.parametrize(
@@ -534,7 +844,7 @@ def test_measured_storage_lower_bound_rounds_down(tmp_path: Path, town_scan: dic
         (
             "[{name: Records, vendor_has_web_version: false}, {name: Permits}]",
             "needs_work",
-            "yes",
+            "unknown",
             "yes",
         ),
     ],
@@ -553,7 +863,7 @@ def test_windows_dependency_is_scoped_to_the_desktop_move(
     assert f'data-status="{status}"' in row
     assert f'data-gap="desktop_operating_system" data-need="{desktop_need}"' in html
     assert f'data-gap="windows_applications" data-need="{applications_need}"' in html
-    if desktop_need == "yes":
+    if "vendor_has_web_version: false" in software:
         assert "blocks a move away from Windows desktops" in row
         assert "Microsoft 365 exit" in row
         assert 'data-status="needs_work" data-incomplete' in row

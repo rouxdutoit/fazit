@@ -283,9 +283,13 @@
         <dt>Organisation</dt>
         <dd>Stadtverwaltung Musterstadt</dd>
       </div>
-      <div>
-        <dt>Evidence date</dt>
+      <div data-input-role="scan">
+        <dt>Evidence date (scan.json)</dt>
         <dd><time datetime="2026-11-02T09:00:00Z">2 November 2026</time></dd>
+      </div>
+      <div data-input-role="inputs">
+        <dt>Inputs as of (inputs.yaml)</dt>
+        <dd><time datetime="2026-11-10">10 November 2026</time></dd>
       </div>
       <div><dt>Tool version</dt><dd>0.1.0</dd></div>
       <div><dt>Target profile</dt><dd>openDesk</dd></div>
@@ -4754,7 +4758,6 @@
           <p>A direct transfer for these functions has not been established for the selected profile.</p>
           <ul class="mapping-gaps">
 
-
               <li data-gap="sharepoint_workflows" data-need="unknown">
                 <strong>SharePoint workflows</strong>
                 <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
@@ -4771,7 +4774,6 @@
     <time datetime="2026-11-21">21 November 2026</time>
   </small>
               </li>
-
 
               <li data-gap="teams_chat_history" data-need="no">
                 <strong>Teams chat history</strong>
@@ -4792,7 +4794,6 @@
   </small>
               </li>
 
-
               <li data-gap="vba_macros" data-need="unknown">
                 <strong>VBA macros in Office files</strong>
                 <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
@@ -4809,7 +4810,6 @@
     <time datetime="2026-11-21">21 November 2026</time>
   </small>
               </li>
-
 
               <li data-gap="device_management" data-need="yes">
                 <strong>Device management with Microsoft Intune</strong>
@@ -4830,7 +4830,6 @@
   </small>
               </li>
 
-
               <li data-gap="desktop_operating_system" data-need="yes">
                 <strong>Microsoft Windows desktop operating system</strong>
                 <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
@@ -4849,7 +4848,6 @@
     <time datetime="2026-11-21">21 November 2026</time>
   </small>
               </li>
-
 
               <li data-gap="windows_applications" data-need="yes">
                 <strong>Running Windows-only applications</strong>
@@ -4870,7 +4868,6 @@
   </small>
               </li>
 
-
               <li data-gap="automation_and_low_code" data-need="yes">
                 <strong>Power Platform automation and low-code applications</strong>
                 <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
@@ -4889,7 +4886,6 @@
     <time datetime="2026-11-21">21 November 2026</time>
   </small>
               </li>
-
 
               <li data-gap="telephony" data-need="yes">
                 <strong>Teams Phone and public telephone calling</strong>
@@ -5942,7 +5938,7 @@
         <p>SHA-256 checksums of the rule files used</p>
         <ul>
 
-            <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">53d142296d0acb703447b585fa02ab2a635e39dc7bb017ed5a4fe11526041e03</code></li>
+            <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">46c2d325f5390d98a545615917aef216ec9b45a1eab91cf872297c0748ee3353</code></li>
 
             <li><code>status.yaml</code> · <code data-checksum="status.yaml">949263f9998e7812a64f329bc275a2eabe52091b042fc12932e49b980a2bd3e2</code></li>
 

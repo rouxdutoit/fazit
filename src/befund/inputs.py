@@ -13,7 +13,7 @@ from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES
 from .model import Coverage, Finding, Scan
 from .parsing import parse_yaml, read_text, reject_at_signs
-from .rules import PROFILES, select_evidence
+from .rules import PROFILES, provided_answers_conflict, select_evidence
 
 _INPUT_KEYS = (
     "organisation_name",
@@ -354,6 +354,7 @@ def combine(scan: Scan, provided: tuple[Finding, ...]) -> tuple[Scan, tuple[Find
         by_id[supplied.id] = selected
         if recorded and (
             (recorded.provenance == "measured" and supplied.provenance == "provided")
+            or provided_answers_conflict(recorded, supplied)
             or (selected is supplied and recorded.collector in skipped)
         ):
             alternatives.append(recorded if selected is supplied else supplied)

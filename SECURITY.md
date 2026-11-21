@@ -21,6 +21,8 @@ This version runs locally and contains no network code. It contacts no host.
 7. **One command.** After setup, `demo` builds the report from sample data with one command. `report` rebuilds it from an existing scan file.
 8. **Honest numbers.** The report labels evidence and prices by their origin. Missing values stay unknown. A skipped collector never makes an area look more ready.
 
+Befund checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
+
 Browsers may add the local file path to printed headers and footers. Turn off **Headers and footers** in the browser's print settings and check the preview for the file path before sharing a PDF.
 
 Tests enforce the safeguards for this version, including privacy, local operation, the offline HTML, output boundaries and honest figures. The host, endpoint and token safeguards will be tested when live collection is added. [Privacy tests](tests/test_privacy.py), [repository tests](tests/test_repo_basics.py), [installed package tests](tests/test_installed_package.py), [report tests](tests/test_report.py), [CLI tests](tests/test_cli.py), [output tests](tests/test_output.py), [cost tests](tests/test_costs.py), [rule tests](tests/test_rules.py)

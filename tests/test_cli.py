@@ -355,9 +355,9 @@ def test_sample_measurement_labels_and_directory_note() -> None:
     found = html.split('data-section="found"')[1].split('data-section="appendix"')[0]
     assert strings["found"]["notes"]["directory"] in found
 
-    imported = render_report(replace(scan, source_kind="import"), lang="en")
-    assert strings["header"]["sample"] not in imported
-    assert "data-sample" not in imported
+    relabeled = render_report(replace(scan, source_kind="import"), lang="en")
+    assert strings["header"]["sample"] in relabeled
+    assert "data-sample" in relabeled
 
 
 def test_provided_answer_source_is_independent_of_scan_source() -> None:
@@ -368,18 +368,18 @@ def test_provided_answer_source_is_independent_of_scan_source() -> None:
     assert strings["source"]["sample.interview"] in render_report(scan, lang="en")
 
     findings = tuple(
-        replace(finding, source="inputs_yaml") if finding.id == provided.id else finding
+        replace(finding, source="interview") if finding.id == provided.id else finding
         for finding in scan.findings
     )
     html = render_report(replace(scan, findings=findings), lang="en")
     device_row = re.search(r'<tr data-finding="device_management.device_count".*?</tr>', html, re.S)
     assert device_row is not None
-    assert strings["source"]["inputs_yaml"] in device_row[0]
+    assert strings["source"]["interview"] in device_row[0]
     assert strings["source"]["sample.interview"] not in device_row[0]
     mail_row = re.search(r'<tr data-finding="mail.other_systems_send_mail".*?</tr>', html, re.S)
     assert mail_row is not None
     assert strings["source"]["sample.interview"] in mail_row[0]
-    assert strings["source"]["inputs_yaml"] not in mail_row[0]
+    assert strings["source"]["interview"] not in mail_row[0]
 
 
 @pytest.mark.parametrize(("sample", "lang"), [("town", "en"), ("nonprofit", "de")])

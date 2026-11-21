@@ -193,6 +193,7 @@ findings:
     unit: teams
     label: finding.teams.teams_with_guests_count
     measured_by: {teams_usage: [sample.teams_usage]}
+    coverage_total_from: teams.team_count
     provided: "no"
     headline: false
   - id: teams.chat_history_must_be_kept
@@ -378,9 +379,11 @@ codes:
     - licence_not_classified
     - licence_plan_list_missing
     - licence_plan_list_incomplete
+    - licence_assignments_conflict
     - coverage_partial
     - coverage_unknown
     - confirmation_conflict
+    - provided_answers_conflict
     - not_established
     - not_recognised
   permissions:

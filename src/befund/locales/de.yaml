@@ -3,7 +3,8 @@ header:
   title: Bestandsaufnahme zu Microsoft 365
   organisation: Organisation
   unnamed_organisation: Diese Organisation
-  scan_date: Stand der Erhebung
+  scan_date: Stand der Erhebung (scan.json)
+  inputs_date: Stand der Angaben (inputs.yaml)
   tool_version: Programmversion
   target_profile: Zielprofil
   local: Wer Befund ausgeführt hat, hat diesen Bericht lokal aus der Datei scan.json erstellt. Bei der Berichtserstellung wurde keine Netzwerkverbindung aufgebaut.
@@ -290,6 +291,9 @@ reason:
   licence_plan_list_incomplete:
     label: Die Dienstplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
     fix: Prüfen Sie den Export und reichen Sie die vollständige Liste der Dienstpläne für das Produkt nach.
+  licence_assignments_conflict:
+    label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
+    fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
@@ -299,6 +303,9 @@ reason:
   confirmation_conflict:
     label: Die Erhebung und die eingetragene Antwort stimmen nicht überein.
     fix: Prüfen Sie, ob sich beide auf denselben Umfang beziehen, und korrigieren Sie die Angaben.
+  provided_answers_conflict:
+    label: Die eingetragenen Antworten widersprechen einander.
+    fix: Klären Sie beide Antworten mit der zuständigen Stelle und korrigieren Sie die Angaben in den Dateien.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
@@ -428,6 +435,13 @@ errors:
   invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
   invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
   invalid_evidence_source: Das Erhebungsverfahren oder die Quelle unter {field} in der Datei {file} ist für {finding} ungültig.
+  inputs_source_in_scan: Die Quelle im Feld {field} der Datei {file} ist Angaben aus der Eingabedatei vorbehalten.
+  sample_source_conflict: Für eine Erhebung mit Beispieldaten muss im Feld {field} der Datei {file} der Wert sample stehen.
+  collector_reason_mismatch: Das Feld {field} in der Datei {file} muss beim Status partial oder skipped einen Grund enthalten und beim Status ok leer bleiben.
+  period_after_collection: Der Zeitraum im Feld {field} der Datei {file} endet nach dem Erhebungsdatum.
+  collection_after_scan: Das Erhebungsdatum im Feld {field} der Datei {file} liegt nach dem Datum der Erhebungsdatei.
+  sku_identity_mismatch: Produktcode und GUID unter {field} in der Datei {file} müssen demselben Katalogeintrag entsprechen.
+  coverage_total_conflict: Die Gesamtzahl in {field} der Datei {file} widerspricht der Angabe für {related} in derselben Erhebung.
   file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
   is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
   not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.

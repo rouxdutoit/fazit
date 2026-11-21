@@ -39,6 +39,7 @@ class FindingEntry:
     provided: str
     headline: bool
     measured_by: frozenset[tuple[str, str]] = frozenset()
+    coverage_total_from: str | None = None
 
 
 @dataclass(frozen=True)
@@ -62,10 +63,10 @@ class Catalogue:
     def finding(self, finding_id: str) -> FindingEntry | None:
         return next((entry for entry in self.findings if entry.id == finding_id), None)
 
-    def accepts_sku_part_number(self, part_number: object, guid: str) -> bool:
+    def accepts_sku_part_number(self, part_number: object, guid: str | None) -> bool:
         return isinstance(part_number, str) and (
             bool(_SKU_IDENTIFIER.fullmatch(part_number))
-            or sku_key(part_number, guid) in self.sku_exceptions
+            or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)
         )
 
 
@@ -128,7 +129,7 @@ def _findings(
     keys = {"id", "workload", "type", "unit", "label", "provided", "headline"}
     findings: dict[str, FindingEntry] = {}
     for index, row in enumerate(
-        _rows(value, file_name, "findings", keys, optional=("measured_by",))
+        _rows(value, file_name, "findings", keys, optional=("measured_by", "coverage_total_from"))
     ):
         field = f"findings[{index}]"
         finding_id = _code(row["id"], file_name, f"{field}.id")
@@ -150,6 +151,11 @@ def _findings(
         unit = row["unit"]
         if unit is not None:
             unit = _code(unit, file_name, f"{field}.unit")
+        coverage_total_from = row.get("coverage_total_from")
+        if coverage_total_from is not None:
+            coverage_total_from = _code(
+                coverage_total_from, file_name, f"{field}.coverage_total_from"
+            )
         findings[finding_id] = FindingEntry(
             finding_id,
             workload,
@@ -165,7 +171,15 @@ def _findings(
                 collector_ids,
                 measured_sources,
             ),
+            coverage_total_from,
         )
+    for index, entry in enumerate(findings.values()):
+        if entry.coverage_total_from is not None:
+            total = findings.get(entry.coverage_total_from)
+            if total is None or total.type != "count" or total.id == entry.id:
+                raise InputError(
+                    "invalid_field", file=file_name, field=f"findings[{index}].coverage_total_from"
+                )
     return tuple(findings.values())
 
 

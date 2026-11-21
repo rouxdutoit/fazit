@@ -128,6 +128,7 @@ def report(
             profile=target,
             catalogue=catalogue,
             inputs=answers if inputs is not None else None,
+            scan_file_name=scan_json.name,
         )
         path = write_inside(out, report_file_name(scan.generated_at, lang=report_lang), html)
     except InputError as error:

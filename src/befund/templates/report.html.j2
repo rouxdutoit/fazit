@@ -45,6 +45,7 @@
     <small>{{ strings.found.comparison }}</small>
     {{ evidence_summary(alternatives[finding.id], compact) }}
     {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+    {% if finding.id in answer_conflicts %}<small>{{ strings.reason.provided_answers_conflict.label }}</small>{% endif %}
   {% endif %}
 {%- endmacro %}
 {% macro evidence_pair(finding) -%}
@@ -434,16 +435,22 @@
         <dt>{{ strings.header.organisation }}</dt>
         <dd>{{ inputs.organisation_name if inputs and inputs.organisation_name else strings.header.unnamed_organisation }}</dd>
       </div>
-      <div>
+      <div data-input-role="scan">
         <dt>{{ strings.header.scan_date }}</dt>
         <dd><time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></dd>
+      </div>
+      <div data-input-role="inputs">
+        <dt>{{ strings.header.inputs_date }}</dt>
+        <dd>{% if inputs and inputs.as_of %}<time datetime="{{ inputs.as_of }}">{{ format.date(inputs.as_of) }}</time>
+          {%- elif inputs %}{{ strings.common.date_not_supplied }}
+          {%- else %}{{ strings.costs.not_provided }}{% endif %}</dd>
       </div>
       <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
       <div><dt>{{ strings.header.target_profile }}</dt><dd>{{ mapping.label[lang] }}</dd></div>
     </dl>
     <p>{{ strings.header.local }}</p>
     <p class="muted">{{ strings.header.offline }}</p>
-    {% if scan.source_kind == "sample" %}<p class="sample-note">{{ strings.header.sample }}</p>{% endif %}
+    {% if sample_scan %}<p class="sample-note">{{ strings.header.sample }}</p>{% endif %}
   </header>
   <main>
     <section data-section="found">
@@ -477,7 +484,7 @@
         {% if licences %}
           <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
             <table class="licences" role="table">
-              {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+              {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
               <thead role="rowgroup">
                 <tr role="row">
                   {{ column(strings.licences.product) }}
@@ -531,7 +538,7 @@
           <summary id="evidence-{{ workload.id }}">{{ label(workload.label) }}</summary>
           <div class="table-scroll" role="region" aria-labelledby="evidence-{{ workload.id }}" tabindex="0">
             <table class="evidence" role="table">
-              {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+              {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
               <thead role="rowgroup">
                 <tr role="row">
                   {{ column(strings.found.finding) }}
@@ -552,7 +559,7 @@
                   </tr>
                 {% endfor %}
                 {% set note = strings.found.notes.get(workload.id) %}
-                {% if scan.source_kind == 'sample' and note %}
+                {% if sample_scan and note %}
                   <tr role="row"><td class="table-note" role="cell" colspan="2" data-label="{{ strings.found.note }}">{{ note }}</td></tr>
                 {% endif %}
               </tbody>
@@ -650,7 +657,7 @@
       </ul>
       <div class="table-scroll" role="region" aria-labelledby="readiness-title" tabindex="0">
         <table class="readiness" role="table">
-          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
           <thead role="rowgroup">
             <tr role="row">
               {{ column(strings.readiness.workload) }}
@@ -724,7 +731,7 @@
       <h2 id="moves-title">{{ strings.moves.title }}</h2>
       <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
         <table class="moves" role="table">
-          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
           <thead role="rowgroup">
             <tr role="row">
               {{ column(strings.moves.microsoft) }}
@@ -765,7 +772,7 @@
       <h3 id="risky-files-title">{{ strings.attention.files }}</h3>
       <div class="table-scroll" role="region" aria-labelledby="risky-files-title" tabindex="0">
         <table class="risky-files" role="table">
-          {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+          {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
           <thead role="rowgroup">
             <tr role="row">
               {{ column(strings.attention.file_kind) }}
@@ -783,7 +790,7 @@
                 </td>
                 <td role="cell" data-label="{{ strings.attention.count }}">
                   {{ attention_evidence(finding) }}
-                  {% if finding and finding.value == 0 and (not finding.coverage or finding.coverage.kind == 'complete') %}
+                  {% if finding and finding.value == 0 and finding.id not in answer_conflicts and (not finding.coverage or finding.coverage.kind == 'complete') %}
                     <small>{{ strings.attention.none_reported }}</small>
                   {% endif %}
                 </td>
@@ -834,15 +841,14 @@
         {% if mapping_gaps %}
           <p>{{ strings.attention.gap_scope }}</p>
           <ul class="mapping-gaps">
-            {% for item, finding in mapping_gaps %}
-              {% set need = mapping_need(finding) %}
+            {% for item, finding, need, reasons in mapping_gaps %}
               <li data-gap="{{ item.function }}" data-need="{{ need }}">
                 <strong>{{ item.microsoft[lang] }}</strong>
                 <p>{{ item.note[lang] if item.note else strings.mapping_coverage.not_available }}</p>
                 <p data-provenance="{{ 'unknown' if need == 'unknown' else finding.provenance }}">
                   <strong>{{ strings.attention.needed_here }}</strong> · {{ strings.status.unknown if need == 'unknown' else strings.common[need] }}
                   {% if need == 'unknown' %}
-                    <small>{{ reason_detail(finding.missing_reason if finding and finding.missing_reason else 'not_established') }}</small>
+                    {% for reason in reasons %}<small>{{ reason_detail(reason) }}</small>{% endfor %}
                   {% else %}
                     <small>
                       {{ finding_labels[finding.id] }} · <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
@@ -883,7 +889,7 @@
     <section data-section="appendix">
       <h2>{{ strings.appendix.title }}</h2>
       <h3>{{ strings.appendix.collectors }}</h3>
-      {% if scan.source_kind == 'sample' %}<p>{{ strings.appendix.sample_permissions }}</p>{% endif %}
+      {% if sample_scan %}<p>{{ strings.appendix.sample_permissions }}</p>{% endif %}
       <div class="table-scroll" role="region" aria-label="{{ strings.appendix.collectors }}" tabindex="0">
         <table class="collectors" role="table">
           <thead role="rowgroup">

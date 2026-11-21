@@ -45,7 +45,7 @@ def scan_data() -> dict:
         "schema_version": "1.0",
         "tool": {"name": "befund", "version": "0.1.0"},
         "generated_at": "2026-11-02T09:00:00Z",
-        "source_kind": "import",
+        "source_kind": "sample",
         "collectors": [
             {
                 "id": "directory",
@@ -166,6 +166,28 @@ def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
         load_catalogue(bad)
 
     assert (caught.value.file, caught.value.field) == (bad.name, "findings[0].workload")
+
+
+@pytest.mark.parametrize(
+    "target", ["teams.absent", "teams.chat_history_must_be_kept", "teams.teams_with_guests_count"]
+)
+def test_catalogue_requires_a_distinct_count_as_the_coverage_reference(
+    tmp_path: Path, target: str
+) -> None:
+    source = files("befund").joinpath("rules", "findings.yaml")
+    bad = tmp_path / "findings.yaml"
+    bad.write_text(
+        read_text(source).replace(
+            "coverage_total_from: teams.team_count", f"coverage_total_from: {target}"
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(InputError) as caught:
+        load_catalogue(bad)
+
+    assert caught.value.file == bad.name
+    assert caught.value.field and caught.value.field.endswith(".coverage_total_from")
 
 
 def test_scan_counts_ignored_fields_and_findings_without_keeping_names(

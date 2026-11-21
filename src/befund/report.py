@@ -18,8 +18,11 @@ from .model import Coverage, Finding, FindingValue, Product, Scan, scan_to_json
 from .parsing import read_text
 from .rules import (
     STATUSES,
+    FunctionMapping,
+    Mapping,
     ServicePlan,
     StatusRuleSet,
+    WorkloadStatus,
     classify_product,
     evaluate,
     evidence_conflicts,
@@ -29,6 +32,7 @@ from .rules import (
     load_service_plans,
     load_status_rules,
     mapping_need,
+    provided_answers_conflict,
 )
 
 SECTION_ORDER = (
@@ -86,17 +90,23 @@ def _value_text(finding: Finding, formatter: Formatter) -> str:
     value = finding.value
     if value is None:
         return strings["common"]["unavailable"]
-    partial_coverage = finding.coverage is not None and finding.coverage.kind == "partial"
+    lower_bound = finding.is_lower_bound
     if type(value) is int and finding.unit == "bytes":
-        text = formatter.storage(value, lower_bound=partial_coverage)
+        text = formatter.storage(value, lower_bound=lower_bound)
     else:
         text = _literal_text(value, formatter)
         if finding.unit is not None:
             group = "unit_one" if type(value) is int and value == 1 else "units"
             text = f"{text} {code_label(strings, group, finding.unit)}"
-    if type(value) is int and partial_coverage:
-        key = "partial_positive" if value > 0 else "partial_zero"
-        return strings["found"][key].format(value=text)
+    if lower_bound:
+        return strings["found"]["partial_positive"].format(value=text)
+    if (
+        type(value) is int
+        and value == 0
+        and finding.coverage
+        and finding.coverage.kind == "partial"
+    ):
+        return strings["found"]["partial_zero"].format(value=text)
     return text
 
 
@@ -156,8 +166,11 @@ def render_report(
     profile: str = "opendesk",
     catalogue: Catalogue | None = None,
     inputs: Inputs | None = None,
+    scan_file_name: str = "scan.json",
 ) -> str:
-    context, _ = _prepare_report(scan, lang, profile, catalogue, inputs)
+    context, _ = _prepare_report(
+        scan, lang, profile, catalogue, inputs, scan_file_name=scan_file_name
+    )
     return _render_html(context)
 
 
@@ -209,6 +222,8 @@ def _prepare_report(
     profile: str,
     catalogue: Catalogue | None,
     inputs: Inputs | None,
+    *,
+    scan_file_name: str = "scan.json",
 ) -> tuple[dict[str, object], tuple[ServicePlan, ...]]:
     formatter = Formatter(lang)
     catalogue = catalogue if catalogue is not None else load_catalogue()
@@ -217,28 +232,24 @@ def _prepare_report(
     plans = load_service_plans(catalogue, checksums=checksums)
     risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
     mapping = load_mapping(profile, catalogue, checksums=checksums)
+    sample_scan = scan.is_sample
     scan_periods = sorted({item.period for item in scan.findings if item.period is not None})
     provided = provided_findings(inputs, catalogue) if inputs is not None else ()
     scan, other_evidence = combine(scan, provided)
-    derived = licence_findings(scan, plans, catalogue)
+    derived = licence_findings(scan, plans, catalogue, file_name=scan_file_name)
     products = () if scan.licences is None else scan.licences.products
     by_id = {item.id: item for item in scan.findings + derived}
     context = dict(
         **_formatting_context(formatter, catalogue),
         **_cost_context(inputs),
-        **_evidence_context(scan, by_id, other_evidence, status_rules, catalogue),
+        **_evidence_context(scan, by_id, other_evidence, status_rules, catalogue, mapping),
         lang=lang,
         scan=scan,
+        sample_scan=sample_scan,
         scan_periods=scan_periods,
         licences=_licence_rows(products, plans, formatter),
         product_count=derived[0] if derived else None,
         mapping=mapping,
-        mapping_need=mapping_need,
-        mapping_gaps=[
-            (item, by_id.get(item.need_finding) if item.need_finding else None)
-            for item in mapping.functions
-            if item.coverage == "not_available"
-        ],
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         checksums=checksums,
         project_name=PROJECT_NAME,
@@ -248,12 +259,35 @@ def _prepare_report(
     return context, plans
 
 
+def _mapping_gaps(
+    mapping: Mapping, by_id: dict[str, Finding], statuses: dict[str, WorkloadStatus]
+) -> list[tuple[FunctionMapping, Finding | None, str, tuple[str, ...]]]:
+    gaps = []
+    for item in mapping.functions:
+        if item.coverage != "not_available":
+            continue
+        finding = by_id.get(item.need_finding) if item.need_finding else None
+        reasons = tuple(
+            dict.fromkeys(
+                gap.reason_code
+                for gap in statuses[item.workload].missing
+                if gap.finding_id == item.need_finding
+            )
+        )
+        need = "unknown" if reasons else mapping_need(finding)
+        if need == "unknown" and not reasons:
+            reasons = ((finding.missing_reason if finding else None) or "not_established",)
+        gaps.append((item, finding, need, reasons))
+    return gaps
+
+
 def _evidence_context(
     scan: Scan,
     by_id: dict[str, Finding],
     other_evidence: tuple[Finding, ...],
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
+    mapping: Mapping,
 ) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
     statuses = evaluate(
@@ -264,6 +298,7 @@ def _evidence_context(
         alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
+    status_by_workload = {row.workload: row for row in statuses}
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     headlines = []
     software = []
@@ -279,10 +314,14 @@ def _evidence_context(
     return dict(
         alternatives=alternatives,
         conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)},
+        answer_conflicts={
+            item.id for item in other_evidence if provided_answers_conflict(by_id[item.id], item)
+        },
         statuses=statuses,
         status_counts=[(status, counts[status]) for status in STATUSES],
         status_rules=status_rules,
-        status_by_workload={row.workload: row for row in statuses},
+        status_by_workload=status_by_workload,
+        mapping_gaps=_mapping_gaps(mapping, by_id, status_by_workload),
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[
             collector for collector in scan.collectors if collector.status == "skipped"

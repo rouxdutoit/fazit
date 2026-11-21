@@ -312,7 +312,13 @@ def _product_findings(catalogue: Catalogue, *products: Product) -> dict[str, Fin
     scan = sample_scan("town", catalogue)
     assert scan.licences is not None
     coverage = Coverage("complete", len(products), 0, len(products))
-    scan = replace(scan, licences=replace(scan.licences, products=products, coverage=coverage))
+    scan = replace(
+        scan,
+        licences=replace(scan.licences, products=products, coverage=coverage),
+        findings=tuple(
+            finding for finding in scan.findings if finding.id != "directory.licensed_user_count"
+        ),
+    )
     return {
         item.id: item for item in licence_findings(scan, load_service_plans(catalogue), catalogue)
     }
@@ -345,7 +351,9 @@ def test_unmapped_pairs_are_unknown_without_erasing_classified_assignments(
     scan = sample_scan("town", catalogue)
     assert scan.licences is not None
     _, phone, _ = scan.licences.products
-    wrong_product = replace(phone, sku_part_number="OTHER_PRODUCT")
+    wrong_product = replace(
+        phone, sku_part_number="OTHER_PRODUCT", sku_guid="00000000-0000-4000-8000-000000000001"
+    )
     bad_plan_guid = replace(
         phone, service_plans=(replace(phone.service_plans[0], guid=phone.sku_guid),)
     )
@@ -721,10 +729,11 @@ def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
         ("complete", 0, "ready", None),
         ("partial", 3, "needs_work", None),
         ("partial", 0, "unknown", "coverage_partial"),
-        ("unknown", 3, "unknown", "coverage_unknown"),
+        ("unknown", 3, "needs_work", None),
+        ("unknown", 0, "unknown", "coverage_unknown"),
     ],
 )
-def test_partial_counts_can_confirm_only_positive_lower_bounds(
+def test_incomplete_counts_can_confirm_only_positive_lower_bounds(
     complete_evidence: dict[str, Finding],
     status_rules: StatusRuleSet,
     catalogue: Catalogue,

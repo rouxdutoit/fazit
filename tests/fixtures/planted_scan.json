@@ -6,7 +6,7 @@
     "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"
   },
   "generated_at": "2026-11-02T09:00:00Z",
-  "source_kind": "import",
+  "source_kind": "sample",
   "operator": "Erika Mustermann",
   "Erika Mustermann": "planted-secret",
   "organisation": {"display_name": "Erika Mustermann"},

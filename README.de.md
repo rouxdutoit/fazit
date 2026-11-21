@@ -46,6 +46,8 @@ uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lan
 
 Mit `--lang de` oder `--lang en` wählen Sie die Sprache. Das Zielprofil wählen Sie mit `--profile opendesk`, `--profile nextcloud` oder `--profile generic`. Bei `report` haben diese Optionen Vorrang vor den Einstellungen in der Eingabedatei.
 
+Befund prüft die Dateien auf Widersprüche und nennt zu jeder Zahl die Quelle. Eine erfundene, in sich stimmige Bestandsaufnahme kann trotzdem zu einem Bericht führen. Wie verlässlich ein Bericht ist, hängt deshalb vom Werkzeug und von der Person ab, die die Bestandsaufnahme erstellt haben.
+
 ## Inhalt des Berichts
 
 1. Kopf mit Datum, Herkunft der Daten und Angaben zur Berichtserstellung.
