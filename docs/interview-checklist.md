@@ -2,7 +2,7 @@
 
 Before the interview, copy `inputs.example.yaml` to `inputs.yaml` and share the relevant questions with the people listed below.
 During the interview, date the answers and leave any unanswered field empty so the report can identify what is missing and how to follow it up.
-Build the report with `befund report SCAN_JSON --inputs inputs.yaml`.
+Build the report with `fazit report SCAN_JSON --inputs inputs.yaml`.
 
 ## The organisation and the basics
 

@@ -72,7 +72,7 @@ def demo(
         _check_language(lang)
         if sample not in ("town", "nonprofit"):
             raise InputError("unsupported_sample", file=PROJECT_NAME, field="--sample")
-        sample_files = files("befund").joinpath("demo", sample)
+        sample_files = files("fazit").joinpath("demo", sample)
         source = sample_files.joinpath("scan.json")
         answers = sample_files.joinpath("inputs.yaml")
         catalogue = load_catalogue()

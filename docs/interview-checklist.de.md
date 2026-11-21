@@ -2,7 +2,7 @@
 
 Kopieren Sie vor dem Gespräch `inputs.example.yaml` nach `inputs.yaml` und leiten Sie die passenden Fragen an die jeweils zuständige Stelle weiter.
 Halten Sie im Gespräch das Datum der Auskünfte fest und lassen Sie offene Felder leer, damit der Bericht die fehlenden Angaben und den nächsten Schritt nennen kann.
-Erstellen Sie den Bericht mit `befund report SCAN_JSON --inputs inputs.yaml`.
+Erstellen Sie den Bericht mit `fazit report SCAN_JSON --inputs inputs.yaml`.
 
 ## Organisation und Grundeinstellungen
 

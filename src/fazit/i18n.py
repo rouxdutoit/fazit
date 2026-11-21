@@ -16,7 +16,7 @@ DEFAULT_LANGUAGE = "en"
 def load_locale(lang: str) -> dict:
     if lang not in SUPPORTED_LANGUAGES:
         raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
-    locale = files("befund").joinpath("locales", f"{lang}.yaml")
+    locale = files("fazit").joinpath("locales", f"{lang}.yaml")
     return deepcopy(_parse_locale(read_text(locale), locale.name))
 
 

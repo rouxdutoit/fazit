@@ -7,7 +7,7 @@ header:
   inputs_date: Inputs as of (inputs.yaml)
   tool_version: Tool version
   target_profile: Target profile
-  local: The person who ran Befund created this report locally from scan.json. The command contacted no host.
+  local: The person who ran Fazit created this report locally from scan.json. The command contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
 found:
@@ -196,7 +196,7 @@ appendix:
   scan_origin: Scan origin
   scan_producer: Tool that produced the scan
   producer_version: Scan producer version
-  renderer_version: Befund rendering version
+  renderer_version: Fazit rendering version
   checksums: SHA-256 checksums of the rule files used
   scan_role: Scan file date
   inputs_role: Inputs file date

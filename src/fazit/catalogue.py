@@ -213,7 +213,7 @@ def _sku_exceptions(value: object, file_name: str) -> frozenset[tuple[str, str]]
 
 
 def load_catalogue(path: Path | None = None) -> Catalogue:
-    source = path if path is not None else files("befund").joinpath("rules", "findings.yaml")
+    source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
     return _parse_catalogue(read_text(source), source.name)
 
 

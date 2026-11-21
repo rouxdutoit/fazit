@@ -19,15 +19,15 @@ import yaml
 from test_repo_basics import ROOT, readme_code_blocks
 from typer.testing import CliRunner
 
-from befund import __version__, i18n, inputs, model, rules
-from befund import report as report_module
-from befund.catalogue import load_catalogue
-from befund.cli import app
-from befund.errors import InputError
-from befund.i18n import SUPPORTED_LANGUAGES, load_locale
-from befund.model import Coverage, Scan, load_scan, load_scan_text
-from befund.parsing import parse_yaml, read_text
-from befund.report import SECTION_ORDER, render_report, report_file_name
+from fazit import __version__, i18n, inputs, model, rules
+from fazit import report as report_module
+from fazit.catalogue import load_catalogue
+from fazit.cli import app
+from fazit.errors import InputError
+from fazit.i18n import SUPPORTED_LANGUAGES, load_locale
+from fazit.model import Coverage, Scan, load_scan, load_scan_text
+from fazit.parsing import parse_yaml, read_text
+from fazit.report import SECTION_ORDER, render_report, report_file_name
 
 runner = CliRunner()
 
@@ -72,7 +72,7 @@ def test_readme_commands_run_in_order(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, readme: str
 ) -> None:
     text = (ROOT / readme).read_text(encoding="utf-8")
-    prefix = "uv run befund "
+    prefix = "uv run fazit "
     commands = [
         line
         for block in readme_code_blocks(text)
@@ -102,7 +102,7 @@ def _section(html: str, name: str) -> str:
 
 @pytest.mark.parametrize("profile", rules.PROFILES)
 def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, profile: str) -> None:
-    source = files("befund").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     result = runner.invoke(
         app, ["report", str(source), "--profile", profile, "--out", str(tmp_path)]
     )
@@ -283,7 +283,7 @@ def test_demo_preflights_all_destinations(tmp_path: Path, kind: str) -> None:
 
 
 def _sample_scan(name: str) -> Scan:
-    source = files("befund").joinpath("demo", name, "scan.json")
+    source = files("fazit").joinpath("demo", name, "scan.json")
     return load_scan_text(read_text(source), source.name, load_catalogue())
 
 
@@ -310,7 +310,7 @@ def test_cli_renders_every_profile_in_both_languages_for_both_samples(
     ]
     assert not result.stderr and report.is_file()
     assert load_scan(scan_path, load_catalogue()) == _sample_scan(sample)
-    inputs = files("befund").joinpath("demo", sample, "inputs.yaml")
+    inputs = files("fazit").joinpath("demo", sample, "inputs.yaml")
     assert inputs_path.read_bytes() == inputs.read_bytes()
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
@@ -384,7 +384,7 @@ def test_provided_answer_source_is_independent_of_scan_source() -> None:
 
 @pytest.mark.parametrize(("sample", "lang"), [("town", "en"), ("nonprofit", "de")])
 def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> None:
-    scan_path = files("befund").joinpath("demo", sample, "scan.json")
+    scan_path = files("fazit").joinpath("demo", sample, "scan.json")
     result = runner.invoke(app, ["report", str(scan_path), "--lang", lang, "--out", str(tmp_path)])
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.strip())
@@ -453,7 +453,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
 def test_changed_rule_changes_demo_status_and_escapes_the_reason(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     original = runner.invoke(app, ["report", str(scan), "--out", str(tmp_path / "original")])
     assert original.exit_code == 0, original.output
     html = Path(original.stdout.strip()).read_text(encoding="utf-8")
@@ -601,7 +601,7 @@ def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
     out.mkdir()
     destination = out / "report-2026-11-02-en.html"
     os.symlink(outside, destination)
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
 
     result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
 
@@ -613,7 +613,7 @@ def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="Requires FIFO support")
 def test_report_refuses_a_fifo_destination(tmp_path: Path) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     destination = tmp_path / "report-2026-11-02-en.html"
     os.mkfifo(destination)
 
@@ -636,7 +636,7 @@ def test_report_refuses_a_fifo_destination(tmp_path: Path) -> None:
 def test_report_resolves_options_and_displays_organisation_from_inputs(
     tmp_path: Path, text: str, options: list[str], lang: str, profile: str
 ) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     answers = tmp_path / "office-interview.yaml"
     answers.write_text(text + "organisation_name: West Weir Council\n", encoding="utf-8")
     out = tmp_path / "out"
@@ -661,7 +661,7 @@ def test_report_resolves_options_and_displays_organisation_from_inputs(
 def test_report_input_errors_use_the_flag_language(
     tmp_path: Path, lang: str | None, prefix: str
 ) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     answers = tmp_path / "office-interview.yaml"
     answers.write_text("language: de\ncurency: EUR\n", encoding="utf-8")
     out = tmp_path / "out"
@@ -679,7 +679,7 @@ def test_report_input_errors_use_the_flag_language(
 
 @pytest.mark.parametrize("kind", ["missing", "directory"])
 def test_report_rejects_missing_or_directory_inputs(tmp_path: Path, kind: str) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     answers = tmp_path / "office-interview.yaml"
     if kind == "directory":
         answers.mkdir()
@@ -791,7 +791,7 @@ def test_report_debug_exposes_the_input_error(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("case", ["alias-expansion", "oversized-yaml", "oversized-json"])
 def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
-    sample = files("befund").joinpath("demo", "town", "scan.json")
+    sample = files("fazit").joinpath("demo", "town", "scan.json")
     scan = tmp_path / "inventory.json"
     answers = tmp_path / "answers.yaml"
     scan.write_bytes(sample.read_bytes())
@@ -811,7 +811,7 @@ def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
     options = [] if case == "oversized-json" else ["--inputs", str(answers)]
 
     result = subprocess.run(
-        ["uv", "run", "--no-sync", "befund", "report", str(scan), *options, "--out", str(out)],
+        ["uv", "run", "--no-sync", "fazit", "report", str(scan), *options, "--out", str(out)],
         capture_output=True,
         text=True,
         timeout=1,
@@ -832,7 +832,7 @@ def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
 def test_report_rejects_amounts_outside_the_supported_precision(
     tmp_path: Path, amount: str
 ) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     answers = tmp_path / "answers.yaml"
     answers.write_text(
         f'currency: EUR\ncurrent_costs: {{other_it_per_year: "{amount}"}}\n', encoding="utf-8"
@@ -846,7 +846,7 @@ def test_report_rejects_amounts_outside_the_supported_precision(
 
 @pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions")
 def test_report_refuses_an_unwritable_output_directory(tmp_path: Path) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     out = tmp_path / "unwritable"
     out.mkdir(mode=0o500)
     try:
@@ -903,7 +903,7 @@ def test_report_bytes_and_name_ignore_the_system_day(
     profile: str,
     with_inputs: bool,
 ) -> None:
-    sample_dir = files("befund").joinpath("demo", sample)
+    sample_dir = files("fazit").joinpath("demo", sample)
     scan = sample_dir.joinpath("scan.json")
     options = ["--lang", lang, "--profile", profile]
     if with_inputs:

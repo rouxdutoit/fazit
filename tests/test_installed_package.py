@@ -12,7 +12,7 @@ from zipfile import ZipFile
 import pytest
 from test_repo_basics import LICENSE_SHA256, ROOT
 
-from befund.report import SECTION_ORDER
+from fazit.report import SECTION_ORDER
 
 pytestmark = pytest.mark.slow
 
@@ -21,7 +21,7 @@ import os
 import sys
 from pathlib import Path
 
-log = Path(os.environ["BEFUND_TEST_SOCKET_LOG"])
+log = Path(os.environ["FAZIT_TEST_SOCKET_LOG"])
 
 def record_socket_event(event: str, args: tuple[object, ...]) -> None:
     if event.startswith("socket."):
@@ -90,7 +90,7 @@ def installed_package(tmp_path_factory: pytest.TempPathFactory) -> InstalledPack
 def _audit_environment(work: Path) -> tuple[dict[str, str], Path]:
     (work / "sitecustomize.py").write_text(_SOCKET_AUDIT_HOOK, encoding="utf-8")
     log = work / "socket-events.log"
-    return {**os.environ, "PYTHONPATH": str(work), "BEFUND_TEST_SOCKET_LOG": str(log)}, log
+    return {**os.environ, "PYTHONPATH": str(work), "FAZIT_TEST_SOCKET_LOG": str(log)}, log
 
 
 def test_installed_demo_renders_offline(
@@ -101,7 +101,7 @@ def test_installed_demo_renders_offline(
     venv = installed_package.venv
     out = tmp_path / "out"
     stdout = _run(
-        _venv_program(venv, "befund"), "demo", "--lang", "de", "--out", out, cwd=tmp_path, env=env
+        _venv_program(venv, "fazit"), "demo", "--lang", "de", "--out", out, cwd=tmp_path, env=env
     )
 
     path = Path(stdout.splitlines()[-1])
@@ -113,7 +113,7 @@ def test_installed_demo_renders_offline(
     location = _run(
         _venv_program(venv, "python"),
         "-c",
-        "import befund\nprint(befund.__file__)",
+        "import fazit\nprint(fazit.__file__)",
         cwd=tmp_path,
         env=env,
     )
@@ -158,7 +158,7 @@ def test_wheel_contains_runtime_data(installed_package: InstalledPackage) -> Non
         ),
     )
     with ZipFile(installed_package.wheel) as wheel:
-        missing = sorted({f"befund/{name}" for name in resources} - set(wheel.namelist()))
+        missing = sorted({f"fazit/{name}" for name in resources} - set(wheel.namelist()))
     assert not missing, f"Missing package data: {', '.join(missing)}"
 
 

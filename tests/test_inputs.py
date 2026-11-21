@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from befund.catalogue import Catalogue, load_catalogue
-from befund.errors import InputError
-from befund.i18n import error_sentence, load_locale
-from befund.inputs import (
+from fazit.catalogue import Catalogue, load_catalogue
+from fazit.errors import InputError
+from fazit.i18n import error_sentence, load_locale
+from fazit.inputs import (
     CurrentCosts,
     Inputs,
     ScenarioInputs,
@@ -21,10 +21,10 @@ from befund.inputs import (
     load_inputs_text,
     provided_findings,
 )
-from befund.model import Coverage, load_scan_text
-from befund.parsing import parse_yaml, read_text
-from befund.report import render_report
-from befund.rules import load_risky_file_types, load_status_rules
+from fazit.model import Coverage, load_scan_text
+from fazit.parsing import parse_yaml, read_text
+from fazit.report import render_report
+from fazit.rules import load_risky_file_types, load_status_rules
 
 COUNT_ID = "office_files.kind.macro"
 BOOLEAN_ID = "onedrive.external_sharing_in_use"
@@ -273,7 +273,7 @@ def test_combine_keeps_both_observations(
     primary_value: int,
     alternative_value: int,
 ) -> None:
-    sample = files("befund").joinpath("demo", "town", "scan.json")
+    sample = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(sample), sample.name, catalogue)
     inputs = load_inputs_text(
         f"provided_counts: {{{COUNT_ID}: {supplied_value}}}", "inputs.yaml", catalogue
@@ -302,7 +302,7 @@ def test_combine_keeps_both_observations(
 def test_combine_uses_new_answer_when_no_answer_disagrees(
     catalogue: Catalogue, previous: str | None
 ) -> None:
-    sample = files("befund").joinpath("demo", "town", "scan.json")
+    sample = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(sample), sample.name, catalogue)
     inputs = load_inputs_text(f"provided_counts: {{{COUNT_ID}: 17}}", "inputs.yaml", catalogue)
     (supplied,) = provided_findings(inputs, catalogue)
@@ -321,7 +321,7 @@ def test_combine_uses_new_answer_when_no_answer_disagrees(
 
 
 def test_inputs_module_has_no_catalogue_ids(catalogue: Catalogue) -> None:
-    source = read_text(files("befund").joinpath("inputs.py"))
+    source = read_text(files("fazit").joinpath("inputs.py"))
     assert not {entry.id for entry in catalogue.findings if entry.id in source}
 
 
@@ -375,7 +375,7 @@ def test_inputs_module_has_no_catalogue_ids(catalogue: Catalogue) -> None:
 def test_sample_inputs_and_rendered_statuses(
     catalogue: Catalogue, sample: str, expected: dict[str, set[str]]
 ) -> None:
-    directory = files("befund").joinpath("demo", sample)
+    directory = files("fazit").joinpath("demo", sample)
     scan = load_scan_text(read_text(directory.joinpath("scan.json")), "scan.json", catalogue)
     text = read_text(directory.joinpath("inputs.yaml"))
     inputs = load_inputs_text(text, "inputs.yaml", catalogue)
@@ -411,7 +411,7 @@ def test_sample_inputs_and_rendered_statuses(
 def test_report_dates_provided_values_and_keeps_measured_values_separate(
     catalogue: Catalogue, as_of: str | None, label: str
 ) -> None:
-    path = files("befund").joinpath("demo", "town", "scan.json")
+    path = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(path), path.name, catalogue)
     inputs = load_inputs_text(
         f"as_of: {as_of or 'null'}\nprovided_counts: {{{COUNT_ID}: 12}}",
@@ -444,7 +444,7 @@ def test_report_dates_provided_values_and_keeps_measured_values_separate(
 def test_software_list_escapes_names_and_shows_confirmed_and_missing_answers(
     catalogue: Catalogue,
 ) -> None:
-    path = files("befund").joinpath("demo", "town", "scan.json")
+    path = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(path), path.name, catalogue)
     markup = '<img src="https://example.invalid/plant">'
     inputs = load_inputs_text(

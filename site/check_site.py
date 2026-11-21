@@ -11,7 +11,7 @@ from urllib.parse import unquote, urljoin, urlsplit
 
 from typer.testing import CliRunner
 
-from befund.cli import app
+from fazit.cli import app
 
 ROOT = Path(__file__).resolve().parent
 DEMO_REPORTS = {ROOT / "demo" / lang / "index.html": lang for lang in ("en", "de")}
@@ -108,20 +108,20 @@ def check_reference(
 def check_demo_reports() -> list[str]:
     errors = []
     runner = CliRunner()
-    with TemporaryDirectory(prefix="befund-site-") as temporary:
+    with TemporaryDirectory(prefix="fazit-site-") as temporary:
         for target, lang in DEMO_REPORTS.items():
             out = Path(temporary) / lang
             command = ("demo", "--lang", lang, "--sample", "town", "--profile", "opendesk")
             result = runner.invoke(app, [*command, "--out", str(out)])
             name = target.relative_to(ROOT)
             if result.exit_code != 0:
-                errors.append(f"{name}: Befund demo failed. {result.output.strip()}")
+                errors.append(f"{name}: Fazit demo failed. {result.output.strip()}")
                 continue
             generated = Path(result.stdout.splitlines()[-1])
             if not generated.is_file() or not target.is_file():
                 errors.append(f"{name}: Demo report is missing.")
             elif target.read_bytes() != generated.read_bytes():
-                errors.append(f"{name}: Differs from a fresh befund {' '.join(command)} run.")
+                errors.append(f"{name}: Differs from a fresh fazit {' '.join(command)} run.")
     return errors
 
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Mit Befund prüfen Sie, was ein Umstieg von Microsoft 365 auf Open-Source-Software erfordert. Das Programm erstellt den Bericht lokal auf Ihrem Rechner.">
-  <title>Befund — Einen Umstieg von Microsoft 365 prüfen</title>
+  <meta name="description" content="Mit Fazit prüfen Sie, was ein Umstieg von Microsoft 365 auf Open-Source-Software erfordert. Das Programm erstellt den Bericht lokal auf Ihrem Rechner.">
+  <title>Fazit — Einen Umstieg von Microsoft 365 prüfen</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
@@ -13,7 +13,7 @@
   <a class="skip" href="#main">Zum Inhalt springen</a>
   <header class="bar">
     <div class="bar-in">
-      <a class="wordmark" href="/de/" aria-label="Befund-Startseite">Befund</a>
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">Fazit</a>
       <nav class="bar-links" aria-label="Abschnitte">
         <a href="#report">Bericht</a>
         <a href="#how">Ablauf</a>
@@ -39,17 +39,17 @@
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
-      <p class="hero-name">Befund</p>
+      <p class="hero-name">Fazit</p>
       <h1 id="hero-title">Sehen Sie, was ein Abschied von <span>Microsoft 365</span> bedeuten würde, auf Ihrem eigenen Rechner.</h1>
       <p class="hero-sub">Ein kostenloses Kommandozeilenprogramm mit offenem Quellcode unter der Lizenz AGPL-3.0-or-later.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/de/">Beispielbericht ansehen</a>
-        <a class="btn btn-outline" href="https://github.com/rouxdutoit/befund">Quellcode</a>
+        <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
       </div>
       <div class="command" aria-labelledby="command-label" role="group">
         <p class="command-label" id="command-label">Beispiel aus dem Quellcode starten</p>
         <div class="command-line">
-          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">git clone https://github.com/rouxdutoit/befund &amp;&amp; cd befund &amp;&amp; uv run befund demo</span></code>
+          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</span></code>
           <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." aria-describedby="demo-command" hidden>Kopieren</button>
         </div>
         <p class="copy-message" role="status"></p>
@@ -60,7 +60,7 @@
     <section class="sec grid" id="report" aria-labelledby="report-title">
       <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
       <div class="sec-body">
-        <p class="sec-intro">Befund erstellt eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können den Bericht speichern, weitergeben und ohne Internetverbindung öffnen.</p>
+        <p class="sec-intro">Fazit erstellt eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können den Bericht speichern, weitergeben und ohne Internetverbindung öffnen.</p>
         <dl class="rows">
           <div>
             <dt>Bestand</dt>
@@ -84,16 +84,16 @@
     </section>
 
     <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">So funktioniert Befund</h2>
+      <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
       <div class="sec-body">
         <ol class="steps">
           <li>
             <h3>Installieren</h3>
-            <p><a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">Installieren Sie uv</a> und Git, um das Beispiel aus dem Quellcode zu starten. Nach der Veröffentlichung auf PyPI können Sie <code>uvx befund demo</code> ausführen.</p>
+            <p><a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">Installieren Sie uv</a> und Git, um das Beispiel aus dem Quellcode zu starten. Nach der Veröffentlichung auf PyPI können Sie <code>uvx fazit demo</code> ausführen.</p>
           </li>
           <li>
             <h3>Ausführen</h3>
-            <p>Wenn Ihnen der Quellcode lokal vorliegt, starten Sie das mitgelieferte Beispiel im Projektverzeichnis mit <code>uv run befund demo --lang de</code>. Für Englisch verwenden Sie <code>--lang en</code>.</p>
+            <p>Wenn Ihnen der Quellcode lokal vorliegt, starten Sie das mitgelieferte Beispiel im Projektverzeichnis mit <code>uv run fazit demo --lang de</code>. Für Englisch verwenden Sie <code>--lang en</code>.</p>
           </li>
           <li>
             <h3>Bericht lesen</h3>
@@ -104,7 +104,7 @@
           <h3>Datenquellen</h3>
           <dl class="rows stages">
             <div><dt>Verfügbar</dt><dd>Mitgelieferte Beispieldaten.</dd></div>
-            <div><dt>Als Nächstes</dt><dd>Exporte aus dem Microsoft 365 Admin Center, die Befund lokal verarbeitet.</dd></div>
+            <div><dt>Als Nächstes</dt><dd>Exporte aus dem Microsoft 365 Admin Center, die Fazit lokal verarbeitet.</dd></div>
             <div><dt>Für später geplant</dt><dd>Anmeldung bei Microsoft 365 mit reinem Lesezugriff.</dd></div>
           </dl>
         </div>
@@ -112,13 +112,13 @@
     </section>
 
     <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title">Was Befund nie tut</h2>
+      <h2 class="sec-label" id="safeguards-title">Was Fazit nie tut</h2>
       <div class="sec-body">
         <ul class="safeguards">
-          <li>Befund hat keinen Schreibzugriff auf Microsoft 365.</li>
-          <li>Die Daten der Bestandsaufnahme bleiben auf Ihrem Rechner. Für Befund gibt es keinen Server, kein Benutzerkonto und keine Telemetrie.</li>
-          <li>Befund speichert keine Anmeldetoken auf einem Datenträger.</li>
-          <li>Befund übernimmt keine erfassten Personennamen oder E-Mail-Adressen. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen, die Sie in <code>inputs.yaml</code> eintragen, erscheinen im Bericht.</li>
+          <li>Fazit hat keinen Schreibzugriff auf Microsoft 365.</li>
+          <li>Die Daten der Bestandsaufnahme bleiben auf Ihrem Rechner. Für Fazit gibt es keinen Server, kein Benutzerkonto und keine Telemetrie.</li>
+          <li>Fazit speichert keine Anmeldetoken auf einem Datenträger.</li>
+          <li>Fazit übernimmt keine erfassten Personennamen oder E-Mail-Adressen. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen, die Sie in <code>inputs.yaml</code> eintragen, erscheinen im Bericht.</li>
           <li>Beim Öffnen lädt der Bericht nichts aus dem Internet.</li>
         </ul>
         <div class="subsection">
@@ -132,7 +132,7 @@
       <h2 class="sec-label" id="claims-title">Aussagekraft und Grenzen</h2>
       <div class="sec-body">
         <h3>Was der Bericht belegt</h3>
-        <p>Befund hält fest, was die Daten belegen. Zu jedem Befund nennt der Bericht Quelle, Datum, Bezugszeitraum und Umfang der Prüfung. Fehlen Belege, nennt er den Grund. Der Bericht kennzeichnet jede Zahl als gemessen, von Ihrer Organisation angegeben oder unbekannt. Eine ausgelassene Prüfung verbessert den Status nie.</p>
+        <p>Fazit hält fest, was die Daten belegen. Zu jedem Befund nennt der Bericht Quelle, Datum, Bezugszeitraum und Umfang der Prüfung. Fehlen Belege, nennt er den Grund. Der Bericht kennzeichnet jede Zahl als gemessen, von Ihrer Organisation angegeben oder unbekannt. Eine ausgelassene Prüfung verbessert den Status nie.</p>
         <div class="subsection">
           <h3>Was offenbleibt</h3>
           <p>Der Bericht enthält kein Gesamturteil zum Umstieg. Die Entscheidung liegt bei Ihrer Organisation. Ist ein Bereich noch nicht bereit, zeigt der Bericht, was Sie klären müssen.</p>
@@ -157,7 +157,7 @@
         </ul>
         <div class="subsection">
           <h3>Open-Source-Projekte</h3>
-          <p>Befund ordnet Funktionen aus Microsoft 365 möglichen Alternativen in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi und Keycloak zu.</p>
+          <p>Fazit ordnet Funktionen aus Microsoft 365 möglichen Alternativen in openDesk, Nextcloud, LibreOffice, Collabora, Open-Xchange, Element, Jitsi und Keycloak zu.</p>
         </div>
       </div>
     </section>
@@ -184,9 +184,9 @@
     </section>
 
     <section class="sec grid" id="development" aria-labelledby="development-title">
-      <h2 class="sec-label" id="development-title">So entsteht Befund</h2>
+      <h2 class="sec-label" id="development-title">So entsteht Fazit</h2>
       <div class="sec-body">
-        <p>Claude und Codex unterstützen die Entwicklung von Befund und prüfen gegenseitig ihre Arbeit. Die Projektverantwortlichen leiten die Entwicklung und verantworten das Ergebnis. Jede Zusage, die für die heutige Version gilt, belegt ein Test, den Sie selbst ausführen können. Die Zusagen zur Anmeldung erhalten ihre Tests, sobald es die Anmeldung gibt.</p>
+        <p>Claude und Codex unterstützen die Entwicklung von Fazit und prüfen gegenseitig ihre Arbeit. Die Projektverantwortlichen leiten die Entwicklung und verantworten das Ergebnis. Jede Zusage, die für die heutige Version gilt, belegt ein Test, den Sie selbst ausführen können. Die Zusagen zur Anmeldung erhalten ihre Tests, sobald es die Anmeldung gibt.</p>
       </div>
     </section>
   </main>
@@ -194,11 +194,11 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/de/">Befund</a>
+        <a class="wordmark" href="/de/">Fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
-            <ul><li><a href="/demo/de/">Beispielbericht</a></li><li><a href="https://github.com/rouxdutoit/befund">Quellcode</a></li></ul>
+            <ul><li><a href="/demo/de/">Beispielbericht</a></li><li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li></ul>
           </div>
           <div>
             <p class="foot-heading">Rechtliches</p>

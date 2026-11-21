@@ -1,4 +1,4 @@
-# Working on befund
+# Working on fazit
 
 Instructions for anyone, human or AI, who changes this repository. Short on purpose. If a rule here conflicts with convenience, the rule wins.
 
@@ -54,8 +54,8 @@ Each of these has a test. A change that weakens one of those tests is rejected.
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest -q
-uv run befund demo --lang de
-uv run befund demo --lang en
+uv run fazit demo --lang de
+uv run fazit demo --lang en
 ```
 
 All five succeed, and the two reports open with the network off.

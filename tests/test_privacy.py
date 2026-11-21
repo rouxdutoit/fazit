@@ -9,11 +9,11 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner, Result
 
-from befund import cli
-from befund.catalogue import load_catalogue
-from befund.i18n import load_locale
-from befund.model import ServicePlan, load_scan, load_scan_text, scan_to_json
-from befund.rules import load_service_plans
+from fazit import cli
+from fazit.catalogue import load_catalogue
+from fazit.i18n import load_locale
+from fazit.model import ServicePlan, load_scan, load_scan_text, scan_to_json
+from fazit.rules import load_service_plans
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 PRIVATE_TEXT = ("Mustermann", "eyJhbGci", "planted-secret")
@@ -86,7 +86,7 @@ def test_ignored_scan_data_leaves_only_a_count_in_the_report(
 def test_unregistered_licence_identifiers_are_private_in_both_commands(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    source = files("befund").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     data = json.loads(source.read_text(encoding="utf-8"))
     suite, phone, reporting = data["licences"]["products"]
     suite["sku_part_number"] = suite["sku_part_number"].lower()
@@ -289,7 +289,7 @@ def test_report_rejects_unregistered_evidence_codes(
 def test_demo_rejects_addresses_in_inputs_names(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, inputs: str
 ) -> None:
-    source = files("befund").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     sample = _sample_directory(tmp_path, monkeypatch)
     (sample / "scan.json").write_bytes(source.read_bytes())
     (sample / "inputs.yaml").write_text(inputs, encoding="utf-8")

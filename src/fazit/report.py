@@ -367,7 +367,7 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
 
 
 def _render_html(context: dict[str, object]) -> str:
-    source = files("befund").joinpath("templates", "report.html.j2")
+    source = files("fazit").joinpath("templates", "report.html.j2")
     html = _compile_template(read_text(source)).render(**context).strip()
     return "\n".join(line.rstrip(" \t") for line in html.split("\n")) + "\n"
 

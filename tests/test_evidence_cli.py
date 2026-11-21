@@ -7,17 +7,17 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner, Result
 
-from befund.catalogue import load_catalogue
-from befund.cli import app
-from befund.i18n import load_locale
-from befund.rules import load_service_plans
+from fazit.catalogue import load_catalogue
+from fazit.cli import app
+from fazit.i18n import load_locale
+from fazit.rules import load_service_plans
 
 NO_TELEPHONY = "confirmations: {telephony.in_use: false, telephony.replacement_available: false}"
 
 
 @pytest.fixture
 def town_scan() -> dict:
-    source = files("befund").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     return json.loads(source.read_text(encoding="utf-8"))
 
 
@@ -820,7 +820,7 @@ confirmations:
 def test_header_shows_both_file_dates_when_samples_are_mixed(
     tmp_path: Path, town_scan: dict
 ) -> None:
-    source = files("befund").joinpath("demo", "nonprofit", "inputs.yaml")
+    source = files("fazit").joinpath("demo", "nonprofit", "inputs.yaml")
     html = _html(_report(tmp_path / "mixed-samples", town_scan, source.read_text(encoding="utf-8")))
     header = html.split("</header>", 1)[0]
     scan = re.search(r'<div data-input-role="scan">.*?</div>', header, re.S)

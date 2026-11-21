@@ -5,9 +5,9 @@ from string import Formatter as FormatParser
 
 import pytest
 
-from befund.catalogue import load_catalogue
-from befund.i18n import SUPPORTED_LANGUAGES, Formatter, code_label, load_locale, reason_text
-from befund.parsing import read_text
+from fazit.catalogue import load_catalogue
+from fazit.i18n import SUPPORTED_LANGUAGES, Formatter, code_label, load_locale, reason_text
+from fazit.parsing import read_text
 
 
 def flatten_keys(
@@ -83,7 +83,7 @@ def test_catalogue_labels_and_reason_codes_have_translations(lang: str) -> None:
 
 
 def test_template_uses_locale_for_visible_text() -> None:
-    source = files("befund").joinpath("templates", "report.html.j2")
+    source = files("fazit").joinpath("templates", "report.html.j2")
     template = read_text(source)
     for attribute in re.findall(r'\s(?:aria-label|title|alt)="([^"]*)"', template):
         assert re.fullmatch(r"\s*{{[^{}]+}}\s*", attribute), attribute

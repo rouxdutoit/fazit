@@ -138,7 +138,7 @@ def test_contribution_and_security_documents() -> None:
     assert "login.microsoftonline.com" in security
     assert "graph.microsoft.com" in security
     assert (
-        "[Report a vulnerability](https://github.com/rouxdutoit/befund/security/advisories/new)"
+        "[Report a vulnerability](https://github.com/rouxdutoit/fazit/security/advisories/new)"
         in security
     )
     assert "mailto:hello@rouxdutoit.com" in security
@@ -159,11 +159,11 @@ def test_readmes_start_with_demo_and_describe_the_project() -> None:
     for name, phrases in readmes.items():
         text = (ROOT / name).read_text(encoding="utf-8")
         blocks = readme_code_blocks(text)
-        assert blocks and "uv run befund demo" in blocks[0], name
+        assert blocks and "uv run fazit demo" in blocks[0], name
         for phrase in (*phrases, "Claude", "Codex"):
             assert phrase in text, (name, phrase)
         assert "![" not in text and not re.search(r"<img\b", text, re.IGNORECASE), name
-        assert all("uvx befund" not in block for block in blocks), name
+        assert all("uvx fazit" not in block for block in blocks), name
 
 
 def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
@@ -194,7 +194,7 @@ def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
         "uv run ruff check .",
         "uv run ruff format --check .",
         "uv run pytest -q",
-        "uv run befund demo --lang de",
-        "uv run befund demo --lang en",
+        "uv run fazit demo --lang de",
+        "uv run fazit demo --lang en",
         "uv run python site/check_site.py",
     ]

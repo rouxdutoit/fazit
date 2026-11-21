@@ -13,12 +13,12 @@ from shutil import copytree
 import pytest
 from typer.testing import CliRunner
 
-from befund import __version__, catalogue, rules
-from befund import report as report_module
-from befund.cli import app
-from befund.i18n import load_locale
-from befund.report import SECTION_ORDER
-from befund.rules import PROFILES
+from fazit import __version__, catalogue, rules
+from fazit import report as report_module
+from fazit.cli import app
+from fazit.i18n import load_locale
+from fazit.report import SECTION_ORDER
+from fazit.rules import PROFILES
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 RESOURCE_ELEMENTS = {
@@ -82,7 +82,7 @@ def _rebuild(
 
 
 def _sample_scan(sample: str) -> Path:
-    return Path(str(files("befund").joinpath("demo", sample, "scan.json")))
+    return Path(str(files("fazit").joinpath("demo", sample, "scan.json")))
 
 
 def _sample_inputs(sample: str) -> Path:
@@ -131,7 +131,7 @@ def test_demo_writes_exactly_one_html_report(tmp_path: Path) -> None:
     report = Path(result.stdout.splitlines()[-1])
     assert list(tmp_path.glob("*.html")) == [report]
     footer = report.read_text(encoding="utf-8").split('<footer data-section="footer">')[1]
-    assert "<p>befund · https://github.com/rouxdutoit/befund</p>" in footer
+    assert "<p>fazit · https://github.com/rouxdutoit/fazit</p>" in footer
     assert "href=" not in footer
 
 
@@ -277,7 +277,7 @@ def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> N
     assert len(set(run_details)) == 3
     for details, origin in zip(run_details, ("import", "live", "live"), strict=True):
         assert f'data-source-kind="{origin}"' in details
-        assert "<dd data-scan-producer>befund</dd>" in details
+        assert "<dd data-scan-producer>fazit</dd>" in details
         assert f"<dd data-renderer-version>{__version__}</dd>" in details
     assert "<dd data-producer-version>0.0.9</dd>" in run_details[0]
     assert "<dd data-producer-version>0.1.1</dd>" in run_details[-1]

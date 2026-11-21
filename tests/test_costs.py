@@ -9,10 +9,10 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from befund.cli import app
-from befund.costs import BLOCKS, SCENARIOS, CostGroup, ScenarioResult, compute_scenarios
-from befund.i18n import Formatter, load_locale
-from befund.inputs import CurrentCosts, Inputs, ScenarioInputs
+from fazit.cli import app
+from fazit.costs import BLOCKS, SCENARIOS, CostGroup, ScenarioResult, compute_scenarios
+from fazit.i18n import Formatter, load_locale
+from fazit.inputs import CurrentCosts, Inputs, ScenarioInputs
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -301,7 +301,7 @@ def test_money_format(lang: str, whole: str, negative_half: str, carry: str) -> 
 
 
 def test_no_prices_in_application_sources() -> None:
-    source = ROOT / "src" / "befund"
+    source = ROOT / "src" / "fazit"
     currency = r"(?:[$€£¥]|\b(?:EUR|CHF|USD|GBP|CAD|AUD|JPY|CNY|SEK|NOK|DKK|PLN)\b)"
     price = re.compile(rf"{currency}\s*\d|\d\s*{currency}")
     for path in source.rglob("*"):
@@ -360,7 +360,7 @@ def test_demo_cost_comparison(
 
 @pytest.mark.parametrize("with_example", [False, True])
 def test_empty_inputs_render_unknown_costs(tmp_path: Path, with_example: bool) -> None:
-    scan = files("befund").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     options = ("--inputs", str(ROOT / "inputs.example.yaml")) if with_example else ()
     section = _cost_section(tmp_path, "report", str(scan), *options)
     strings = load_locale("en")["costs"]
@@ -378,7 +378,7 @@ def test_empty_inputs_render_unknown_costs(tmp_path: Path, with_example: bool) -
 
 
 def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -> None:
-    source = files("befund").joinpath("demo", "town")
+    source = files("fazit").joinpath("demo", "town")
     answers = tmp_path / "costs.yaml"
     data = source.joinpath("inputs.yaml").read_text(encoding="utf-8")
     answers.write_text(data.replace("amounts_are_invented: true", "amounts_are_invented: false"))

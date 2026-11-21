@@ -9,12 +9,12 @@ from typing import Never
 
 import pytest
 
-from befund.catalogue import Catalogue, load_catalogue
-from befund.errors import InputError
-from befund.i18n import error_sentence, load_locale
-from befund.model import Coverage, Scan, load_scan, load_scan_text
-from befund.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text, reject_at_signs
-from befund.report import render_report
+from fazit.catalogue import Catalogue, load_catalogue
+from fazit.errors import InputError
+from fazit.i18n import error_sentence, load_locale
+from fazit.model import Coverage, Scan, load_scan, load_scan_text
+from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text, reject_at_signs
+from fazit.report import render_report
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def _finding(finding_id: str, **overrides: object) -> dict[str, object]:
 def scan_data() -> dict:
     return {
         "schema_version": "1.0",
-        "tool": {"name": "befund", "version": "0.1.0"},
+        "tool": {"name": "fazit", "version": "0.1.0"},
         "generated_at": "2026-11-02T09:00:00Z",
         "source_kind": "sample",
         "collectors": [
@@ -136,7 +136,7 @@ def test_catalogue_and_town_sample_agree(catalogue: Catalogue) -> None:
         "small_apps",
         "integrations",
     )
-    town = files("befund").joinpath("demo", "town", "scan.json")
+    town = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(town), town.name, catalogue)
 
     assert tuple(finding.id for finding in scan.findings) == tuple(
@@ -156,7 +156,7 @@ def test_catalogue_and_town_sample_agree(catalogue: Catalogue) -> None:
 
 
 def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
-    source = files("befund").joinpath("rules", "findings.yaml")
+    source = files("fazit").joinpath("rules", "findings.yaml")
     bad = tmp_path / "findings.yaml"
     bad.write_text(
         read_text(source).replace("workload: licences", "workload: absent", 1), encoding="utf-8"
@@ -174,7 +174,7 @@ def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
 def test_catalogue_requires_a_distinct_count_as_the_coverage_reference(
     tmp_path: Path, target: str
 ) -> None:
-    source = files("befund").joinpath("rules", "findings.yaml")
+    source = files("fazit").joinpath("rules", "findings.yaml")
     bad = tmp_path / "findings.yaml"
     bad.write_text(
         read_text(source).replace(

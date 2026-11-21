@@ -2,7 +2,7 @@
 
 ## Report a vulnerability
 
-Use GitHub's private vulnerability reporting for `rouxdutoit/befund`. [Report a vulnerability](https://github.com/rouxdutoit/befund/security/advisories/new)
+Use GitHub's private vulnerability reporting for `rouxdutoit/fazit`. [Report a vulnerability](https://github.com/rouxdutoit/fazit/security/advisories/new)
 
 If the form is unavailable, send the report by email. [hello@rouxdutoit.com](mailto:hello@rouxdutoit.com)
 
@@ -21,7 +21,7 @@ This version runs locally and contains no network code. It contacts no host.
 7. **One command.** After setup, `demo` builds the report from sample data with one command. `report` rebuilds it from an existing scan file.
 8. **Honest numbers.** The report labels evidence and prices by their origin. Missing values stay unknown. A skipped collector never makes an area look more ready.
 
-Befund checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
+Fazit checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
 
 Browsers may add the local file path to printed headers and footers. Turn off **Headers and footers** in the browser's print settings and check the preview for the file path before sharing a PDF.
 

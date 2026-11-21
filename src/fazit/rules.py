@@ -148,7 +148,7 @@ class Mapping:
 
 
 def rules_dir() -> Traversable:
-    return files("befund").joinpath("rules")
+    return files("fazit").joinpath("rules")
 
 
 class _RuleReader:

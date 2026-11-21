@@ -12,13 +12,13 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from befund import rules
-from befund.catalogue import Catalogue, load_catalogue
-from befund.cli import app
-from befund.errors import InputError
-from befund.i18n import load_locale
-from befund.inputs import Inputs, WindowsSoftware
-from befund.model import (
+from fazit import rules
+from fazit.catalogue import Catalogue, load_catalogue
+from fazit.cli import app
+from fazit.errors import InputError
+from fazit.i18n import load_locale
+from fazit.inputs import Inputs, WindowsSoftware
+from fazit.model import (
     Coverage,
     Finding,
     FindingValue,
@@ -27,9 +27,9 @@ from befund.model import (
     ServicePlan,
     load_scan_text,
 )
-from befund.parsing import parse_yaml, read_text
-from befund.report import SECTION_ORDER, render_report
-from befund.rules import (
+from fazit.parsing import parse_yaml, read_text
+from fazit.report import SECTION_ORDER, render_report
+from fazit.rules import (
     COVERAGE_LADDER,
     PROFILES,
     MissingEvidence,
@@ -77,7 +77,7 @@ def catalogue() -> Catalogue:
 
 
 def sample_scan(sample: str, catalogue: Catalogue) -> Scan:
-    source = files("befund").joinpath("demo", sample, "scan.json")
+    source = files("fazit").joinpath("demo", sample, "scan.json")
     return load_scan_text(read_text(source), source.name, catalogue)
 
 
@@ -1010,7 +1010,7 @@ def _attention(html: str) -> str:
 def test_attention_shows_risky_types_and_windows_software(
     tmp_path: Path, catalogue: Catalogue, lang: str
 ) -> None:
-    source = files("befund").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     result = CliRunner().invoke(
         app, ["report", str(source), "--lang", lang, "--out", str(tmp_path)]
     )
