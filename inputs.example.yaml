@@ -25,6 +25,9 @@ target_profile: null
 # EN: Enter the date the answers were given as YYYY-MM-DD in quotes.
 # DE: Geben Sie das Datum der Auskunft in Anführungszeichen im Format JJJJ-MM-TT an.
 as_of: null
+# EN: Use false for your organisation's answers. Demo inputs use true to label the answers as examples.
+# DE: Verwenden Sie false für die Angaben Ihrer Organisation. In Beispieldateien kennzeichnet true die Beispielangaben.
+answers_are_sample: false
 # EN: Keep false for your organisation's costs and use true for invented demonstration amounts.
 # DE: Lassen Sie false für Kosten Ihrer Organisation stehen. Verwenden Sie true für erfundene Beispielbeträge.
 amounts_are_invented: false

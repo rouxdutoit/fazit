@@ -10,8 +10,8 @@ Erstellen Sie den Bericht mit `befund report SCAN_JSON --inputs inputs.yaml`.
 - Welches Währungskürzel aus drei Buchstaben verwendet die Finanzstelle für den Vergleich (`currency`)?
 - Benötigt die Projektleitung den Bericht auf Deutsch (`de`) oder auf Englisch (`en`) (`language`)?
 - Welches Zielprofil hat die IT-Leitung ausgewählt (`opendesk`, `nextcloud` oder `generic`) (`target_profile`)?
-- An welchem Tag hat die Projektleitung die Auskünfte erhalten (`as_of`)?
-- Bestätigt die Projektleitung, dass die Beträge für eine Vorführung erfunden wurden (`amounts_are_invented`)?
+- An welchem Tag wurden die Auskünfte erteilt (`as_of`)?
+- Wurden die Beträge für eine Vorführung erfunden (`amounts_are_invented`)?
 
 ## Heutige Kosten für Microsoft und die übrige IT
 
@@ -34,7 +34,7 @@ Erfassen Sie beide Szenarien unter `target_costs` und verwenden Sie für den tei
 - Welche Ausgaben für externe Beratung plant die Finanzstelle für den teilweisen Wechsel ein (`target_costs.partial_exit.external_advice`)?
 - Wie viele Schulungstage je Person halten die Fachbereiche für erforderlich (`target_costs.partial_exit.training_days_per_person`)?
 - Welchen Betrag setzt die Finanzstelle je Person und Schulungstag an (`target_costs.partial_exit.training_day_rate`)?
-- Wie viele Beschäftigte nehmen nach Auskunft der Fachbereiche an der Schulung teil (`target_costs.partial_exit.training_staff`)?
+- Wie viele Beschäftigte werden nach Einschätzung der Fachbereiche an der Schulung teilnehmen (`target_costs.partial_exit.training_staff`)?
 - Welchen Gesamtbetrag veranschlagen Finanzstelle und Fachbereiche für den vorübergehenden Arbeitszeitverlust bei der teilweisen Umstellung (`target_costs.partial_exit.productivity_loss`)?
 - Wie viele Monate muss die Finanzstelle voraussichtlich beide Systeme bezahlen (`target_costs.partial_exit.parallel_running_months`)?
 
@@ -52,7 +52,7 @@ Verwenden Sie für den vollständigen Wechsel `target_costs.full_exit`.
 - Welche Ausgaben für externe Beratung plant die Finanzstelle für den vollständigen Wechsel ein (`target_costs.full_exit.external_advice`)?
 - Wie viele Schulungstage je Person halten die Fachbereiche für erforderlich (`target_costs.full_exit.training_days_per_person`)?
 - Welchen Betrag setzt die Finanzstelle je Person und Schulungstag an (`target_costs.full_exit.training_day_rate`)?
-- Wie viele Beschäftigte nehmen nach Auskunft der Fachbereiche an der Schulung teil (`target_costs.full_exit.training_staff`)?
+- Wie viele Beschäftigte werden nach Einschätzung der Fachbereiche an der Schulung teilnehmen (`target_costs.full_exit.training_staff`)?
 - Welchen Gesamtbetrag veranschlagen Finanzstelle und Fachbereiche für den vorübergehenden Arbeitszeitverlust bei der vollständigen Umstellung (`target_costs.full_exit.productivity_loss`)?
 - Wie viele Monate muss die Finanzstelle voraussichtlich beide Systeme bezahlen (`target_costs.full_exit.parallel_running_months`)?
 
@@ -60,7 +60,7 @@ Verwenden Sie für den vollständigen Wechsel `target_costs.full_exit`.
 
 Ersetzen Sie `null` durch einen Eintrag je Anwendung oder tragen Sie `[]` ein, wenn die IT-Leitung bestätigt, dass es keine solchen Anwendungen gibt.
 
-- Welche Anwendungen können laut IT-Leitung ausschließlich unter Windows betrieben werden (`windows_only_software`)?
+- Welche Anwendungen können ausschließlich unter Windows betrieben werden (`windows_only_software`)?
 - Unter welchem Namen führt die IT-Stelle die Anwendung (`windows_only_software.name`)?
 - Wie viele Personen nutzen die Anwendung nach Auskunft der Fachbereiche (`windows_only_software.users`)?
 - Bietet der Softwareanbieter eine Webversion an (`windows_only_software.vendor_has_web_version`)?
@@ -79,15 +79,15 @@ Erfassen Sie die Anzahlen unter `provided_counts` und verwenden Sie unter `confi
 
 ### E-Mail
 
-- Versenden nach Auskunft der IT-Stelle weitere Systeme, etwa Scanner oder Fachanwendungen, E-Mails über Microsoft (`mail.other_systems_send_mail`)?
+- Versenden weitere Systeme, etwa Scanner oder Fachanwendungen, E-Mails über Microsoft (`mail.other_systems_send_mail`)?
 
 ### OneDrive
 
-- Gibt die Organisation laut IT-Stelle Dateien aus OneDrive für Personen außerhalb der Organisation frei (`onedrive.external_sharing_in_use`)?
+- Gibt Ihre Organisation Dateien aus OneDrive für Personen außerhalb der Organisation frei (`onedrive.external_sharing_in_use`)?
 
 ### SharePoint
 
-- Setzt die Organisation laut IT-Stelle individuell angepasste SharePoint-Lösungen ein (`sharepoint.custom_solutions_in_use`)?
+- Setzt Ihre Organisation individuell angepasste SharePoint-Lösungen ein (`sharepoint.custom_solutions_in_use`)?
 
 ### Teams
 
@@ -105,21 +105,21 @@ Erfassen Sie die Anzahlen unter `provided_counts` und verwenden Sie unter `confi
 
 - Wie viele Geräte umfasst der von der IT-Stelle erfasste Bestand (`device_management.device_count`)?
 - Wie viele dieser Geräte laufen nach Auskunft der IT-Stelle unter Windows (`device_management.windows_device_count`)?
-- Verwaltet die IT-Stelle Geräte über Microsoft (`device_management.in_use`)?
+- Verwaltet Ihre Organisation Geräte über Microsoft (`device_management.in_use`)?
 
 ### Power Platform
 
-- Nutzen die IT-Stelle oder die Fachbereiche Anwendungen der Power Platform, etwa Power Apps, Power Automate oder Power BI (`power_platform.in_use`)?
+- Nutzt Ihre Organisation Dienste der Power Platform wie Power Apps, Power Automate oder Power BI (`power_platform.in_use`)?
 
 ### Telefonie
 
-- Läuft nach Auskunft der IT-Stelle ein Teil oder die gesamte Telefonie über Microsoft (`telephony.in_use`)?
-- Steht der IT-Stelle eine Alternative für die eingesetzte Microsoft-Telefonie zur Verfügung (`telephony.replacement_available`)?
+- Läuft die Telefonie Ihrer Organisation ganz oder teilweise über Microsoft (`telephony.in_use`)?
+- Steht für die eingesetzte Microsoft-Telefonie eine Alternative zur Verfügung (`telephony.replacement_available`)?
 
 ### Identitäten und Zugriff
 
 - Wie viele Anwendungen nutzen laut IT-Stelle die zentrale Anmeldung über Microsoft (`identity_access.sso_application_count`)?
-- Setzt die IT-Stelle bedingten Zugriff ein (`identity_access.conditional_access_in_use`)?
+- Setzt Ihre Organisation den bedingten Zugriff von Microsoft ein (`identity_access.conditional_access_in_use`)?
 
 ### Sicherheit und Regelkonformität
 

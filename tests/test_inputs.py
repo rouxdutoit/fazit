@@ -43,6 +43,7 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
     assert inputs.organisation_name is None
     assert inputs.currency is inputs.language is inputs.target_profile is inputs.as_of is None
     assert inputs.amounts_are_invented is False
+    assert inputs.answers_are_sample is False
     assert inputs.current_costs.microsoft_licences_per_year is None
     assert inputs.partial_exit.users is inputs.full_exit.users is None
     assert inputs.windows_only_software is None
@@ -335,11 +336,12 @@ def test_inputs_module_has_no_catalogue_ids(catalogue: Catalogue) -> None:
                     "sharepoint",
                     "office_files",
                     "device_management",
+                    "windows_software",
                     "power_platform",
                     "identity_access",
                     "integrations",
                 },
-                "blocker": {"windows_software", "telephony"},
+                "blocker": {"telephony"},
                 "unknown": {"security_compliance"},
             },
         ),
@@ -379,6 +381,7 @@ def test_sample_inputs_and_rendered_statuses(
     assert any("invented" in line for line in comments)
     assert any("erfunden" in line for line in comments)
     assert inputs.amounts_are_invented and inputs.currency == "EUR" and inputs.as_of
+    assert inputs.answers_are_sample
     assert inputs.language is inputs.target_profile is None
     assert inputs.partial_exit.users < inputs.full_exit.users
 
@@ -431,7 +434,7 @@ def test_report_dates_provided_values_and_keeps_measured_values_separate(
     assert row.startswith(f'<tr data-finding="{COUNT_ID}" data-provenance="measured"')
     assert 'data-provenance="provided"' in row
     assert row.index("4 files") < row.index("12 files")
-    assert "Provided" in row and "For comparison only" in row
+    assert "Provided" in row and "Other observation" in row
     assert "Answer in the inputs file" in row and label in row
     assert "typed-answers.yaml" not in html
 
@@ -457,7 +460,7 @@ windows_only_software:
     assert markup not in html and "<img" not in html
     assert "&lt;strong&gt;Example Authority&lt;/strong&gt;" in html
     row = re.search(r'<tr data-workload="windows_software".*?</tr>', html, re.S)[0]
-    assert 'data-status="blocker" data-incomplete' in row
+    assert 'data-status="needs_work" data-incomplete' in row
     assert "At least 1 application" in row and "1 of 2 answers supplied" in row
     assert 'data-reason="answer_not_provided"' in row
     entries = re.findall(r"<tr data-software-entry.*?</tr>", html, re.S)
@@ -490,6 +493,7 @@ def test_inputs_example_covers_the_contract(catalogue: Catalogue) -> None:
         "language": None,
         "target_profile": None,
         "as_of": None,
+        "answers_are_sample": False,
         "amounts_are_invented": False,
         "current_costs": dict.fromkeys(field.name for field in fields(CurrentCosts)),
         "target_costs": {"partial_exit": scenario, "full_exit": scenario},
@@ -513,7 +517,9 @@ def test_inputs_example_covers_the_contract(catalogue: Catalogue) -> None:
 def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: str) -> None:
     text = read_text(ROOT / "docs" / f"interview-checklist{suffix}.md")
     mentions = set(re.findall(r"`([^`\n]+)`", text))
-    questions = re.findall(r"^- [^\n]*\(`([^`\n]+)`\)\?$", text, re.M)
+    questions = re.findall(r"^- (.+) \(`([^`\n]+)`\)\?$", text, re.M)
+    indirect = re.compile(r"\b(?:confirm(?:s|ed)?|knows? (?:of|whether)|bestätigt?)\b", re.I)
+    assert not [question for question, _ in questions if indirect.search(question)]
     answer_ids = {entry.id for entry in catalogue.findings if entry.provided == "answer"}
     assert mentions & {entry.id for entry in catalogue.findings} == answer_ids
     example = ROOT / "inputs.example.yaml"
@@ -521,7 +527,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
     groups = {key for key, value in data.items() if isinstance(value, dict)}
     blocks = {f"target_costs.{name}" for name in data["target_costs"]}
     leaves = {
-        *(data.keys() - groups),
+        *(data.keys() - groups - {"answers_are_sample"}),
         *(f"current_costs.{name}" for name in data["current_costs"]),
         *(
             f"target_costs.{block}.{key}"
@@ -531,7 +537,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
         *(f"windows_only_software.{field.name}" for field in fields(WindowsSoftware)),
     }
     assert groups | blocks <= mentions
-    assert sorted(questions) == sorted(leaves | answer_ids)
+    assert sorted(key for _, key in questions) == sorted(leaves | answer_ids)
     for kind in load_risky_file_types(catalogue):
         line = next(line for line in text.splitlines() if f"`{kind.finding_id}`" in line)
         assert set(re.findall(r"`\.([a-z0-9]+)`", line)) == set(kind.extensions)

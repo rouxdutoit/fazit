@@ -6,6 +6,7 @@ currency: EUR
 language: null
 target_profile: null
 as_of: "2026-11-10"
+answers_are_sample: true
 amounts_are_invented: true
 current_costs:
   microsoft_licences_per_year: "100000"

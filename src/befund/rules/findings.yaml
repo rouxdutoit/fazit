@@ -44,6 +44,7 @@ findings:
     type: count
     unit: users
     label: finding.directory.user_count
+    measured_by: {directory: [sample.directory]}
     provided: "no"
     headline: true
   - id: directory.licensed_user_count
@@ -51,6 +52,7 @@ findings:
     type: count
     unit: users
     label: finding.directory.licensed_user_count
+    measured_by: {directory: [sample.directory]}
     provided: "no"
     headline: false
   - id: directory.guest_count
@@ -58,6 +60,7 @@ findings:
     type: count
     unit: users
     label: finding.directory.guest_count
+    measured_by: {directory: [sample.directory]}
     provided: "no"
     headline: false
   - id: directory.group_count
@@ -65,6 +68,7 @@ findings:
     type: count
     unit: groups
     label: finding.directory.group_count
+    measured_by: {directory: [sample.directory]}
     provided: "no"
     headline: false
   - id: directory.account_list_reviewed
@@ -79,6 +83,7 @@ findings:
     type: count
     unit: mailboxes
     label: finding.mail.mailbox_count
+    measured_by: {mailbox_usage: [sample.mailbox_usage]}
     provided: "no"
     headline: true
   - id: mail.shared_mailbox_count
@@ -86,6 +91,7 @@ findings:
     type: count
     unit: mailboxes
     label: finding.mail.shared_mailbox_count
+    measured_by: {exchange_recipients: [sample.exchange_recipients]}
     provided: "no"
     headline: false
   - id: mail.storage_bytes
@@ -93,6 +99,7 @@ findings:
     type: bytes
     unit: bytes
     label: finding.mail.storage_bytes
+    measured_by: {mailbox_usage: [sample.mailbox_usage]}
     provided: "no"
     headline: true
   - id: mail.item_count
@@ -100,6 +107,7 @@ findings:
     type: count
     unit: items
     label: finding.mail.item_count
+    measured_by: {mailbox_usage: [sample.mailbox_usage]}
     provided: "no"
     headline: false
   - id: mail.other_systems_send_mail
@@ -114,6 +122,7 @@ findings:
     type: count
     unit: accounts
     label: finding.onedrive.account_count
+    measured_by: {onedrive_usage: [sample.onedrive_usage]}
     provided: "no"
     headline: false
   - id: onedrive.storage_bytes
@@ -121,6 +130,7 @@ findings:
     type: bytes
     unit: bytes
     label: finding.onedrive.storage_bytes
+    measured_by: {onedrive_usage: [sample.onedrive_usage]}
     provided: "no"
     headline: true
   - id: onedrive.external_sharing_in_use
@@ -135,6 +145,7 @@ findings:
     type: count
     unit: sites
     label: finding.sharepoint.site_count
+    measured_by: {sharepoint_site_usage: [sample.sharepoint_site_usage]}
     provided: "no"
     headline: true
   - id: sharepoint.storage_bytes
@@ -142,6 +153,7 @@ findings:
     type: bytes
     unit: bytes
     label: finding.sharepoint.storage_bytes
+    measured_by: {sharepoint_site_usage: [sample.sharepoint_site_usage]}
     provided: "no"
     headline: true
   - id: sharepoint.file_count
@@ -149,6 +161,7 @@ findings:
     type: count
     unit: files
     label: finding.sharepoint.file_count
+    measured_by: {sharepoint_site_usage: [sample.sharepoint_site_usage]}
     provided: "no"
     headline: false
   - id: sharepoint.custom_solutions_in_use
@@ -163,6 +176,7 @@ findings:
     type: count
     unit: teams
     label: finding.teams.team_count
+    measured_by: {teams_usage: [sample.teams_usage]}
     provided: "no"
     headline: true
   - id: teams.channel_count
@@ -170,6 +184,7 @@ findings:
     type: count
     unit: channels
     label: finding.teams.channel_count
+    measured_by: {teams_usage: [sample.teams_usage]}
     provided: "no"
     headline: false
   - id: teams.teams_with_guests_count
@@ -177,6 +192,7 @@ findings:
     type: count
     unit: teams
     label: finding.teams.teams_with_guests_count
+    measured_by: {teams_usage: [sample.teams_usage]}
     provided: "no"
     headline: false
   - id: teams.chat_history_must_be_kept
@@ -191,6 +207,7 @@ findings:
     type: count
     unit: files
     label: finding.office_files.kind.macro
+    measured_by: {office_files: [sample.office_files]}
     provided: answer
     headline: false
   - id: office_files.kind.access
@@ -198,6 +215,7 @@ findings:
     type: count
     unit: files
     label: finding.office_files.kind.access
+    measured_by: {office_files: [sample.office_files]}
     provided: answer
     headline: false
   - id: office_files.kind.publisher
@@ -205,6 +223,7 @@ findings:
     type: count
     unit: files
     label: finding.office_files.kind.publisher
+    measured_by: {office_files: [sample.office_files]}
     provided: answer
     headline: false
   - id: office_files.kind.visio
@@ -212,6 +231,7 @@ findings:
     type: count
     unit: files
     label: finding.office_files.kind.visio
+    measured_by: {office_files: [sample.office_files]}
     provided: answer
     headline: false
   - id: office_files.kind.onenote
@@ -219,6 +239,7 @@ findings:
     type: count
     unit: files
     label: finding.office_files.kind.onenote
+    measured_by: {office_files: [sample.office_files]}
     provided: answer
     headline: false
   - id: device_management.device_count
@@ -268,6 +289,7 @@ findings:
     type: boolean
     unit: null
     label: finding.telephony.in_use
+    measured_by: {telephony: [sample.telephony]}
     provided: answer
     headline: false
   - id: telephony.replacement_available
@@ -310,6 +332,7 @@ findings:
     type: count
     unit: applications
     label: finding.integrations.application_count
+    measured_by: {directory: [sample.directory]}
     provided: answer
     headline: false
 
@@ -322,6 +345,8 @@ codes:
     - sharepoint_site_usage
     - teams_usage
     - exchange_recipients
+    - office_files
+    - telephony
   sources:
     - sample.licences
     - sample.directory
@@ -330,6 +355,10 @@ codes:
     - sample.sharepoint_site_usage
     - sample.teams_usage
     - sample.exchange_recipients
+    - sample.office_files
+    - sample.telephony
+  provided_sources:
+    - sample.inputs_yaml
     - sample.interview
     - interview
     - inputs_yaml
@@ -345,8 +374,10 @@ codes:
     - not_in_scan
     - licensed_use_not_measured
     - licence_not_classified
+    - licence_plan_list_missing
     - coverage_partial
     - coverage_unknown
+    - confirmation_conflict
     - not_established
     - not_recognised
   permissions:
@@ -359,3 +390,22 @@ codes:
     - Team.ReadBasic.All
     - Channel.ReadBasic.All
     - DeviceManagementManagedDevices.Read.All
+  # Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed.
+  sku_exceptions:
+    b1f3042b-a390-4b56-ab61-b88e7e767a97: "Microsoft_365_Business_Basic_EEA_(no_Teams)"
+    ffa3a2a0-3820-462a-aa81-8a4d741f0cba: "Microsoft_365_Business_Standard_EEA_(no_Teams)"
+    a23dbafb-3396-48b3-ad9c-a304fe206043: "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License"
+    6ee4114a-9b2d-4577-9e7a-49fa43d222d3: "Microsoft_365_E5_EEA_(no_Teams)_with_Calling_Minutes"
+    90277bc7-a6fe-4181-99d8-712b08b8d32b: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"
+    a640eead-25f6-4bec-97e3-23cfd382d7c2: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB"
+    f7ee79a7-7aec-4ca4-9fb9-34d6b930ad87: "Microsoft_365_F3_EEA_(no_Teams)"
+    c2fe850d-fbbb-4858-b67d-bd0c6e746da3: "O365_w/o Teams Bundle_M3"
+    602e6573-55a3-46b1-a1a0-cc267991501a: "O365_w/o Teams Bundle_M3_(500_seats_min)_HUB"
+    d711d25a-a21c-492f-bd19-aae1e8ebaf30: "O365_w/o_Teams_Bundle_E3"
+    3271cf8e-2be5-4a09-a549-70fd05baaa17: "O365_w/o_Teams_Bundle_M5"
+    1e988bf3-8b7c-4731-bec0-4e2a2946600c: "O365_w/o_Teams_Bundle_M5_(500_seats_min)_HUB"
+    71772aeb-4bb8-4f74-9dd4-36c7a9b5ca74: "Office_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"
+    a3f586b6-8cce-4d9b-99d6-55238397f77a: "Office_365_w/o_Teams_Bundle_Business_Premium"
+    c1f79c29-5d7a-4bec-a2c1-1a76774864c0: "Office_365_w/o_Teams_Bundle_Business_Standard"
+    b57282e3-65bd-4252-9502-c0eae1e5ab7f: "Office_365_w/o_Teams_Bundle_E1"
+    cf50bae9-29e8-4775-b07c-56ee10e3776d: "Office_365_w/o_Teams_Bundle_E5"

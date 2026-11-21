@@ -8,15 +8,14 @@
 {%- endmacro %}
 {% macro finding_date(finding) -%}
   {% if finding.collected_at %}{{ format.date(finding.collected_at) }}
-  {%- elif finding.provenance == 'provided' or finding.source == 'inputs_yaml' %}{{ strings.common.date_not_supplied }}
+  {%- elif finding.provenance == 'provided' or finding.source in provided_sources %}{{ strings.common.date_not_supplied }}
   {%- else %}{{ strings.common.unavailable }}{% endif %}
 {%- endmacro %}
 {% macro finding_source(finding) -%}
-  {% set source = input_source if finding.source == 'inputs_yaml' else finding.source %}
-  {{ code_label('source', source) if source else strings.common.unavailable }}
+  {{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}
 {%- endmacro %}
 {% macro finding_coverage(finding) -%}
-  {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source == 'inputs_yaml') }}
+  {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source in provided_sources) }}
 {%- endmacro %}
 {% macro evidence_summary(finding, compact=false) -%}
   <div data-provenance="{{ finding.provenance }}">
@@ -333,6 +332,7 @@
     .moves thead th:nth-child(-n+3) { width: 17%; }
     .licences thead th:first-child { width: 29%; }
     .licences thead th:nth-child(2), .licences thead th:nth-child(3) { width: 12%; }
+    .licence-plan small { display: block; margin-block-end: .35em; }
     .risky-files thead th:first-child { width: 18%; }
     .risky-files thead th:nth-child(2) { width: 16%; }
     .risky-files thead th:nth-child(3) { width: 31%; }
@@ -490,14 +490,26 @@
                     <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
                     <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}</td>
                     <td role="cell" data-label="{{ strings.licences.plans }}">
-                      {% for plan in matches if plan is not none %}
-                        <div><code>{{ plan.name }}</code> · {{ workload_labels[plan.workload] }} · {{ strings.licences[plan.signal] }}</div>
+                      {% set classified = matches|reject('none')|list %}
+                      {% for workload, entries in classified|rejectattr('workload', 'none')|groupby('workload') %}
+                        {% for signal, plans in entries|groupby('signal') %}
+                          <div class="licence-plan">
+                            {{ workload_labels[workload] }} · {{ strings.licences[signal] }}
+                            <small>{% for plan in plans %}<code>{{ plan.name }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</small>
+                          </div>
+                        {% endfor %}
                       {% endfor %}
+                      {% set no_workload = classified|selectattr('signal', 'eq', 'no_workload')|list|length %}
+                      {% if no_workload %}
+                        <div>{{ strings.licences.no_workload.format(count=format.integer(no_workload)) }}</div>
+                      {% endif %}
                       {% set unclassified = matches|select('none')|list|length %}
                       {% if unclassified %}
                         {{ strings.licences.unclassified.format(count=format.integer(unclassified)) }}
                         {% set reason, fix = reason_text('licence_not_classified') %}
                         <small data-reason="licence_not_classified">{{ reason }} {{ fix }}</small>
+                      {% elif not matches and product.assigned %}
+                        {{ reason_detail('licence_plan_list_missing') }}
                       {% elif not matches %}
                         {{ strings.common.unavailable }}
                       {% endif %}

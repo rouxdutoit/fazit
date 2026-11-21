@@ -96,6 +96,7 @@ functions:
     checked_on: null
   - function: desktop_operating_system
     workload: device_management
+    need_finding: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Open source workstation operating system, de: Quelloffenes Betriebssystem für Arbeitsplatzrechner}
     coverage: open_source_community
@@ -106,6 +107,7 @@ functions:
       de: Prüfen Sie, ob das gewählte Betriebssystem die Geräte, Peripherie und Anwendungen Ihrer Organisation unterstützt.
   - function: windows_applications
     workload: windows_software
+    need_finding: windows_software.application_count
     microsoft: {en: Running Windows-only applications, de: Betrieb reiner Windows-Anwendungen}
     replacement: {en: Separate hosting or replacement of each application, de: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen}
     coverage: not_available

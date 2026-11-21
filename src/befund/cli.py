@@ -74,9 +74,7 @@ def demo(
         inputs_text = read_text(answers)
         inputs = load_inputs_text(inputs_text, answers.name, catalogue)
 
-        html = render_report(
-            scan, lang=lang, profile=profile, catalogue=catalogue, inputs=inputs, sample_inputs=True
-        )
+        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue, inputs=inputs)
         stamp = f"{scan.generated_at[:10]}-{lang}"
         scan_path = write_inside(out, f"scan-{stamp}.json", scan_to_json(scan))
         inputs_path = write_inside(out, f"inputs-{stamp}.yaml", inputs_text)

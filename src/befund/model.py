@@ -9,7 +9,7 @@ from typing import Never
 from uuid import UUID
 
 from . import PROJECT_NAME
-from .catalogue import Catalogue, FindingEntry
+from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .parsing import parse_json, read_text, reject_at_signs
 
@@ -134,8 +134,8 @@ class _ScanReader:
         self.catalogue = catalogue
         self.dropped_count = 0
 
-    def fail(self, field: str, code: str = "invalid_field") -> Never:
-        raise InputError(code, file=self.file_name, field=field or "$")
+    def fail(self, field: str, code: str = "invalid_field", **details: object) -> Never:
+        raise InputError(code, file=self.file_name, field=field or "$", **details)
 
     def fields(
         self,
@@ -278,6 +278,9 @@ class _ScanReader:
             collector = self.code(collector, f"{field}.collector", collectors)
         self.check_evidence(row, field, provenance, collectors.get(collector))
         value, source, reason = row["value"], row["source"], row["missing_reason"]
+        if source is not None:
+            source = self.code(source, f"{field}.source", self.catalogue.source_codes)
+        self.check_finding_source(entry, field, collector, source)
         collected_at, period, coverage = row["collected_at"], row["period"], row["coverage"]
         return Finding(
             id=entry.id,
@@ -286,9 +289,7 @@ class _ScanReader:
             provenance=provenance,
             value=None if value is None else self.finding_value(value, f"{field}.value", entry),
             collector=collector,
-            source=None
-            if source is None
-            else self.code(source, f"{field}.source", self.catalogue.source_codes),
+            source=source,
             collected_at=None
             if collected_at is None
             else self.timestamp(collected_at, f"{field}.collected_at"),
@@ -298,6 +299,18 @@ class _ScanReader:
             if reason is None
             else self.code(reason, f"{field}.missing_reason", self.catalogue.reason_codes),
         )
+
+    def check_finding_source(
+        self, entry: FindingEntry, field: str, collector: str | None, source: str | None
+    ) -> None:
+        if collector is not None:
+            allowed = {code for method, code in entry.measured_by if method == collector}
+            if not allowed:
+                self.fail(f"{field}.collector", "invalid_evidence_source", finding=entry.id)
+        else:
+            allowed = self.catalogue.provided_sources if entry.provided != "no" else frozenset()
+        if source is not None and source not in allowed:
+            self.fail(f"{field}.source", "invalid_evidence_source", finding=entry.id)
 
     def check_evidence(
         self, row: dict, field: str, provenance: str, collector: Collector | None
@@ -363,15 +376,18 @@ class _ScanReader:
                 "sku_guid",
                 "purchased",
                 "assigned",
-                "service_plans",
             ),
+            optional=("service_plans",),
         )
-        plans = self.list(row["service_plans"], f"{field}.service_plans")
+        sku_guid = self.guid(row["sku_guid"], f"{field}.sku_guid")
+        sku_part_number = row["sku_part_number"]
+        if not self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid):
+            self.fail(f"{field}.sku_part_number")
+        plan_list = row.get("service_plans")
+        plans = [] if plan_list is None else self.list(plan_list, f"{field}.service_plans")
         return Product(
-            sku_part_number=self.matches(
-                row["sku_part_number"], f"{field}.sku_part_number", _IDENTIFIER
-            ),
-            sku_guid=self.guid(row["sku_guid"], f"{field}.sku_guid"),
+            sku_part_number=sku_part_number,
+            sku_guid=sku_guid,
             purchased=self.count(row["purchased"], f"{field}.purchased"),
             assigned=self.count(row["assigned"], f"{field}.assigned"),
             service_plans=tuple(
@@ -403,7 +419,7 @@ class _ScanReader:
         for index, item in enumerate(self.list(row["products"], "licences.products")):
             field = f"licences.products[{index}]"
             product = self.product(item, field)
-            part_number = product.sku_part_number.casefold()
+            part_number, _ = sku_key(product.sku_part_number, product.sku_guid)
             if part_number in parts:
                 self.fail(f"{field}.sku_part_number", "duplicate_id")
             if product.sku_guid in guids:

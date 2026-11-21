@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
-from collections.abc import Collection, MutableMapping
+from collections.abc import Collection, Iterator, MutableMapping
 from collections.abc import Mapping as MappingABC
 from dataclasses import dataclass, replace
 from datetime import date
@@ -12,7 +12,7 @@ from types import MappingProxyType
 from typing import Never
 
 from . import PROJECT_NAME
-from .catalogue import Catalogue
+from .catalogue import Catalogue, sku_key
 from .errors import InputError
 from .model import Collector, Finding, FindingValue, Product, Scan
 from .parsing import parse_yaml, read_text
@@ -23,6 +23,7 @@ _LICENCE_REFERENCE = re.compile(r"https://learn\.microsoft\.com/[^\s]+")
 _MAPPING_REFERENCE = re.compile(r"https://[^/\s?#]+(?:[/?#][^\s]*)?")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _SIGNALS = ("add_on", "bundled")
+_PLAN_CLASSES = (*_SIGNALS, "no_workload")
 _PRODUCT_COUNT = "licences.product_count"
 _VALUE_CODE = re.compile(r"[a-z0-9_]+(?:\.[a-z0-9_]+)*")
 _RULE_ID = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
@@ -49,7 +50,7 @@ class ServicePlan:
     sku_guid: str
     name: str
     guid: str
-    workload: str
+    workload: str | None
     signal: str
     reference_url: str
     checked_on: date
@@ -249,7 +250,13 @@ def _function_mapping(
     need_finding = row.get("need_finding")
     if need_finding is not None:
         entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
-        if entry is None or entry.workload != workload or entry.type != "boolean":
+        if entry is None or not (
+            (entry.type == "boolean" and entry.workload == workload)
+            or (
+                entry.type == "count"
+                and entry.provided in ("software_list", "software_list_without_web_version")
+            )
+        ):
             reader.fail(f"{field}.need_finding")
     return FunctionMapping(
         function=reader.matches(row["function"], f"{field}.function", _RULE_ID),
@@ -313,39 +320,28 @@ def load_mapping(
     )
 
 
-def _service_plan(
-    item: object, field: str, reader: _RuleReader, workload_ids: Collection[str]
-) -> ServicePlan:
-    row = reader.fields(
-        item,
-        field,
-        (
-            "sku_part_number",
-            "sku_guid",
-            "name",
-            "guid",
-            "workload",
-            "signal",
-            "reference_url",
-            "checked_on",
-        ),
-        ("note",),
-    )
-    return ServicePlan(
-        sku_part_number=reader.matches(
-            row["sku_part_number"], f"{field}.sku_part_number", _IDENTIFIER
-        ),
-        sku_guid=reader.matches(row["sku_guid"], f"{field}.sku_guid", _GUID).lower(),
-        name=reader.matches(row["name"], f"{field}.name", _IDENTIFIER),
-        guid=reader.matches(row["guid"], f"{field}.guid", _GUID).lower(),
-        workload=reader.choice(row["workload"], f"{field}.workload", workload_ids),
-        signal=reader.choice(row["signal"], f"{field}.signal", _SIGNALS),
-        reference_url=reader.matches(
-            row["reference_url"], f"{field}.reference_url", _LICENCE_REFERENCE
-        ),
-        checked_on=reader.check_date(row["checked_on"], f"{field}.checked_on"),
-        note=reader.bilingual(row["note"], f"{field}.note") if "note" in row else None,
-    )
+type _PlanDetail = tuple[str, str | None, MappingABC[str, str] | None]
+
+
+def _plan_definitions(
+    items: object, reader: _RuleReader, workload_ids: Collection[str]
+) -> dict[str, _PlanDetail]:
+    plans: dict[str, _PlanDetail] = {}
+    names: set[str] = set()
+    for index, item in enumerate(reader.rows(items, "plans")):
+        field = f"plans[{index}]"
+        row = reader.fields(item, field, ("name", "guid", "workload"), ("note",))
+        name = reader.matches(row["name"], f"{field}.name", _IDENTIFIER)
+        if name.casefold() in names:
+            reader.fail(f"{field}.name", "duplicate_id")
+        names.add(name.casefold())
+        workload = row["workload"]
+        if workload is not None:
+            workload = reader.choice(workload, f"{field}.workload", workload_ids)
+        guid = reader.matches(row["guid"], f"{field}.guid", _GUID).lower()
+        note = reader.bilingual(row["note"], f"{field}.note") if "note" in row else None
+        plans[name] = (guid, workload, note)
+    return plans
 
 
 def load_service_plans(
@@ -355,17 +351,50 @@ def load_service_plans(
     checksums: MutableMapping[str, str] | None = None,
 ) -> tuple[ServicePlan, ...]:
     reader, data = _read_rules("service_plans.yaml", path, checksums)
-    root = reader.fields(data, "$", ("plans",))
-    plans: dict[tuple[str, str], ServicePlan] = {}
-    workload_ids = catalogue.workload_ids
-    for index, item in enumerate(reader.rows(root["plans"], "plans")):
-        field = f"plans[{index}]"
-        plan = _service_plan(item, field, reader, workload_ids)
-        key = plan.sku_guid, plan.guid
-        if key in plans:
-            reader.fail(f"{field}.name", "duplicate_id")
-        plans[key] = plan
-    return tuple(plans.values())
+    root = reader.fields(data, "$", ("reference_url", "checked_on", "plans", "products"))
+    reference = reader.matches(root["reference_url"], "reference_url", _LICENCE_REFERENCE)
+    checked_on = reader.check_date(root["checked_on"], "checked_on")
+    definitions = _plan_definitions(root["plans"], reader, catalogue.workload_ids)
+    plans = []
+    sku_guids: set[str] = set()
+    for index, item in enumerate(reader.rows(root["products"], "products")):
+        field = f"products[{index}]"
+        product = reader.fields(item, field, ("sku_part_number", "sku_guid"), _PLAN_CLASSES)
+        sku_guid = reader.matches(product["sku_guid"], f"{field}.sku_guid", _GUID).lower()
+        if sku_guid in sku_guids:
+            reader.fail(f"{field}.sku_guid", "duplicate_id")
+        sku_guids.add(sku_guid)
+        part_number = product["sku_part_number"]
+        if not catalogue.accepts_sku_part_number(part_number, sku_guid):
+            reader.fail(f"{field}.sku_part_number")
+        plan_guids: set[str] = set()
+        for signal in _PLAN_CLASSES:
+            members = reader.rows(product.get(signal, []), f"{field}.{signal}", allow_empty=True)
+            for number, member in enumerate(members):
+                path = f"{field}.{signal}[{number}]"
+                name = reader.choice(member, path, definitions.keys())
+                guid, workload, note = definitions[name]
+                if guid in plan_guids:
+                    reader.fail(path, "duplicate_id")
+                if (signal == "no_workload") != (workload is None):
+                    reader.fail(path)
+                plan_guids.add(guid)
+                plans.append(
+                    ServicePlan(
+                        part_number,
+                        sku_guid,
+                        name,
+                        guid,
+                        workload,
+                        signal,
+                        reference,
+                        checked_on,
+                        note,
+                    )
+                )
+        if not plan_guids:
+            reader.fail(field)
+    return tuple(plans)
 
 
 def classify_product(
@@ -374,33 +403,40 @@ def classify_product(
     matched = {
         (plan.name.casefold(), plan.guid): plan
         for plan in plans
-        if (plan.sku_part_number.casefold(), plan.sku_guid)
-        == (product.sku_part_number.casefold(), product.sku_guid)
+        if sku_key(plan.sku_part_number, plan.sku_guid)
+        == sku_key(product.sku_part_number, product.sku_guid)
     }
     return tuple(matched.get((plan.name.casefold(), plan.guid)) for plan in product.service_plans)
 
 
 def _licence_signals(
     products: tuple[Product, ...], plans: tuple[ServicePlan, ...], workload_ids: tuple[str, ...]
-) -> tuple[set[tuple[str, str]], set[str]]:
+) -> tuple[set[tuple[str, str]], dict[str, str]]:
+    known_products = {sku_key(plan.sku_part_number, plan.sku_guid) for plan in plans}
     assigned: set[tuple[str, str]] = set()
-    unclassified: set[str] = set()
+    unclassified: dict[str, str] = {}
     for product in products:
         if not product.assigned:
+            continue
+        if not product.service_plans:
+            unclassified.update(dict.fromkeys(workload_ids, "licence_plan_list_missing"))
+            continue
+        if sku_key(product.sku_part_number, product.sku_guid) not in known_products:
+            for workload in workload_ids:
+                unclassified.setdefault(workload, "licence_not_classified")
             continue
         for identity, match in zip(
             product.service_plans, classify_product(product, plans), strict=True
         ):
             if match is not None:
-                assigned.add((match.workload, match.signal))
+                if match.workload is not None:
+                    assigned.add((match.workload, match.signal))
                 continue
-            possible = {
-                plan.workload
-                for plan in plans
-                if plan.guid == identity.guid or plan.name.casefold() == identity.name.casefold()
-            }
-            # An unrecognised plan cannot establish that a workload lacks a licence.
-            unclassified.update(possible or workload_ids)
+            for plan in plans:
+                if plan.workload is not None and (
+                    plan.guid == identity.guid or plan.name.casefold() == identity.name.casefold()
+                ):
+                    unclassified.setdefault(plan.workload, "licence_not_classified")
     return assigned, unclassified
 
 
@@ -425,20 +461,24 @@ def licence_findings(
     )
     workload_ids = catalogue.workload_ids
     assigned, unclassified = _licence_signals(licences.products, plans, workload_ids)
+    coverage_gap = {
+        "partial": "coverage_partial",
+        "unknown": "coverage_unknown",
+    }.get(licences.coverage.kind)
     findings = [product_count]
     for workload in workload_ids:
         for signal in _SIGNALS:
             value = (workload, signal) in assigned
-            unknown = not value and workload in unclassified
+            missing = None if value else unclassified.get(workload) or coverage_gap
             findings.append(
                 replace(
                     product_count,
                     id=f"{workload}.licence_{signal}_assigned",
                     workload=workload,
-                    value=None if unknown else value,
+                    value=None if missing else value,
                     unit=None,
-                    provenance="unknown" if unknown else "measured",
-                    missing_reason="licence_not_classified" if unknown else None,
+                    provenance="unknown" if missing else "measured",
+                    missing_reason=missing,
                 )
             )
     return tuple(findings)
@@ -552,7 +592,11 @@ def _complete(finding: Finding | None) -> bool:
 
 
 def mapping_need(finding: Finding | None) -> str:
-    if finding is not None and type(finding.value) is bool and _complete(finding):
+    if finding is None:
+        return "unknown"
+    if _positive_partial(finding):
+        return "yes"
+    if type(finding.value) in (bool, int) and _complete(finding):
         return "yes" if finding.value else "no"
     return "unknown"
 
@@ -572,8 +616,10 @@ def evidence_conflicts(measured: Finding, provided: Finding) -> bool:
         measured.provenance == "measured"
         and _positive_partial(measured)
         and provided.provenance == "provided"
+        and _complete(provided)
+        and type(measured.value) is int
         and type(provided.value) is int
-        and provided.value == 0
+        and provided.value < measured.value
     )
 
 
@@ -590,6 +636,59 @@ def select_evidence(recorded: Finding | None, supplied: Finding) -> Finding:
     return supplied
 
 
+def _skipped_gap(
+    finding: Finding | None, collectors: MappingABC[str, Collector]
+) -> MissingEvidence | None:
+    if finding is None or finding.collector is None:
+        return None
+    collector = collectors.get(finding.collector)
+    if collector is not None and collector.status == "skipped":
+        return MissingEvidence(
+            finding.id, finding.missing_reason or "collector_skipped", collector.id
+        )
+    return None
+
+
+def _condition_evidence(
+    condition: Condition, finding: Finding | None, alternative: Finding | None
+) -> Finding | None:
+    if alternative is not None and alternative.provenance == condition.provenance:
+        return alternative
+    return finding
+
+
+def _observation_gaps(
+    workload: str,
+    conditions: Collection[Condition],
+    findings: MappingABC[str, Finding],
+    alternatives: MappingABC[str, Finding],
+    collectors: MappingABC[str, Collector],
+) -> Iterator[MissingEvidence]:
+    required = {condition.finding for condition in conditions}
+    confirmations = {
+        condition.finding for condition in conditions if condition.provenance == "provided"
+    }
+    for finding_id, alternative in alternatives.items():
+        if alternative.workload != workload:
+            continue
+        if finding_id in required and (skipped := _skipped_gap(alternative, collectors)):
+            yield skipped
+        primary = findings.get(finding_id)
+        if primary is None:
+            continue
+        if evidence_conflicts(primary, alternative):
+            yield MissingEvidence(finding_id, "coverage_partial", primary.collector)
+        if (
+            finding_id in confirmations
+            and {primary.provenance, alternative.provenance} == {"measured", "provided"}
+            and primary.value is not None
+            and alternative.value is not None
+            and primary.value != alternative.value
+            and (type(primary.value) is bool or (_complete(primary) and _complete(alternative)))
+        ):
+            yield MissingEvidence(finding_id, "confirmation_conflict", None)
+
+
 def _gap(
     condition: Condition,
     finding: Finding | None,
@@ -599,16 +698,16 @@ def _gap(
     expected_answer = condition.provenance == "provided" or (
         condition.provenance is None and condition.finding in provided_ids
     )
+    if skipped := _skipped_gap(finding, collectors):
+        return skipped
     collector_id = finding.collector if finding else None
-    collector = collectors.get(collector_id) if collector_id else None
     if finding is None:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
     elif finding.provenance == "unknown":
         code = finding.missing_reason or "not_established"
-    elif collector is not None and collector.status == "skipped":
-        code = "collector_skipped"
     elif condition.provenance is not None and condition.provenance != finding.provenance:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
+        collector_id = None
     elif _complete(finding):
         return None
     elif finding.provenance == "provided":
@@ -639,6 +738,13 @@ def _problem_result(
     if gap is None:
         return _matches_condition(condition, finding)
     if (
+        gap.reason_code in ("coverage_partial", "coverage_unknown")
+        and finding.id.endswith(".licence_add_on_assigned")
+        and finding.value is True
+        and condition.provenance in (None, finding.provenance)
+    ):
+        return _matches_condition(condition, finding)
+    if (
         gap.reason_code in ("coverage_partial", "answer_not_provided")
         and (condition.provenance is None or condition.provenance == finding.provenance)
         and condition.op != "=="
@@ -652,8 +758,9 @@ def _problem_result(
 def _unknown_code(
     gaps: tuple[MissingEvidence, ...], bundled: Finding | None, provided_ids: Collection[str]
 ) -> str:
-    if any(gap.reason_code == "licence_not_classified" for gap in gaps):
-        return "licence_not_classified"
+    for code in ("licence_plan_list_missing", "licence_not_classified", "confirmation_conflict"):
+        if any(gap.reason_code == code for gap in gaps):
+            return code
     if bundled is not None and bundled.value is True and _complete(bundled):
         if any(gap.finding_id in provided_ids for gap in gaps):
             return "licensed_use_not_measured"
@@ -666,33 +773,45 @@ def _evaluate_workload(
     findings: MappingABC[str, Finding],
     provided_ids: Collection[str],
     collectors: MappingABC[str, Collector],
+    alternatives: MappingABC[str, Finding],
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
         (*block.ready, *(item for rule in block.rules for item in rule.when))
     )
-    gaps = {
-        condition: _gap(condition, findings.get(condition.finding), provided_ids, collectors)
+    observations = {
+        condition: _condition_evidence(
+            condition, findings.get(condition.finding), alternatives.get(condition.finding)
+        )
         for condition in conditions
+    }
+    gaps = {
+        condition: _gap(condition, evidence, provided_ids, collectors)
+        for condition, evidence in observations.items()
+    }
+    results = {
+        condition: _problem_result(condition, evidence, gaps[condition])
+        for condition, evidence in observations.items()
     }
     missing = {gap: None for condition in block.ready if (gap := gaps[condition]) is not None}
     fired = []
     for rule in block.rules:
-        results = [
-            _problem_result(condition, findings.get(condition.finding), gaps[condition])
-            for condition in rule.when
-        ]
-        if False not in results:
+        matches = [results[condition] for condition in rule.when]
+        if False not in matches:
             missing.update(
                 dict.fromkeys(
                     gap for condition in rule.when if (gap := gaps[condition]) is not None
                 )
             )
-        if all(results):
+        if all(matches):
             fired.append(rule)
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
     bundled_id = f"{workload}.licence_bundled_assigned"
     bundled = findings.get(bundled_id)
     ids = dict.fromkeys(condition.finding for condition in conditions)
+    missing.update(
+        dict.fromkeys(_observation_gaps(workload, conditions, findings, alternatives, collectors))
+    )
+    ids.update(dict.fromkeys(gap.finding_id for gap in missing))
     if bundled is not None and bundled.value is True:
         ids[bundled_id] = None
     evidence = tuple(findings[finding_id] for finding_id in ids if finding_id in findings)
@@ -702,9 +821,7 @@ def _evaluate_workload(
         return WorkloadStatus(
             workload, deciding.status, None, incomplete, deciding, notes, evidence
         )
-    if not incomplete and all(
-        _matches_condition(condition, findings[condition.finding]) for condition in block.ready
-    ):
+    if not incomplete and all(results[condition] for condition in block.ready):
         return WorkloadStatus(workload, "ready", None, (), None, (), evidence)
     code = _unknown_code(incomplete, bundled, provided_ids)
     return WorkloadStatus(workload, "unknown", code, incomplete, None, (), evidence)
@@ -716,11 +833,17 @@ def evaluate(
     catalogue: Catalogue,
     *,
     collectors: MappingABC[str, Collector] | None = None,
+    alternatives: MappingABC[str, Finding] | None = None,
 ) -> tuple[WorkloadStatus, ...]:
     provided_ids = {entry.id for entry in catalogue.findings if entry.provided != "no"}
     return tuple(
         _evaluate_workload(
-            workload, rule_set.workloads[workload], findings, provided_ids, collectors or {}
+            workload,
+            rule_set.workloads[workload],
+            findings,
+            provided_ids,
+            collectors or {},
+            alternatives or {},
         )
         for workload in catalogue.workload_ids
     )

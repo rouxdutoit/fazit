@@ -10,8 +10,8 @@ Build the report with `befund report SCAN_JSON --inputs inputs.yaml`.
 - Which three-letter currency code does finance use for the comparison (`currency`)?
 - Which report language does the project lead need, English (`en`) or German (`de`) (`language`)?
 - Which target profile has the IT lead chosen, `opendesk`, `nextcloud` or `generic` (`target_profile`)?
-- On what date did the project lead receive the answers (`as_of`)?
-- Has the project lead confirmed that the amounts are invented for a demonstration (`amounts_are_invented`)?
+- On what date were the answers given (`as_of`)?
+- Are the amounts invented for a demonstration (`amounts_are_invented`)?
 
 ## What Microsoft and other IT cost today
 
@@ -60,7 +60,7 @@ Use `target_costs.full_exit` for the full exit.
 
 Remove `null` and add one entry per application, or enter `[]` when the IT lead confirms there are none.
 
-- Which applications does the IT lead identify as running only on Windows (`windows_only_software`)?
+- Which applications can run only on Windows (`windows_only_software`)?
 - Which name does the IT lead use for the application (`windows_only_software.name`)?
 - How many people use it, according to the department heads (`windows_only_software.users`)?
 - Does the software vendor offer a web version (`windows_only_software.vendor_has_web_version`)?
@@ -79,15 +79,15 @@ Enter whole numbers under `provided_counts` and use `true` or `false` under `con
 
 ### Mail
 
-- Does the IT lead know of other systems, such as scanners or business applications, that send mail through Microsoft (`mail.other_systems_send_mail`)?
+- Do other systems, such as scanners or business applications, send email through Microsoft (`mail.other_systems_send_mail`)?
 
 ### OneDrive
 
-- Can the IT lead confirm whether OneDrive files are shared with people outside the organisation (`onedrive.external_sharing_in_use`)?
+- Does your organisation share OneDrive files with people outside the organisation (`onedrive.external_sharing_in_use`)?
 
 ### SharePoint
 
-- Does the IT lead know whether any purpose-built SharePoint solutions are in use (`sharepoint.custom_solutions_in_use`)?
+- Does your organisation use any custom SharePoint solutions (`sharepoint.custom_solutions_in_use`)?
 
 ### Teams
 
@@ -105,29 +105,29 @@ Enter whole numbers under `provided_counts` and use `true` or `false` under `con
 
 - How many devices are in scope according to the IT lead's inventory (`device_management.device_count`)?
 - How many of those devices run Windows according to the IT lead (`device_management.windows_device_count`)?
-- Does the IT lead confirm that any devices are managed through Microsoft (`device_management.in_use`)?
+- Does your organisation manage any devices through Microsoft (`device_management.in_use`)?
 
 ### Power Platform
 
-- Do the IT lead or department heads confirm any use of Power Platform, including Power Apps, Power Automate or Power BI (`power_platform.in_use`)?
+- Does your organisation use Power Platform services such as Power Apps, Power Automate or Power BI (`power_platform.in_use`)?
 
 ### Telephony
 
-- Does the IT lead confirm that any of the organisation's telephony runs through Microsoft (`telephony.in_use`)?
-- Does the IT lead have an available replacement for the Microsoft telephony in use (`telephony.replacement_available`)?
+- Does some or all of your organisation's telephony run through Microsoft (`telephony.in_use`)?
+- Is a replacement available for the Microsoft telephony your organisation uses (`telephony.replacement_available`)?
 
 ### Identity and access
 
 - How many applications use Microsoft single sign-on according to the IT lead (`identity_access.sso_application_count`)?
-- Does the IT lead confirm that the organisation uses Conditional Access (`identity_access.conditional_access_in_use`)?
+- Does your organisation use Microsoft Conditional Access (`identity_access.conditional_access_in_use`)?
 
 ### Security and compliance
 
-- Do the security or records leads confirm any use of Microsoft protection or retention features (`security_compliance.protection_or_retention_in_use`)?
+- Are any Microsoft protection or retention features in use, according to the security or records leads (`security_compliance.protection_or_retention_in_use`)?
 
 ### Smaller Microsoft applications
 
-- Do department heads confirm any use of smaller Microsoft applications such as Forms, Planner or Bookings (`small_apps.in_use`)?
+- Do departments use smaller Microsoft applications such as Forms, Planner or Bookings (`small_apps.in_use`)?
 
 ### Application integrations
 

@@ -22,7 +22,7 @@ found:
   coverage: Umfang der Erhebung
   sample: Die Messwerte der Erhebung sind simuliert.
   note: Hinweis
-  comparison: Nur zum Vergleich
+  comparison: Weitere Beobachtung
   partial_positive: 'Mindestens {value}'
   partial_zero: '{value} im geprüften Bestand'
   notes:
@@ -37,6 +37,7 @@ licences:
   bundled: Im Produkt enthalten
   add_on: Separat lizenziert
   unclassified: 'Dienstpläne ohne Einordnung in diesem Produkt: {count}.'
+  no_workload: 'Dienstpläne ohne Bezug zu einem geprüften Bereich: {count}.'
   add_on_assigned: 'Separat zugewiesene Lizenz für {workload}'
   bundled_assigned: 'Im Produkt enthaltene, zugewiesene Lizenz für {workload}'
 status:
@@ -119,7 +120,7 @@ readiness:
   evidence: Datengrundlage
   incomplete: Datengrundlage unvollständig
   missing: Noch benötigte Angaben
-  conflict: Trotz der gemeldeten Null wurden bei der Erhebung betroffene Elemente gefunden, daher gilt für die Einstufung die erhobene Mindestzahl.
+  conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
   not_examined: Nicht untersucht
 moves:
   title: Funktionen im Zielsystem
@@ -209,6 +210,8 @@ collector:
   sharepoint_site_usage: Bericht zur Nutzung von SharePoint-Websites
   teams_usage: Bericht zur Teams-Nutzung
   exchange_recipients: Export der Exchange-Empfänger
+  office_files: Bestandsaufnahme der Dateitypen
+  telephony: Bestandsaufnahme der Telefonienutzung
 collector_status:
   ok: Abgeschlossen
   partial: Teilweise abgeschlossen
@@ -221,7 +224,10 @@ source:
   sample.sharepoint_site_usage: SharePoint-Nutzung aus Beispieldaten
   sample.teams_usage: Teams-Nutzung aus Beispieldaten
   sample.exchange_recipients: Exchange-Empfänger aus Beispieldaten
+  sample.office_files: Dateitypen aus Beispieldaten
+  sample.telephony: Telefonienutzung aus Beispieldaten
   sample.interview: Beispielangabe aus einem Gespräch
+  sample.inputs_yaml: Beispielangabe
   interview: Angabe aus dem Gespräch
   inputs_yaml: Angabe in der Eingabedatei
 coverage:
@@ -249,7 +255,7 @@ reason:
     fix: Fragen Sie bei der für den Dienst zuständigen Stelle nach.
   answer_not_provided:
     label: Die Angabe fehlt.
-    fix: Klären Sie die Frage und ergänzen Sie die Eingabedatei.
+    fix: Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.
   source_not_supplied:
     label: Die Datenquelle lag nicht vor.
     fix: Stellen Sie den erforderlichen Export bereit und erstellen Sie den Bericht erneut.
@@ -268,12 +274,18 @@ reason:
   licence_not_classified:
     label: Das Programm konnte die Lizenz nicht einordnen.
     fix: Gleichen Sie das Produkt und den Dienstplan mit der Lizenzreferenz ab.
+  licence_plan_list_missing:
+    label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Dienstpläne.
+    fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
   coverage_unknown:
     label: Der Umfang der Erhebung ist unbekannt.
     fix: Klären Sie, welche Elemente erfasst wurden, oder reichen Sie eine vollständige Angabe nach.
+  confirmation_conflict:
+    label: Die Erhebung und die eingetragene Antwort stimmen nicht überein.
+    fix: Prüfen Sie, ob sich beide auf denselben Umfang beziehen, und korrigieren Sie die Angaben.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
@@ -400,6 +412,7 @@ errors:
   non_finite_number: Geben Sie für {field} in der Datei {file} eine endliche Zahl an.
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
   invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
+  invalid_evidence_source: Das Erhebungsverfahren oder die Quelle unter {field} in der Datei {file} ist für {finding} ungültig.
   file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
   is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
   not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.

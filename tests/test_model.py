@@ -329,6 +329,7 @@ def test_provided_boolean_allows_a_missing_date(
         ("value", "true"),
         ("value", 1),
         ("collector", "mailbox_usage"),
+        ("source", "sample.mailbox_usage"),
         ("coverage", {"kind": "complete"}),
     ],
 )

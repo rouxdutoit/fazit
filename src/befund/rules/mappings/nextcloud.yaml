@@ -112,6 +112,7 @@ functions:
       de: Zu den Kernkomponenten gehören Programme zur Dateisynchronisierung. Die Registrierung von Geräten und systemweite Geräterichtlinien liegen außerhalb dieses Funktionsumfangs.
   - function: desktop_operating_system
     workload: device_management
+    need_finding: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Separately managed workstation operating system, de: Separat verwaltetes Betriebssystem für Arbeitsplatzrechner}
     coverage: not_available
@@ -122,6 +123,7 @@ functions:
       de: Nextcloud stellt Programme für vorhandene Arbeitsplatzbetriebssysteme bereit. Das Betriebssystem für die Arbeitsplatzrechner ist gesondert bereitzustellen.
   - function: windows_applications
     workload: windows_software
+    need_finding: windows_software.application_count
     microsoft: {en: Running Windows-only applications, de: Betrieb reiner Windows-Anwendungen}
     replacement: {en: Separate hosting or replacement of each application, de: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen}
     coverage: not_available

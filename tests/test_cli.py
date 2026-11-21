@@ -659,13 +659,36 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     html = path.read_text(encoding="utf-8")
     readiness = _section(html, "readiness")
     assert 'data-workload="telephony" data-status="blocker"' in readiness
-    assert 'data-workload="windows_software" data-status="blocker"' in readiness
+    assert 'data-workload="windows_software" data-status="needs_work"' in readiness
     assert 'data-workload="mail" data-status="needs_work" data-incomplete' in readiness
     assert 'data-reason="needs_recipient_export"' in readiness
     assert 'data-workload="mail" data-status="ready"' not in readiness
     macro = re.compile(r'<tr data-finding="office_files.kind.macro".*?</tr>', re.S)
-    assert "Sample interview answer" in macro.search(demo_report.read_text(encoding="utf-8"))[0]
-    assert "Answer in the inputs file" in macro.search(html)[0]
+    original_html = demo_report.read_text(encoding="utf-8")
+    assert "Sample input" in macro.search(original_html)[0]
+    assert "Sample input" in macro.search(html)[0]
+    assert 'data-cost-origin="sample_input">Sample input' in _section(html, "costs")
+    assert "answers_are_sample: true" in answers.read_text(encoding="utf-8")
+
+    own = tmp_path / "own-inputs.yaml"
+    text = answers.read_text(encoding="utf-8")
+    own.write_text(
+        text.replace("answers_are_sample: true", "answers_are_sample: false").replace(
+            "office_files.kind.macro: 271", "office_files.kind.macro: 6"
+        ),
+        encoding="utf-8",
+    )
+    rebuilt = runner.invoke(
+        app, ["report", str(source), "--inputs", str(own), "--out", str(tmp_path / "own")]
+    )
+    assert rebuilt.exit_code == 0, rebuilt.output
+    own_html = Path(rebuilt.stdout.strip()).read_text(encoding="utf-8")
+    assert "6 files" in macro.search(own_html)[0] and "Provided" in macro.search(own_html)[0]
+    assert "Sample input" not in macro.search(own_html)[0]
+    own_costs = _section(own_html, "costs")
+    assert 'data-cost-origin="provided">Provided' in own_costs
+    assert 'data-cost-origin="sample_input"' not in own_costs
+    assert 'data-cost-origin="invented"' in own_costs
 
     scan_only = runner.invoke(app, ["report", str(source), "--out", str(tmp_path / "scan-only")])
     assert scan_only.exit_code == 0, scan_only.output

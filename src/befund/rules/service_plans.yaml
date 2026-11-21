@@ -1,1164 +1,1765 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# The same plan may be a suite entitlement or an assigned add-on depending on the SKU.
-# This list covers selected suites and separately licensed products. Other pairs remain unclassified.
+# Product rosters follow the published licensing reference. Classification is by product and plan.
+reference_url: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
+checked_on: "2026-11-21"
 plans:
-  - sku_part_number: AAD_PREMIUM
+  - {name: AAD_PREMIUM, guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d, workload: identity_access}
+  - {name: AAD_PREMIUM_P2, guid: eec0eb4f-6444-4f95-aba0-50c24d67f998, workload: identity_access}
+  - {name: AAD_SMB, guid: de377cbc-0019-4ec2-b77c-3f223947e102, workload: directory}
+  - {name: ADALLOM_S_DISCOVERY, guid: 932ad362-64a8-4783-9106-97849a1a30b9, workload: security_compliance}
+  - {name: ADALLOM_S_O365, guid: 8c098270-9dd4-4350-9b30-ba4703f3b36b, workload: security_compliance}
+  - {name: ADALLOM_S_STANDALONE, guid: 2e2ddb96-6af9-4b1d-a3f0-d6ecfd22edb2, workload: security_compliance}
+  - {name: ATA, guid: 14ab5db5-e6c4-4b20-b4bc-13e36fd2227f, workload: security_compliance}
+  - {name: ATP_ENTERPRISE, guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939, workload: security_compliance}
+  - {name: BI_AZURE_P2, guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba, workload: power_platform}
+  - {name: BI_AZURE_P3, guid: 0bf3c642-7bb5-4ccc-884e-59d09df0266c, workload: power_platform}
+  - {name: Bing_Chat_Enterprise, guid: 0d0c0d31-fae7-41f2-b909-eaf4d7f26dba, workload: null}
+  - {name: BPOS_S_DlpAddOn, guid: 9bec7e34-c9fa-40b7-a9d1-bd6d1165c7ed, workload: security_compliance}
+  - {name: BPOS_S_TODO_1, guid: 5e62787c-c316-451f-b873-1d05acd4d12c, workload: small_apps}
+  - {name: BPOS_S_TODO_2, guid: c87f142c-d1e9-4363-8630-aaea9c4d9ae5, workload: small_apps}
+  - {name: BPOS_S_TODO_3, guid: 3fb82609-8c27-4f7b-bd51-30634711ee67, workload: small_apps}
+  - {name: BPOS_S_TODO_FIRSTLINE, guid: 80873e7a-cd2a-4e67-b061-1b5381a676a5, workload: small_apps}
+  - {name: CDS_O365_F1, guid: 90db65a7-bf11-4904-a79f-ef657605145b, workload: power_platform}
+  - {name: CDS_O365_P1, guid: bed136c6-b799-4462-824d-fc045d3a9d25, workload: power_platform}
+  - {name: CDS_O365_P2, guid: 95b76021-6a53-4741-ab8b-1d1f3d66a95a, workload: power_platform}
+  - {name: CDS_O365_P3, guid: afa73018-811e-46e9-988f-f75d2b1b8430, workload: power_platform}
+  - {name: CDSAICAPACITY_PERUSER, guid: 91f50f7b-2204-4803-acac-5cf5668b8b39, workload: null}
+  - {name: CDSAICAPACITY_PERUSER_NEW, guid: 74d93933-6f22-436e-9441-66d205435abb, workload: power_platform}
+  - {name: CLIPCHAMP, guid: a1ace008-72f3-4ea0-8dac-33b3a23a2472, workload: small_apps}
+  - {name: COMMUNICATIONS_COMPLIANCE, guid: 41fcdd7d-4733-4863-9cf4-c65b83ce2df4, workload: null}
+  - {name: COMMUNICATIONS_DLP, guid: 6dc145d6-95dd-4191-b9c3-185575ee6f6b, workload: security_compliance}
+  - {name: Content_Explorer, guid: d9fa6af4-e046-4c89-9226-729a0786685d, workload: security_compliance}
+  - {name: ContentExplorer_Standard, guid: 2b815d45-56e4-4e3a-b65c-66cb9175b560, workload: security_compliance}
+  - {name: CUSTOMER_KEY, guid: 6db1f1db-2b46-403f-be40-e39395f08dbb, workload: security_compliance}
+  - {name: CustomerLockboxA_Enterprise, guid: 3ec18638-bd4c-4d3b-8905-479ed636b83e, workload: security_compliance}
+  - {name: DATA_INVESTIGATIONS, guid: 46129a58-a698-46f0-aa5b-17f6586297d9, workload: security_compliance}
+  - {name: Defender_for_Iot_Enterprise, guid: 99cd49a9-0e54-4e07-aea1-d8d9f5f704f5, workload: security_compliance}
+  - {name: Deskless, guid: 8c7d2df8-86f0-4902-b2ed-a0458298f3b3, workload: null}
+  - {name: DYN365_CDS_O365_F1, guid: ca6e61ec-d4f4-41eb-8b88-d96e0e14323f, workload: power_platform}
+  - {name: DYN365_CDS_O365_P1, guid: 40b010bb-0b69-4654-ac5e-ba161433f4b4, workload: power_platform}
+  - {name: DYN365_CDS_O365_P2, guid: 4ff01e01-1ba7-4d71-8cf8-ce96c3bbcf14, workload: power_platform}
+  - {name: DYN365_CDS_O365_P3, guid: 28b0fa46-c39a-4188-89e2-58e979a6b014, workload: power_platform}
+  - {name: DYN365_CDS_P2, guid: 6ea4c1ef-c259-46df-bce2-943342cd3cb2, workload: power_platform}
+  - {name: DYN365BC_MS_INVOICING, guid: 39b5c996-467e-4e60-bd62-46066f572726, workload: null}
+  - {name: EQUIVIO_ANALYTICS, guid: 4de31727-a228-4ec3-a5bf-8e45b5ca48cc, workload: security_compliance}
+  - {name: EXCEL_PREMIUM, guid: 531ee2f8-b1cb-453b-9c21-d2180d014ca5, workload: office_files}
+  - {name: EXCHANGE_ANALYTICS, guid: 34c0d7a0-a70f-4668-9238-47f9fc208882, workload: null}
+  - {name: EXCHANGE_S_ARCHIVE, guid: da040e0a-b393-4bea-bb76-928b3fa1cf5a, workload: security_compliance}
+  - {name: EXCHANGE_S_ARCHIVE_ADDON, guid: 176a09a6-7ec5-4039-ac02-b2791c6ba793, workload: security_compliance}
+  - {name: EXCHANGE_S_DESKLESS, guid: 4a82b400-a79f-41a4-b4e2-e94f5787b113, workload: mail}
+  - {name: EXCHANGE_S_ENTERPRISE, guid: efb87545-963c-4e0d-99df-69c6916d9eb0, workload: mail}
+  - {name: EXCHANGE_S_FOUNDATION, guid: 113feb6c-3fe4-4440-bddc-54d774bf0318, workload: null}
+  - {name: EXCHANGE_S_STANDARD, guid: 9aaf7827-d63c-4b61-89c3-182f06f82e5c, workload: mail}
+  - {name: FLOW_O365_P1, guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4, workload: power_platform}
+  - {name: FLOW_O365_P2, guid: 76846ad7-7776-4c40-a281-a386362dd1b9, workload: power_platform}
+  - {name: FLOW_O365_P3, guid: 07699545-9485-468e-95b6-2fca3738be01, workload: power_platform}
+  - {name: FLOW_O365_S1, guid: bd91b1a4-9f94-4ecf-b45b-3a65e5c8128a, workload: power_platform}
+  - {name: FLOW_PER_USER, guid: c5002c70-f725-4367-b409-f0eff4fee6c0, workload: power_platform}
+  - {name: Flow_PowerApps_PerUser, guid: dc789ed8-0170-4b65-a415-eb77d5bb350a, workload: power_platform}
+  - {name: FORMS_PLAN_E1, guid: 159f4cd6-e380-449f-a816-af1a9ef76344, workload: small_apps}
+  - {name: FORMS_PLAN_E3, guid: 2789c901-c14e-48ab-a76a-be334d9d793a, workload: small_apps}
+  - {name: FORMS_PLAN_E5, guid: e212cbc7-0961-4c40-9825-01117710dcb1, workload: small_apps}
+  - {name: FORMS_PLAN_K, guid: f07046bd-2a3c-4b96-b0be-dea79d7cbfb8, workload: small_apps}
+  - {name: GRAPH_CONNECTORS_SEARCH_INDEX, guid: a6520331-d7d4-4276-95f5-15c0933bc757, workload: integrations}
+  - {name: INFO_GOVERNANCE, guid: e26c2fcc-ab91-4a61-b35c-03cdc8dddf66, workload: security_compliance}
+  - {name: INFORMATION_BARRIERS, guid: c4801e8a-cb58-4c35-aca6-f2dcc106f287, workload: security_compliance}
+  - {name: INSIDER_RISK, guid: d587c7a3-bda9-4f99-8776-9bcf59c84f75, workload: security_compliance}
+  - {name: INSIDER_RISK_MANAGEMENT, guid: 9d0c4ee5-e4a1-4625-ab39-d82b619b1a34, workload: null}
+  - {name: INTUNE_A, guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5, workload: device_management}
+  - {name: INTUNE_O365, guid: 882e1d05-acd1-4ccb-8708-6ee03664b117, workload: device_management}
+  - {name: INTUNE_SMBIZ, guid: 8e9ff0ff-aa7a-4b20-83c1-2f636b600ac2, workload: device_management}
+  - {name: KAIZALA_O365_P1, guid: 73b2a583-6a59-42e3-8e83-54db46bc3278, workload: null}
+  - {name: KAIZALA_O365_P2, guid: 54fc630f-5a40-48ee-8965-af0503c1386e, workload: null}
+  - {name: KAIZALA_O365_P3, guid: aebd3021-9f8f-4bf8-bbe3-0ed2f4f047a1, workload: null}
+  - {name: KAIZALA_STANDALONE, guid: 0898bdbb-73b0-471a-81e5-20f1fe4dd66e, workload: null}
+  - {name: LOCKBOX_ENTERPRISE, guid: 9f431833-0334-42de-a7dc-70aa40db46db, workload: security_compliance}
+  - {name: M365_ADVANCED_AUDITING, guid: 2f442157-a11c-46b9-ae5b-6e39ff4e5849, workload: security_compliance}
+  - {name: M365_AUDIT_PLATFORM, guid: f6de4823-28fa-440b-b886-4783fa86ddba, workload: security_compliance}
+  - {name: M365_LIGHTHOUSE_CUSTOMER_PLAN1, guid: 6f23d6a9-adbf-481c-8538-b4c095654487, workload: null}
+  - {name: M365_LIGHTHOUSE_PARTNER_PLAN1, guid: d55411c9-cfff-40a9-87c7-240f14df7da5, workload: null}
+  - {name: MCOEV, guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7, workload: telephony}
+  - {name: MCOIMP, guid: afc06cb0-b4f4-4473-8286-d644f70d8faf, workload: teams}
+  - {name: MCOMEETADV, guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40, workload: teams}
+  - {name: MCOPSTN1, guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8, workload: telephony}
+  - {name: MCOPSTN2, guid: 5a10155d-f5c1-411a-a8ec-e99aae125390, workload: telephony}
+  - {name: MCOPSTN8, guid: 16935b20-87c0-4908-934a-22aa267d0d26, workload: telephony}
+  - {name: MCOSMS2, guid: d4009785-b899-4cab-97b6-d06a7c799507, workload: telephony}
+  - {name: MCOSTANDARD, guid: 0feaeb32-d00e-4d66-bd5a-43b5b83db82c, workload: teams}
+  - {name: MDE_LITE, guid: 292cc034-7b7c-4950-aaf5-943befd3f1d4, workload: security_compliance}
+  - {name: MDE_SMB, guid: bfc1bbd9-981b-4f71-9b82-17c35fd0e2a4, workload: security_compliance}
+  - {name: MESH_AVATARS_ADDITIONAL_FOR_TEAMS, guid: 3efbd4ed-8958-4824-8389-1321f8730af8, workload: teams}
+  - {name: MESH_AVATARS_FOR_TEAMS, guid: dcf9d2f4-772e-4434-b757-77a453cfbc02, workload: teams}
+  - {name: MESH_IMMERSIVE_FOR_TEAMS, guid: f0ff6ac6-297d-49cd-be34-6dfef97f0c28, workload: teams}
+  - {name: MFA_PREMIUM, guid: 8a256a2b-b617-496d-b51b-e76466e88db0, workload: identity_access}
+  - {name: MICROSOFT_COMMUNICATION_COMPLIANCE, guid: a413a9ff-720c-4822-98ef-2f37c2a21f4c, workload: security_compliance}
+  - {name: MICROSOFT_LOOP, guid: c4b8c31a-fb44-4c65-9837-a21f55fcabda, workload: small_apps}
+  - {name: MICROSOFT_SEARCH, guid: 94065c59-bc8e-4e8b-89e5-5138d471eaff, workload: null}
+  - {name: MICROSOFT_TEAMS_EVENTS, guid: 29c62f1c-8ffc-4304-9cb9-398a6aa1852b, workload: teams}
+  - {name: MICROSOFTBOOKINGS, guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2, workload: small_apps}
+  - {name: MICROSOFTENDPOINTDLP, guid: 64bfac92-2b17-4482-b5e5-a0304429de3e, workload: security_compliance}
+  - {name: MIP_S_CLP1, guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5, workload: security_compliance}
+  - {name: MIP_S_CLP2, guid: efb0351d-3b08-4503-993d-383af8de41e3, workload: security_compliance}
+  - {name: MIP_S_Exchange, guid: cd31b152-6326-4d1b-ae1b-997b625182e6, workload: security_compliance}
+  - {name: ML_CLASSIFICATION, guid: d2d51368-76c9-4317-ada2-a12c004c432f, workload: security_compliance}
+  - {name: MTP, guid: bf28f719-7844-4079-9c78-c1307898e192, workload: security_compliance}
+  - {name: MYANALYTICS_P2, guid: 33c4f319-9bdd-48d6-9c4d-410b750a4a5a, workload: null}
+  - {name: Nucleus, guid: db4d623d-b514-490b-b7ef-8885eee514de, workload: null}
+  - {name: O365_SB_Relationship_Management, guid: 5bfe124c-bbdc-4494-8835-f1297d457d79, workload: null}
+  - {name: OFFICE_BUSINESS, guid: 094e7854-93fc-4d55-b2c0-3ab5369ebdc1, workload: office_files}
+  - {name: OFFICE_SHARED_COMPUTER_ACTIVATION, guid: 276d6e8a-f056-4f70-b7e8-4fc27f79f809, workload: office_files}
+  - {name: OFFICEMOBILE_SUBSCRIPTION, guid: c63d4d19-e8cb-460e-b37c-4d6c34603745, workload: office_files}
+  - {name: OFFICESUBSCRIPTION, guid: 43de0ff5-c92c-492b-9116-175376d08c38, workload: office_files}
+  - {name: OFFICESUBSCRIPTION_unattended, guid: 8d77e2d9-9e28-4450-8431-0def64078fc5, workload: office_files}
+  - {name: PAM_ENTERPRISE, guid: b1188c4c-1b36-4018-b48b-ee07604f6feb, workload: identity_access}
+  - {name: Power_Pages_Internal_User, guid: 60bf28f9-2b70-4522-96f7-335f5e06c941, workload: power_platform}
+  - {name: POWER_VIRTUAL_AGENTS_O365_F1, guid: ba2fdb48-290b-4632-b46a-e4ecc58ac11a, workload: power_platform}
+  - {name: POWER_VIRTUAL_AGENTS_O365_P1, guid: 0683001c-0492-4d59-9515-d9a6426b5813, workload: power_platform}
+  - {name: POWER_VIRTUAL_AGENTS_O365_P2, guid: 041fe683-03e4-45b6-b1af-c0cdc516daee, workload: power_platform}
+  - {name: POWER_VIRTUAL_AGENTS_O365_P3, guid: ded3d325-1bdc-453e-8432-5bac26d7a014, workload: power_platform}
+  - {name: POWERAPPS_O365_P1, guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c, workload: power_platform}
+  - {name: POWERAPPS_O365_P2, guid: c68f8d98-5534-41c8-bf36-22fa496fa792, workload: power_platform}
+  - {name: POWERAPPS_O365_P3, guid: 9c0dab89-a30c-4117-86e7-97bda240acd2, workload: power_platform}
+  - {name: POWERAPPS_O365_S1, guid: e0287f9f-e222-4f98-9a83-f379e249159a, workload: power_platform}
+  - {name: POWERAPPS_PER_USER, guid: ea2cf03b-ac60-46ae-9c1d-eeaeb63cec86, workload: power_platform}
+  - {name: PREMIUM_ENCRYPTION, guid: 617b097b-4b93-4ede-83de-5f075bb5fb2f, workload: security_compliance}
+  - {name: PROJECT_O365_F3, guid: 7f6f28c2-34bb-4d4b-be36-48ca2e77e1ec, workload: small_apps}
+  - {name: PROJECT_O365_P1, guid: a55dfd10-0864-46d9-a3cd-da5991a3e0e2, workload: small_apps}
+  - {name: PROJECT_O365_P2, guid: 31b4e2fc-4cd6-4e7d-9c1b-41407303bd66, workload: small_apps}
+  - {name: PROJECT_O365_P3, guid: b21a6b06-1988-436e-a07b-51ec6d9f52ad, workload: small_apps}
+  - {name: PROJECTWORKMANAGEMENT, guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9, workload: small_apps}
+  - {name: PURVIEW_DISCOVERY, guid: c948ea65-2053-4a5a-8a62-9eaaaf11b522, workload: security_compliance}
+  - {name: RECORDS_MANAGEMENT, guid: 65cc641f-cccd-4643-97e0-a17e3045e541, workload: security_compliance}
+  - {name: RMS_S_BASIC, guid: 31cf2cfc-6b0d-4adc-a336-88b724ed8122, workload: security_compliance}
+  - {name: RMS_S_ENTERPRISE, guid: bea4c11e-220a-4e6d-8eb8-8ea15d019f90, workload: security_compliance}
+  - {name: RMS_S_PREMIUM, guid: 6c57d4b6-3b23-47a5-9bc9-69f17b4947b3, workload: security_compliance}
+  - {name: RMS_S_PREMIUM2, guid: 5689bec4-755d-4753-8b61-40975025187c, workload: security_compliance}
+  - {name: SAFEDOCS, guid: bf6f5520-59e3-4f82-974b-7dbbc4fd27c7, workload: security_compliance}
+  - {name: SHAREPOINTDESKLESS, guid: 902b47e5-dcb2-4fdc-858b-c63a90a2bdb9, workload: sharepoint}
+  - {name: SHAREPOINTENTERPRISE, guid: 5dbe027f-2339-4123-9542-606e4d348a72, workload: sharepoint}
+  - {name: SHAREPOINTENTERPRISE_MIDMARKET, guid: 6b5b6a67-fc72-4a1f-a2b5-beecf05de761, workload: sharepoint}
+  - {name: SHAREPOINTSTANDARD, guid: c7699d2e-19aa-44de-8edf-1736da088ca1, workload: sharepoint}
+  - {name: SHAREPOINTWAC, guid: e95bec33-7c88-4a70-8e19-b10bd9d0c014, workload: office_files}
+  - {name: STREAM_O365_E1, guid: 743dd19e-1ce3-4c62-a3ad-49ba8f63a2f6, workload: small_apps}
+  - {name: STREAM_O365_E3, guid: 9e700747-8b1d-45e5-ab8d-ef187ceec156, workload: small_apps}
+  - {name: STREAM_O365_E5, guid: 6c6042f5-6f01-4d67-b8c1-eb99d36eed3e, workload: small_apps}
+  - {name: STREAM_O365_K, guid: 3ffba0d2-38e5-4d5e-8ec0-98f2b05c09d9, workload: small_apps}
+  - {name: STREAM_O365_SMB, guid: 3c53ea51-d578-46fa-a4c0-fd0a92809a60, workload: small_apps}
+  - {name: SWAY, guid: a23b959c-7ce8-4e57-9140-b90eb88a9e97, workload: small_apps}
+  - {name: TEAMS1, guid: 57ff2da0-773e-42df-b2af-ffb7a2317929, workload: teams}
+  - {name: TEAMS_DESKLESS, guid: a42de799-58ae-4e6a-aa1d-948e7abec726, workload: teams}
+  - {name: THREAT_INTELLIGENCE, guid: 8e0c0a52-6a6c-4d40-8370-dd62790dcd70, workload: security_compliance}
+  - {name: UNIVERSAL_PRINT_01, guid: 795f6fe0-cc4d-4773-b050-5dde4dc704c9, workload: device_management}
+  - {name: VIVA_LEARNING_SEEDED, guid: b76fb638-6ba6-402a-b9f9-83d28acb3d86, workload: small_apps}
+  - {name: VIVAENGAGE_CORE, guid: a82fbf69-b4d7-49f4-83a6-915b2cf354f4, workload: small_apps}
+  - {name: WHITEBOARD_FIRSTLINE1, guid: 36b29273-c6d0-477a-aca6-6fbe24f538e3, workload: small_apps}
+  - {name: WHITEBOARD_PLAN1, guid: b8afc642-032e-4de5-8c0a-507a7bba7e5d, workload: small_apps}
+  - {name: WHITEBOARD_PLAN2, guid: 94a54592-cd8b-425e-87c6-97868b000b91, workload: small_apps}
+  - {name: WHITEBOARD_PLAN3, guid: 4a51bca5-1eff-43f5-878c-177680f191af, workload: small_apps}
+  - {name: WIN10_ENT_LOC_F1, guid: e041597c-9c7f-4ed9-99b0-2663301576f7, workload: device_management}
+  - {name: WIN10_PRO_ENT_SUB, guid: 21b439ba-a0ca-424f-a6cc-52f954a5b111, workload: device_management}
+  - {name: WINBIZ, guid: 8e229017-d77b-43d5-9305-903395523b99, workload: device_management}
+  - {name: WINDEFATP, guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef, workload: security_compliance}
+  - {name: Windows_Autopatch, guid: 9a6eeb79-0b4b-4bf0-9808-39d99a2cd5a3, workload: device_management}
+  - {name: WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE, guid: 7bf960f6-2cd9-443a-8046-5dbff9558365, workload: device_management}
+  - {name: YAMMER_ENTERPRISE, guid: 7547a3fe-08ee-4ccb-b430-5077c5041653, workload: small_apps}
+  - {name: YAMMER_MIDSIZE, guid: 41bf139a-4e60-409f-9346-a1361efc6dfb, workload: small_apps}
+products:
+  # Microsoft Entra ID P1
+  - sku_part_number: "AAD_PREMIUM"
     sku_guid: 078d2b04-f1bd-4111-bbd4-b4b1b354cef4
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: add_on
-    reference_url: &reference https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
-    checked_on: &checked_on "2026-11-21"
-  - sku_part_number: AAD_PREMIUM_FACULTY
-    sku_guid: 30fc3c36-5a95-4956-ba57-c09c2a600bb9
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: AAD_PREMIUM_P2
+    add_on:
+      - AAD_PREMIUM
+    bundled:
+      - ADALLOM_S_DISCOVERY
+      - MFA_PREMIUM
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Microsoft Entra ID P2
+  - sku_part_number: "AAD_PREMIUM_P2"
     sku_guid: 84a661c4-e949-4bd2-a560-ed7766fcaf2b
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: AAD_PREMIUM_P2
-    sku_guid: 84a661c4-e949-4bd2-a560-ed7766fcaf2b
-    name: AAD_PREMIUM_P2
-    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
-    workload: identity_access
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: AAD_PREMIUM_USGOV_GCCHIGH
-    sku_guid: de597797-22fb-4d65-a9fe-b7dbe8893914
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE
+    add_on:
+      - AAD_PREMIUM_P2
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - MFA_PREMIUM
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Microsoft 365 Business Voice (UK
+  - sku_part_number: "BUSINESS_VOICE"
     sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE
-    sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE
-    sku_guid: e5a17adf-8f0d-4b57-bc14-d331235f9307
-    name: MCOPSTN1
-    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING
+    add_on:
+      - MCOEV
+      - MCOPSTN1
+    bundled:
+      - MCOMEETADV
+  # Microsoft 365 Business Voice (without Calling Plan)
+  - sku_part_number: "BUSINESS_VOICE_DIRECTROUTING"
     sku_guid: d52db95a-5ecb-46b6-beb0-190ab5cda4a8
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING
-    sku_guid: d52db95a-5ecb-46b6-beb0-190ab5cda4a8
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING_MED
+    add_on:
+      - MCOEV
+    bundled:
+      - MCOMEETADV
+  # Microsoft 365 Business Voice (without Calling Plan) for US
+  - sku_part_number: "BUSINESS_VOICE_DIRECTROUTING_MED"
     sku_guid: 8330dae3-d349-44f7-9cad-1b23c64baabe
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_DIRECTROUTING_MED
-    sku_guid: 8330dae3-d349-44f7-9cad-1b23c64baabe
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2
+    add_on:
+      - MCOEV
+    bundled:
+      - MCOMEETADV
+  # Microsoft 365 Business Voice
+  - sku_part_number: "BUSINESS_VOICE_MED2"
     sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2
-    sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2
-    sku_guid: a6051f20-9cbc-47d2-930d-419183bf6cf1
-    name: MCOPSTN1
-    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
+    add_on:
+      - MCOEV
+      - MCOPSTN1
+    bundled:
+      - MCOMEETADV
+  # Microsoft 365 Business Voice (US)
+  - sku_part_number: "BUSINESS_VOICE_MED2_TELCO"
     sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
-    sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: BUSINESS_VOICE_MED2_TELCO
-    sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609
-    name: MCOPSTN1
-    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
+    add_on:
+      - MCOPSTN1
+    bundled:
+      - MCOMEETADV
+  # Office 365 E3
+  - sku_part_number: "ENTERPRISEPACK"
     sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: FLOW_O365_P2
-    guid: 76846ad7-7776-4c40-a281-a386362dd1b9
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: FORMS_PLAN_E3
-    guid: 2789c901-c14e-48ab-a76a-be334d9d793a
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: POWERAPPS_O365_P2
-    guid: c68f8d98-5534-41c8-bf36-22fa496fa792
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPACK
-    sku_guid: 6fd2c87f-b296-42f0-b197-1e91e994b900
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
+    bundled:
+      - ATP_ENTERPRISE
+      - BPOS_S_TODO_2
+      - CDS_O365_P2
+      - ContentExplorer_Standard
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MESH_IMMERSIVE_FOR_TEAMS
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - OFFICESUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - TEAMS1
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN2
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P3
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Office 365 E5
+  - sku_part_number: "ENTERPRISEPREMIUM"
     sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: FLOW_O365_P3
-    guid: 07699545-9485-468e-95b6-2fca3738be01
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: FORMS_PLAN_E5
-    guid: e212cbc7-0961-4c40-9825-01117710dcb1
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: POWERAPPS_O365_P3
-    guid: 9c0dab89-a30c-4117-86e7-97bda240acd2
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: ENTERPRISEPREMIUM
-    sku_guid: c7df2760-2c81-4ef7-b578-5b5392b571df
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: EXCHANGEARCHIVE
+    bundled:
+      - ADALLOM_S_O365
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - MCOEV
+      - MCOMEETADV
+      - MCOSTANDARD
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFT_TEAMS_EVENTS
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - TEAMS1
+      - THREAT_INTELLIGENCE
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - KAIZALA_STANDALONE
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+  # Exchange Online Archiving for Exchange Server
+  - sku_part_number: "EXCHANGEARCHIVE"
     sku_guid: 90b5e015-709a-4b8b-b08e-3200f994494c
-    name: EXCHANGE_S_ARCHIVE
-    guid: da040e0a-b393-4bea-bb76-928b3fa1cf5a
-    workload: security_compliance
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: FLOW_PER_USER
+    add_on:
+      - EXCHANGE_S_ARCHIVE
+  # Power Automate per user plan
+  - sku_part_number: "FLOW_PER_USER"
     sku_guid: 4a51bf65-409c-4a91-b845-1121b571cc9d
-    name: FLOW_PER_USER
-    guid: c5002c70-f725-4367-b409-f0eff4fee6c0
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: INTUNE_A
+    add_on:
+      - FLOW_PER_USER
+    bundled:
+      - DYN365_CDS_P2
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Intune
+  - sku_part_number: "INTUNE_A"
     sku_guid: 061f9ace-7d42-4136-88ac-31dc755f143f
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: INTUNE_A_D
+    add_on:
+      - INTUNE_A
+  # Microsoft Intune Device
+  - sku_part_number: "INTUNE_A_D"
     sku_guid: 2b317a4a-77a6-4188-9437-b68a77b4e2c6
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: INTUNE_A_D_GOV
-    sku_guid: 2c21e77a-e0d6-4570-b38a-7ff2dc17d2ca
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: FLOW_O365_P2_GOV
-    guid: c537f360-6a00-4ace-a7f5-9128d0ac1e4b
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G3_GOV
-    sku_guid: e823ca47-49c4-46b3-b38d-ca11d5abe3d2
-    name: POWERAPPS_O365_P2_GOV
-    guid: 0a20c815-5e81-4727-9bdc-2b5a117850c3
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: AAD_PREMIUM_P2
-    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: FLOW_O365_P3_GOV
-    guid: 8055d84a-c172-42eb-b997-6c2ae4628246
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: POWERAPPS_O365_P3_GOV
-    guid: 0eacfc38-458a-40d3-9eab-9671258f1a3e
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: M365_G5_GCC
-    sku_guid: e2be619b-b125-455f-8660-fb503e431a5d
-    name: WINDEFATP
-    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV
+    add_on:
+      - INTUNE_A
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Microsoft Teams Phone Standard
+  - sku_part_number: "MCOEV"
     sku_guid: e43b5b99-8dfb-405f-9987-dc307f34bcbd
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_DOD
-    sku_guid: d01d9287-694b-44f3-bcc5-ada78c8d953e
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_FACULTY
-    sku_guid: d979703c-028d-4de5-acbf-7955566b69b9
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_GCCHIGH
-    sku_guid: 7035277a-5e49-4abc-a24f-0ec49c501bb5
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_STUDENT
-    sku_guid: 1f338bbc-767e-4a1e-a2d4-b73207cc5b93
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_TELSTRA
-    sku_guid: ffaf2d68-1c95-4eb3-9ddd-59b81fba0f61
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_USGOV_DOD
-    sku_guid: b0e7de67-e503-4934-b729-53d595ba5cd1
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOEV_USGOV_GCCHIGH
-    sku_guid: 985fcb26-7b94-475b-b512-89356697be71
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOMEETADV
+    add_on:
+      - MCOEV
+  # Microsoft 365 Audio Conferencing
+  - sku_part_number: "MCOMEETADV"
     sku_guid: 0c266dff-15dd-4b49-8397-2bb16070ed52
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOMEETADV_FACULTY
-    sku_guid: c2cda955-3359-44e5-989f-852ca0cfa02f
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOPSTN1
+    add_on:
+      - MCOMEETADV
+  # Skype for Business PSTN Domestic Calling
+  - sku_part_number: "MCOPSTN1"
     sku_guid: 0dab259f-bf13-4952-b7f8-7db8f131b28d
-    name: MCOPSTN1
-    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOPSTN2
+    add_on:
+      - MCOPSTN1
+  # Skype for Business PSTN Domestic and International Calling
+  - sku_part_number: "MCOPSTN2"
     sku_guid: d3b4fe1f-9992-4930-8acb-ca6ec609365e
-    name: MCOPSTN2
-    guid: 5a10155d-f5c1-411a-a8ec-e99aae125390
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOTEAMS_ESSENTIALS
+    add_on:
+      - MCOPSTN2
+    bundled:
+      - MCOSMS2
+  # Teams Phone with Calling Plan
+  - sku_part_number: "MCOTEAMS_ESSENTIALS"
     sku_guid: ae2343d1-0999-43f6-ae18-d816516f6e78
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: MCOTEAMS_ESSENTIALS
-    sku_guid: ae2343d1-0999-43f6-ae18-d816516f6e78
-    name: MCOPSTN1
-    guid: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
-    workload: telephony
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_ESSENTIALS
+    add_on:
+      - MCOEV
+      - MCOPSTN1
+  # Microsoft 365 Business Basic EEA (no Teams)
+  - sku_part_number: "Microsoft_365_Business_Basic_EEA_(no_Teams)"
+    sku_guid: b1f3042b-a390-4b56-ab61-b88e7e767a97
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P1
+      - DYN365_CDS_O365_P1
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MICROSOFTBOOKINGS
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P1
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P1
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_SMB
+      - SWAY
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 Business Standard EEA (no Teams)
+  - sku_part_number: "Microsoft_365_Business_Standard_EEA_(no_Teams)"
+    sku_guid: ffa3a2a0-3820-462a-aa81-8a4d741f0cba
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MICROSOFTBOOKINGS
+      - OFFICE_BUSINESS
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_SMB
+      - SWAY
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Deskless
+      - DYN365BC_MS_INVOICING
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+      - O365_SB_Relationship_Management
+  # Microsoft 365 E3 EEA (no Teams) - Unattended License
+  - sku_part_number: "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License"
+    sku_guid: a23dbafb-3396-48b3-ad9c-a304fe206043
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - BPOS_S_TODO_2
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MDE_LITE
+      - MFA_PREMIUM
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - OFFICESUBSCRIPTION_unattended
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - WHITEBOARD_PLAN2
+      - WIN10_PRO_ENT_SUB
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P3
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - M365_LIGHTHOUSE_PARTNER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5 EEA (no Teams) with Calling Minutes
+  - sku_part_number: "Microsoft_365_E5_EEA_(no_Teams)_with_Calling_Minutes"
+    sku_guid: 6ee4114a-9b2d-4577-9e7a-49fa43d222d3
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P1
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOMEETADV
+      - MCOPSTN8
+      - MCOSTANDARD
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE_MIDMARKET
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - INSIDER_RISK_MANAGEMENT
+      - KAIZALA_STANDALONE
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5 EEA (no Teams) without Audio Conferencing
+  - sku_part_number: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"
+    sku_guid: 90277bc7-a6fe-4181-99d8-712b08b8d32b
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOSTANDARD
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MICROSOFTENDPOINTDLP
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - INSIDER_RISK_MANAGEMENT
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5 EEA (no Teams) without Audio Conferencing (500 seats min)_HUB
+  - sku_part_number: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB"
+    sku_guid: a640eead-25f6-4bec-97e3-23cfd382d7c2
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOSTANDARD
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MICROSOFTENDPOINTDLP
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 F3 EEA (no Teams)
+  - sku_part_number: "Microsoft_365_F3_EEA_(no_Teams)"
+    sku_guid: f7ee79a7-7aec-4ca4-9fb9-34d6b930ad87
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - BPOS_S_TODO_FIRSTLINE
+      - CDS_O365_F1
+      - DYN365_CDS_O365_F1
+      - EXCHANGE_S_DESKLESS
+      - FLOW_O365_S1
+      - FORMS_PLAN_K
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOIMP
+      - MFA_PREMIUM
+      - MICROSOFTBOOKINGS
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_F1
+      - POWERAPPS_O365_S1
+      - PROJECT_O365_F3
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTDESKLESS
+      - SHAREPOINTWAC
+      - STREAM_O365_K
+      - SWAY
+      - TEAMS_DESKLESS
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_FIRSTLINE1
+      - WIN10_ENT_LOC_F1
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Deskless
+      - KAIZALA_O365_P1
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - Nucleus
+  # Microsoft 365 Business Basic
+  - sku_part_number: "O365_BUSINESS_ESSENTIALS"
     sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
-    name: FLOW_O365_P1
-    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_ESSENTIALS
-    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
-    name: FORMS_PLAN_E1
-    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_ESSENTIALS
-    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
-    name: POWERAPPS_O365_P1
-    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_ESSENTIALS
-    sku_guid: 3b555118-da6a-4418-894f-7df1e2096870
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_PREMIUM
+    bundled:
+      - BPOS_S_TODO_1
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - MCOSTANDARD
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWERAPPS_O365_P1
+      - PROJECTWORKMANAGEMENT
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - SWAY
+      - TEAMS1
+      - YAMMER_ENTERPRISE
+  # Microsoft 365 Business Standard
+  - sku_part_number: "O365_BUSINESS_PREMIUM"
     sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-    name: FLOW_O365_P1
-    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_PREMIUM
-    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-    name: FORMS_PLAN_E1
-    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_PREMIUM
-    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_PREMIUM
-    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-    name: POWERAPPS_O365_P1
-    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: O365_BUSINESS_PREMIUM
-    sku_guid: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: PBI_PREMIUM_PER_USER
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MICROSOFT_LOOP
+      - MICROSOFTBOOKINGS
+      - OFFICE_BUSINESS
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_SMB
+      - SWAY
+      - TEAMS1
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - DYN365BC_MS_INVOICING
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+      - O365_SB_Relationship_Management
+  # Microsoft 365 E3 EEA (no Teams)
+  - sku_part_number: "O365_w/o Teams Bundle_M3"
+    sku_guid: c2fe850d-fbbb-4858-b67d-bd0c6e746da3
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - BPOS_S_TODO_2
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - ContentExplorer_Standard
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MDE_LITE
+      - MFA_PREMIUM
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - OFFICESUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN2
+      - WIN10_PRO_ENT_SUB
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P3
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - M365_LIGHTHOUSE_PARTNER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E3 EEA (no Teams) (500 seats min)_HUB
+  - sku_part_number: "O365_w/o Teams Bundle_M3_(500_seats_min)_HUB"
+    sku_guid: 602e6573-55a3-46b1-a1a0-cc267991501a
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - BPOS_S_TODO_2
+      - DYN365_CDS_O365_P2
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MDE_LITE
+      - MFA_PREMIUM
+      - MICROSOFT_LOOP
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN2
+      - WIN10_PRO_ENT_SUB
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Deskless
+      - KAIZALA_O365_P3
+      - MICROSOFT_SEARCH
+      - Nucleus
+  # Office 365 E3 EEA (no Teams)
+  - sku_part_number: "O365_w/o_Teams_Bundle_E3"
+    sku_guid: d711d25a-a21c-492f-bd19-aae1e8ebaf30
+    bundled:
+      - BPOS_S_TODO_2
+      - CDS_O365_P2
+      - ContentExplorer_Standard
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - OFFICESUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN2
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Deskless
+      - KAIZALA_O365_P3
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5 EEA (no Teams)
+  - sku_part_number: "O365_w/o_Teams_Bundle_M5"
+    sku_guid: 3271cf8e-2be5-4a09-a549-70fd05baaa17
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOMEETADV
+      - MCOSTANDARD
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MICROSOFTENDPOINTDLP
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - INSIDER_RISK_MANAGEMENT
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5 EEA (no Teams) (500 seats min)_HUB
+  - sku_part_number: "O365_w/o_Teams_Bundle_M5_(500_seats_min)_HUB"
+    sku_guid: 1e988bf3-8b7c-4731-bec0-4e2a2946600c
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOMEETADV
+      - MCOSTANDARD
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFT_LOOP
+      - MICROSOFTBOOKINGS
+      - MICROSOFTENDPOINTDLP
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - PURVIEW_DISCOVERY
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - INSIDER_RISK_MANAGEMENT
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Office 365 E5 EEA (no Teams) without Audio Conferencing
+  - sku_part_number: "Office_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"
+    sku_guid: 71772aeb-4bb8-4f74-9dd4-36c7a9b5ca74
+    bundled:
+      - ADALLOM_S_O365
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - MCOEV
+      - MCOSTANDARD
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 Business Premium EEA (no Teams)
+  - sku_part_number: "Office_365_w/o_Teams_Bundle_Business_Premium"
+    sku_guid: a3f586b6-8cce-4d9b-99d6-55238397f77a
+    bundled:
+      - AAD_PREMIUM
+      - AAD_SMB
+      - ADALLOM_S_DISCOVERY
+      - ATP_ENTERPRISE
+      - BPOS_S_DlpAddOn
+      - BPOS_S_TODO_1
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P3
+      - EXCHANGE_S_ARCHIVE_ADDON
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_A
+      - INTUNE_O365
+      - INTUNE_SMBIZ
+      - MCOSTANDARD
+      - MDE_SMB
+      - MFA_PREMIUM
+      - MICROSOFTBOOKINGS
+      - OFFICE_BUSINESS
+      - OFFICE_SHARED_COMPUTER_ACTIVATION
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_E1
+      - SWAY
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - WINBIZ
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - DYN365BC_MS_INVOICING
+      - EXCHANGE_S_FOUNDATION
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - M365_LIGHTHOUSE_PARTNER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+      - O365_SB_Relationship_Management
+  # Microsoft 365 Business Standard EEA (no Teams)
+  - sku_part_number: "Office_365_w/o_Teams_Bundle_Business_Standard"
+    sku_guid: c1f79c29-5d7a-4bec-a2c1-1a76774864c0
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MICROSOFTBOOKINGS
+      - OFFICE_BUSINESS
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_SMB
+      - SWAY
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - DYN365BC_MS_INVOICING
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+      - O365_SB_Relationship_Management
+  # Office 365 E1 EEA (no Teams)
+  - sku_part_number: "Office_365_w/o_Teams_Bundle_E1"
+    sku_guid: b57282e3-65bd-4252-9502-c0eae1e5ab7f
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P1
+      - DYN365_CDS_O365_P1
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MICROSOFTBOOKINGS
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P1
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P1
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_E1
+      - SWAY
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Deskless
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Office 365 E5 EEA (no Teams)
+  - sku_part_number: "Office_365_w/o_Teams_Bundle_E5"
+    sku_guid: cf50bae9-29e8-4775-b07c-56ee10e3776d
+    bundled:
+      - ADALLOM_S_O365
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - MCOEV
+      - MCOMEETADV
+      - MCOSTANDARD
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - THREAT_INTELLIGENCE
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Power BI Premium Per User
+  - sku_part_number: "PBI_PREMIUM_PER_USER"
     sku_guid: c1d032e0-5619-4761-9b5c-75b6831e1711
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: PBI_PREMIUM_PER_USER
-    sku_guid: c1d032e0-5619-4761-9b5c-75b6831e1711
-    name: BI_AZURE_P3
-    guid: 0bf3c642-7bb5-4ccc-884e-59d09df0266c
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: PBI_PREMIUM_PER_USER_ADDON
+    add_on:
+      - BI_AZURE_P2
+      - BI_AZURE_P3
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Power BI Premium Per User Add-On
+  - sku_part_number: "PBI_PREMIUM_PER_USER_ADDON"
     sku_guid: de376a03-6e5b-42ec-855f-093fb50b8ca5
-    name: BI_AZURE_P3
-    guid: 0bf3c642-7bb5-4ccc-884e-59d09df0266c
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: PBI_PREMIUM_PER_USER_DEPT
+    add_on:
+      - BI_AZURE_P3
+  # Power BI Premium Per User Dept
+  - sku_part_number: "PBI_PREMIUM_PER_USER_DEPT"
     sku_guid: f168a3fb-7bcf-4a27-98c3-c235ea4b78b4
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: PBI_PREMIUM_PER_USER_FACULTY
-    sku_guid: 060d8061-f606-4e69-a4e7-e8fff75ea1f5
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: POWERAPPS_PER_USER
-    sku_guid: b30411f5-fea1-4a59-9ad9-3db7c7ead579
-    name: POWERAPPS_PER_USER
-    guid: ea2cf03b-ac60-46ae-9c1d-eeaeb63cec86
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: POWER_BI_PRO
+    add_on:
+      - BI_AZURE_P2
+    bundled:
+      - BI_AZURE_P3
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Power BI Pro
+  - sku_part_number: "POWER_BI_PRO"
     sku_guid: f8a1db68-be16-40ed-86d5-cb42ce701560
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: POWER_BI_PRO_CE
+    add_on:
+      - BI_AZURE_P2
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Power BI Pro CE
+  - sku_part_number: "POWER_BI_PRO_CE"
     sku_guid: 420af87e-8177-4146-a780-3786adaffbca
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: POWER_BI_PRO_DEPT
+    add_on:
+      - BI_AZURE_P2
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Power BI Pro Dept
+  - sku_part_number: "POWER_BI_PRO_DEPT"
     sku_guid: 3a6a908c-09c5-406a-8170-8ebb63c42882
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: POWER_BI_PRO_FACULTY
-    sku_guid: de5f128b-46d7-4cfc-b915-a89ba060ea56
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
+    add_on:
+      - BI_AZURE_P2
+    no_workload:
+      - EXCHANGE_S_FOUNDATION
+  # Power Apps Premium
+  - sku_part_number: "POWERAPPS_PER_USER"
+    sku_guid: b30411f5-fea1-4a59-9ad9-3db7c7ead579
+    add_on:
+      - POWERAPPS_PER_USER
+    bundled:
+      - CDSAICAPACITY_PERUSER_NEW
+      - DYN365_CDS_P2
+      - Flow_PowerApps_PerUser
+      - Power_Pages_Internal_User
+    no_workload:
+      - CDSAICAPACITY_PERUSER
+      - EXCHANGE_S_FOUNDATION
+  # Microsoft 365 Business Basic
+  - sku_part_number: "SMB_BUSINESS_ESSENTIALS"
+    sku_guid: dab7782a-93b1-4074-8bb1-0e61318bea0b
+    bundled:
+      - BPOS_S_TODO_1
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - MCOSTANDARD
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWERAPPS_O365_P1
+      - PROJECTWORKMANAGEMENT
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - SWAY
+      - TEAMS1
+      - VIVAENGAGE_CORE
+      - YAMMER_MIDSIZE
+  # Microsoft 365 Business Premium
+  - sku_part_number: "SPB"
     sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: FLOW_O365_P1
-    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: FORMS_PLAN_E1
-    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: POWERAPPS_O365_P1
-    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPB
-    sku_guid: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
+    bundled:
+      - AAD_PREMIUM
+      - AAD_SMB
+      - ADALLOM_S_DISCOVERY
+      - ATP_ENTERPRISE
+      - BPOS_S_DlpAddOn
+      - BPOS_S_TODO_1
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - DYN365_CDS_O365_P3
+      - EXCHANGE_S_ARCHIVE_ADDON
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_A
+      - INTUNE_O365
+      - INTUNE_SMBIZ
+      - MCOSTANDARD
+      - MDE_SMB
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MFA_PREMIUM
+      - MICROSOFT_LOOP
+      - MICROSOFTBOOKINGS
+      - OFFICE_BUSINESS
+      - OFFICE_SHARED_COMPUTER_ACTIVATION
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - PURVIEW_DISCOVERY
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_E1
+      - SWAY
+      - TEAMS1
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - WINBIZ
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - DYN365BC_MS_INVOICING
+      - EXCHANGE_S_FOUNDATION
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - M365_LIGHTHOUSE_PARTNER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+      - O365_SB_Relationship_Management
+  # Microsoft 365 E3
+  - sku_part_number: "SPE_E3"
     sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: FLOW_O365_P2
-    guid: 76846ad7-7776-4c40-a281-a386362dd1b9
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: FORMS_PLAN_E3
-    guid: 2789c901-c14e-48ab-a76a-be334d9d793a
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: POWERAPPS_O365_P2
-    guid: c68f8d98-5534-41c8-bf36-22fa496fa792
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E3
-    sku_guid: 05e9a617-0261-4cee-bb44-138d3ef5d965
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - ATP_ENTERPRISE
+      - BPOS_S_TODO_2
+      - CDS_O365_P2
+      - CLIPCHAMP
+      - ContentExplorer_Standard
+      - DYN365_CDS_O365_P2
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P2
+      - FORMS_PLAN_E3
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MDE_LITE
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MESH_IMMERSIVE_FOR_TEAMS
+      - MFA_PREMIUM
+      - MICROSOFT_LOOP
+      - MICROSOFTBOOKINGS
+      - MIP_S_CLP1
+      - OFFICESUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P2
+      - POWERAPPS_O365_P2
+      - PROJECT_O365_P2
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E3
+      - SWAY
+      - TEAMS1
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN2
+      - WIN10_PRO_ENT_SUB
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P3
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - M365_LIGHTHOUSE_PARTNER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 E5
+  - sku_part_number: "SPE_E5"
     sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: AAD_PREMIUM_P2
-    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: FLOW_O365_P3
-    guid: 07699545-9485-468e-95b6-2fca3738be01
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: FORMS_PLAN_E5
-    guid: e212cbc7-0961-4c40-9825-01117710dcb1
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: MCOMEETADV
-    guid: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
-    workload: teams
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: POWERAPPS_O365_P3
-    guid: 9c0dab89-a30c-4117-86e7-97bda240acd2
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5
-    sku_guid: 06ebc4ee-1bb5-47dd-8120-11324bc54e06
-    name: WINDEFATP
-    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: AAD_PREMIUM
-    guid: 41781fb2-bc02-4b7c-bd55-b576c07bb09d
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: AAD_PREMIUM_P2
-    guid: eec0eb4f-6444-4f95-aba0-50c24d67f998
-    workload: identity_access
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: BI_AZURE_P2
-    guid: 70d33638-9c74-4d01-bfd3-562de28bd4ba
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: FLOW_O365_P3_GCCHIGH
-    guid: ee939cf0-7cd1-4262-9f72-9eaa45dbba69
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: FORMS_PLAN_E5_AR_GCCHIGH
-    guid: cf1b2895-e3fd-4b33-9594-2ab924104547
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: INTUNE_A
-    guid: c1ec4a95-1f05-45b3-a911-aa3fa01094f5
-    workload: device_management
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: MCOEV
-    guid: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
-    workload: telephony
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: MIP_S_CLP1
-    guid: 5136a095-5cf0-4aff-bec3-e84448b38ea5
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: POWERAPPS_O365_P3_GCCHIGH
-    guid: b50a9096-5b07-4ded-a5e4-a492fb94b6ee
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: SPE_E5_USGOV_GCCHIGH
-    sku_guid: 4eb45c5b-0d19-4e33-b87c-adfc25268f20
-    name: WINDEFATP
-    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
-    workload: security_compliance
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK
+    bundled:
+      - AAD_PREMIUM
+      - AAD_PREMIUM_P2
+      - ADALLOM_S_O365
+      - ADALLOM_S_STANDALONE
+      - ATA
+      - ATP_ENTERPRISE
+      - BI_AZURE_P2
+      - BPOS_S_TODO_3
+      - CDS_O365_P3
+      - CLIPCHAMP
+      - COMMUNICATIONS_DLP
+      - Content_Explorer
+      - ContentExplorer_Standard
+      - CUSTOMER_KEY
+      - CustomerLockboxA_Enterprise
+      - DATA_INVESTIGATIONS
+      - Defender_for_Iot_Enterprise
+      - DYN365_CDS_O365_P3
+      - EQUIVIO_ANALYTICS
+      - EXCEL_PREMIUM
+      - EXCHANGE_S_ENTERPRISE
+      - FLOW_O365_P3
+      - FORMS_PLAN_E5
+      - GRAPH_CONNECTORS_SEARCH_INDEX
+      - INFO_GOVERNANCE
+      - INFORMATION_BARRIERS
+      - INSIDER_RISK
+      - INTUNE_A
+      - INTUNE_O365
+      - LOCKBOX_ENTERPRISE
+      - M365_ADVANCED_AUDITING
+      - M365_AUDIT_PLATFORM
+      - MCOEV
+      - MCOMEETADV
+      - MCOSTANDARD
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MESH_IMMERSIVE_FOR_TEAMS
+      - MFA_PREMIUM
+      - MICROSOFT_COMMUNICATION_COMPLIANCE
+      - MICROSOFT_LOOP
+      - MICROSOFTBOOKINGS
+      - MICROSOFTENDPOINTDLP
+      - MIP_S_CLP1
+      - MIP_S_CLP2
+      - MIP_S_Exchange
+      - ML_CLASSIFICATION
+      - MTP
+      - OFFICESUBSCRIPTION
+      - PAM_ENTERPRISE
+      - POWER_VIRTUAL_AGENTS_O365_P3
+      - POWERAPPS_O365_P3
+      - PREMIUM_ENCRYPTION
+      - PROJECT_O365_P3
+      - PROJECTWORKMANAGEMENT
+      - PURVIEW_DISCOVERY
+      - RECORDS_MANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - RMS_S_PREMIUM2
+      - SAFEDOCS
+      - SHAREPOINTENTERPRISE
+      - SHAREPOINTWAC
+      - STREAM_O365_E5
+      - SWAY
+      - TEAMS1
+      - THREAT_INTELLIGENCE
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN3
+      - WIN10_PRO_ENT_SUB
+      - WINDEFATP
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - COMMUNICATIONS_COMPLIANCE
+      - Deskless
+      - EXCHANGE_ANALYTICS
+      - INSIDER_RISK_MANAGEMENT
+      - KAIZALA_STANDALONE
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft 365 F3
+  - sku_part_number: "SPE_F1"
+    sku_guid: 66b55226-6b4f-492c-910c-a3b7a3c9d993
+    bundled:
+      - AAD_PREMIUM
+      - ADALLOM_S_DISCOVERY
+      - BPOS_S_TODO_FIRSTLINE
+      - CDS_O365_F1
+      - DYN365_CDS_O365_F1
+      - EXCHANGE_S_DESKLESS
+      - FLOW_O365_S1
+      - FORMS_PLAN_K
+      - INTUNE_A
+      - INTUNE_O365
+      - MCOIMP
+      - MFA_PREMIUM
+      - MICROSOFTBOOKINGS
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_F1
+      - POWERAPPS_O365_S1
+      - PROJECT_O365_F3
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_ENTERPRISE
+      - RMS_S_PREMIUM
+      - SHAREPOINTDESKLESS
+      - SHAREPOINTWAC
+      - STREAM_O365_K
+      - SWAY
+      - TEAMS1
+      - UNIVERSAL_PRINT_01
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_FIRSTLINE1
+      - WIN10_ENT_LOC_F1
+      - Windows_Autopatch
+      - WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P1
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - Nucleus
+  # Office 365 E1
+  - sku_part_number: "STANDARDPACK"
     sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
-    name: FLOW_O365_P1
-    guid: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK
-    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
-    name: FORMS_PLAN_E1
-    guid: 159f4cd6-e380-449f-a816-af1a9ef76344
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK
-    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK
-    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
-    name: POWERAPPS_O365_P1
-    guid: 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK
-    sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_GOV
-    sku_guid: 3f4babde-90ec-47c6-995d-d223749065d1
-    name: FLOW_O365_P1_GOV
-    guid: ad6c8870-6356-474c-901c-64d7da8cea48
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_GOV
-    sku_guid: 3f4babde-90ec-47c6-995d-d223749065d1
-    name: POWERAPPS_O365_P1_GOV
-    guid: c42aa49a-f357-45d5-9972-bc29df885fee
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
-    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
-    name: FLOW_O365_P1_GCCHIGH
-    guid: e923bad8-588e-44d5-acd0-b226daa7b4de
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
-    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
-    name: FORMS_PLAN_E1_AR_GCCHIGH
-    guid: 9c37c053-dfe3-4421-b6d4-bac8b86d42bd
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
-    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
-    name: MICROSOFTBOOKINGS
-    guid: 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
-    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
-    name: POWERAPPS_O365_P1_GCCHIGH
-    guid: 3913e44e-824e-490c-a182-82785d769b45
-    workload: power_platform
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: STANDARDPACK_USGOV_GCCHIGH
-    sku_guid: f698ca06-024f-4562-b029-9cb1f1e02646
-    name: PROJECTWORKMANAGEMENT
-    guid: b737dad2-2f6c-4c65-90e3-ca563267e8b9
-    workload: small_apps
-    signal: bundled
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: THREAT_INTELLIGENCE
+    bundled:
+      - BPOS_S_TODO_1
+      - CDS_O365_P1
+      - DYN365_CDS_O365_P1
+      - EXCHANGE_S_STANDARD
+      - FLOW_O365_P1
+      - FORMS_PLAN_E1
+      - INTUNE_O365
+      - MCOSTANDARD
+      - MESH_AVATARS_ADDITIONAL_FOR_TEAMS
+      - MESH_AVATARS_FOR_TEAMS
+      - MESH_IMMERSIVE_FOR_TEAMS
+      - MICROSOFTBOOKINGS
+      - OFFICEMOBILE_SUBSCRIPTION
+      - POWER_VIRTUAL_AGENTS_O365_P1
+      - POWERAPPS_O365_P1
+      - PROJECT_O365_P1
+      - PROJECTWORKMANAGEMENT
+      - RMS_S_BASIC
+      - SHAREPOINTSTANDARD
+      - SHAREPOINTWAC
+      - STREAM_O365_E1
+      - SWAY
+      - TEAMS1
+      - VIVA_LEARNING_SEEDED
+      - VIVAENGAGE_CORE
+      - WHITEBOARD_PLAN1
+      - YAMMER_ENTERPRISE
+    no_workload:
+      - Bing_Chat_Enterprise
+      - Deskless
+      - KAIZALA_O365_P2
+      - M365_LIGHTHOUSE_CUSTOMER_PLAN1
+      - MICROSOFT_SEARCH
+      - MYANALYTICS_P2
+      - Nucleus
+  # Microsoft Defender for Office 365 (Plan 2)
+  - sku_part_number: "THREAT_INTELLIGENCE"
     sku_guid: 3dd6cf57-d688-4eed-ba52-9e40b5468c3e
-    name: ATP_ENTERPRISE
-    guid: f20fedf3-f3c3-43c3-8267-2bfdd51c0939
-    workload: security_compliance
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
-  - sku_part_number: WIN_DEF_ATP
+    add_on:
+      - ATP_ENTERPRISE
+    bundled:
+      - MTP
+      - THREAT_INTELLIGENCE
+  # Microsoft Defender for Endpoint
+  - sku_part_number: "WIN_DEF_ATP"
     sku_guid: 111046dd-295b-4d6d-9724-d52ac90bd1f2
-    name: WINDEFATP
-    guid: 871d91ec-ec1a-452b-a83f-bd76c7d770ef
-    workload: security_compliance
-    signal: add_on
-    reference_url: *reference
-    checked_on: *checked_on
+    add_on:
+      - WINDEFATP
+    no_workload:
+      - EXCHANGE_S_FOUNDATION

@@ -84,14 +84,15 @@ def _value_text(finding: Finding, formatter: Formatter) -> str:
     value = finding.value
     if value is None:
         return strings["common"]["unavailable"]
+    partial_coverage = finding.coverage is not None and finding.coverage.kind == "partial"
     if type(value) is int and finding.unit == "bytes":
-        text = formatter.storage(value)
+        text = formatter.storage(value, lower_bound=partial_coverage)
     else:
         text = _literal_text(value, formatter)
         if finding.unit is not None:
             group = "unit_one" if type(value) is int and value == 1 else "units"
             text = f"{text} {code_label(strings, group, finding.unit)}"
-    if type(value) is int and finding.coverage is not None and finding.coverage.kind == "partial":
+    if type(value) is int and partial_coverage:
         key = "partial_positive" if value > 0 else "partial_zero"
         return strings["found"][key].format(value=text)
     return text
@@ -154,7 +155,6 @@ def render_report(
     catalogue: Catalogue | None = None,
     provided: tuple[Finding, ...] = (),
     inputs: Inputs | None = None,
-    sample_inputs: bool = False,
 ) -> str:
     formatter = Formatter(lang)
     strings = formatter.strings
@@ -175,9 +175,14 @@ def render_report(
     licences = [(product, classify_product(product, plans)) for product in products]
     workload_labels = {entry.id: _label(strings, entry.label) for entry in catalogue.workloads}
     by_id = {item.id: item for item in scan.findings + derived}
+    alternatives = {item.id: item for item in other_evidence}
     conflicts = {item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}
     statuses = evaluate(
-        by_id, status_rules, catalogue, collectors={item.id: item for item in scan.collectors}
+        by_id,
+        status_rules,
+        catalogue,
+        collectors={item.id: item for item in scan.collectors},
+        alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
     move_evidence = {row.workload: [] for row in statuses}
@@ -204,8 +209,9 @@ def render_report(
         scan=scan,
         scan_periods=scan_periods,
         inputs=inputs,
-        sample_inputs=sample_inputs,
-        input_source="sample.interview" if sample_inputs else "inputs_yaml",
+        sample_inputs=cost_inputs.answers_are_sample,
+        input_source=cost_inputs.answer_source,
+        provided_sources=catalogue.provided_sources,
         scenarios=scenarios,
         cost_blocks=_cost_table_blocks(scenarios),
         current_costs=vars(cost_inputs.current_costs),
@@ -239,7 +245,7 @@ def render_report(
         ],
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         software=software,
-        alternatives={item.id: item for item in other_evidence},
+        alternatives=alternatives,
         conflicts=conflicts,
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[

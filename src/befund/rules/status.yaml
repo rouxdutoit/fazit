@@ -193,10 +193,10 @@ workloads:
     rules:
       - id: software-no-web-version
         when: [{finding: windows_software.without_web_version_count, op: '>', value: 0}]
-        status: blocker
+        status: needs_work
         reason:
-          en: At least one Windows-only application has no web version and needs a separate solution.
-          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und benötigt eine gesonderte Lösung.
+          en: At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
+          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und verhindert die Ablösung von Windows auf den Arbeitsplatzrechnern. Planen Sie beim Wechsel von Microsoft 365 den Weiterbetrieb unter Windows oder eine Ersatzlösung.
       - id: software-present
         when: [{finding: windows_software.application_count, op: '>', value: 0}]
         status: needs_work

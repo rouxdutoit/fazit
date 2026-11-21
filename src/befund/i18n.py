@@ -61,14 +61,15 @@ class Formatter:
         template = self.strings["format"]["money"]
         return template.format(amount=self.number(rounded), currency=currency).strip()
 
-    def storage(self, value: int) -> str:
+    def storage(self, value: int, *, lower_bound: bool = False) -> str:
         settings = self.strings["format"]
         units = settings["storage_units"]
         divisor, index = 1, 0
         while value >= divisor * 1000 and index < len(units) - 1:
             divisor *= 1000
             index += 1
-        tenths = (value * 10 + divisor // 2) // divisor
+        rounding = 0 if lower_bound else divisor // 2
+        tenths = (value * 10 + rounding) // divisor
         whole, fraction = divmod(tenths, 10)
         return f"{self.integer(whole)}{settings['decimal_separator']}{fraction} {units[index]}"
 

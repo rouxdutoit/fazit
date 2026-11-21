@@ -204,11 +204,13 @@ def test_shipped_service_plans_cite_the_reference(catalogue: Catalogue) -> None:
 
     assert plans
     assert all(
-        plan.name == plan.name.upper() and plan.sku_part_number == plan.sku_part_number.upper()
+        re.fullmatch(r"[A-Za-z0-9_]{1,64}", plan.name)
+        and catalogue.accepts_sku_part_number(plan.sku_part_number, plan.sku_guid)
         for plan in plans
     )
-    assert {plan.workload for plan in plans} <= set(catalogue.workload_ids)
-    assert {plan.signal for plan in plans} == {"add_on", "bundled"}
+    assert {plan.workload for plan in plans} <= {None, *catalogue.workload_ids}
+    assert {plan.signal for plan in plans} == {"add_on", "bundled", "no_workload"}
+    assert all((plan.workload is None) == (plan.signal == "no_workload") for plan in plans)
     assert {plan.reference_url for plan in plans} == {LICENSING_REFERENCE}
     assert all(isinstance(plan.checked_on, date) for plan in plans)
     phone = {(plan.sku_part_number, plan.signal) for plan in plans if plan.name == "MCOEV"}
@@ -216,53 +218,58 @@ def test_shipped_service_plans_cite_the_reference(catalogue: Catalogue) -> None:
 
 
 @pytest.mark.parametrize(
-    ("field", "value"),
+    ("section", "field", "value", "error_field"),
     [
-        ("workload", "unrecognised"),
-        ("signal", "measured"),
-        ("reference_url", None),
-        ("reference_url", "https://learn.microsoft.com.example.invalid/"),
-        ("checked_on", None),
-        ("checked_on", "2026-02-30"),
-        ("sku_guid", "not_a_guid"),
-        ("guid", "not_a_guid"),
-        ("sku_part_number", "invalid product"),
-        ("name", "invalid plan"),
-        ("name", "repeat"),
-        ("note", {"en": "Explanation only in English."}),
+        ("plan", "workload", "unrecognised", "plans[0].workload"),
+        ("product", "measured", ["MCOEV"], "products[0]"),
+        ("product", "add_on", ["UNKNOWN_PLAN"], "products[0].add_on[0]"),
+        ("product", "add_on", ["MCOEV", "MCOEV"], "products[0].add_on[1]"),
+        ("product", "no_workload", ["MCOEV"], "products[0].no_workload[0]"),
+        ("root", "reference_url", None, "reference_url"),
+        ("root", "reference_url", "https://learn.microsoft.com.example.invalid/", "reference_url"),
+        ("root", "checked_on", None, "checked_on"),
+        ("root", "checked_on", "2026-02-30", "checked_on"),
+        ("product", "sku_guid", "not_a_guid", "products[0].sku_guid"),
+        ("plan", "guid", "not_a_guid", "plans[0].guid"),
+        ("product", "sku_part_number", "invalid product", "products[0].sku_part_number"),
+        ("plan", "name", "invalid plan", "plans[0].name"),
+        ("plan", "name", "repeat", "plans[1].name"),
+        ("plan", "note", {"en": "Explanation only in English."}, "plans[0].note.de"),
     ],
 )
 def test_invalid_service_plan_names_the_field(
-    tmp_path: Path, catalogue: Catalogue, field: str, value: object
+    tmp_path: Path, catalogue: Catalogue, section: str, field: str, value: object, error_field: str
 ) -> None:
     path = tmp_path / "service_plans.yaml"
-    row = {
-        "sku_part_number": "MCOEV",
-        "sku_guid": "e43b5b99-8dfb-405f-9987-dc307f34bcbd",
+    plan = {
         "name": "MCOEV",
         "guid": "4828c8ec-dc2e-4779-b502-87ac9ce28ab7",
         "workload": "telephony",
-        "signal": "add_on",
+    }
+    product = {
+        "sku_part_number": "MCOEV",
+        "sku_guid": "e43b5b99-8dfb-405f-9987-dc307f34bcbd",
+        "add_on": ["MCOEV"],
+    }
+    data = {
         "reference_url": LICENSING_REFERENCE,
         "checked_on": "2026-11-21",
+        "plans": [plan],
+        "products": [product],
     }
+    row = {"root": data, "product": product, "plan": plan}[section]
     if value is None:
-        rows = [{key: item for key, item in row.items() if key != field}]
+        del row[field]
     elif value == "repeat":
-        rows = [row, {**row, "name": "mcoev"}]
+        data["plans"].append({**plan, "name": "mcoev"})
     else:
-        rows = [{**row, field: value}]
-    path.write_text(yaml.safe_dump({"plans": rows}), encoding="utf-8")
+        row[field] = value
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
 
     with pytest.raises(InputError) as caught:
         load_service_plans(catalogue, path)
 
-    error = caught.value
-    assert error.file == path.name
-    assert error.field == {
-        "repeat": "plans[1].name",
-        "note": "plans[0].note.de",
-    }.get("repeat" if value == "repeat" else field, f"plans[0].{field}")
+    assert (caught.value.file, caught.value.field) == (path.name, error_field)
 
 
 @pytest.mark.parametrize(("sample", "count"), [("town", 3), ("nonprofit", 1)])
@@ -276,6 +283,9 @@ def test_sample_licence_findings_match_assigned_products(
 
     assert scan.dropped_count == 0
     assert scan.licences is not None
+    for product in scan.licences.products:
+        expected = {(plan.name, plan.guid) for plan in plans if plan.sku_guid == product.sku_guid}
+        assert expected and {(plan.name, plan.guid) for plan in product.service_plans} == expected
     assert by_id["licences.product_count"] == count
     assert len(by_id) == 1 + 2 * len(catalogue.workloads)
     for finding in findings:
@@ -338,8 +348,14 @@ def test_unmapped_pairs_are_unknown_without_erasing_classified_assignments(
             "unknown",
             "licence_not_classified",
         )
-        assert findings["teams.licence_add_on_assigned"].value is False
         assert classify_product(product, load_service_plans(catalogue)) == (None,)
+    assert findings["teams.licence_add_on_assigned"].value is False
+    unknown_product = _product_findings(catalogue, wrong_product)
+    del unknown_product["licences.product_count"]
+    assert all(
+        finding.value is None and finding.missing_reason == "licence_not_classified"
+        for finding in unknown_product.values()
+    )
     mixed = _product_findings(catalogue, phone, wrong_product)
     assert mixed["telephony.licence_add_on_assigned"].value is True
 
@@ -631,7 +647,9 @@ def test_worst_rule_wins_and_ties_keep_file_order(
         status_rules,
         workloads={
             **status_rules.workloads,
-            "windows_software": replace(block, rules=block.rules[::-1]),
+            "windows_software": replace(
+                block, rules=(block.rules[1], replace(block.rules[0], status="blocker"))
+            ),
         },
     )
     windows = _status("windows_software", findings, edited, catalogue)
@@ -640,7 +658,7 @@ def test_worst_rule_wins_and_ties_keep_file_order(
     assert [rule.id for rule in windows.notes] == ["software-present"]
 
 
-def test_windows_software_shows_confirmed_blocker_and_unanswered_item(
+def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
     complete_evidence: dict[str, Finding], catalogue: Catalogue
 ) -> None:
     count = replace(complete_evidence["windows_software.application_count"], value=2)
@@ -652,7 +670,7 @@ def test_windows_software_shows_confirmed_blocker_and_unanswered_item(
     html = render_report(sample_scan("town", catalogue), lang="en", provided=(count, no_web))
     row = _readiness_row(html, "windows_software")
 
-    assert 'data-status="blocker" data-incomplete' in row
+    assert 'data-status="needs_work" data-incomplete' in row
     assert "At least one Windows-only application has no web version" in row
     assert "At least 1 application" in row and "1 of 2 answers supplied" in row
     assert "answer_not_provided" in row and "The answer is missing." in row
@@ -991,7 +1009,11 @@ def test_attention_shows_provided_counts_and_zero_explicitly(
 
     assert "40 files" in section and "0 files" in section and "None were reported." in section
     assert "4 applications" in section and "1 application" in section
-    assert section.count('data-provenance="provided"') == len(answers)
+    evidence, gaps = section.split('<div data-subsection="cannot-be-moved">', 1)
+    assert evidence.count('data-provenance="provided"') == len(answers)
+    for function in ("desktop_operating_system", "windows_applications"):
+        gap = re.search(rf'<li data-gap="{function}" data-need="yes">.*?</li>', gaps, re.S)
+        assert gap is not None and 'data-provenance="provided"' in gap[0]
 
 
 def test_removing_an_extension_changes_the_next_demo(

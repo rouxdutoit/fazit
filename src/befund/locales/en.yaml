@@ -22,7 +22,7 @@ found:
   coverage: Coverage
   sample: Scan measurements are simulated.
   note: Note
-  comparison: For comparison only
+  comparison: Other observation
   partial_positive: 'At least {value}'
   partial_zero: '{value} in the items checked'
   notes:
@@ -37,6 +37,7 @@ licences:
   bundled: Included in the product
   add_on: Separately licensed
   unclassified: 'Unclassified service plans in this product: {count}.'
+  no_workload: 'Service plans without a workload signal: {count}.'
   add_on_assigned: 'Separate licence assigned for {workload}'
   bundled_assigned: 'Included licence assigned for {workload}'
 status:
@@ -119,7 +120,7 @@ readiness:
   evidence: Evidence
   incomplete: Evidence incomplete
   missing: Evidence still needed
-  conflict: The measurement found affected items despite the supplied zero, so the status uses the measured lower bound.
+  conflict: The report uses the measured minimum because the supplied total is lower.
   not_examined: Not examined
 moves:
   title: What moves where
@@ -151,10 +152,10 @@ attention:
   software_name: Application
   software_users: People using it
   software_web_version: Vendor offers a web version
-  cannot_be_moved: Cannot be moved
+  cannot_be_moved: Direct transfer unverified
   gap_scope: A direct transfer for these functions has not been established for the selected profile.
   needed_here: Needed by this organisation
-  no_gaps: This profile lists no functions that cannot be moved.
+  no_gaps: This profile lists no functions with unverified direct transfer.
 path:
   title: Suggested path
   blocker: Confirmed blockers
@@ -209,6 +210,8 @@ collector:
   sharepoint_site_usage: SharePoint site usage report
   teams_usage: Teams usage report
   exchange_recipients: Exchange recipient export
+  office_files: File type inventory
+  telephony: Telephony usage inventory
 collector_status:
   ok: Completed
   partial: Partial
@@ -221,7 +224,10 @@ source:
   sample.sharepoint_site_usage: Sample SharePoint site usage report
   sample.teams_usage: Sample Teams usage report
   sample.exchange_recipients: Sample Exchange recipient export
+  sample.office_files: Sample file type inventory
+  sample.telephony: Sample telephony usage inventory
   sample.interview: Sample interview answer
+  sample.inputs_yaml: Sample input
   interview: Interview answer
   inputs_yaml: Answer in the inputs file
 coverage:
@@ -249,7 +255,7 @@ reason:
     fix: Ask the person responsible for the service for the information.
   answer_not_provided:
     label: The answer is missing.
-    fix: Confirm the answer and record it in the inputs file.
+    fix: Find out the answer and enter it in the inputs file.
   source_not_supplied:
     label: The data source was missing.
     fix: Supply the required export and rebuild the report.
@@ -268,12 +274,18 @@ reason:
   licence_not_classified:
     label: This tool could not classify the licence.
     fix: Check the product and service plan against the licensing reference.
+  licence_plan_list_missing:
+    label: An assigned product has no service plan list in the inventory.
+    fix: Supply the list of service plans for that product.
   coverage_partial:
     label: The measurement covers only part of the scope.
     fix: Check the remaining items before drawing a conclusion about the whole scope.
   coverage_unknown:
     label: The extent of the measurement is unknown.
     fix: Confirm which items the measurement covered or supply a complete figure.
+  confirmation_conflict:
+    label: The measurement and the supplied answer disagree.
+    fix: Check that both refer to the same scope and correct the evidence.
   not_established:
     label: The available evidence leaves the answer open.
     fix: Review the finding with the person responsible for the service.
@@ -400,6 +412,7 @@ errors:
   non_finite_number: Supply a finite number for {field} in {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
   invalid_collector: The collection method for {field} in {file} must have run.
+  invalid_evidence_source: The collection method or source at {field} in {file} is invalid for {finding}.
   file_not_found: The file {file} could not be found at {field}.
   is_directory: The location {file} for {field} is a directory.
   not_readable: The file {file} for {field} could not be read.

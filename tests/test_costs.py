@@ -395,6 +395,7 @@ def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -
     }
     assert "data-invented-amounts" not in section and 'data-cost-origin="invented"' not in section
     assert 'data-cost-origin="provided"' in section
+    assert 'data-cost-origin="sample_input"' in section
     assert 'data-cost-origin="calculated"' in section
     (path,) = out.glob("*.html")
     html = path.read_text(encoding="utf-8")

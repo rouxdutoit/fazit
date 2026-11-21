@@ -21,6 +21,7 @@ _INPUT_KEYS = (
     "language",
     "target_profile",
     "as_of",
+    "answers_are_sample",
     "amounts_are_invented",
     "current_costs",
     "target_costs",
@@ -101,6 +102,11 @@ class Inputs:
     windows_only_software: tuple[WindowsSoftware, ...] | None = None
     provided_counts: Mapping[str, int | None] = field(default_factory=lambda: MappingProxyType({}))
     confirmations: Mapping[str, bool | None] = field(default_factory=lambda: MappingProxyType({}))
+    answers_are_sample: bool = False
+
+    @property
+    def answer_source(self) -> str:
+        return "sample.inputs_yaml" if self.answers_are_sample else "inputs_yaml"
 
 
 def empty_inputs() -> Inputs:
@@ -266,6 +272,8 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
             row.get("target_profile"), "target_profile", PROFILES, "unsupported_profile"
         ),
         as_of=reader.as_of(row.get("as_of")),
+        answers_are_sample=reader.boolean(row.get("answers_are_sample"), "answers_are_sample")
+        is True,
         amounts_are_invented=reader.boolean(row.get("amounts_are_invented"), "amounts_are_invented")
         is True,
         current_costs=CurrentCosts(
@@ -295,7 +303,7 @@ def load_inputs(path: Path, catalogue: Catalogue) -> Inputs:
 def _provided(
     entry: FindingEntry,
     value: int | bool | None,
-    as_of: str | None,
+    inputs: Inputs,
     coverage: Coverage | None = None,
 ) -> Finding:
     return Finding(
@@ -305,8 +313,8 @@ def _provided(
         value=value,
         provenance="unknown" if value is None else "provided",
         collector=None,
-        source="inputs_yaml",
-        collected_at=as_of,
+        source=inputs.answer_source,
+        collected_at=inputs.as_of,
         period=None,
         coverage=coverage,
         missing_reason="answer_not_provided" if value is None else None,
@@ -329,12 +337,12 @@ def provided_findings(inputs: Inputs, catalogue: Catalogue) -> tuple[Finding, ..
     findings: list[Finding] = []
     for entry in catalogue.findings:
         if entry.provided == "answer" and (value := answers.get(entry.id)) is not None:
-            findings.append(_provided(entry, value, inputs.as_of))
+            findings.append(_provided(entry, value, inputs))
         elif software is not None and entry.provided == "software_list":
-            findings.append(_provided(entry, len(software), inputs.as_of))
+            findings.append(_provided(entry, len(software), inputs))
         elif software is not None and entry.provided == "software_list_without_web_version":
             lower_bound, coverage = _without_web_version(software)
-            findings.append(_provided(entry, lower_bound, inputs.as_of, coverage))
+            findings.append(_provided(entry, lower_bound, inputs, coverage))
     return tuple(findings)
 
 
@@ -342,11 +350,15 @@ def combine(scan: Scan, provided: tuple[Finding, ...]) -> tuple[Scan, tuple[Find
     if not provided:
         return scan, ()
     by_id = {finding.id: finding for finding in scan.findings}
+    skipped = {collector.id for collector in scan.collectors if collector.status == "skipped"}
     alternatives: list[Finding] = []
     for supplied in {finding.id: finding for finding in provided}.values():
         recorded = by_id.get(supplied.id)
         selected = select_evidence(recorded, supplied)
         by_id[supplied.id] = selected
-        if recorded and recorded.provenance == "measured" and supplied.provenance == "provided":
+        if recorded and (
+            (recorded.provenance == "measured" and supplied.provenance == "provided")
+            or (selected is supplied and recorded.collector in skipped)
+        ):
             alternatives.append(recorded if selected is supplied else supplied)
     return replace(scan, findings=tuple(by_id.values())), tuple(alternatives)
