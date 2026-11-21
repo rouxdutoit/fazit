@@ -278,9 +278,12 @@ reason:
   licensed_use_not_measured:
     label: The licence includes this service, and its use is unverified.
     fix: Ask the service owner how the organisation uses it.
+  licence_products_missing:
+    label: No licence products were recorded.
+    fix: Check the source and supply a complete list of licence products.
   licence_not_classified:
-    label: This tool could not classify the licence.
-    fix: Check the product and service plan against the licensing reference.
+    label: This tool could not classify a service plan.
+    fix: Check the product and service plan against the licensing reference and update the service plan catalogue.
   licence_plan_list_missing:
     label: An assigned product has no service plan list in the inventory.
     fix: Supply the list of service plans for that product.

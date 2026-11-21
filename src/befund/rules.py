@@ -13,7 +13,7 @@ from types import MappingProxyType
 from typing import Never
 
 from . import PROJECT_NAME
-from .catalogue import Catalogue, sku_key
+from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .model import Collector, Finding, FindingValue, Product, Scan
 from .parsing import parse_yaml, read_text
@@ -409,35 +409,22 @@ def classify_product(
 
 
 def _licence_signals(
-    products: tuple[Product, ...], plans: tuple[ServicePlan, ...], workload_ids: tuple[str, ...]
-) -> tuple[set[tuple[str, str]], dict[str, str]]:
-    known_products = {sku_key(plan.sku_part_number, plan.sku_guid) for plan in plans}
+    products: tuple[Product, ...], plans: tuple[ServicePlan, ...]
+) -> tuple[set[tuple[str, str]], str | None]:
     assigned: set[tuple[str, str]] = set()
-    unclassified: dict[str, str] = {}
+    gap = None
     for product in products:
         if not product.assigned:
             continue
         if not product.service_plans:
-            unclassified.update(dict.fromkeys(workload_ids, "licence_plan_list_missing"))
+            gap = "licence_plan_list_missing"
             continue
-        if product.key not in known_products:
-            for workload in workload_ids:
-                unclassified.setdefault(workload, "licence_not_classified")
-            continue
-        for identity, match in zip(
-            product.service_plans, classify_product(product, plans), strict=True
-        ):
-            if match is not None:
-                if match.workload is not None:
-                    assigned.add((match.workload, match.signal))
-                continue
-            name = identity.name.casefold() if identity.name is not None else None
-            for plan in plans:
-                if plan.workload is not None and (
-                    plan.guid == identity.guid or plan.name.casefold() == name
-                ):
-                    unclassified.setdefault(plan.workload, "licence_not_classified")
-    return assigned, unclassified
+        for match in classify_product(product, plans):
+            if match is None:
+                gap = gap or "licence_not_classified"
+            elif match.workload is not None:
+                assigned.add((match.workload, match.signal))
+    return assigned, gap
 
 
 def licence_findings(
@@ -446,30 +433,38 @@ def licence_findings(
     licences = scan.licences
     if licences is None:
         return ()
+    coverage = licences.coverage
+    collector = scan.collector(licences.collector)
+    coverage_gap = None
+    if collector is not None and collector.status == "partial":
+        coverage_gap = collector.reason
+        if coverage.kind == "complete":
+            coverage = replace(coverage, kind="partial")
+    coverage_gap = coverage_gap or {
+        "partial": "coverage_partial",
+        "unknown": "coverage_unknown",
+    }.get(coverage.kind)
+    count = len(licences.products)
     product_count = Finding(
         id=_PRODUCT_COUNT,
         workload=_PRODUCT_COUNT.split(".")[0],
-        value=len(licences.products),
+        value=count or None,
         unit="products",
-        provenance="measured",
+        provenance="measured" if count else "unknown",
         collector=licences.collector,
         source=licences.source,
         collected_at=licences.collected_at,
         period=None,
-        coverage=licences.coverage,
-        missing_reason=None,
+        coverage=coverage,
+        missing_reason=None if count else "licence_products_missing",
     )
-    workload_ids = catalogue.workload_ids
-    assigned, unclassified = _licence_signals(licences.products, plans, workload_ids)
-    coverage_gap = {
-        "partial": "coverage_partial",
-        "unknown": "coverage_unknown",
-    }.get(licences.coverage.kind)
+    assigned, classification_gap = _licence_signals(licences.products, plans)
+    absence_gap = product_count.missing_reason or classification_gap or coverage_gap
     findings = [product_count]
-    for workload in workload_ids:
+    for workload in catalogue.workload_ids:
         for signal in _SIGNALS:
             value = (workload, signal) in assigned
-            missing = None if value else unclassified.get(workload) or coverage_gap
+            missing = None if value else absence_gap
             findings.append(
                 replace(
                     product_count,
@@ -687,6 +682,28 @@ def _observation_gaps(
             yield MissingEvidence(finding_id, "confirmation_conflict", None)
 
 
+def _collector_gaps(
+    finding_ids: Collection[str],
+    entries: MappingABC[str, FindingEntry],
+    collectors: MappingABC[str, Collector],
+    observed: Collection[MissingEvidence],
+) -> Iterator[MissingEvidence]:
+    recorded = {(gap.finding_id, gap.collector) for gap in observed}
+    for finding_id in finding_ids:
+        entry = entries.get(finding_id)
+        if entry is None:
+            continue
+        for collector_id in sorted({method for method, _ in entry.measured_by}):
+            collector = collectors.get(collector_id)
+            if collector is None or collector.status == "ok":
+                continue
+            if (finding_id, collector_id) not in recorded:
+                fallback = (
+                    "collector_skipped" if collector.status == "skipped" else "coverage_partial"
+                )
+                yield MissingEvidence(finding_id, collector.reason or fallback, collector_id)
+
+
 def _gap(
     condition: Condition,
     finding: Finding | None,
@@ -769,13 +786,19 @@ def _evaluate_workload(
     workload: str,
     block: WorkloadRules,
     findings: MappingABC[str, Finding],
-    provided_ids: Collection[str],
+    entries: MappingABC[str, FindingEntry],
     collectors: MappingABC[str, Collector],
     alternatives: MappingABC[str, Finding],
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
         (*block.ready, *(item for rule in block.rules for item in rule.when))
     )
+    ids = dict.fromkeys(condition.finding for condition in conditions)
+    provided_ids = {
+        finding_id
+        for finding_id in ids
+        if finding_id in entries and entries[finding_id].provided != "no"
+    }
     observations = {
         condition: _condition_evidence(
             condition, findings.get(condition.finding), alternatives.get(condition.finding)
@@ -805,10 +828,10 @@ def _evaluate_workload(
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
     bundled_id = f"{workload}.licence_bundled_assigned"
     bundled = findings.get(bundled_id)
-    ids = dict.fromkeys(condition.finding for condition in conditions)
     missing.update(
         dict.fromkeys(_observation_gaps(workload, conditions, findings, alternatives, collectors))
     )
+    missing.update(dict.fromkeys(_collector_gaps(ids, entries, collectors, missing)))
     ids.update(dict.fromkeys(gap.finding_id for gap in missing))
     if bundled is not None and bundled.value is True:
         ids[bundled_id] = None
@@ -833,13 +856,13 @@ def evaluate(
     collectors: MappingABC[str, Collector] | None = None,
     alternatives: MappingABC[str, Finding] | None = None,
 ) -> tuple[WorkloadStatus, ...]:
-    provided_ids = {entry.id for entry in catalogue.findings if entry.provided != "no"}
+    entries = {entry.id: entry for entry in catalogue.findings}
     return tuple(
         _evaluate_workload(
             workload,
             rule_set.workloads[workload],
             findings,
-            provided_ids,
+            entries,
             collectors or {},
             alternatives or {},
         )

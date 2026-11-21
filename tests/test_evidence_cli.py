@@ -12,6 +12,8 @@ from befund.cli import app
 from befund.i18n import load_locale
 from befund.rules import load_service_plans
 
+NO_TELEPHONY = "confirmations: {telephony.in_use: false, telephony.replacement_available: false}"
+
 
 @pytest.fixture
 def town_scan() -> dict:
@@ -90,6 +92,45 @@ def test_supplied_zero_preserves_a_skipped_observation(tmp_path: Path, town_scan
     assert 'data-path-status="ready" data-path-workload="integrations"' not in skipped
 
 
+@pytest.mark.parametrize(
+    ("collector_status", "reason_code"),
+    [("skipped", "permission_denied"), ("partial", "not_in_export")],
+)
+@pytest.mark.parametrize(("answer", "status"), [(0, "unknown"), (3, "needs_work")])
+def test_incomplete_bound_collector_is_reported_without_a_scan_finding(
+    tmp_path: Path,
+    town_scan: dict,
+    collector_status: str,
+    reason_code: str,
+    answer: int,
+    status: str,
+) -> None:
+    finding_id = "integrations.application_count"
+    town_scan["findings"] = [
+        finding
+        for finding in town_scan["findings"]
+        if finding["id"] != finding_id and finding["collector"] != "directory"
+    ]
+    directory = next(item for item in town_scan["collectors"] if item["id"] == "directory")
+    directory.update(status=collector_status, reason=reason_code)
+
+    html = _html(
+        _report(
+            tmp_path / "omitted-finding", town_scan, f"provided_counts: {{{finding_id}: {answer}}}"
+        )
+    )
+    row = _readiness(html, "integrations")
+    strings = load_locale("en")
+
+    assert f'data-status="{status}" data-incomplete' in row
+    assert f'data-missing="{finding_id}"' in row
+    assert f'data-reason="{reason_code}"' in row
+    assert strings["reason"][reason_code]["fix"] in row
+    assert strings["collector"]["directory"] in row
+    assert f"{answer} applications" in row
+    assert 'data-path-status="ready" data-path-workload="integrations"' not in html
+
+
 def test_shared_mailboxes_require_the_exchange_recipient_export(
     tmp_path: Path, town_scan: dict
 ) -> None:
@@ -121,12 +162,51 @@ def test_shared_mailboxes_require_the_exchange_recipient_export(
     assert 'data-status="ready"' in _readiness(verified, "mail")
 
 
+@pytest.mark.parametrize("source", ["sample.mailbox_usage", "inputs_yaml"])
+def test_licence_inventory_requires_a_source_bound_to_its_collector(
+    tmp_path: Path, town_scan: dict, source: str
+) -> None:
+    town_scan["licences"].update(source=source, products=[])
+
+    result = _report(tmp_path / "wrong-licence-source", town_scan, NO_TELEPHONY)
+
+    assert result.exit_code == 2 and not result.stdout
+    assert len(result.stderr.splitlines()) == 1
+    assert "inventory.json" in result.stderr and "licences.source" in result.stderr
+    assert not (tmp_path / "wrong-licence-source" / "out").exists()
+
+
+def test_empty_licence_inventory_leaves_absence_unknown(tmp_path: Path, town_scan: dict) -> None:
+    town_scan["licences"]["products"] = []
+    answers = """
+confirmations:
+  licences.contract_terms_known: true
+  telephony.in_use: false
+  telephony.replacement_available: false
+"""
+
+    html = _html(_report(tmp_path / "empty-inventory", town_scan, answers))
+
+    for workload, finding_id in (
+        ("telephony", "telephony.licence_add_on_assigned"),
+        ("licences", "licences.product_count"),
+    ):
+        row = _readiness(html, workload)
+        assert 'data-status="unknown" data-incomplete' in row
+        assert 'data-reason="licence_products_missing"' in row
+        assert "No licence products were recorded." in row
+        evidence = re.search(rf'<li data-evidence="{re.escape(finding_id)}">.*?</li>', row, re.S)
+        assert evidence is not None
+        assert 'data-provenance="unknown"' in evidence[0]
+        assert 'data-provenance="measured"' not in evidence[0]
+    assert "Licence products found: 0" not in html
+
+
 @pytest.mark.parametrize("plan_list", ["empty", "omitted", "null"])
 def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     tmp_path: Path, town_scan: dict, plan_list: str
 ) -> None:
-    answers = "confirmations: {telephony.in_use: false, telephony.replacement_available: false}"
-    checked = _html(_report(tmp_path / "with-plans", town_scan, answers))
+    checked = _html(_report(tmp_path / "with-plans", town_scan, NO_TELEPHONY))
     assert 'data-status="blocker"' in _readiness(checked, "telephony")
 
     phone = next(
@@ -136,16 +216,53 @@ def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
         del phone["service_plans"]
     else:
         phone["service_plans"] = [] if plan_list == "empty" else None
-    html = _html(_report(tmp_path / "no-plans", town_scan, answers))
+    html = _html(_report(tmp_path / "no-plans", town_scan, NO_TELEPHONY))
     row = _readiness(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_missing"' in row
 
 
-def test_unlisted_plan_in_a_known_product_leaves_unrelated_signals_intact(
+def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
     tmp_path: Path, town_scan: dict
 ) -> None:
-    answers = "confirmations: {teams.chat_history_must_be_kept: false}"
+    phone = next(
+        item for item in town_scan["licences"]["products"] if item["sku_part_number"] == "MCOEV"
+    )
+    assert phone["assigned"] == 12
+    town_scan["licences"].update(
+        products=[phone], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
+    )
+    baseline = _html(_report(tmp_path / "classified-phone", town_scan, NO_TELEPHONY))
+    assert 'data-status="blocker"' in _readiness(baseline, "telephony")
+
+    phone["service_plans"] = [
+        {"name": "REVIEW_PLAN", "guid": "00000000-0000-4000-8000-000000000001"}
+    ]
+    html = _html(_report(tmp_path / "unclassified-phone", town_scan, NO_TELEPHONY))
+    row = _readiness(html, "telephony")
+
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_not_classified"' in row
+    evidence = re.search(
+        r'<li data-evidence="telephony\.licence_add_on_assigned">.*?</li>', row, re.S
+    )
+    assert evidence is not None
+    assert 'data-provenance="unknown"' in evidence[0]
+    assert not re.search(r"\b(?:No|Measured)\b", evidence[0])
+    assert "Unclassified service plans in this product: 1." in html
+    assert "update the service plan catalogue" in html
+    assert "REVIEW_PLAN" not in html
+
+
+def test_unlisted_plan_prevents_an_absence_conclusion_but_preserves_known_assignments(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    answers = """
+confirmations:
+  teams.chat_history_must_be_kept: false
+  telephony.in_use: false
+  telephony.replacement_available: false
+"""
     baseline = _html(_report(tmp_path / "known-plans", town_scan, answers))
     assert 'data-status="ready"' in _readiness(baseline, "teams")
 
@@ -157,11 +274,20 @@ def test_unlisted_plan_in_a_known_product_leaves_unrelated_signals_intact(
     )
     html = _html(_report(tmp_path / "unlisted-plan", town_scan, answers))
     assert "Unclassified service plans in this product: 1." in html
+    row = _readiness(html, "teams")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_not_classified"' in row
+    assert 'data-status="blocker"' in _readiness(html, "telephony")
+
+    suite["assigned"] = 0
+    html = _html(_report(tmp_path / "unassigned-plan", town_scan, answers))
+    assert "Unclassified service plans in this product: 1." in html
     assert 'data-status="ready"' in _readiness(html, "teams")
 
 
+@pytest.mark.parametrize("partial_by", ["coverage", "collector"])
 def test_partial_licence_inventory_confirms_assignments_only(
-    tmp_path: Path, town_scan: dict
+    tmp_path: Path, town_scan: dict, partial_by: str
 ) -> None:
     answers = """
 confirmations:
@@ -177,14 +303,22 @@ confirmations:
     assert 'data-status="blocker"' in _readiness(checked, "telephony")
     assert 'data-status="ready"' in _readiness(checked, "power_platform")
 
-    licences["coverage"] = {"kind": "partial", "scanned": 2, "failed": 1, "total": 3}
+    if partial_by == "coverage":
+        licences["coverage"] = {"kind": "partial", "scanned": 2, "failed": 1, "total": 3}
+        reason = "coverage_partial"
+    else:
+        collector = next(item for item in town_scan["collectors"] if item["id"] == "licences")
+        collector.update(status="partial", reason="not_in_export")
+        reason = "not_in_export"
     html = _html(_report(tmp_path / "partial-licences", town_scan, answers))
     row = _readiness(html, "telephony")
     assert 'data-status="blocker" data-incomplete' in row
-    assert 'data-reason="coverage_partial"' in row and "2 of 3 scanned" in row
+    assert 'data-reason="coverage_partial"' in row
+    if partial_by == "coverage":
+        assert "2 of 3 scanned" in row
     row = _readiness(html, "power_platform")
     assert 'data-status="unknown" data-incomplete' in row
-    assert 'data-reason="coverage_partial"' in row
+    assert f'data-reason="{reason}"' in row
     assert 'data-provenance="unknown"' in row
 
 

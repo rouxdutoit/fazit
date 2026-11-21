@@ -53,6 +53,7 @@ class Catalogue:
     checksum: str | None = None
     provided_sources: frozenset[str] = frozenset()
     sku_exceptions: frozenset[tuple[str, str]] = frozenset()
+    licence_sources: frozenset[str] = frozenset()
 
     @property
     def workload_ids(self) -> tuple[str, ...]:
@@ -212,6 +213,7 @@ def _parse_catalogue(text: str, file_name: str) -> Catalogue:
     if not isinstance(codes, dict) or codes.keys() != {
         "collectors",
         "sources",
+        "licence_sources",
         "provided_sources",
         "reasons",
         "permissions",
@@ -220,6 +222,10 @@ def _parse_catalogue(text: str, file_name: str) -> Catalogue:
         raise InputError("invalid_field", file=file_name, field="codes")
     collector_ids = _code_set(codes["collectors"], file_name, "codes.collectors")
     measured_sources = _code_set(codes["sources"], file_name, "codes.sources")
+    licence_sources = _code_set(codes["licence_sources"], file_name, "codes.licence_sources")
+    if measured_sources & licence_sources:
+        raise InputError("duplicate_id", file=file_name, field="codes.licence_sources")
+    measured_sources |= licence_sources
     provided_sources = _code_set(codes["provided_sources"], file_name, "codes.provided_sources")
     if measured_sources & provided_sources:
         raise InputError("duplicate_id", file=file_name, field="codes.provided_sources")
@@ -241,4 +247,5 @@ def _parse_catalogue(text: str, file_name: str) -> Catalogue:
         checksum=sha256(text.encode("utf-8")).hexdigest(),
         provided_sources=provided_sources,
         sku_exceptions=_sku_exceptions(codes["sku_exceptions"], file_name),
+        licence_sources=licence_sources,
     )

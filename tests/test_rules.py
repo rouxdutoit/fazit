@@ -324,6 +324,13 @@ def test_no_licence_block_and_no_assigned_licences(catalogue: Catalogue) -> None
         == ()
     )
     assert scan.licences is not None
+    empty = _product_findings(catalogue)
+    assert len(empty) == 1 + 2 * len(catalogue.workloads)
+    assert all(
+        (finding.value, finding.provenance, finding.missing_reason)
+        == (None, "unknown", "licence_products_missing")
+        for finding in empty.values()
+    )
     unassigned = [replace(product, assigned=0) for product in scan.licences.products]
     findings = _product_findings(catalogue, *unassigned)
 
@@ -343,22 +350,20 @@ def test_unmapped_pairs_are_unknown_without_erasing_classified_assignments(
     )
     for product in (wrong_product, bad_plan_guid):
         findings = _product_findings(catalogue, product)
-        signal = findings["telephony.licence_add_on_assigned"]
-        assert (signal.value, signal.provenance, signal.missing_reason) == (
-            None,
-            "unknown",
-            "licence_not_classified",
+        del findings["licences.product_count"]
+        assert all(
+            (signal.value, signal.provenance, signal.missing_reason)
+            == (None, "unknown", "licence_not_classified")
+            for signal in findings.values()
         )
         assert classify_product(product, load_service_plans(catalogue)) == (None,)
-    assert findings["teams.licence_add_on_assigned"].value is False
-    unknown_product = _product_findings(catalogue, wrong_product)
-    del unknown_product["licences.product_count"]
-    assert all(
-        finding.value is None and finding.missing_reason == "licence_not_classified"
-        for finding in unknown_product.values()
+    partly_classified_phone = replace(
+        phone, service_plans=phone.service_plans + bad_plan_guid.service_plans
     )
-    mixed = _product_findings(catalogue, phone, wrong_product)
-    assert mixed["telephony.licence_add_on_assigned"].value is True
+    for products in ((phone, wrong_product), (partly_classified_phone,)):
+        findings = _product_findings(catalogue, *products)
+        assert findings["telephony.licence_add_on_assigned"].value is True
+        assert findings["teams.licence_add_on_assigned"].value is None
 
 
 def test_audio_conferencing_is_a_meetings_signal(catalogue: Catalogue) -> None:
@@ -408,10 +413,9 @@ def status_rules(catalogue: Catalogue) -> StatusRuleSet:
 def complete_evidence(catalogue: Catalogue) -> dict[str, Finding]:
     scan = sample_scan("town", catalogue)
     assert scan.licences is not None
-    scan = replace(scan, licences=replace(scan.licences, products=()))
-    findings = {
-        item.id: item for item in licence_findings(scan, load_service_plans(catalogue), catalogue)
-    }
+    findings = _product_findings(
+        catalogue, *(replace(product, assigned=0) for product in scan.licences.products)
+    )
     for entry in catalogue.findings:
         manual = entry.provided != "no"
         value: FindingValue = False if entry.type == "boolean" else 0

@@ -348,7 +348,6 @@ codes:
     - office_files
     - telephony
   sources:
-    - sample.licences
     - sample.directory
     - sample.mailbox_usage
     - sample.onedrive_usage
@@ -357,6 +356,8 @@ codes:
     - sample.exchange_recipients
     - sample.office_files
     - sample.telephony
+  licence_sources:
+    - sample.licences
   provided_sources:
     - sample.inputs_yaml
     - sample.interview
@@ -373,6 +374,7 @@ codes:
     - collector_skipped
     - not_in_scan
     - licensed_use_not_measured
+    - licence_products_missing
     - licence_not_classified
     - licence_plan_list_missing
     - coverage_partial

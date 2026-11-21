@@ -469,8 +469,9 @@
       {% if product_count %}
         <h3 id="licences-title">{{ strings.licences.title }}</h3>
         <p data-provenance="{{ product_count.provenance }}">
-          {{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}
+          {% if product_count.value is not none %}{{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}{% endif %}
           <span class="prov">{{ strings.provenance[product_count.provenance] }}</span>
+          {% if product_count.missing_reason %}<small>{{ reason_detail(product_count.missing_reason) }}</small>{% endif %}
           <small>{{ code_label('source', product_count.source) }} · {{ format.date(product_count.collected_at) }} · {{ coverage_text(product_count.coverage) }}</small>
         </p>
         {% if licences %}

@@ -420,6 +420,7 @@ class _ScanReader:
         collector = self.code(row["collector"], "licences.collector", ("licences",))
         if collector not in collectors or collectors[collector].status == "skipped":
             self.fail("licences.collector", "invalid_collector")
+        source = self.code(row["source"], "licences.source", self.catalogue.licence_sources)
         products = []
         parts: set[str] = set()
         guids: set[str] = set()
@@ -437,7 +438,7 @@ class _ScanReader:
             products.append(product)
         return Licences(
             collector=collector,
-            source=self.code(row["source"], "licences.source", self.catalogue.source_codes),
+            source=source,
             collected_at=self.timestamp(row["collected_at"], "licences.collected_at"),
             coverage=self.coverage(row["coverage"], "licences.coverage"),
             products=tuple(products),

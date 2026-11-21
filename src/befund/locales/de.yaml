@@ -278,9 +278,12 @@ reason:
   licensed_use_not_measured:
     label: Die Lizenz umfasst den Dienst, dessen Nutzung noch ungeklärt ist.
     fix: Klären Sie mit der zuständigen Stelle, wie Ihre Organisation den Dienst nutzt.
+  licence_products_missing:
+    label: Im Lizenzbestand sind keine Produkte erfasst.
+    fix: Prüfen Sie die Quelle und reichen Sie eine vollständige Liste der Lizenzprodukte nach.
   licence_not_classified:
-    label: Das Programm konnte die Lizenz nicht einordnen.
-    fix: Gleichen Sie das Produkt und den Dienstplan mit der Lizenzreferenz ab.
+    label: Das Programm konnte einen Dienstplan nicht einordnen.
+    fix: Gleichen Sie Produkt und Dienstplan mit der Lizenzreferenz ab und aktualisieren Sie den Dienstplankatalog.
   licence_plan_list_missing:
     label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Dienstpläne.
     fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
