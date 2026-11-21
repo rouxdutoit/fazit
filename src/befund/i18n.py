@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from copy import deepcopy
 from datetime import date
 from decimal import MAX_EMAX, ROUND_HALF_UP, Context, Decimal, localcontext
+from functools import lru_cache
 from importlib.resources import files
 
 from . import PROJECT_NAME
@@ -15,17 +17,29 @@ def load_locale(lang: str) -> dict:
     if lang not in SUPPORTED_LANGUAGES:
         raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
     locale = files("befund").joinpath("locales", f"{lang}.yaml")
-    strings = parse_yaml(read_text(locale), locale.name)
+    return deepcopy(_parse_locale(read_text(locale), locale.name))
+
+
+@lru_cache(maxsize=2)
+def _parse_locale(text: str, file_name: str) -> dict:
+    strings = parse_yaml(text, file_name)
     if not isinstance(strings, dict):
-        raise InputError("invalid_field", file=locale.name, field="$")
+        raise InputError("invalid_field", file=file_name, field="$")
     return strings
 
 
 def error_sentence(strings: dict, error: InputError) -> str:
     return strings["errors"][error.code].format(
-        file=" ".join(str(error.file or PROJECT_NAME).splitlines()),
-        field=" ".join(str(error.field or "$").splitlines()),
+        file=escape_controls(str(error.file or PROJECT_NAME)),
+        field=escape_controls(str(error.field or "$")),
         **error.details,
+    )
+
+
+def escape_controls(text: str) -> str:
+    return "".join(
+        char if char.isprintable() else char.encode("unicode_escape").decode("ascii")
+        for char in text
     )
 
 

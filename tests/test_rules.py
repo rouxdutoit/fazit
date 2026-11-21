@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import json
 import re
-from dataclasses import replace
+from dataclasses import asdict, replace
 from datetime import date
 from html import unescape
 from importlib.resources import files
@@ -16,6 +17,7 @@ from befund.catalogue import Catalogue, load_catalogue
 from befund.cli import app
 from befund.errors import InputError
 from befund.i18n import load_locale
+from befund.inputs import Inputs, WindowsSoftware
 from befund.model import (
     Coverage,
     Finding,
@@ -24,7 +26,6 @@ from befund.model import (
     Scan,
     ServicePlan,
     load_scan_text,
-    scan_to_json,
 )
 from befund.parsing import parse_yaml, read_text
 from befund.report import SECTION_ORDER, render_report
@@ -383,7 +384,7 @@ def test_report_counts_unclassified_plans_without_showing_their_names(
     suite = replace(suite, service_plans=(*suite.service_plans, unknown))
     scan = replace(scan, licences=replace(scan.licences, products=(suite, phone, reporting)))
     source = tmp_path / "scan.json"
-    source.write_text(scan_to_json(scan), encoding="utf-8")
+    source.write_text(json.dumps(asdict(scan)), encoding="utf-8")
     result = CliRunner().invoke(app, ["report", str(source), "--out", str(tmp_path / "out")])
 
     assert result.exit_code == 0, result.output
@@ -413,9 +414,7 @@ def complete_evidence(catalogue: Catalogue) -> dict[str, Finding]:
     }
     for entry in catalogue.findings:
         manual = entry.provided != "no"
-        value: FindingValue = {"boolean": False, "count": 0, "bytes": 0, "code": "example"}[
-            entry.type
-        ]
+        value: FindingValue = False if entry.type == "boolean" else 0
         if entry.id in {"licences.contract_terms_known", "directory.account_list_reviewed"}:
             value = True
         findings[entry.id] = Finding(
@@ -659,15 +658,15 @@ def test_worst_rule_wins_and_ties_keep_file_order(
 
 
 def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
-    complete_evidence: dict[str, Finding], catalogue: Catalogue
+    catalogue: Catalogue,
 ) -> None:
-    count = replace(complete_evidence["windows_software.application_count"], value=2)
-    no_web = replace(
-        complete_evidence["windows_software.without_web_version_count"],
-        value=1,
-        coverage=Coverage("partial", scanned=1, total=2),
+    inputs = Inputs(
+        windows_only_software=(
+            WindowsSoftware("Example application", vendor_has_web_version=False),
+            WindowsSoftware("Unanswered application"),
+        )
     )
-    html = render_report(sample_scan("town", catalogue), lang="en", provided=(count, no_web))
+    html = render_report(sample_scan("town", catalogue), lang="en", inputs=inputs)
     row = _readiness_row(html, "windows_software")
 
     assert 'data-status="needs_work" data-incomplete' in row
@@ -722,16 +721,17 @@ def test_partial_positive_overrides_a_provided_zero_and_displays_both(
             measurement if finding.id == answer.id else finding for finding in scan.findings
         ),
     )
-    html = render_report(scan, lang="en", provided=(answer,))
+    html = render_report(scan, lang="en", inputs=Inputs(provided_counts={answer.id: 0}))
     row = _readiness_row(html, "integrations")
 
     assert 'data-status="needs_work" data-incomplete' in row
     assert "At least 4 applications" in row and 'data-provenance="measured"' in row
     assert "0 applications" in row and 'data-provenance="provided"' in row
+    assert "6 of 8 scanned" in row
     assert load_locale("en")["readiness"]["conflict"] in row
     move = re.search(r'<tr data-function="application_integrations".*?</tr>', html, re.S)
-    assert move is not None and "At least 4 applications" in move[0]
-    assert "0 applications" in move[0] and "6 of 8 scanned" in move[0]
+    assert move is not None and 'href="#readiness-integrations"' in move[0]
+    assert "At least 4 applications" not in move[0] and "0 applications" not in move[0]
 
 
 @pytest.mark.parametrize(
@@ -764,7 +764,8 @@ def test_complete_evidence_decides_when_values_do_not_conflict_with_a_lower_boun
     scan = replace(
         scan, findings=tuple(recorded if item.id == answer.id else item for item in scan.findings)
     )
-    row = _readiness_row(render_report(scan, lang="en", provided=(answer,)), "integrations")
+    html = render_report(scan, lang="en", inputs=Inputs(provided_counts={answer.id: 7}))
+    row = _readiness_row(html, "integrations")
 
     assert f'data-status="{status}"' in row and "data-incomplete" not in row
     assert row.index(first) < row.index(second)
@@ -996,21 +997,23 @@ def test_attention_shows_risky_types_and_windows_software(
     assert sections == [section for section in SECTION_ORDER if section in sections]
 
 
-def test_attention_shows_provided_counts_and_zero_explicitly(
-    complete_evidence: dict[str, Finding], catalogue: Catalogue
-) -> None:
-    answers = (
-        replace(complete_evidence["office_files.kind.macro"], value=40),
-        complete_evidence["office_files.kind.access"],
-        replace(complete_evidence["windows_software.application_count"], value=4),
-        replace(complete_evidence["windows_software.without_web_version_count"], value=1),
+def test_attention_shows_provided_counts_and_zero_explicitly(catalogue: Catalogue) -> None:
+    software = tuple(
+        WindowsSoftware(f"Example application {number}", vendor_has_web_version=number != 1)
+        for number in range(1, 5)
     )
-    section = _attention(render_report(sample_scan("town", catalogue), lang="en", provided=answers))
+    inputs = Inputs(
+        provided_counts={"office_files.kind.macro": 40, "office_files.kind.access": 0},
+        windows_only_software=software,
+    )
+    section = _attention(render_report(sample_scan("town", catalogue), lang="en", inputs=inputs))
 
     assert "40 files" in section and "0 files" in section and "None were reported." in section
     assert "4 applications" in section and "1 application" in section
     evidence, gaps = section.split('<div data-subsection="cannot-be-moved">', 1)
-    assert evidence.count('data-provenance="provided"') == len(answers)
+    figures = evidence.split('aria-labelledby="software-title"', 1)[0]
+    assert figures.count('data-provenance="provided"') == 4
+    assert evidence.count("data-software-entry") == len(software)
     for function in ("desktop_operating_system", "windows_applications"):
         gap = re.search(rf'<li data-gap="{function}" data-need="yes">.*?</li>', gaps, re.S)
         assert gap is not None and 'data-provenance="provided"' in gap[0]
@@ -1082,12 +1085,12 @@ def test_gap_need_uses_only_its_declared_complete_answer(
     assert gap.coverage == "not_available"
     scan = sample_scan("town", catalogue)
     scan = replace(scan, findings=tuple(item for item in scan.findings if item.id != finding.id))
-    provided = (
-        ()
-        if answer is None
-        else (replace(finding, value=answer, coverage=Coverage(coverage) if coverage else None),)
-    )
-    section = _attention(render_report(scan, lang="en", provided=provided))
+    inputs = Inputs(confirmations={finding.id: answer})
+    if coverage is not None:
+        partial = replace(finding, value=answer, coverage=Coverage(coverage))
+        scan = replace(scan, findings=(*scan.findings, partial))
+        inputs = Inputs()
+    section = _attention(render_report(scan, lang="en", inputs=inputs))
     entry = re.search(rf'<li data-gap="{gap.function}".*?</li>', section, re.S)
 
     assert entry is not None and f'data-need="{expected}"' in entry[0]

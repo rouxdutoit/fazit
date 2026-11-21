@@ -12,7 +12,7 @@ from typer.testing import CliRunner
 from befund.cli import app
 from befund.costs import BLOCKS, SCENARIOS, CostGroup, ScenarioResult, compute_scenarios
 from befund.i18n import Formatter, load_locale
-from befund.inputs import CurrentCosts, Inputs, ScenarioInputs, empty_inputs
+from befund.inputs import CurrentCosts, Inputs, ScenarioInputs
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -182,7 +182,7 @@ def test_unknown_other_it_affects_all_scenarios(worked_example: Inputs) -> None:
 
 
 def test_empty_costs_have_no_defaults() -> None:
-    stay, *exits = compute_scenarios(empty_inputs())
+    stay, *exits = compute_scenarios(Inputs())
 
     assert stay.missing_inputs == (
         "current_costs.microsoft_licences_per_year",

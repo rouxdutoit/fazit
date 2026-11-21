@@ -12,36 +12,26 @@ functions:
     microsoft: {en: Microsoft Entra ID user and group management, de: Benutzer- und Gruppenverwaltung in Microsoft Entra ID}
     replacement: {en: Directory service for users and groups, de: Verzeichnisdienst für Benutzerkonten und Gruppen}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: mail_and_calendar
     workload: mail
     microsoft: {en: Exchange Online mail and calendar, de: E-Mail und Kalender in Exchange Online}
     replacement: {en: Mail server and shared calendar service, de: Mailserver und gemeinsamer Kalenderdienst}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: personal_files
     workload: onedrive
     microsoft: {en: OneDrive personal file storage and sync, de: Persönliche Dateiablage und Synchronisierung in OneDrive}
     replacement: {en: Service for storing and syncing personal files, de: Dienst zur Ablage und Synchronisierung persönlicher Dateien}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: team_files
     workload: sharepoint
     microsoft: {en: SharePoint team file libraries, de: Dateiablagen für Teams in SharePoint}
     replacement: {en: Shared file libraries with group permissions, de: Gemeinsame Dateiablagen mit Gruppenberechtigungen}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: sharepoint_workflows
     workload: sharepoint
     microsoft: {en: SharePoint workflows, de: SharePoint-Workflows}
     replacement: {en: Rebuild workflows in a separate tool, de: Arbeitsabläufe in einem gesonderten Werkzeug neu erstellen}
     coverage: not_available
-    reference_url: null
-    checked_on: null
     note:
       en: This profile leaves the transfer of existing workflow definitions open. Triggers and approvals need to be recreated or checked against a selected tool.
       de: Die Übernahme vorhandener Ablaufdefinitionen bleibt in diesem Profil offen. Auslöser und Genehmigungsschritte sind neu anzulegen oder mit einem ausgewählten Werkzeug abzugleichen.
@@ -50,22 +40,16 @@ functions:
     microsoft: {en: Microsoft Teams chat, de: Chat in Microsoft Teams}
     replacement: {en: Group chat service, de: Dienst für Gruppenchats}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: video_meetings
     workload: teams
     microsoft: {en: Microsoft Teams video meetings, de: Videobesprechungen in Microsoft Teams}
     replacement: {en: Video meeting service, de: Videokonferenzdienst}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: teams_chat_history
     workload: teams
     microsoft: {en: Teams chat history, de: Chatverlauf aus Teams}
     replacement: {en: Separate decision on retaining past chats, de: Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats}
     coverage: not_available
-    reference_url: null
-    checked_on: null
     need_finding: teams.chat_history_must_be_kept
     note:
       en: This profile identifies no way to bring past conversations into the new chat with the original authors and timestamps. Retention needs a separate plan.
@@ -75,15 +59,11 @@ functions:
     microsoft: {en: Editing Microsoft Office documents, de: Bearbeitung von Microsoft-Office-Dateien}
     replacement: {en: Office editor with file conversion, de: Bürosoftware mit Dateikonvertierung}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: vba_macros
     workload: office_files
     microsoft: {en: VBA macros in Office files, de: VBA-Makros in Office-Dateien}
     replacement: {en: Separate conversion or redevelopment, de: Gesonderte Konvertierung oder Neuentwicklung}
     coverage: not_available
-    reference_url: null
-    checked_on: null
     note:
       en: This profile establishes no way to carry over working VBA automation. Each relied-on macro needs an editor test or a replacement.
       de: Die Übernahme funktionsfähiger VBA-Automatisierungen bleibt offen. Für jedes benötigte Makro ist ein Test mit der gewählten Bürosoftware oder ein Ersatz erforderlich.
@@ -92,16 +72,12 @@ functions:
     microsoft: {en: Device management with Microsoft Intune, de: Geräteverwaltung mit Microsoft Intune}
     replacement: {en: Separate device management service, de: Gesonderte Lösung zur Geräteverwaltung}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: desktop_operating_system
     workload: device_management
     need_finding: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Open source workstation operating system, de: Quelloffenes Betriebssystem für Arbeitsplatzrechner}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
     note:
       en: Check whether the chosen operating system supports the organisation's devices, peripherals and applications.
       de: Prüfen Sie, ob das gewählte Betriebssystem die Geräte, Peripherie und Anwendungen Ihrer Organisation unterstützt.
@@ -111,8 +87,6 @@ functions:
     microsoft: {en: Running Windows-only applications, de: Betrieb reiner Windows-Anwendungen}
     replacement: {en: Separate hosting or replacement of each application, de: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen}
     coverage: not_available
-    reference_url: null
-    checked_on: null
     note:
       en: Existing Windows-only applications need a separate decision about how they will run or what will replace them.
       de: Für bestehende reine Windows-Anwendungen ist einzeln zu klären, wie sie weiterbetrieben oder ersetzt werden können.
@@ -121,43 +95,31 @@ functions:
     microsoft: {en: Power Platform automation and low-code applications, de: Automatisierung und Low-Code-Anwendungen mit Power Platform}
     replacement: {en: Workflow automation and low-code application tools, de: Werkzeuge für Ablaufautomatisierung und Low-Code-Anwendungen}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: telephony
     workload: telephony
     microsoft: {en: Teams Phone and public telephone calling, de: Teams Phone und Anrufe ins öffentliche Telefonnetz}
     replacement: {en: Telephone system with a connection to the public network, de: Telefonanlage mit Anschluss an das öffentliche Telefonnetz}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: single_sign_on
     workload: identity_access
     microsoft: {en: Microsoft Entra single sign-on, de: Zentrale Anmeldung über Microsoft Entra}
     replacement: {en: Identity provider for single sign-on, de: Identitätsdienst für die zentrale Anmeldung}
     coverage: open_source_community
-    reference_url: null
-    checked_on: null
   - function: security_and_compliance
     workload: security_compliance
     microsoft: {en: Microsoft 365 protection and retention controls, de: Schutz und Aufbewahrung in Microsoft 365}
     replacement: {en: Access control and retention services, de: Dienste zur Zugriffssteuerung und Aufbewahrung}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: forms_tasks_bookings
     workload: small_apps
     microsoft: {en: "Microsoft Forms, Planner and Bookings", de: "Microsoft Forms, Planner und Bookings"}
     replacement: {en: "Tools for forms, tasks and appointment booking", de: "Werkzeuge für Formulare, Aufgaben und Terminbuchung"}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
   - function: application_integrations
     workload: integrations
     microsoft: {en: Integrations with Microsoft 365 applications, de: Anbindungen an Microsoft-365-Anwendungen}
     replacement: {en: Application interfaces and connector services, de: Anwendungsschnittstellen und Dienste für die Anbindung}
     coverage: open_source_third_party
-    reference_url: null
-    checked_on: null
     note:
       en: Verify what data each existing connection exchanges and which target interfaces it can use.
       de: Prüfen Sie, welche Daten jede bestehende Anbindung austauscht und welche Schnittstellen im Zielsystem dafür zur Verfügung stehen.

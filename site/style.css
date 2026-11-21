@@ -400,7 +400,7 @@ code {
 }
 
 .command {
-  width: min(100%, 23rem);
+  width: min(100%, 44rem);
   margin: 24px auto 0;
   text-align: left;
 }
@@ -424,6 +424,11 @@ code {
 
 .command-line code, .copy {
   font-size: 0.875rem;
+}
+
+.command-line code {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .prompt {

@@ -6,7 +6,7 @@ header:
   scan_date: Stand der Erhebung
   tool_version: Programmversion
   target_profile: Zielprofil
-  local: Das Programm hat den Bericht auf diesem Rechner aus der Erhebungsdatei erstellt und keine Netzwerkverbindung aufgebaut.
+  local: Wer Befund ausgeführt hat, hat diesen Bericht lokal aus der Datei scan.json erstellt. Bei der Berichtserstellung wurde keine Netzwerkverbindung aufgebaut.
   offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
   sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
 found:
@@ -30,6 +30,7 @@ found:
 licences:
   title: Lizenzprodukte
   product: Produktkennung
+  unregistered_product: Nicht registriertes Produkt {number}
   product_count: 'Erfasste Lizenzprodukte: {count}'
   purchased: Erworben
   assigned: Zugewiesen
@@ -127,9 +128,9 @@ moves:
   microsoft: Funktion bei Microsoft
   replacement: Ersatz im Zielsystem
   coverage: Abdeckung und Prüfdatum
-  evidence: Ergebnisse der Bestandsaufnahme
+  evidence: Datengrundlage
   workload_status: Status und Begründung für den Bereich
-  no_evidence: Für diesen Bereich liegen keine Ergebnisse vor.
+  workload_evidence: 'Datengrundlage für den Bereich {workload}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
 mapping_coverage:
@@ -191,13 +192,19 @@ appendix:
   mapping_reference: Dokumentation
   mapping_date: Geprüft am
   run_details: Angaben zur Berichtserstellung
+  scan_origin: Herkunft der Erhebung
+  scan_producer: Programm für die Erhebung
+  producer_version: Version bei der Erhebung
+  renderer_version: Befund-Version bei der Berichtserstellung
   checksums: SHA-256-Prüfsummen der verwendeten Regeldateien
   scan_role: Datum der Erhebungsdatei
   inputs_role: Datum der Eingabedatei
   scan_periods: Berichtszeiträume der Erhebung
   no_scan_periods: Die Erhebung enthält keine Berichtszeiträume.
-footer:
-  repository_pending: Adresse des Quellcode-Repositorys ausstehend
+source_kind:
+  sample: Beispieldaten
+  import: Import
+  live: Live-Erhebung
 provenance:
   measured: Erhoben
   provided: Bereitgestellt
@@ -401,6 +408,7 @@ cli:
 errors:
   invalid_json: Die Datei {file} enthält an der Stelle {field} ungültiges JSON.
   invalid_yaml: Die Datei {file} enthält an der Stelle {field} ungültiges YAML.
+  yaml_anchors: Entfernen Sie YAML-Anker und Aliase an der Stelle {field} in der Datei {file}.
   invalid_field: Prüfen Sie das Feld {field} in der Datei {file}.
   unknown_field: Entfernen Sie das unbekannte Feld {field} aus der Datei {file}.
   money_not_quoted: Setzen Sie die Dezimalzahl für {field} in der Datei {file} in Anführungszeichen.
@@ -416,6 +424,7 @@ errors:
   file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
   is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
   not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.
+  file_too_large: Die Datei {file} für {field} ist größer als 2 MiB.
   not_utf8: Speichern Sie die Datei {file} für {field} als UTF-8-Text.
   schema_version: Im Feld {field} der Datei {file} steht Version {found}, während das Programm Version {supported} unterstützt.
   unsupported_language: Geben Sie für {field} bei {file} den Wert en oder de an.
@@ -423,4 +432,5 @@ errors:
   unsupported_profile: Geben Sie für {field} bei {file} den Wert opendesk, nextcloud oder generic an.
   out_dir: Das Ausgabeverzeichnis {file} für {field} konnte nicht angelegt oder geöffnet werden.
   destination_is_link: Die Ausgabedatei {file} für {field} ist eine symbolische Verknüpfung.
+  destination_not_file: Der Ausgabepfad {file} für {field} bezeichnet keine reguläre Datei.
   write_failed: Die Ausgabedatei {file} konnte unter {field} nicht geschrieben werden.

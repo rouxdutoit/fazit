@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from __future__ import annotations
+
 import json
 import re
 from collections.abc import Collection
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime
 from pathlib import Path
-from typing import Never
+from typing import TYPE_CHECKING, Never
 from uuid import UUID
 
 from . import PROJECT_NAME
@@ -13,7 +15,9 @@ from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .parsing import parse_json, read_text, reject_at_signs
 
-SCHEMA_VERSION = "1.0"
+if TYPE_CHECKING:
+    from .rules import ServicePlan as RegisteredServicePlan
+
 SUPPORTED_SCHEMA_MAJOR = 1
 SOURCE_KINDS = ("sample", "import", "live")
 COLLECTOR_STATUSES = ("ok", "partial", "skipped")
@@ -29,7 +33,6 @@ _TIMESTAMP = re.compile(
 )
 _PERIOD = re.compile(rf"{_DATE}/{_DATE}")
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
-_VALUE_CODE = re.compile(r"[a-z0-9_]+(?:\.[a-z0-9_]+)*")
 _FINDING_FIELDS = (
     "id",
     "workload",
@@ -44,7 +47,7 @@ _FINDING_FIELDS = (
     "missing_reason",
 )
 
-type FindingValue = int | bool | str
+type FindingValue = int | bool
 
 
 @dataclass(frozen=True)
@@ -86,17 +89,23 @@ class Finding:
 
 @dataclass(frozen=True)
 class ServicePlan:
-    name: str
-    guid: str
+    name: str | None
+    guid: str | None
 
 
 @dataclass(frozen=True)
 class Product:
-    sku_part_number: str
-    sku_guid: str
+    sku_part_number: str | None
+    sku_guid: str | None
     purchased: int
     assigned: int
     service_plans: tuple[ServicePlan, ...]
+
+    @property
+    def key(self) -> tuple[str, str] | None:
+        if self.sku_part_number is None or self.sku_guid is None:
+            return None
+        return sku_key(self.sku_part_number, self.sku_guid)
 
 
 @dataclass(frozen=True)
@@ -253,16 +262,11 @@ class _ScanReader:
         return Coverage(kind, scanned, failed, total)
 
     def finding_value(self, value: object, field: str, entry: FindingEntry) -> FindingValue:
-        if entry.type in ("count", "bytes"):
-            return self.count(value, field)
         if entry.type == "boolean":
             if not isinstance(value, bool):
                 self.fail(field)
             return value
-        code = self.matches(value, field, _VALUE_CODE)
-        if len(code) > 64:
-            self.fail(field)
-        return code
+        return self.count(value, field)
 
     def finding(
         self, item: object, field: str, entry: FindingEntry, collectors: dict[str, Collector]
@@ -362,9 +366,10 @@ class _ScanReader:
 
     def service_plan(self, value: object, field: str) -> ServicePlan:
         row = self.fields(value, field, required=("name", "guid"))
+        name, guid = row["name"], row["guid"]
         return ServicePlan(
-            self.matches(row["name"], f"{field}.name", _IDENTIFIER),
-            self.guid(row["guid"], f"{field}.guid"),
+            None if name is None else self.matches(name, f"{field}.name", _IDENTIFIER),
+            None if guid is None else self.guid(guid, f"{field}.guid"),
         )
 
     def product(self, value: object, field: str) -> Product:
@@ -379,10 +384,12 @@ class _ScanReader:
             ),
             optional=("service_plans",),
         )
-        sku_guid = self.guid(row["sku_guid"], f"{field}.sku_guid")
+        sku_guid = row["sku_guid"]
         sku_part_number = row["sku_part_number"]
-        if not self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid):
-            self.fail(f"{field}.sku_part_number")
+        if sku_guid is not None or sku_part_number is not None:
+            sku_guid = self.guid(sku_guid, f"{field}.sku_guid")
+            if not self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid):
+                self.fail(f"{field}.sku_part_number")
         plan_list = row.get("service_plans")
         plans = [] if plan_list is None else self.list(plan_list, f"{field}.service_plans")
         return Product(
@@ -419,13 +426,14 @@ class _ScanReader:
         for index, item in enumerate(self.list(row["products"], "licences.products")):
             field = f"licences.products[{index}]"
             product = self.product(item, field)
-            part_number, _ = sku_key(product.sku_part_number, product.sku_guid)
-            if part_number in parts:
-                self.fail(f"{field}.sku_part_number", "duplicate_id")
-            if product.sku_guid in guids:
-                self.fail(f"{field}.sku_guid", "duplicate_id")
-            parts.add(part_number)
-            guids.add(product.sku_guid)
+            if (key := product.key) is not None:
+                part_number, guid = key
+                if part_number in parts:
+                    self.fail(f"{field}.sku_part_number", "duplicate_id")
+                if guid in guids:
+                    self.fail(f"{field}.sku_guid", "duplicate_id")
+                parts.add(part_number)
+                guids.add(guid)
             products.append(product)
         return Licences(
             collector=collector,
@@ -474,7 +482,46 @@ def load_scan(path: Path, catalogue: Catalogue) -> Scan:
     return load_scan_text(read_text(path), path.name, catalogue)
 
 
-def scan_to_json(scan: Scan) -> str:
+def _public_products(
+    products: tuple[Product, ...], plans: tuple[RegisteredServicePlan, ...]
+) -> tuple[Product, ...]:
+    registered = {sku_key(plan.sku_part_number, plan.sku_guid): plan for plan in plans}
+    names = {plan.name.casefold(): plan.name for plan in plans}
+    guids = {plan.guid for plan in plans}
+    public = []
+    for product in products:
+        if (identity := registered.get(product.key)) is None:
+            public.append(
+                replace(
+                    product,
+                    sku_part_number=None,
+                    sku_guid=None,
+                    service_plans=(ServicePlan(None, None),) * len(product.service_plans),
+                )
+            )
+            continue
+        # A registered half of a mismatched pair can still identify an affected workload.
+        public.append(
+            replace(
+                product,
+                sku_part_number=identity.sku_part_number,
+                sku_guid=identity.sku_guid,
+                service_plans=tuple(
+                    ServicePlan(
+                        names.get(plan.name.casefold()) if plan.name is not None else None,
+                        plan.guid if plan.guid in guids else None,
+                    )
+                    for plan in product.service_plans
+                ),
+            )
+        )
+    return tuple(public)
+
+
+def scan_to_json(scan: Scan, *, plans: tuple[RegisteredServicePlan, ...]) -> str:
+    if scan.licences is not None:
+        licences = replace(scan.licences, products=_public_products(scan.licences.products, plans))
+        scan = replace(scan, licences=licences)
     data = asdict(scan)
     del data["dropped_count"]
     return json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"

@@ -4,6 +4,7 @@ from collections.abc import Collection, Iterator, MutableMapping
 from collections.abc import Mapping as MappingABC
 from dataclasses import dataclass, replace
 from datetime import date
+from functools import lru_cache
 from hashlib import sha256
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -25,7 +26,6 @@ _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _SIGNALS = ("add_on", "bundled")
 _PLAN_CLASSES = (*_SIGNALS, "no_workload")
 _PRODUCT_COUNT = "licences.product_count"
-_VALUE_CODE = re.compile(r"[a-z0-9_]+(?:\.[a-z0-9_]+)*")
 _RULE_ID = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 _EXTENSION = re.compile(r"[a-z0-9]+")
 _RISKY_FINDING_PREFIX = "office_files.kind."
@@ -143,23 +143,6 @@ class Mapping:
 
 def rules_dir() -> Traversable:
     return files("befund").joinpath("rules")
-
-
-def rule_file_checksums(profile: str) -> tuple[tuple[str, str], ...]:
-    if profile not in PROFILES:
-        raise InputError("unsupported_profile", file=PROJECT_NAME, field="--profile")
-    directory = rules_dir()
-    names = (
-        "findings.yaml",
-        "status.yaml",
-        "service_plans.yaml",
-        "risky_file_types.yaml",
-        f"mappings/{profile}.yaml",
-    )
-    sources = (directory.joinpath(name) for name in names)
-    return tuple(
-        (source.name, sha256(read_text(source).encode()).hexdigest()) for source in sources
-    )
 
 
 class _RuleReader:
@@ -350,7 +333,20 @@ def load_service_plans(
     *,
     checksums: MutableMapping[str, str] | None = None,
 ) -> tuple[ServicePlan, ...]:
-    reader, data = _read_rules("service_plans.yaml", path, checksums)
+    source = path if path is not None else rules_dir().joinpath("service_plans.yaml")
+    text = read_text(source)
+    plans = _parse_service_plans(text, source.name, catalogue)
+    if checksums is not None:
+        checksums[source.name] = sha256(text.encode("utf-8")).hexdigest()
+    return plans
+
+
+@lru_cache(maxsize=2)
+def _parse_service_plans(
+    text: str, file_name: str, catalogue: Catalogue
+) -> tuple[ServicePlan, ...]:
+    reader = _RuleReader(file_name)
+    data = parse_yaml(text, file_name)
     root = reader.fields(data, "$", ("reference_url", "checked_on", "plans", "products"))
     reference = reader.matches(root["reference_url"], "reference_url", _LICENCE_REFERENCE)
     checked_on = reader.check_date(root["checked_on"], "checked_on")
@@ -400,13 +396,16 @@ def load_service_plans(
 def classify_product(
     product: Product, plans: tuple[ServicePlan, ...]
 ) -> tuple[ServicePlan | None, ...]:
+    key = product.key
     matched = {
         (plan.name.casefold(), plan.guid): plan
         for plan in plans
-        if sku_key(plan.sku_part_number, plan.sku_guid)
-        == sku_key(product.sku_part_number, product.sku_guid)
+        if sku_key(plan.sku_part_number, plan.sku_guid) == key
     }
-    return tuple(matched.get((plan.name.casefold(), plan.guid)) for plan in product.service_plans)
+    return tuple(
+        matched.get((plan.name.casefold(), plan.guid)) if plan.name is not None else None
+        for plan in product.service_plans
+    )
 
 
 def _licence_signals(
@@ -421,7 +420,7 @@ def _licence_signals(
         if not product.service_plans:
             unclassified.update(dict.fromkeys(workload_ids, "licence_plan_list_missing"))
             continue
-        if sku_key(product.sku_part_number, product.sku_guid) not in known_products:
+        if product.key not in known_products:
             for workload in workload_ids:
                 unclassified.setdefault(workload, "licence_not_classified")
             continue
@@ -432,9 +431,10 @@ def _licence_signals(
                 if match.workload is not None:
                     assigned.add((match.workload, match.signal))
                 continue
+            name = identity.name.casefold() if identity.name is not None else None
             for plan in plans:
                 if plan.workload is not None and (
-                    plan.guid == identity.guid or plan.name.casefold() == identity.name.casefold()
+                    plan.guid == identity.guid or plan.name.casefold() == name
                 ):
                     unclassified.setdefault(plan.workload, "licence_not_classified")
     return assigned, unclassified
@@ -499,9 +499,7 @@ def _value_types(catalogue: Catalogue) -> dict[str, str]:
 def _literal_matches(value: object, kind: str) -> bool:
     if kind in ("count", "bytes"):
         return type(value) is int and value >= 0
-    if kind == "boolean":
-        return type(value) is bool
-    return isinstance(value, str) and len(value) <= 64 and bool(_VALUE_CODE.fullmatch(value))
+    return kind == "boolean" and type(value) is bool
 
 
 def _conditions(

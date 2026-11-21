@@ -6,15 +6,24 @@ from pathlib import Path
 
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
+from yaml.tokens import AliasToken, AnchorToken
 
 from .errors import InputError
+
+MAX_FILE_BYTES = 2 * 1024 * 1024
 
 
 def read_text(path: Path | Traversable) -> str:
     try:
         if path.is_dir():
             raise InputError("is_directory", file=path.name, field="$")
-        return path.read_bytes().decode("utf-8")
+        if isinstance(path, Path) and path.stat().st_size > MAX_FILE_BYTES:
+            raise InputError("file_too_large", file=path.name, field="$")
+        with path.open("rb") as stream:
+            data = stream.read(MAX_FILE_BYTES + 1)
+        if len(data) > MAX_FILE_BYTES:
+            raise InputError("file_too_large", file=path.name, field="$")
+        return data.decode("utf-8")
     except FileNotFoundError:
         raise InputError("file_not_found", file=path.name, field="$") from None
     except IsADirectoryError:
@@ -26,16 +35,24 @@ def read_text(path: Path | Traversable) -> str:
 
 
 def reject_at_signs(value: object, file_name: str, field: str = "$") -> None:
-    if isinstance(value, str) and "@" in value:
-        raise InputError("contains_at", file=file_name, field=field)
-    if isinstance(value, dict):
-        for index, (key, item) in enumerate(value.items()):
-            member = f"{field}[{index}]"
-            reject_at_signs(key, file_name, member)
-            reject_at_signs(item, file_name, member)
-    elif isinstance(value, list):
-        for index, item in enumerate(value):
-            reject_at_signs(item, file_name, f"{field}[{index}]")
+    seen: set[int] = set()
+
+    def visit(item: object, position: str) -> None:
+        if isinstance(item, str) and "@" in item:
+            raise InputError("contains_at", file=file_name, field=position)
+        if not isinstance(item, (dict, list)) or id(item) in seen:
+            return
+        seen.add(id(item))
+        if isinstance(item, dict):
+            for index, (key, child) in enumerate(item.items()):
+                member = f"{position}[{index}]"
+                visit(key, member)
+                visit(child, member)
+        else:
+            for index, child in enumerate(item):
+                visit(child, f"{position}[{index}]")
+
+    visit(value, field)
 
 
 def _finite(value: object, file_name: str, field: str) -> None:
@@ -107,8 +124,19 @@ def _check_quotes(node: Node, file_name: str, field: str) -> None:
         raise InputError("money_not_quoted", file=file_name, field=field)
 
 
-def parse_yaml(text: str, file_name: str, *, quoted_fields: tuple[str, ...] = ()) -> object:
+def parse_yaml(
+    text: str,
+    file_name: str,
+    *,
+    quoted_fields: tuple[str, ...] = (),
+    allow_aliases: bool = True,
+) -> object:
     try:
+        if not allow_aliases and any(
+            isinstance(token, (AliasToken, AnchorToken))
+            for token in yaml.scan(text, Loader=yaml.SafeLoader)
+        ):
+            raise InputError("yaml_anchors", file=file_name, field="$")
         node = yaml.compose(text, Loader=yaml.SafeLoader)
         if node is not None:
             _check_yaml(node, file_name, "$", set(), set())

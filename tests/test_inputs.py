@@ -13,10 +13,10 @@ from befund.errors import InputError
 from befund.i18n import error_sentence, load_locale
 from befund.inputs import (
     CurrentCosts,
+    Inputs,
     ScenarioInputs,
     WindowsSoftware,
     combine,
-    empty_inputs,
     load_inputs,
     load_inputs_text,
     provided_findings,
@@ -39,7 +39,7 @@ def catalogue() -> Catalogue:
 def test_empty_inputs(catalogue: Catalogue) -> None:
     inputs = load_inputs_text("", "inputs.yaml", catalogue)
 
-    assert inputs == empty_inputs()
+    assert inputs == Inputs()
     assert inputs.organisation_name is None
     assert inputs.currency is inputs.language is inputs.target_profile is inputs.as_of is None
     assert inputs.amounts_are_invented is False
@@ -54,17 +54,17 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
     ("text", "code", "field"),
     [
         ("[]", "invalid_field", "$"),
-        ("curency: EUR", "unknown_field", "curency"),
-        ("current_costs: {annual: null}", "unknown_field", "current_costs.annual"),
+        ("curency: EUR", "unknown_field", "$[0]"),
+        ("current_costs: {annual: null}", "unknown_field", "current_costs[0]"),
         (
             "target_costs: {full_exit: {user_count: null}}",
             "unknown_field",
-            "target_costs.full_exit.user_count",
+            "target_costs.full_exit[0]",
         ),
         (
             "target_costs: {hosting_per_user_per_month: null}",
             "unknown_field",
-            "target_costs.hosting_per_user_per_month",
+            "target_costs[0]",
         ),
         ("currency: EUR\ncurrency: CHF", "duplicate_key", "$[1]"),
         ("current_costs: {other_it_per_year: .inf}", "non_finite_number", "$[0][0]"),
@@ -132,8 +132,8 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
             "money_not_quoted",
             "target_costs.full_exit.training_days_per_person",
         ),
-        (f"provided_counts: {{{BOOLEAN_ID}: 1}}", "unknown_field", f"provided_counts.{BOOLEAN_ID}"),
-        (f"confirmations: {{{COUNT_ID}: false}}", "unknown_field", f"confirmations.{COUNT_ID}"),
+        (f"provided_counts: {{{BOOLEAN_ID}: 1}}", "unknown_field", "provided_counts[0]"),
+        (f"confirmations: {{{COUNT_ID}: false}}", "unknown_field", "confirmations[0]"),
         (f"provided_counts: {{{COUNT_ID}: true}}", "invalid_field", f"provided_counts.{COUNT_ID}"),
         (f"provided_counts: {{{COUNT_ID}: -1}}", "invalid_field", f"provided_counts.{COUNT_ID}"),
         (f"confirmations: {{{BOOLEAN_ID}: 1}}", "invalid_field", f"confirmations.{BOOLEAN_ID}"),
@@ -168,7 +168,7 @@ def test_exact_cost_values(catalogue: Catalogue, tmp_path: Path) -> None:
     path.write_text(
         """currency: EUR
 as_of: 2026-11-20
-current_costs: {microsoft_licences_per_year: '1.00499999999999999', other_it_per_year: '0'}
+current_costs: {microsoft_licences_per_year: '999999999999999.01', other_it_per_year: '0'}
 target_costs:
   partial_exit: {users: 10, parallel_running_months: 60, training_days_per_person: "1.25"}
   full_exit: {users: 20, parallel_running_months: 0, training_days_per_person: 2}
@@ -179,7 +179,7 @@ target_costs:
     inputs = load_inputs(path, catalogue)
 
     assert inputs.as_of == "2026-11-20"
-    assert inputs.current_costs.microsoft_licences_per_year == Decimal("1.00499999999999999")
+    assert inputs.current_costs.microsoft_licences_per_year == Decimal("999999999999999.01")
     assert inputs.current_costs.other_it_per_year == Decimal("0")
     assert inputs.partial_exit.parallel_running_months == 60
     assert inputs.full_exit.parallel_running_months == 0
@@ -503,7 +503,7 @@ def test_inputs_example_covers_the_contract(catalogue: Catalogue) -> None:
 
     parsed = parse_yaml(text, path.name)
     assert parsed == expected and list(parsed) == list(expected)
-    assert load_inputs(path, catalogue) == replace(empty_inputs(), **answers)
+    assert load_inputs(path, catalogue) == replace(Inputs(), **answers)
     key_lines = r"^\s*(?:#\s+(?:-\s+)?)?[a-z][a-z0-9_.]*:"
     for index, line in enumerate(lines):
         if re.match(key_lines, line):
@@ -516,6 +516,7 @@ def test_inputs_example_covers_the_contract(catalogue: Catalogue) -> None:
 @pytest.mark.parametrize("suffix", ["", ".de"])
 def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: str) -> None:
     text = read_text(ROOT / "docs" / f"interview-checklist{suffix}.md")
+    assert "amounts_are_invented" not in text
     mentions = set(re.findall(r"`([^`\n]+)`", text))
     questions = re.findall(r"^- (.+) \(`([^`\n]+)`\)\?$", text, re.M)
     indirect = re.compile(r"\b(?:confirm(?:s|ed)?|knows? (?:of|whether)|bestätigt?)\b", re.I)
@@ -527,7 +528,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
     groups = {key for key, value in data.items() if isinstance(value, dict)}
     blocks = {f"target_costs.{name}" for name in data["target_costs"]}
     leaves = {
-        *(data.keys() - groups - {"answers_are_sample"}),
+        *(data.keys() - groups - {"answers_are_sample", "amounts_are_invented"}),
         *(f"current_costs.{name}" for name in data["current_costs"]),
         *(
             f"target_costs.{block}.{key}"

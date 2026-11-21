@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
+from collections.abc import ItemsView
 from dataclasses import asdict
 from importlib.resources import files
 from pathlib import Path
+from typing import Never
 
 import pytest
 
@@ -11,7 +13,7 @@ from befund.catalogue import Catalogue, load_catalogue
 from befund.errors import InputError
 from befund.i18n import error_sentence, load_locale
 from befund.model import Coverage, Scan, load_scan, load_scan_text
-from befund.parsing import parse_json, parse_yaml, read_text
+from befund.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text, reject_at_signs
 from befund.report import render_report
 
 
@@ -570,14 +572,49 @@ def test_read_text_maps_unreadable_files(tmp_path: Path, monkeypatch: pytest.Mon
     path = tmp_path / "scan.json"
     path.touch()
 
-    def refuse_read(self: Path) -> bytes:
+    def refuse_read(self: Path, mode: str) -> Never:
         assert self == path
+        assert mode == "rb"
         raise PermissionError
 
-    monkeypatch.setattr(Path, "read_bytes", refuse_read)
+    monkeypatch.setattr(Path, "open", refuse_read)
     with pytest.raises(InputError, match="not_readable") as caught:
         read_text(path)
     assert (caught.value.file, caught.value.field) == (path.name, "$")
+
+
+def test_read_text_checks_size_before_opening(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "scan.json"
+    path.write_bytes(b" " * MAX_FILE_BYTES)
+    assert len(read_text(path)) == MAX_FILE_BYTES
+    with path.open("ab") as stream:
+        stream.write(b" ")
+
+    def unexpected_open(self: Path, mode: str) -> Never:
+        raise AssertionError(f"Opened oversized file {self} in {mode}")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "open", unexpected_open)
+        with pytest.raises(InputError, match="file_too_large") as caught:
+            read_text(path)
+    assert (caught.value.file, caught.value.field) == (path.name, "$")
+
+
+def test_privacy_walk_checks_each_shared_container_once() -> None:
+    class CountedMapping(dict[str, object]):
+        visits = 0
+
+        def items(self) -> ItemsView[str, object]:
+            self.visits += 1
+            return super().items()
+
+    mapping = CountedMapping({"name": "Example"})
+    shared = [mapping, mapping]
+    reject_at_signs([shared, shared], "manual.yaml")
+
+    assert mapping.visits == 1
 
 
 def test_report_shows_finding_evidence_and_collector_details(

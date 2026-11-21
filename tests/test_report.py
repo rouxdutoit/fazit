@@ -128,7 +128,11 @@ def test_demo_writes_exactly_one_html_report(tmp_path: Path) -> None:
     result = runner.invoke(app, ["demo", "--out", str(tmp_path)])
 
     assert result.exit_code == 0, result.output
-    assert list(tmp_path.glob("*.html")) == [Path(result.stdout.splitlines()[-1])]
+    report = Path(result.stdout.splitlines()[-1])
+    assert list(tmp_path.glob("*.html")) == [report]
+    footer = report.read_text(encoding="utf-8").split('<footer data-section="footer">')[1]
+    assert "<p>befund · https://github.com/rouxdutoit/befund</p>" in footer
+    assert "href=" not in footer
 
 
 def test_scan_organisation_markup_is_ignored(tmp_path: Path) -> None:
@@ -251,6 +255,31 @@ def _checksums(html: str) -> dict[str, str]:
     return dict(pairs)
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> None:
+    data = json.loads(_sample_scan("town").read_bytes())
+    scan = tmp_path / "PrivateScanMarker.json"
+    run_details = []
+    for index, (source, version) in enumerate(
+        [("import", "0.0.9"), ("live", "0.0.9"), ("live", "0.1.1")]
+    ):
+        data["source_kind"] = source
+        data["tool"]["version"] = version
+        scan.write_text(json.dumps(data), encoding="utf-8")
+        html = _rebuild(scan, tmp_path / f"out-{index}", lang)
+        assert "PrivateScanMarker" not in html
+        assert "scan.json" in html.split("</header>", 1)[0]
+        run_details.append(html.split('data-subsection="run-details"', 1)[1])
+
+    assert len(set(run_details)) == 3
+    for details, origin in zip(run_details, ("import", "live", "live"), strict=True):
+        assert f'data-source-kind="{origin}"' in details
+        assert "<dd data-scan-producer>befund</dd>" in details
+        assert f"<dd data-renderer-version>{__version__}</dd>" in details
+    assert "<dd data-producer-version>0.0.9</dd>" in run_details[0]
+    assert "<dd data-producer-version>0.1.1</dd>" in run_details[-1]
+
+
 @pytest.mark.parametrize("profile", PROFILES)
 def test_run_details_checksums_match_packaged_files(tmp_path: Path, profile: str) -> None:
     rendered = _checksums(_sample_report("town", tmp_path, "en", profile))
@@ -266,7 +295,7 @@ def test_run_details_checksums_match_packaged_files(tmp_path: Path, profile: str
         Path(path).name: sha256(directory.joinpath(path).read_bytes()).hexdigest()
         for path in rule_paths
     }
-    assert rendered == dict(rules.rule_file_checksums(profile)) == expected
+    assert rendered == expected
 
 
 def test_checksums_use_the_five_rule_reads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

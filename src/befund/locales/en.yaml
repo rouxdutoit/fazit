@@ -6,7 +6,7 @@ header:
   scan_date: Evidence date
   tool_version: Tool version
   target_profile: Target profile
-  local: This tool built the report on this computer from the scan file and contacted no host.
+  local: The person who ran Befund created this report locally from scan.json. The command contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
 found:
@@ -30,6 +30,7 @@ found:
 licences:
   title: Licence products
   product: Product code
+  unregistered_product: Unregistered product {number}
   product_count: 'Licence products found: {count}'
   purchased: Purchased
   assigned: Assigned
@@ -127,9 +128,9 @@ moves:
   microsoft: Microsoft function
   replacement: Target replacement
   coverage: Coverage and check date
-  evidence: What we found
+  evidence: Readiness evidence
   workload_status: Workload status and reason
-  no_evidence: The evidence does not establish any findings for this workload.
+  workload_evidence: Evidence for {workload}
   no_function: There is no function to move.
   no_project_check: This row has no project-specific documentation check.
 mapping_coverage:
@@ -191,13 +192,19 @@ appendix:
   mapping_reference: Documentation
   mapping_date: Checked on
   run_details: Run details
+  scan_origin: Scan origin
+  scan_producer: Tool that produced the scan
+  producer_version: Scan producer version
+  renderer_version: Befund rendering version
   checksums: SHA-256 checksums of the rule files used
   scan_role: Scan file date
   inputs_role: Inputs file date
   scan_periods: Reporting periods in the scan
   no_scan_periods: The scan supplies no reporting periods.
-footer:
-  repository_pending: Repository address pending
+source_kind:
+  sample: Sample data
+  import: Import
+  live: Live collection
 provenance:
   measured: Measured
   provided: Provided
@@ -401,6 +408,7 @@ cli:
 errors:
   invalid_json: The JSON in {file} is invalid at {field}.
   invalid_yaml: The YAML in {file} is invalid at {field}.
+  yaml_anchors: Remove YAML anchors and aliases from {file} at {field}.
   invalid_field: Check the value of {field} in {file}.
   unknown_field: Remove the unrecognised field {field} from {file}.
   money_not_quoted: Put the decimal value of {field} in quotation marks in {file}.
@@ -416,6 +424,7 @@ errors:
   file_not_found: The file {file} could not be found at {field}.
   is_directory: The location {file} for {field} is a directory.
   not_readable: The file {file} for {field} could not be read.
+  file_too_large: The file {file} for {field} exceeds 2 MiB.
   not_utf8: Save {file} for {field} as UTF-8 text.
   schema_version: The field {field} in {file} contains version {found}, and this tool supports {supported}.
   unsupported_language: Choose en or de for {field} in {file}.
@@ -423,4 +432,5 @@ errors:
   unsupported_profile: Choose opendesk, nextcloud or generic for {field} in {file}.
   out_dir: The output directory {file} for {field} could not be created or opened.
   destination_is_link: The output file {file} for {field} is a symbolic link.
+  destination_not_file: The output location {file} for {field} is not a regular file.
   write_failed: The output file {file} could not be written under {field}.

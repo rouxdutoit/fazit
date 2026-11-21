@@ -11,7 +11,6 @@ Build the report with `befund report SCAN_JSON --inputs inputs.yaml`.
 - Which report language does the project lead need, English (`en`) or German (`de`) (`language`)?
 - Which target profile has the IT lead chosen, `opendesk`, `nextcloud` or `generic` (`target_profile`)?
 - On what date were the answers given (`as_of`)?
-- Are the amounts invented for a demonstration (`amounts_are_invented`)?
 
 ## What Microsoft and other IT cost today
 

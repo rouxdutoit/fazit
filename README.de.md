@@ -17,9 +17,9 @@ Beim ersten Aufruf lädt `uv` die benötigten Python-Pakete aus dem Internet. Tr
 Ohne weitere Angaben erhalten Sie einen englischen Bericht für eine fiktive Stadtverwaltung mit dem Zielprofil openDesk. Mit den folgenden Befehlen können Sie die deutsche Fassung, das Beispiel einer gemeinnützigen Organisation oder das Zielprofil Nextcloud ausprobieren.
 
 ```sh
-uv run befund demo --lang de --out ./report-de
-uv run befund demo --sample nonprofit --out ./report-nonprofit
-uv run befund demo --profile nextcloud --out ./report-nextcloud
+uv run befund demo --lang de --out ./report/de
+uv run befund demo --sample nonprofit --out ./report/nonprofit
+uv run befund demo --profile nextcloud --out ./report/nextcloud
 ```
 
 Die Demo schreibt `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` und `inputs-<YYYY-MM-DD>-<lang>.yaml` standardmäßig nach `./report`. Mit `--out` wählen Sie ein anderes Verzeichnis. Das Datum stammt aus der Bestandsaufnahme. Bei einem erneuten Lauf werden gleichnamige Dateien ersetzt. In der letzten Ausgabezeile steht der vollständige Pfad zum HTML-Bericht.
@@ -29,7 +29,7 @@ Die Demo schreibt `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.j
 Mit den Dateien aus dem ersten Demo-Lauf können Sie den Bericht auf Deutsch neu erstellen.
 
 ```sh
-uv run befund report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report-rebuilt
+uv run befund report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report/rebuilt
 ```
 
 Kopieren Sie die Vorlage, wenn Sie eigene Antworten und Kosten eintragen möchten. Lassen Sie Felder leer, zu denen noch keine Angaben vorliegen. [Interviewleitfaden](docs/interview-checklist.de.md)
@@ -41,7 +41,7 @@ cp inputs.example.yaml inputs.yaml
 Erstellen Sie den Bericht mit derselben Bestandsaufnahme und Ihren Angaben neu.
 
 ```sh
-uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang de --out ./report-with-answers
+uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang de --out ./report/with-answers
 ```
 
 Mit `--lang de` oder `--lang en` wählen Sie die Sprache. Das Zielprofil wählen Sie mit `--profile opendesk`, `--profile nextcloud` oder `--profile generic`. Bei `report` haben diese Optionen Vorrang vor den Einstellungen in der Eingabedatei.
@@ -59,6 +59,8 @@ Mit `--lang de` oder `--lang en` wählen Sie die Sprache. Das Zielprofil wählen
 9. Fußzeile mit dem Projektnamen.
 
 Der Bericht bewertet fünfzehn Bereiche. Die vier Bewertungen lauten „Bereit“, „Handlungsbedarf“, „Hindernis“ und „Unbekannt“. Zu jeder Bewertung nennt der Bericht die Begründung und die Datengrundlage. An den Zahlen erkennen Sie, ob sie gemessen wurden, aus Ihren Angaben stammen oder unbekannt sind. Bei fehlenden Informationen erfahren Sie, was fehlt und wie Sie es klären können. Der Bericht enthält weder eine Gesamtnote noch eine Entscheidungsempfehlung.
+
+Der Browser kann den lokalen Dateipfad in die Kopf- und Fußzeilen des Ausdrucks übernehmen. Deaktivieren Sie in den Druckeinstellungen **Kopf- und Fußzeilen**, bevor Sie eine PDF-Datei zum Weitergeben speichern. Prüfen Sie in der Vorschau, ob der Pfad angezeigt wird.
 
 ## Stand des Projekts
 

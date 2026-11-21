@@ -47,9 +47,9 @@
         <a class="btn btn-outline" href="https://github.com/rouxdutoit/befund">Source code</a>
       </div>
       <div class="command" aria-labelledby="command-label" role="group">
-        <p class="command-label" id="command-label">After publication on PyPI</p>
+        <p class="command-label" id="command-label">Try the demo from source</p>
         <div class="command-line">
-          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">uvx befund demo</span></code>
+          <code><span class="prompt" aria-hidden="true">$</span> <span id="demo-command">git clone https://github.com/rouxdutoit/befund &amp;&amp; cd befund &amp;&amp; uv run befund demo</span></code>
           <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." aria-describedby="demo-command" hidden>Copy</button>
         </div>
         <p class="copy-message" role="status"></p>
@@ -89,7 +89,7 @@
         <ol class="steps">
           <li>
             <h3>Install</h3>
-            <p><a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a>. Once the package is published, <code>uvx</code> can download Befund and its dependencies on the first run.</p>
+            <p><a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a> and Git to run the demo from source. After the PyPI release, you can run <code>uvx befund demo</code>.</p>
           </li>
           <li>
             <h3>Run</h3>
@@ -118,7 +118,7 @@
           <li>Befund has no write access to Microsoft 365.</li>
           <li>Assessment data stays on your computer. There is no Befund server, account or telemetry.</li>
           <li>Befund never stores sign-in tokens on disk.</li>
-          <li>The report contains no personal names or email addresses.</li>
+          <li>Befund excludes collected personal names and email addresses. The organisation name and Windows-only application names you enter in <code>inputs.yaml</code> appear in the report.</li>
           <li>The report loads nothing from the internet when you open it.</li>
         </ul>
         <div class="subsection">

@@ -3,21 +3,23 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from functools import partial
+from functools import lru_cache, partial
 from importlib.resources import files
 
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
-from .catalogue import Catalogue, load_catalogue
+from .catalogue import Catalogue, load_catalogue, sku_key
 from .costs import CostLine, ScenarioResult, compute_scenarios
 from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES, Formatter, code_label, reason_text
-from .inputs import Inputs, combine, empty_inputs, provided_findings
-from .model import Coverage, Finding, FindingValue, Scan
+from .inputs import Inputs, combine, provided_findings
+from .model import Coverage, Finding, FindingValue, Product, Scan, scan_to_json
 from .parsing import read_text
 from .rules import (
     STATUSES,
+    ServicePlan,
+    StatusRuleSet,
     classify_product,
     evaluate,
     evidence_conflicts,
@@ -76,7 +78,7 @@ def _coverage_text(
 def _literal_text(value: FindingValue, formatter: Formatter) -> str:
     if isinstance(value, bool):
         return formatter.strings["common"]["yes" if value else "no"]
-    return formatter.integer(value) if isinstance(value, int) else value
+    return formatter.integer(value)
 
 
 def _value_text(finding: Finding, formatter: Formatter) -> str:
@@ -153,11 +155,62 @@ def render_report(
     lang: str,
     profile: str = "opendesk",
     catalogue: Catalogue | None = None,
-    provided: tuple[Finding, ...] = (),
     inputs: Inputs | None = None,
 ) -> str:
+    context, _ = _prepare_report(scan, lang, profile, catalogue, inputs)
+    return _render_html(context)
+
+
+def render_demo(
+    scan: Scan, *, lang: str, profile: str, catalogue: Catalogue, inputs: Inputs
+) -> tuple[str, str]:
+    context, plans = _prepare_report(scan, lang, profile, catalogue, inputs)
+    return _render_html(context), scan_to_json(scan, plans=plans)
+
+
+@dataclass(frozen=True)
+class _LicenceRow:
+    id: str
+    label: str
+    purchased: int
+    assigned: int
+    plans: tuple[ServicePlan | None, ...]
+
+
+def _licence_rows(
+    products: tuple[Product, ...], plans: tuple[ServicePlan, ...], formatter: Formatter
+) -> tuple[_LicenceRow, ...]:
+    registered = {
+        sku_key(plan.sku_part_number, plan.sku_guid): plan.sku_part_number for plan in plans
+    }
+    unregistered = 0
+    rows = []
+    for product in products:
+        code = registered.get(product.key)
+        if code is None:
+            unregistered += 1
+            code = f"unregistered-{unregistered}"
+            label = formatter.strings["licences"]["unregistered_product"].format(
+                number=formatter.integer(unregistered)
+            )
+        else:
+            label = code
+        rows.append(
+            _LicenceRow(
+                code, label, product.purchased, product.assigned, classify_product(product, plans)
+            )
+        )
+    return tuple(rows)
+
+
+def _prepare_report(
+    scan: Scan,
+    lang: str,
+    profile: str,
+    catalogue: Catalogue | None,
+    inputs: Inputs | None,
+) -> tuple[dict[str, object], tuple[ServicePlan, ...]]:
     formatter = Formatter(lang)
-    strings = formatter.strings
     catalogue = catalogue if catalogue is not None else load_catalogue()
     checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}
     status_rules = load_status_rules(catalogue, checksums=checksums)
@@ -165,18 +218,44 @@ def render_report(
     risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
     mapping = load_mapping(profile, catalogue, checksums=checksums)
     scan_periods = sorted({item.period for item in scan.findings if item.period is not None})
-    cost_inputs = inputs if inputs is not None else empty_inputs()
-    scenarios = compute_scenarios(cost_inputs)
-    if inputs is not None:
-        provided += provided_findings(inputs, catalogue)
+    provided = provided_findings(inputs, catalogue) if inputs is not None else ()
     scan, other_evidence = combine(scan, provided)
     derived = licence_findings(scan, plans, catalogue)
     products = () if scan.licences is None else scan.licences.products
-    licences = [(product, classify_product(product, plans)) for product in products]
-    workload_labels = {entry.id: _label(strings, entry.label) for entry in catalogue.workloads}
     by_id = {item.id: item for item in scan.findings + derived}
+    context = dict(
+        **_formatting_context(formatter, catalogue),
+        **_cost_context(inputs),
+        **_evidence_context(scan, by_id, other_evidence, status_rules, catalogue),
+        lang=lang,
+        scan=scan,
+        scan_periods=scan_periods,
+        licences=_licence_rows(products, plans, formatter),
+        product_count=derived[0] if derived else None,
+        mapping=mapping,
+        mapping_need=mapping_need,
+        mapping_gaps=[
+            (item, by_id.get(item.need_finding) if item.need_finding else None)
+            for item in mapping.functions
+            if item.coverage == "not_available"
+        ],
+        risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
+        checksums=checksums,
+        project_name=PROJECT_NAME,
+        repository_url=REPOSITORY_URL,
+        tool_version=__version__,
+    )
+    return context, plans
+
+
+def _evidence_context(
+    scan: Scan,
+    by_id: dict[str, Finding],
+    other_evidence: tuple[Finding, ...],
+    status_rules: StatusRuleSet,
+    catalogue: Catalogue,
+) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
-    conflicts = {item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}
     statuses = evaluate(
         by_id,
         status_rules,
@@ -185,10 +264,6 @@ def render_report(
         alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
-    move_evidence = {row.workload: [] for row in statuses}
-    for finding in by_id.values():
-        if finding.value is not None:
-            move_evidence[finding.workload].append(finding)
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     headlines = []
     software = []
@@ -201,25 +276,45 @@ def render_report(
         if entry.provided in ("software_list", "software_list_without_web_version"):
             software.append((entry, finding))
 
-    source = files("befund").joinpath("templates", "report.html.j2")
-    template = Environment(autoescape=True, undefined=StrictUndefined).from_string(
-        read_text(source)
+    return dict(
+        alternatives=alternatives,
+        conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)},
+        statuses=statuses,
+        status_counts=[(status, counts[status]) for status in STATUSES],
+        status_rules=status_rules,
+        status_by_workload={row.workload: row for row in statuses},
+        unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
+        skipped_collectors=[
+            collector for collector in scan.collectors if collector.status == "skipped"
+        ],
+        headlines=headlines,
+        groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
+        software=software,
     )
-    return template.render(
-        scan=scan,
-        scan_periods=scan_periods,
+
+
+def _cost_context(inputs: Inputs | None) -> dict[str, object]:
+    cost_inputs = inputs if inputs is not None else Inputs()
+    scenarios = compute_scenarios(cost_inputs)
+    return dict(
         inputs=inputs,
         sample_inputs=cost_inputs.answers_are_sample,
         input_source=cost_inputs.answer_source,
-        provided_sources=catalogue.provided_sources,
         scenarios=scenarios,
         cost_blocks=_cost_table_blocks(scenarios),
         current_costs=vars(cost_inputs.current_costs),
         target_costs=(vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit)),
         cost_currency=cost_inputs.currency or "",
         plain_amount=_plain_amount,
-        lang=lang,
+    )
+
+
+def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str, object]:
+    strings = formatter.strings
+    workload_labels = {entry.id: _label(strings, entry.label) for entry in catalogue.workloads}
+    return dict(
         strings=strings,
+        provided_sources=catalogue.provided_sources,
         label=partial(_label, strings),
         code_label=partial(code_label, strings),
         reason_text=partial(reason_text, strings),
@@ -229,32 +324,15 @@ def render_report(
         format=formatter,
         workload_labels=workload_labels,
         finding_labels=_finding_labels(catalogue, strings, workload_labels),
-        licences=licences,
-        product_count=derived[0] if derived else None,
-        statuses=statuses,
-        status_counts=[(status, counts[status]) for status in STATUSES],
-        status_rules=status_rules,
-        mapping=mapping,
-        status_by_workload={row.workload: row for row in statuses},
-        move_evidence=move_evidence,
-        mapping_need=mapping_need,
-        mapping_gaps=[
-            (item, by_id.get(item.need_finding) if item.need_finding else None)
-            for item in mapping.functions
-            if item.coverage == "not_available"
-        ],
-        risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
-        software=software,
-        alternatives=alternatives,
-        conflicts=conflicts,
-        unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
-        skipped_collectors=[
-            collector for collector in scan.collectors if collector.status == "skipped"
-        ],
-        checksums=checksums,
-        headlines=headlines,
-        groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
-        project_name=PROJECT_NAME,
-        repository_url=REPOSITORY_URL,
-        tool_version=__version__,
     )
+
+
+def _render_html(context: dict[str, object]) -> str:
+    source = files("befund").joinpath("templates", "report.html.j2")
+    html = _compile_template(read_text(source)).render(**context).strip()
+    return "\n".join(line.rstrip(" \t") for line in html.split("\n")) + "\n"
+
+
+@lru_cache(maxsize=1)
+def _compile_template(text: str) -> Template:
+    return Environment(autoescape=True, undefined=StrictUndefined).from_string(text)

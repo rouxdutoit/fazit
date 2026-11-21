@@ -23,6 +23,8 @@ Follow the repository's rules for code, report layout, wording and tests. [AGENT
 
 ## Licence and sign-off
 
-Contributions are accepted under AGPL-3.0-or-later. Add a `Signed-off-by:` line to every commit with `git commit -s`. This certifies that you meet the Developer Certificate of Origin 1.1. The sign-off is sufficient and no contributor licence agreement is required. [Developer Certificate of Origin](https://developercertificate.org/)
+Contributions are accepted under AGPL-3.0-or-later. Starting with the first public release, contributors outside the maintainer team add a `Signed-off-by:` line to each commit with `git commit -s`. This sign-off certifies that the contribution meets the Developer Certificate of Origin 1.1 and is the only certification required. [Developer Certificate of Origin](https://developercertificate.org/)
 
-Befund is written with AI assistance. A commit made by a model names the model in a `Co-Authored-By` trailer.
+The maintainers attest that they have the right to distribute the contributions in the initial repository history under AGPL-3.0-or-later.
+
+Befund is written with AI assistance. Use an `Assisted-by:` trailer to credit Codex and a `Co-Authored-By:` trailer to credit Claude. Name the model in the trailer.

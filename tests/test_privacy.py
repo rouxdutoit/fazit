@@ -12,7 +12,8 @@ from typer.testing import CliRunner, Result
 from befund import cli
 from befund.catalogue import load_catalogue
 from befund.i18n import load_locale
-from befund.model import load_scan, load_scan_text, scan_to_json
+from befund.model import ServicePlan, load_scan, load_scan_text, scan_to_json
+from befund.rules import load_service_plans
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 PRIVATE_TEXT = ("Mustermann", "eyJhbGci", "planted-secret")
@@ -20,6 +21,7 @@ IGNORED_KEYS = ("operator", "granted_by", "owner", "access_token", "admin_contac
 NAME = "Erika Mustermann"
 ADDRESS = "erika.mustermann@example.invalid"
 TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"
+SINGLE_TOKENS = ("ReviewMarker", "Erika_Mustermann")
 
 runner = CliRunner()
 
@@ -49,10 +51,17 @@ def test_ignored_scan_data_leaves_only_a_count_in_the_report(
     scan = load_scan(PLANTED_SCAN, catalogue)
     assert scan.dropped_count == 8
     ignored = (*IGNORED_KEYS, "mail.largest_mailboxes", *PRIVATE_TEXT)
-    copied = scan_to_json(scan)
+    copied = scan_to_json(scan, plans=load_service_plans(catalogue))
     assert all(text not in copied for text in ignored)
     assert copied == json.dumps(json.loads(copied), sort_keys=True, indent=2) + "\n"
-    assert load_scan_text(copied, PLANTED_SCAN.name, catalogue) == replace(scan, dropped_count=0)
+    assert scan.licences is not None
+    (product,) = scan.licences.products
+    anonymous = replace(
+        product, sku_part_number=None, sku_guid=None, service_plans=(ServicePlan(None, None),)
+    )
+    assert load_scan_text(copied, PLANTED_SCAN.name, catalogue) == replace(
+        scan, licences=replace(scan.licences, products=(anonymous,)), dropped_count=0
+    )
 
     out = tmp_path / "out"
     result = runner.invoke(cli.app, ["report", str(PLANTED_SCAN), "--out", str(out)])
@@ -74,6 +83,109 @@ def test_ignored_scan_data_leaves_only_a_count_in_the_report(
     _assert_no_private_text(result, demo_out, *ignored)
 
 
+def test_unregistered_licence_identifiers_are_private_in_both_commands(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = files("befund").joinpath("demo", "town", "scan.json")
+    data = json.loads(source.read_text(encoding="utf-8"))
+    suite, phone, reporting = data["licences"]["products"]
+    suite["sku_part_number"] = suite["sku_part_number"].lower()
+    suite["service_plans"].append(
+        {"name": SINGLE_TOKENS[0], "guid": phone["service_plans"][0]["guid"]}
+    )
+    private_guid = "f8c16d36-b9e3-460e-8ac2-54b6d950986f"
+    phone["sku_part_number"] = SINGLE_TOKENS[0]
+    reporting["sku_part_number"] = SINGLE_TOKENS[1]
+    reporting["sku_guid"] = private_guid
+    sample = _sample_directory(tmp_path, monkeypatch)
+    scan = sample / "scan.json"
+    scan.write_text(json.dumps(data), encoding="utf-8")
+    (sample / "inputs.yaml").write_text("{}\n", encoding="utf-8")
+
+    for command in (["report", str(scan)], ["demo"]):
+        out = tmp_path / f"{command[0]}-out"
+        result = runner.invoke(cli.app, [*command, "--out", str(out)])
+        assert result.exit_code == 0 and not result.stderr, result.output
+        _assert_no_private_text(result, out, *SINGLE_TOKENS, private_guid)
+        html = Path(result.stdout.splitlines()[-1]).read_text(encoding="utf-8")
+        assert 'data-product="SPE_E3"' in html
+        assert "Unregistered product 1" in html and "Unregistered product 2" in html
+        assert "Unclassified service plans in this product: 1." in html
+
+    (copied_scan,) = (tmp_path / "demo-out").glob("*.json")
+    copied_suite, copied_phone, copied_reporting = json.loads(copied_scan.read_bytes())["licences"][
+        "products"
+    ]
+    assert copied_suite["sku_part_number"] == "SPE_E3"
+    assert copied_suite["service_plans"][-1] == {
+        "name": None,
+        "guid": phone["service_plans"][0]["guid"],
+    }
+    for product in (copied_phone, copied_reporting):
+        assert product["sku_part_number"] is None and product["sku_guid"] is None
+    rebuilt = runner.invoke(
+        cli.app, ["report", str(copied_scan), "--out", str(tmp_path / "rebuild")]
+    )
+    assert rebuilt.exit_code == 0, rebuilt.output
+    copy_html = Path(rebuilt.stdout.strip()).read_text(encoding="utf-8")
+    assert "Unregistered product 2" in copy_html
+    assert "Unclassified service plans in this product: 1." in copy_html
+    original_html = (tmp_path / "report-out" / "report-2026-11-02-en.html").read_text(
+        encoding="utf-8"
+    )
+    assert copy_html == original_html
+
+
+@pytest.mark.parametrize("planted", SINGLE_TOKENS)
+def test_unknown_input_key_reports_position(tmp_path: Path, planted: str) -> None:
+    answers = tmp_path / "answers.yaml"
+    answers.write_text(f"currency: EUR\ncurrent_costs:\n  {planted}: null\n", encoding="utf-8")
+    out = tmp_path / "out"
+    result = runner.invoke(
+        cli.app, ["report", str(PLANTED_SCAN), "--inputs", str(answers), "--out", str(out)]
+    )
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert answers.name in result.stderr and "current_costs[0]" in result.stderr
+    _assert_no_private_text(result, out, planted)
+
+
+def test_cli_escapes_control_characters_in_file_paths(tmp_path: Path) -> None:
+    out = tmp_path / "out\n\x1b\u202e"
+    result = runner.invoke(cli.app, ["demo", "--out", str(out)])
+    assert result.exit_code == 0 and not result.stderr, result.output
+    assert len(result.stdout.splitlines()) == 3
+    assert all(r"out\n\x1b\u202e" in line for line in result.stdout.splitlines())
+    assert (out / "report-2026-11-02-en.html").is_file()
+
+    source = tmp_path / "missing\r\t\x1b\u202e.json"
+    failure = runner.invoke(cli.app, ["report", str(source), "--out", str(out)])
+    assert failure.exit_code == 2 and not failure.stdout
+    assert len(failure.stderr.splitlines()) == 1
+    assert r"missing\r\t\x1b\u202e.json" in failure.stderr
+
+
+@pytest.mark.parametrize("character", ["\0", "\u202e"], ids=["nul", "bidi"])
+@pytest.mark.parametrize("field", ["organisation_name", "windows_only_software[0].name"])
+def test_report_rejects_nonprintable_names(tmp_path: Path, character: str, field: str) -> None:
+    answers = tmp_path / "answers.yaml"
+    name = json.dumps(f"Example{character}Name")
+    prefix = (
+        "organisation_name: "
+        if field == "organisation_name"
+        else "windows_only_software:\n  - name: "
+    )
+    answers.write_text(f"{prefix}{name}\n", encoding="utf-8")
+    out = tmp_path / "out"
+    result = runner.invoke(
+        cli.app, ["report", str(PLANTED_SCAN), "--inputs", str(answers), "--out", str(out)]
+    )
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert field in result.stderr and answers.name in result.stderr
+    _assert_no_private_text(result, out, character)
+
+
 def _positions(value: object, path: Position = ()) -> Iterator[Position]:
     if isinstance(value, dict):
         children = value.items()
@@ -87,12 +199,18 @@ def _positions(value: object, path: Position = ()) -> Iterator[Position]:
         yield from _positions(item, position)
 
 
-@pytest.mark.parametrize("planted", [NAME, ADDRESS, TOKEN], ids=["name", "address", "token"])
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "planted",
+    [NAME, ADDRESS, TOKEN, *SINGLE_TOKENS],
+    ids=["name", "address", "token", "single-token", "underscore-name"],
+)
 @pytest.mark.parametrize("placement", ["key", "value"])
 def test_privacy_in_every_scan_field_and_key(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, planted: str, placement: str
 ) -> None:
     catalogue = load_catalogue()
+    plans = load_service_plans(catalogue)
     strings = load_locale("en")
     monkeypatch.setattr(cli, "load_catalogue", lambda: catalogue)
     monkeypatch.setattr(cli, "load_locale", lambda lang: strings)
@@ -121,7 +239,7 @@ def test_privacy_in_every_scan_field_and_key(
             assert result.exit_code == 2, position
             assert strings["errors"]["contains_at"].split("{")[0] in result.stderr
         if result.exit_code == 0:
-            copied = scan_to_json(load_scan(scan_file, catalogue))
+            copied = scan_to_json(load_scan(scan_file, catalogue), plans=plans)
             assert all(text not in copied for text in (*PRIVATE_TEXT, planted)), position
             assert len(list(out.glob("*.html"))) == 1 and not result.stderr
         else:

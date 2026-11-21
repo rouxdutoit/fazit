@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import socket
+import subprocess
 from dataclasses import replace
 from datetime import date, tzinfo
 from hashlib import sha256
@@ -44,6 +45,7 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     ]
     assert report.is_file()
     html = report.read_text(encoding="utf-8")
+    assert html.startswith("<!doctype html>\n")
     assert re.findall(r'data-section="([^"]+)"', html) == [
         "header",
         "found",
@@ -64,6 +66,7 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     assert "Nubus" in moves and "Keycloak" in moves
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("readme", ["README.md", "README.de.md"])
 def test_readme_commands_run_in_order(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, readme: str
@@ -116,10 +119,9 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
     assert re.findall(r'<tr data-function="([^"]+)"', moves) == [
         row.function for row in mapping.functions
     ]
+    readiness_html = _section(html, "readiness")
     readiness = dict(
-        re.findall(
-            r'<tr data-workload="([^"]+)" data-status="([^"]+)"', _section(html, "readiness")
-        )
+        re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness_html)
     )
     appendix = _section(html, "appendix")
     assert mapping.file_name in appendix and mapping.description["en"] in appendix
@@ -135,7 +137,8 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
             strings["mapping_coverage"][row.coverage],
         ):
             assert text in unescape(move[0])
-        assert move[0].count("data-move-evidence=") <= 3
+        assert re.findall(r'href="([^"]+)"', move[0]) == [f"#readiness-{row.workload}"]
+        assert readiness_html.count(f'id="readiness-{row.workload}"') == 1
         if row.checked_on is None:
             assert strings["moves"]["no_project_check"] in move[0]
             assert strings["moves"]["no_project_check"] in detail[0]
@@ -144,10 +147,11 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
             assert row.reference_url and row.reference_url in unescape(detail[0])
         if row.note:
             assert row.note["en"] in unescape(detail[0])
-    assert "href=" not in moves and "href=" not in appendix
+    assert "data-move-evidence=" not in moves and "href=" not in appendix
     assert strings["moves"]["no_function"] in moves
-    assert "Other systems send mail" in moves and strings["provenance"]["provided"] in moves
-    assert strings["source"]["sample.interview"] in moves
+    assert "Other systems send mail" in readiness_html
+    assert strings["provenance"]["provided"] in readiness_html
+    assert strings["source"]["sample.interview"] in readiness_html
     assert strings["readiness"]["incomplete"] in moves
 
 
@@ -253,6 +257,29 @@ def test_demo_refuses_a_symlink_destination(tmp_path: Path, name: str) -> None:
     assert "symbolic link" in result.stderr
     assert destination.is_symlink()
     assert outside.read_bytes() == b"Preserve this file"
+    assert list(out.iterdir()) == [destination]
+
+
+@pytest.mark.parametrize("kind", ["directory", "fifo"])
+def test_demo_preflights_all_destinations(tmp_path: Path, kind: str) -> None:
+    if kind == "fifo" and not hasattr(os, "mkfifo"):
+        pytest.skip("Requires FIFO support")
+    existing_scan = tmp_path / "scan-2026-11-02-en.json"
+    existing_scan.write_bytes(b"Previous scan")
+    report = tmp_path / "report-2026-11-02-en.html"
+    if kind == "directory":
+        report.mkdir()
+    else:
+        os.mkfifo(report)
+
+    result = runner.invoke(app, ["demo", "--out", str(tmp_path)])
+
+    assert result.exit_code == 2 and not result.stdout
+    assert len(result.stderr.splitlines()) == 1
+    assert report.name in result.stderr and "--out" in result.stderr
+    assert existing_scan.read_bytes() == b"Previous scan"
+    assert set(tmp_path.iterdir()) == {existing_scan, report}
+    assert report.is_dir() if kind == "directory" else report.is_fifo()
 
 
 def _sample_scan(name: str) -> Scan:
@@ -556,6 +583,17 @@ def test_report_rebuilds_a_demo_copy(tmp_path: Path) -> None:
     assert "2. November 2026" in html
 
 
+def test_report_usage_uses_the_documented_argument_name_in_english() -> None:
+    failure = runner.invoke(app, ["report", "--lang", "de"])
+    help_result = runner.invoke(app, ["report", "--help"])
+
+    assert failure.exit_code == 2 and "Missing argument" in failure.stderr
+    assert help_result.exit_code == 0
+    for output in (failure.stderr, help_result.stdout):
+        assert "SCAN_JSON" in output
+        assert "{scan_json}" not in output
+
+
 def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
     outside = tmp_path / "outside.html"
     outside.write_bytes(b"Preserve this file")
@@ -571,6 +609,19 @@ def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
     assert "symbolic link" in result.stderr
     assert destination.is_symlink()
     assert outside.read_bytes() == b"Preserve this file"
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="Requires FIFO support")
+def test_report_refuses_a_fifo_destination(tmp_path: Path) -> None:
+    scan = files("befund").joinpath("demo", "town", "scan.json")
+    destination = tmp_path / "report-2026-11-02-en.html"
+    os.mkfifo(destination)
+
+    result = runner.invoke(app, ["report", str(scan), "--out", str(tmp_path)])
+
+    assert result.exit_code == 2 and not result.stdout
+    assert len(result.stderr.splitlines()) == 1 and destination.name in result.stderr
+    assert destination.is_fifo() and list(tmp_path.iterdir()) == [destination]
 
 
 @pytest.mark.parametrize(
@@ -622,7 +673,8 @@ def test_report_input_errors_use_the_flag_language(
 
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert len(result.stderr.splitlines()) == 1 and result.stderr.startswith(prefix)
-    assert answers.name in result.stderr and "curency" in result.stderr
+    assert answers.name in result.stderr and "$[1]" in result.stderr
+    assert "curency" not in result.stderr
 
 
 @pytest.mark.parametrize("kind", ["missing", "directory"])
@@ -735,6 +787,61 @@ def test_report_debug_exposes_the_input_error(tmp_path: Path) -> None:
     scan = tmp_path / "missing.json"
     with pytest.raises(InputError, match="file_not_found"):
         runner.invoke(app, ["--debug", "report", str(scan)], catch_exceptions=False)
+
+
+@pytest.mark.parametrize("case", ["alias-expansion", "oversized-yaml", "oversized-json"])
+def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
+    sample = files("befund").joinpath("demo", "town", "scan.json")
+    scan = tmp_path / "inventory.json"
+    answers = tmp_path / "answers.yaml"
+    scan.write_bytes(sample.read_bytes())
+    if case == "alias-expansion":
+        lines = ["a0: &a0 [0]"]
+        for level in range(1, 11):
+            repeated = ",".join([f"*a{level - 1}"] * 10)
+            lines.append(f"a{level}: &a{level} [{repeated}]")
+        text = "\n".join(lines).ljust(700)
+        assert len(text.encode()) == 700
+        answers.write_text(text, encoding="utf-8")
+    else:
+        path = scan if case == "oversized-json" else answers
+        with path.open("ab") as stream:
+            stream.truncate(2 * 1024 * 1024 + 1)
+    out = tmp_path / "out"
+    options = [] if case == "oversized-json" else ["--inputs", str(answers)]
+
+    result = subprocess.run(
+        ["uv", "run", "--no-sync", "befund", "report", str(scan), *options, "--out", str(out)],
+        capture_output=True,
+        text=True,
+        timeout=1,
+    )
+
+    strings = load_locale("en")
+    code = "yaml_anchors" if case == "alias-expansion" else "file_too_large"
+    file_name = scan.name if case == "oversized-json" else answers.name
+    expected = strings["errors"][code].format(file=file_name, field="$")
+    assert result.returncode == 2
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=expected)]
+    assert not result.stdout and not out.exists()
+
+
+@pytest.mark.parametrize(
+    "amount", ["1000000000000000", "0.001", "9" * 200_000], ids=["integer", "fraction", "long"]
+)
+def test_report_rejects_amounts_outside_the_supported_precision(
+    tmp_path: Path, amount: str
+) -> None:
+    scan = files("befund").joinpath("demo", "town", "scan.json")
+    answers = tmp_path / "answers.yaml"
+    answers.write_text(
+        f'currency: EUR\ncurrent_costs: {{other_it_per_year: "{amount}"}}\n', encoding="utf-8"
+    )
+    out = tmp_path / "out"
+    result = runner.invoke(app, ["report", str(scan), "--inputs", str(answers), "--out", str(out)])
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert "current_costs.other_it_per_year" in result.stderr and answers.name in result.stderr
 
 
 @pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions")

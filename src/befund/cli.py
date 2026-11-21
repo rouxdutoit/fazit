@@ -8,12 +8,18 @@ import typer
 from . import PROJECT_NAME, __version__
 from .catalogue import load_catalogue
 from .errors import InputError
-from .i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, error_sentence, load_locale
-from .inputs import empty_inputs, load_inputs, load_inputs_text
-from .model import load_scan, load_scan_text, scan_to_json
-from .output import write_inside
+from .i18n import (
+    DEFAULT_LANGUAGE,
+    SUPPORTED_LANGUAGES,
+    error_sentence,
+    escape_controls,
+    load_locale,
+)
+from .inputs import Inputs, load_inputs, load_inputs_text
+from .model import load_scan, load_scan_text
+from .output import write_files, write_inside
 from .parsing import read_text
-from .report import render_report, report_file_name
+from .report import render_demo, render_report, report_file_name
 from .rules import PROFILES
 
 app = typer.Typer(
@@ -74,23 +80,32 @@ def demo(
         inputs_text = read_text(answers)
         inputs = load_inputs_text(inputs_text, answers.name, catalogue)
 
-        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue, inputs=inputs)
+        html, scan_copy = render_demo(
+            scan, lang=lang, profile=profile, catalogue=catalogue, inputs=inputs
+        )
         stamp = f"{scan.generated_at[:10]}-{lang}"
-        scan_path = write_inside(out, f"scan-{stamp}.json", scan_to_json(scan))
-        inputs_path = write_inside(out, f"inputs-{stamp}.yaml", inputs_text)
-        path = write_inside(out, report_file_name(scan.generated_at, lang=lang), html)
+        scan_path, inputs_path, path = write_files(
+            out,
+            {
+                f"scan-{stamp}.json": scan_copy,
+                f"inputs-{stamp}.yaml": inputs_text,
+                report_file_name(scan.generated_at, lang=lang): html,
+            },
+        )
     except InputError as error:
         _exit_with_error(ctx, lang, error)
     strings = load_locale(lang)["cli"]
-    typer.echo(strings["sample_scan"].format(path=scan_path))
-    typer.echo(strings["sample_inputs"].format(path=inputs_path))
-    typer.echo(str(path))
+    typer.echo(strings["sample_scan"].format(path=escape_controls(str(scan_path))))
+    typer.echo(strings["sample_inputs"].format(path=escape_controls(str(inputs_path))))
+    typer.echo(escape_controls(str(path)))
 
 
 @app.command()
 def report(
     ctx: typer.Context,
-    scan_json: Annotated[Path, typer.Argument(help="Scan JSON file to rebuild the report from.")],
+    scan_json: Annotated[
+        Path, typer.Argument(metavar="SCAN_JSON", help="Scan JSON file to rebuild the report from.")
+    ],
     inputs: Annotated[
         Path | None, typer.Option(help="YAML file with manual answers and costs.")
     ] = None,
@@ -104,7 +119,7 @@ def report(
         _check_language(message_lang)
         catalogue = load_catalogue()
         scan = load_scan(scan_json, catalogue)
-        answers = load_inputs(inputs, catalogue) if inputs is not None else empty_inputs()
+        answers = load_inputs(inputs, catalogue) if inputs is not None else Inputs()
         report_lang = lang if lang is not None else answers.language or DEFAULT_LANGUAGE
         target = profile if profile is not None else answers.target_profile or "opendesk"
         html = render_report(
@@ -117,7 +132,7 @@ def report(
         path = write_inside(out, report_file_name(scan.generated_at, lang=report_lang), html)
     except InputError as error:
         _exit_with_error(ctx, message_lang, error)
-    typer.echo(str(path))
+    typer.echo(escape_controls(str(path)))
 
 
 def main() -> None:

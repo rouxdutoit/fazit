@@ -1,3 +1,5 @@
+> **Historical document.** This is the original brief from before planning. It is superseded by `DECISIONS.md`, whose "Principles" section states the principles as they stand. The tool is now called Befund.
+
 # HANDOFF: m365-exit-scan
 
 > Working name. Rename freely, but keep it short and typeable.

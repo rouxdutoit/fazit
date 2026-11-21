@@ -3,33 +3,5960 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sample report — Befund</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <script src="/site.js"></script>
-  <link rel="stylesheet" href="/style.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta name="color-scheme" content="light dark">
+  <title>Microsoft 365 inventory</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --text: #172833;
+      --muted: #475b69;
+      --line: #bfccd5;
+      --accent: #255b7b;
+      --surface: #eff4f7;
+      --status-ready: #a9d4ed;
+      --status-needs-work: #c56321;
+      --status-blocker: #762e16;
+      --status-unknown: #888888;
+    }
+    @media screen and (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #151e26;
+        --text: #edf3f7;
+        --muted: #bbc9d4;
+        --line: #506270;
+        --accent: #a7d3ef;
+        --surface: #22323f;
+        --status-ready: #b4dff6;
+        --status-needs-work: #d7813a;
+        --status-blocker: #a84b27;
+        --status-unknown: #a0a0a0;
+      }
+    }
+    body {
+      max-width: 60rem;
+      margin: 0 auto;
+      padding: clamp(1rem, 3vw, 2rem);
+      background: var(--bg);
+      color: var(--text);
+      font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    header {
+      border-block-start: .3rem solid var(--accent);
+      border-block-end: 1px solid var(--line);
+      padding-block: 1.25rem 1rem;
+    }
+    h1, h2, h3 { line-height: 1.2; margin-block: 0 .7rem; }
+    h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.125rem; }
+    p { margin-block: .45rem; }
+    a { color: var(--accent); text-underline-offset: .15em; }
+    section { margin-block: 1.75rem; }
+    .report-meta {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: 1.4rem;
+      margin-block: .75rem 1.2rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .report-meta div { display: flex; flex-wrap: wrap; column-gap: .45ch; }
+    .report-meta dd { margin: 0; font-weight: 650; }
+    .muted, small { color: var(--muted); }
+    .sample-note {
+      background: var(--surface);
+      border-inline-start: .2rem solid var(--accent);
+      margin-block: .8rem 0;
+      padding: .5rem .7rem;
+    }
+    .headlines {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+      gap: .75rem;
+      margin-block: 1rem 1.5rem;
+      padding: 0;
+      list-style: none;
+    }
+    .headlines li {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .3rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: .25rem;
+      padding: .75rem;
+    }
+    .figure { font-size: 1.25rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+    small { display: block; }
+    .prov {
+      display: inline-block;
+      border: 1px solid currentColor;
+      border-radius: .2rem;
+      padding: .05rem .35rem;
+      color: var(--muted);
+      font-size: .85em;
+    }
+    [data-provenance="provided"] .prov { border-style: dotted; }
+    [data-provenance="unknown"] .prov { border-style: dashed; }
+    .table-scroll { overflow-x: auto; margin-block: .65rem 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .evidence, .collectors { table-layout: fixed; }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: .45rem .55rem;
+      text-align: start;
+      vertical-align: top;
+      hyphens: auto;
+    }
+    thead th { background: var(--surface); box-sizing: border-box; }
+    .evidence thead th:first-child { width: 31%; }
+    .collectors thead th:nth-child(1) { width: 24%; }
+    .collectors thead th:nth-child(2) { width: 16%; }
+    .collectors thead th:nth-child(4) { width: 18%; }
+    th[scope="rowgroup"] { color: var(--accent); padding-block-start: .8rem; }
+    caption { text-align: start; color: var(--muted); padding-block-end: .5rem; }
+    .table-note { color: var(--muted); }
+    .readiness-bar {
+      display: flex;
+      gap: .1rem;
+      height: 1rem;
+      margin-block: .7rem;
+    }
+    .status {
+      display: inline-flex;
+      align-items: baseline;
+      gap: .4em;
+      color: var(--text);
+      font-weight: 650;
+    }
+    .status-shape {
+      display: inline-block;
+      flex: none;
+      box-sizing: border-box;
+      align-self: center;
+      inline-size: .8em;
+      block-size: .8em;
+      background: var(--status-fill);
+      border: 1px solid var(--text);
+    }
+    .ready { --status-fill: var(--status-ready); }
+    .needs_work { --status-fill: var(--status-needs-work); }
+    .blocker { --status-fill: var(--status-blocker); }
+    .unknown { --status-fill: var(--status-unknown); }
+    .ready .status-shape, .unknown .status-shape { border-radius: 50%; }
+    .needs_work .status-shape {
+      border: 0;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    .unknown .status-shape { border-style: dashed; background: transparent; }
+    .status-segment { border: 1px solid var(--text); background-color: var(--status-fill); }
+    .status-segment.ready {
+      background-image: radial-gradient(var(--text) 1px, transparent 1px);
+      background-size: 5px 5px;
+    }
+    .status-segment.needs_work {
+      background-image: repeating-linear-gradient(45deg, transparent 0 4px, #172833 4px 5px);
+    }
+    .status-segment.blocker {
+      background-image: repeating-linear-gradient(90deg, transparent 0 3px, #ffffff 3px 4px);
+    }
+    .status-segment.unknown {
+      border-style: dashed;
+      background-image: repeating-linear-gradient(0deg, transparent 0 4px, #172833 4px 5px);
+    }
+    .status-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .25rem 1rem;
+      padding: 0;
+      list-style: none;
+    }
+    .readiness, .licences, .moves { table-layout: fixed; }
+    .readiness thead th:first-child, .readiness thead th:nth-child(2) { width: 15%; }
+    .readiness thead th:nth-child(3) { width: 34%; }
+    .moves thead th:nth-child(-n+3) { width: 17%; }
+    .licences thead th:first-child { width: 29%; }
+    .licences thead th:nth-child(2), .licences thead th:nth-child(3) { width: 12%; }
+    .licence-plan small { display: block; margin-block-end: .35em; }
+    .risky-files thead th:first-child { width: 18%; }
+    .risky-files thead th:nth-child(2) { width: 16%; }
+    .risky-files thead th:nth-child(3) { width: 31%; }
+    .readiness ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
+    .readiness li + li, .not-examined li + li,
+    .mapping-gaps li + li, .path-workloads li + li { margin-block-start: .4rem; }
+    .evidence-meta { display: flex; flex-wrap: wrap; column-gap: .65rem; }
+    .workload-evidence, .cost-inputs { border-block-end: 1px solid var(--line); }
+    .workload-evidence summary, .cost-inputs summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 650;
+      padding-block: .55rem;
+    }
+    .cost-inputs { margin-block-end: 1rem; }
+    .cost-table { table-layout: fixed; }
+    .cost-table thead th:first-child { width: 34%; }
+    .cost-table td { font-variant-numeric: tabular-nums; }
+    .cost-table .subtotals, .cost-table .totals { background: var(--surface); }
+    .cost-table .totals td { font-weight: 650; }
+    .run-details dt { font-weight: 650; }
+    .run-details dd { margin: 0 0 .55rem; }
+    .rule-details dd, .software-counts dd, .mapping-details dd { margin: 0 0 .8rem; }
+    .rule-details dt, .software-counts dt, .mapping-details dt { font-weight: 650; }
+    footer {
+      padding-block-start: .65rem;
+      border-block-start: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    @media screen and (max-width: 40rem) {
+      .headlines { grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr)); }
+      table:not(.cost-table), table:not(.cost-table) :is(caption, tbody, tr, th, td) { display: block; }
+      table:not(.cost-table) { font-size: 1rem; }
+      table:not(.cost-table) thead, .cost-table thead th:first-child {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      table:not(.cost-table) tbody tr {
+        margin-block-end: .6rem;
+        border: 1px solid var(--line);
+        border-radius: .25rem;
+      }
+      table:not(.cost-table) tbody :is(th, td) { border: 0; padding: .35rem .65rem; }
+      table:not(.cost-table) tbody th { background: var(--surface); }
+      table:not(.cost-table) tbody td + td { border-block-start: 1px solid var(--line); }
+      table:not(.cost-table, .evidence) td[data-label]::before {
+        display: block;
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: .85rem;
+        font-weight: 650;
+      }
+      .cost-table, .cost-table :is(caption, thead, tbody) { display: block; }
+      .cost-table { font-size: .9rem; }
+      .cost-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .cost-table :is(th, td) { padding: .35rem .4rem; }
+      .cost-table tbody th { grid-column: 1 / -1; }
+      .cost-table th[scope="row"] { border-bottom: 0; padding-block-end: 0; }
+    }
+    @page { margin: 15mm; }
+    @media print {
+      body {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        font-size: 10pt;
+        print-color-adjust: exact;
+      }
+      h1, h2, h3 { break-after: avoid; }
+      .headlines { grid-template-columns: repeat(4, 1fr); gap: .45rem; }
+      .prov { padding-inline: .2rem; white-space: nowrap; }
+      .table-scroll { overflow: visible; }
+      table { font-size: .9em; }
+      thead { break-after: avoid; }
+      th, td { padding: .3rem; }
+      tr, .headlines li, .mapping-gaps li, .path-workloads li { break-inside: avoid; }
+      tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
+      .workload-evidence summary, .cost-inputs summary { break-after: avoid; }
+      .workload-evidence::details-content, .cost-inputs::details-content {
+        content-visibility: visible;
+        display: block;
+        block-size: auto;
+      }
+    }
+  </style>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
-  <header class="bar">
-    <div class="bar-in">
-      <a class="wordmark" href="/" aria-label="Befund home">Befund</a>
-      <div class="bar-actions"><a class="language" href="/demo/de/" lang="de" hreflang="de">Deutsch</a></div>
-    </div>
-  </header>
-  <main class="center-page" id="main" tabindex="-1">
-    <div>
-      <h1>Sample report</h1>
-      <p>The sample report is being generated.</p>
-      <a class="btn btn-solid" href="/#report">Back to Befund</a>
-    </div>
-  </main>
-  <footer class="foot">
-    <div class="foot-in">
-      <div class="foot-fine">
-        <p><a href="/impressum/">Legal notice</a> · <a href="/privacy/">Privacy</a></p>
-        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+  <header data-section="header">
+    <h1>Microsoft 365 inventory</h1>
+    <dl class="report-meta">
+      <div>
+        <dt>Organisation</dt>
+        <dd>Stadtverwaltung Musterstadt</dd>
       </div>
-    </div>
+      <div>
+        <dt>Evidence date</dt>
+        <dd><time datetime="2026-11-02T09:00:00Z">2 November 2026</time></dd>
+      </div>
+      <div><dt>Tool version</dt><dd>0.1.0</dd></div>
+      <div><dt>Target profile</dt><dd>openDesk</dd></div>
+    </dl>
+    <p>The person who ran Befund created this report locally from scan.json. The command contacted no host.</p>
+    <p class="muted">To check, disconnect from the network and run the command again or open this file.</p>
+    <p class="sample-note">The scan measurements in this report are simulated.</p>
+  </header>
+  <main>
+    <section data-section="found">
+      <h2>What we found</h2>
+      <ul class="headlines" role="list">
+
+
+          <li data-provenance="measured">
+            <strong>Internal accounts</strong>
+            <span class="figure">91 accounts</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>Mailboxes</strong>
+            <span class="figure">91 mailboxes</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>Mail storage</strong>
+            <span class="figure">312.4 GB</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>OneDrive storage</strong>
+            <span class="figure">264.8 GB</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>SharePoint sites</strong>
+            <span class="figure">24 sites</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>SharePoint storage</strong>
+            <span class="figure">481.5 GB</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="measured">
+            <strong>Teams</strong>
+            <span class="figure">31 teams</span>
+            <span class="prov">Measured</span>
+
+
+          </li>
+
+
+          <li data-provenance="provided">
+            <strong>Devices</strong>
+            <span class="figure">92 devices</span>
+            <span class="prov">Provided</span>
+
+              <small>Sample interview answer · 28 October 2026</small>
+
+
+          </li>
+
+      </ul>
+
+        <h3 id="licences-title">Licence products</h3>
+        <p data-provenance="measured">
+          Licence products found: 3
+          <span class="prov">Measured</span>
+          <small>Sample licence inventory · 2 November 2026 · Complete</small>
+        </p>
+
+          <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
+            <table class="licences" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Product code">Product code</th>
+                  <th scope="col" role="columnheader" data-label="Purchased">Purchased</th>
+                  <th scope="col" role="columnheader" data-label="Assigned">Assigned</th>
+                  <th scope="col" role="columnheader" data-label="Service plan classification">Service plan classification</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+
+                  <tr data-product="SPE_E3" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Product code">SPE_E3 <small class="prov">Measured</small></th>
+                    <td role="cell" data-label="Purchased">90</td>
+                    <td role="cell" data-label="Assigned">85</td>
+                    <td role="cell" data-label="Service plan classification">
+
+
+
+                          <div class="licence-plan">
+                            Device management · Included in the product
+                            <small><code>INTUNE_A</code>, <code>INTUNE_O365</code>, <code>UNIVERSAL_PRINT_01</code>, <code>WIN10_PRO_ENT_SUB</code>, <code>Windows_Autopatch</code>, <code>WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Identity and access · Included in the product
+                            <small><code>AAD_PREMIUM</code>, <code>MFA_PREMIUM</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Integrations · Included in the product
+                            <small><code>GRAPH_CONNECTORS_SEARCH_INDEX</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Mail · Included in the product
+                            <small><code>EXCHANGE_S_ENTERPRISE</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Office files · Included in the product
+                            <small><code>OFFICESUBSCRIPTION</code>, <code>SHAREPOINTWAC</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Power Platform · Included in the product
+                            <small><code>CDS_O365_P2</code>, <code>DYN365_CDS_O365_P2</code>, <code>FLOW_O365_P2</code>, <code>POWER_VIRTUAL_AGENTS_O365_P2</code>, <code>POWERAPPS_O365_P2</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Security and compliance · Included in the product
+                            <small><code>ADALLOM_S_DISCOVERY</code>, <code>ATP_ENTERPRISE</code>, <code>ContentExplorer_Standard</code>, <code>MDE_LITE</code>, <code>MIP_S_CLP1</code>, <code>RMS_S_ENTERPRISE</code>, <code>RMS_S_PREMIUM</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            SharePoint · Included in the product
+                            <small><code>SHAREPOINTENTERPRISE</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Small applications · Included in the product
+                            <small><code>BPOS_S_TODO_2</code>, <code>CLIPCHAMP</code>, <code>FORMS_PLAN_E3</code>, <code>MICROSOFT_LOOP</code>, <code>MICROSOFTBOOKINGS</code>, <code>PROJECT_O365_P2</code>, <code>PROJECTWORKMANAGEMENT</code>, <code>STREAM_O365_E3</code>, <code>SWAY</code>, <code>VIVA_LEARNING_SEEDED</code>, <code>VIVAENGAGE_CORE</code>, <code>WHITEBOARD_PLAN2</code>, <code>YAMMER_ENTERPRISE</code></small>
+                          </div>
+
+
+
+                          <div class="licence-plan">
+                            Teams · Included in the product
+                            <small><code>MCOSTANDARD</code>, <code>MESH_AVATARS_ADDITIONAL_FOR_TEAMS</code>, <code>MESH_AVATARS_FOR_TEAMS</code>, <code>MESH_IMMERSIVE_FOR_TEAMS</code>, <code>TEAMS1</code></small>
+                          </div>
+
+
+
+
+                        <div>Service plans without a workload signal: 8.</div>
+
+
+
+                    </td>
+                  </tr>
+
+
+                  <tr data-product="MCOEV" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Product code">MCOEV <small class="prov">Measured</small></th>
+                    <td role="cell" data-label="Purchased">12</td>
+                    <td role="cell" data-label="Assigned">12</td>
+                    <td role="cell" data-label="Service plan classification">
+
+
+
+                          <div class="licence-plan">
+                            Telephony · Separately licensed
+                            <small><code>MCOEV</code></small>
+                          </div>
+
+
+
+
+
+
+                    </td>
+                  </tr>
+
+
+                  <tr data-product="PBI_PREMIUM_PER_USER" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Product code">PBI_PREMIUM_PER_USER <small class="prov">Measured</small></th>
+                    <td role="cell" data-label="Purchased">5</td>
+                    <td role="cell" data-label="Assigned">5</td>
+                    <td role="cell" data-label="Service plan classification">
+
+
+
+                          <div class="licence-plan">
+                            Power Platform · Separately licensed
+                            <small><code>BI_AZURE_P2</code>, <code>BI_AZURE_P3</code></small>
+                          </div>
+
+
+
+
+                        <div>Service plans without a workload signal: 1.</div>
+
+
+
+                    </td>
+                  </tr>
+
+              </tbody>
+            </table>
+          </div>
+
+
+      <h3>Evidence behind the figures</h3>
+
+        <details class="workload-evidence" data-evidence-workload="licences">
+          <summary id="evidence-licences">Licences</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-licences" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="licences.contract_terms_known" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Licence terms reviewed</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="directory">
+          <summary id="evidence-directory">Directory</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-directory" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="directory.user_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Internal accounts</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    91 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Directory inventory</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="directory.licensed_user_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Licensed accounts</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    85 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Directory inventory</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="directory.guest_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Guests</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    12 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Directory inventory</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="directory.group_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Groups</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    36 groups
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Directory inventory</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="directory.account_list_reviewed" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Account list reviewed</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+                  <tr role="row"><td class="table-note" role="cell" colspan="2" data-label="Note">Internal accounts include shared and service accounts, so there can be more accounts than staff. Guests are counted separately.</td></tr>
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="mail">
+          <summary id="evidence-mail">Mail</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-mail" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="mail.mailbox_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mailboxes</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    91 mailboxes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample mailbox usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Mailbox usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="mail.shared_mailbox_count" data-provenance="unknown" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Shared mailboxes</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="unknown">
+
+    <span class="prov">Unknown</span>
+
+
+
+  </div>
+
+
+                        <small>Collection method · Exchange recipient export</small>
+
+                      <small>
+  <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Supply an Exchange recipient export that includes the mailbox type.</span></small>
+                    </td>
+                  </tr>
+
+                  <tr data-finding="mail.storage_bytes" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mail storage</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    312.4 GB
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample mailbox usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Mailbox usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="mail.item_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mail items</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    504,210 items
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample mailbox usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Mailbox usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="mail.other_systems_send_mail" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Other systems send mail through Microsoft</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="onedrive">
+          <summary id="evidence-onedrive">OneDrive</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-onedrive" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="onedrive.account_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">OneDrive accounts</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    82 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample OneDrive usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · OneDrive usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="onedrive.storage_bytes" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">OneDrive storage</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    264.8 GB
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample OneDrive usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · OneDrive usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="onedrive.external_sharing_in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">External OneDrive sharing in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="sharepoint">
+          <summary id="evidence-sharepoint">SharePoint</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-sharepoint" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="sharepoint.site_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">SharePoint sites</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    24 sites
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample SharePoint site usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · SharePoint site usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="sharepoint.storage_bytes" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">SharePoint storage</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    481.5 GB
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample SharePoint site usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · SharePoint site usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="sharepoint.file_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">SharePoint files</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    32,418 files
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample SharePoint site usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · SharePoint site usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="sharepoint.custom_solutions_in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Custom SharePoint solutions in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="teams">
+          <summary id="evidence-teams">Teams</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-teams" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="teams.team_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Teams</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    31 teams
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample Teams usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Teams usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="teams.channel_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Channels</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    109 channels
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample Teams usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Teams usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="teams.teams_with_guests_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Teams with guests</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+    0 teams
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample Teams usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+
+                        <small>Collection method · Teams usage report</small>
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="teams.chat_history_must_be_kept" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Teams chat history must be kept</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="office_files">
+          <summary id="evidence-office_files">Office files</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-office_files" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="office_files.kind.macro" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Files that may contain macros</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    271 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="office_files.kind.access" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Access databases</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    15 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="office_files.kind.publisher" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Publisher files</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    21 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="office_files.kind.visio" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Visio files</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    48 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="office_files.kind.onenote" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">OneNote files</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    130 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="device_management">
+          <summary id="evidence-device_management">Device management</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-device_management" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="device_management.device_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Devices</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    92 devices
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample interview answer</span>
+        <span>Collection date · 28 October 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="device_management.windows_device_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Windows devices</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    88 devices
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="device_management.in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Microsoft device management in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="windows_software">
+          <summary id="evidence-windows_software">Windows-only software</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-windows_software" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="windows_software.application_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Windows-only applications</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    3 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="windows_software.without_web_version_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Windows-only applications without a web version</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    2 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="power_platform">
+          <summary id="evidence-power_platform">Power Platform</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-power_platform" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="power_platform.in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Power Platform in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="telephony">
+          <summary id="evidence-telephony">Telephony</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-telephony" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="telephony.in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Telephony runs through Microsoft</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="telephony.replacement_available" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Telephony replacement available</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="identity_access">
+          <summary id="evidence-identity_access">Identity and access</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-identity_access" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="identity_access.sso_application_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Applications with Microsoft single sign-on</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    4 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+                  <tr data-finding="identity_access.conditional_access_in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Conditional Access in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="security_compliance">
+          <summary id="evidence-security_compliance">Security and compliance</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-security_compliance" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="security_compliance.protection_or_retention_in_use" data-provenance="unknown" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Microsoft protection or retention in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="unknown">
+
+    <span class="prov">Unknown</span>
+
+
+
+  </div>
+
+
+                      <small>
+  <span data-reason="not_collected_in_this_version">This version does not collect this figure. Ask the person responsible for the service for the information.</span></small>
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="small_apps">
+          <summary id="evidence-small_apps">Small applications</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-small_apps" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="small_apps.in_use" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Small Microsoft applications in use</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="workload-evidence" data-evidence-workload="integrations">
+          <summary id="evidence-integrations">Integrations</summary>
+          <div class="table-scroll" role="region" aria-labelledby="evidence-integrations" tabindex="0">
+            <table class="evidence" role="table">
+              <caption data-sample>Scan measurements are simulated.</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                  <th scope="col" role="columnheader" data-label="Value">Value</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+
+                  <tr data-finding="integrations.application_count" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Applications integrated with Microsoft 365</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+    3 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+                    </td>
+                  </tr>
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+    </section>
+    <section data-section="costs">
+      <h2>Five-year cost comparison</h2>
+
+      <details class="cost-inputs">
+        <summary id="cost-inputs-title">Cost inputs</summary>
+        <div class="table-scroll" role="region" aria-labelledby="cost-inputs-title" tabindex="0">
+          <table class="cost-table" role="table">
+            <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
+            <thead role="rowgroup">
+    <tr role="row">
+      <th scope="col" role="columnheader" data-label="Input">Input</th>
+      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial exit">Partial exit</th><th scope="col" role="columnheader" data-label="Full exit">Full exit</th>
+    </tr>
+  </thead>
+            <tbody role="rowgroup">
+
+
+  <tr data-cost-input="microsoft_licences_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Current Microsoft licences per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        EUR 100,000.00
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 100,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 100,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="other_it_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Existing other IT costs per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        EUR 20,000.00
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 20,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 20,000.00
+      </td>
+
+  </tr>
+
+
+
+  <tr data-cost-input="users" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Users on the target system
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        30
+
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        85
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="retained_microsoft_licences_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Retained Microsoft licences per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 60,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 0.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="hosting_per_user_per_month" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Hosting per user per month
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 8.50
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 8.50
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="operations_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Target system operations per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 6,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 12,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="other_recurring_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Other target costs per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 1,500.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 2,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="one_time_migration" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      One-time migration
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 15,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 40,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="application_adaptation" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Application adaptation
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 4,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 10,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="external_advice" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      External advice
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 3,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 8,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_days_per_person" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Training days per person
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        2
+
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        2
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_day_rate" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Training cost per person per day
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 400.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 400.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_staff" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      People to train
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        30
+
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        85
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="productivity_loss" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Cost of productivity loss
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        EUR 9,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        EUR 25,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="parallel_running_months" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Months running both systems
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial exit">
+        6
+
+      </td>
+
+
+      <td role="cell" data-label="Full exit">
+        12
+
+      </td>
+
+  </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <h3 id="cost-results-title">Costs by scenario</h3>
+      <div class="table-scroll" role="region" aria-labelledby="cost-results-title" tabindex="0">
+        <table class="cost-table" role="table">
+          <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
+          <thead role="rowgroup">
+    <tr role="row">
+      <th scope="col" role="columnheader" data-label="Cost category">Cost category</th>
+      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial exit">Partial exit</th><th scope="col" role="columnheader" data-label="Full exit">Full exit</th>
+    </tr>
+  </thead>
+
+            <tbody data-block="running" role="rowgroup">
+              <tr role="row">
+                <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Running costs</th>
+              </tr>
+
+                <tr role="row" data-cost-line="microsoft_licences">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Current Microsoft licences
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay" data-amount="500000">
+                      EUR 500,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit">
+                      Not applicable
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="other_it">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Existing other IT costs
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay" data-amount="100000">
+                      EUR 100,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="100000">
+                      EUR 100,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="100000">
+                      EUR 100,000.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="retained_licences">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Retained Microsoft licences
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="270000">
+                      EUR 270,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="0">
+                      EUR 0.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="hosting">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Hosting
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="15300">
+                      EUR 15,300.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="43350">
+                      EUR 43,350.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="operations">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Target system operations
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="30000">
+                      EUR 30,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="60000">
+                      EUR 60,000.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="other_recurring">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Other recurring target costs
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="7500">
+                      EUR 7,500.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="10000">
+                      EUR 10,000.00
+                    </td>
+
+                </tr>
+
+              <tr class="subtotals" role="row">
+                <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                  <td role="cell" data-label="Stay" data-amount="600000">EUR 600,000.00</td>
+
+                  <td role="cell" data-label="Partial exit" data-amount="422800">EUR 422,800.00</td>
+
+                  <td role="cell" data-label="Full exit" data-amount="213350">EUR 213,350.00</td>
+
+              </tr>
+            </tbody>
+
+            <tbody data-block="direct_project" role="rowgroup">
+              <tr role="row">
+                <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Direct project costs</th>
+              </tr>
+
+                <tr role="row" data-cost-line="one_time_migration">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    One-time migration
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="15000">
+                      EUR 15,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="40000">
+                      EUR 40,000.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="application_adaptation">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Application adaptation
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="4000">
+                      EUR 4,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="10000">
+                      EUR 10,000.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="external_advice">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    External advice
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="3000">
+                      EUR 3,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="8000">
+                      EUR 8,000.00
+                    </td>
+
+                </tr>
+
+                <tr role="row" data-cost-line="training">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Training
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="24000">
+                      EUR 24,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="68000">
+                      EUR 68,000.00
+                    </td>
+
+                </tr>
+
+              <tr class="subtotals" role="row">
+                <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                  <td role="cell" data-label="Stay" data-amount="0">EUR 0.00</td>
+
+                  <td role="cell" data-label="Partial exit" data-amount="46000">EUR 46,000.00</td>
+
+                  <td role="cell" data-label="Full exit" data-amount="126000">EUR 126,000.00</td>
+
+              </tr>
+            </tbody>
+
+            <tbody data-block="productivity_loss" role="rowgroup">
+              <tr role="row">
+                <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Productivity loss</th>
+              </tr>
+
+                <tr role="row" data-cost-line="productivity_loss">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Cost of productivity loss
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="9000">
+                      EUR 9,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="25000">
+                      EUR 25,000.00
+                    </td>
+
+                </tr>
+
+              <tr class="subtotals" role="row">
+                <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                  <td role="cell" data-label="Stay" data-amount="0">EUR 0.00</td>
+
+                  <td role="cell" data-label="Partial exit" data-amount="9000">EUR 9,000.00</td>
+
+                  <td role="cell" data-label="Full exit" data-amount="25000">EUR 25,000.00</td>
+
+              </tr>
+            </tbody>
+
+            <tbody data-block="parallel_running" role="rowgroup">
+              <tr role="row">
+                <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Parallel running</th>
+              </tr>
+
+                <tr role="row" data-cost-line="parallel_running">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Current Microsoft licences during parallel running
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                    <td role="cell" data-label="Stay">
+                      Not applicable
+                    </td>
+
+
+                    <td role="cell" data-label="Partial exit" data-amount="50000">
+                      EUR 50,000.00
+                    </td>
+
+
+                    <td role="cell" data-label="Full exit" data-amount="100000">
+                      EUR 100,000.00
+                    </td>
+
+                </tr>
+
+              <tr class="subtotals" role="row">
+                <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                  <td role="cell" data-label="Stay" data-amount="0">EUR 0.00</td>
+
+                  <td role="cell" data-label="Partial exit" data-amount="50000">EUR 50,000.00</td>
+
+                  <td role="cell" data-label="Full exit" data-amount="100000">EUR 100,000.00</td>
+
+              </tr>
+            </tbody>
+
+          <tbody role="rowgroup">
+            <tr class="totals" role="row">
+              <th scope="row" role="rowheader" data-label="Cost category">
+    Five-year total
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                <td data-scenario="stay" data-total="600000" role="cell" data-label="Stay">EUR 600,000.00</td>
+
+                <td data-scenario="partial_exit" data-total="527800" role="cell" data-label="Partial exit">EUR 527,800.00</td>
+
+                <td data-scenario="full_exit" data-total="464350" role="cell" data-label="Full exit">EUR 464,350.00</td>
+
+            </tr>
+            <tr role="row">
+              <th scope="row" role="rowheader" data-label="Cost category">
+    Difference from staying
+
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                <td role="cell" data-label="Stay">EUR 0.00</td>
+
+                <td role="cell" data-label="Partial exit">EUR -72,200.00</td>
+
+                <td role="cell" data-label="Full exit">EUR -135,650.00</td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.</p>
+
+    </section>
+    <section data-section="readiness">
+      <h2 id="readiness-title">Readiness by workload</h2>
+      <div class="readiness-bar" aria-hidden="true">
+
+          <span class="status-segment ready" data-segment="ready" data-count="4" style="flex-grow: 4"></span>
+
+          <span class="status-segment needs_work" data-segment="needs_work" data-count="9" style="flex-grow: 9"></span>
+
+          <span class="status-segment blocker" data-segment="blocker" data-count="1" style="flex-grow: 1"></span>
+
+          <span class="status-segment unknown" data-segment="unknown" data-count="1" style="flex-grow: 1"></span>
+
+      </div>
+      <ul class="status-legend" role="list" aria-label="Workload counts by status">
+
+          <li><span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span> · 4</li>
+
+          <li><span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · 9</li>
+
+          <li><span class="status blocker"><span class="status-shape" aria-hidden="true"></span> Blocker</span> · 1</li>
+
+          <li><span class="status unknown"><span class="status-shape" aria-hidden="true"></span> Unknown</span> · 1</li>
+
+      </ul>
+      <div class="table-scroll" role="region" aria-labelledby="readiness-title" tabindex="0">
+        <table class="readiness" role="table">
+          <caption data-sample>Scan measurements are simulated.</caption>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader" data-label="Workload">Workload</th>
+              <th scope="col" role="columnheader" data-label="Status">Status</th>
+              <th scope="col" role="columnheader" data-label="Reason and next step">Reason and next step</th>
+              <th scope="col" role="columnheader" data-label="Evidence">Evidence</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+
+              <tr data-workload="licences" data-status="ready" role="row" id="readiness-licences">
+                <th scope="row" role="rowheader" data-label="Workload">Licences</th>
+                <td role="cell" data-label="Status">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    The licence products have been recorded and the contract terms have been reviewed.
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="licences.product_count">
+                          <strong>Licence products</strong>
+                          <div data-provenance="measured">
+    3 products
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="licences.contract_terms_known">
+                          <strong>Licence terms reviewed</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="directory" data-status="needs_work" role="row" id="readiness-directory">
+                <th scope="row" role="rowheader" data-label="Workload">Directory</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Guest accounts require a decision about future access.
+
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="directory.user_count">
+                          <strong>Internal accounts</strong>
+                          <div data-provenance="measured">
+    91 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="directory.guest_count">
+                          <strong>Guests</strong>
+                          <div data-provenance="measured">
+    12 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample directory inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="directory.account_list_reviewed">
+                          <strong>Account list reviewed</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="mail" data-status="needs_work" data-incomplete role="row" id="readiness-mail">
+                <th scope="row" role="rowheader" data-label="Workload">Mail</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+  <small>Evidence incomplete</small>
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Other systems send mail through Microsoft and will need another way to send it.
+
+
+
+
+                    <p><strong>Evidence still needed</strong></p>
+                    <ul>
+
+                        <li data-missing="mail.shared_mailbox_count">
+                          <strong>Shared mailboxes</strong>
+                          <small>Exchange recipient export</small>
+
+  <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Supply an Exchange recipient export that includes the mailbox type.</span>
+                        </li>
+
+                    </ul>
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="mail.mailbox_count">
+                          <strong>Mailboxes</strong>
+                          <div data-provenance="measured">
+    91 mailboxes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample mailbox usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="mail.shared_mailbox_count">
+                          <strong>Shared mailboxes</strong>
+                          <div data-provenance="unknown">
+
+    <span class="prov">Unknown</span>
+
+
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="mail.other_systems_send_mail">
+                          <strong>Other systems send mail through Microsoft</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="mail.licence_bundled_assigned">
+                          <strong>Included licence assigned for Mail</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="onedrive" data-status="ready" role="row" id="readiness-onedrive">
+                <th scope="row" role="rowheader" data-label="Workload">OneDrive</th>
+                <td role="cell" data-label="Status">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    OneDrive accounts and storage have been inventoried, and there is no external sharing.
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="onedrive.account_count">
+                          <strong>OneDrive accounts</strong>
+                          <div data-provenance="measured">
+    82 accounts
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample OneDrive usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="onedrive.storage_bytes">
+                          <strong>OneDrive storage</strong>
+                          <div data-provenance="measured">
+    264.8 GB
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample OneDrive usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="onedrive.external_sharing_in_use">
+                          <strong>External OneDrive sharing in use</strong>
+                          <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="sharepoint" data-status="needs_work" role="row" id="readiness-sharepoint">
+                <th scope="row" role="rowheader" data-label="Workload">SharePoint</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Custom SharePoint solutions need to be reviewed before the sites move.
+
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="sharepoint.site_count">
+                          <strong>SharePoint sites</strong>
+                          <div data-provenance="measured">
+    24 sites
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample SharePoint site usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="sharepoint.custom_solutions_in_use">
+                          <strong>Custom SharePoint solutions in use</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="sharepoint.licence_bundled_assigned">
+                          <strong>Included licence assigned for SharePoint</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="teams" data-status="ready" role="row" id="readiness-teams">
+                <th scope="row" role="rowheader" data-label="Workload">Teams</th>
+                <td role="cell" data-label="Status">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    The teams have been counted, there are no guests, and the chat history does not need to be kept.
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="teams.team_count">
+                          <strong>Teams</strong>
+                          <div data-provenance="measured">
+    31 teams
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample Teams usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="teams.teams_with_guests_count">
+                          <strong>Teams with guests</strong>
+                          <div data-provenance="measured">
+    0 teams
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample Teams usage report</span>
+        <span>Collection date · 2 November 2026</span>
+        <span>Reporting period · 6 May to 1 Nov 2026</span>
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="teams.chat_history_must_be_kept">
+                          <strong>Teams chat history must be kept</strong>
+                          <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="teams.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Teams</strong>
+                          <div data-provenance="measured">
+    No
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="teams.licence_bundled_assigned">
+                          <strong>Included licence assigned for Teams</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="office_files" data-status="needs_work" role="row" id="readiness-office_files">
+                <th scope="row" role="rowheader" data-label="Workload">Office files</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+
+
+
+                    <ul>
+                      <li>Review how the organisation uses its Access databases before planning the move.</li><li>Check how the organisation will open and edit its Publisher files.</li><li>Check how the organisation will open and edit its Visio files.</li><li>Check how the organisation will move its OneNote notebooks.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="office_files.kind.macro">
+                          <strong>Files that may contain macros</strong>
+                          <div data-provenance="provided">
+    271 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="office_files.kind.access">
+                          <strong>Access databases</strong>
+                          <div data-provenance="provided">
+    15 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="office_files.kind.publisher">
+                          <strong>Publisher files</strong>
+                          <div data-provenance="provided">
+    21 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="office_files.kind.visio">
+                          <strong>Visio files</strong>
+                          <div data-provenance="provided">
+    48 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="office_files.kind.onenote">
+                          <strong>OneNote files</strong>
+                          <div data-provenance="provided">
+    130 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="office_files.licence_bundled_assigned">
+                          <strong>Included licence assigned for Office files</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="device_management" data-status="needs_work" role="row" id="readiness-device_management">
+                <th scope="row" role="rowheader" data-label="Workload">Device management</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Devices managed through Microsoft need another management service.
+
+
+
+                    <ul>
+                      <li>Review which of the Windows devices can move to a different operating system.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="device_management.in_use">
+                          <strong>Microsoft device management in use</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="device_management.windows_device_count">
+                          <strong>Windows devices</strong>
+                          <div data-provenance="provided">
+    88 devices
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="device_management.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Device management</strong>
+                          <div data-provenance="measured">
+    No
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="device_management.licence_bundled_assigned">
+                          <strong>Included licence assigned for Device management</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="windows_software" data-status="needs_work" role="row" id="readiness-windows_software">
+                <th scope="row" role="rowheader" data-label="Workload">Windows-only software</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
+
+
+
+                    <ul>
+                      <li>Check how staff will use the Windows-only applications after the move.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="windows_software.application_count">
+                          <strong>Windows-only applications</strong>
+                          <div data-provenance="provided">
+    3 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="windows_software.without_web_version_count">
+                          <strong>Windows-only applications without a web version</strong>
+                          <div data-provenance="provided">
+    2 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="power_platform" data-status="needs_work" role="row" id="readiness-power_platform">
+                <th scope="row" role="rowheader" data-label="Workload">Power Platform</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Separate Power Platform licences are assigned and the applications and processes they support need review.
+
+
+
+                    <ul>
+                      <li>The Power Platform applications and processes in use need a replacement.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="power_platform.in_use">
+                          <strong>Power Platform in use</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="power_platform.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Power Platform</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="power_platform.licence_bundled_assigned">
+                          <strong>Included licence assigned for Power Platform</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="telephony" data-status="blocker" role="row" id="readiness-telephony">
+                <th scope="row" role="rowheader" data-label="Workload">Telephony</th>
+                <td role="cell" data-label="Status">
+                  <span class="status blocker"><span class="status-shape" aria-hidden="true"></span> Blocker</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
+
+
+
+                    <ul>
+                      <li>The organisation confirms it runs telephony through Microsoft and has no replacement.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="telephony.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Telephony</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="telephony.in_use">
+                          <strong>Telephony runs through Microsoft</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="telephony.replacement_available">
+                          <strong>Telephony replacement available</strong>
+                          <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="identity_access" data-status="needs_work" role="row" id="readiness-identity_access">
+                <th scope="row" role="rowheader" data-label="Workload">Identity and access</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
+
+
+
+                    <ul>
+                      <li>Review how the new identity service will enforce the organisation&#39;s access policies.</li>
+                    </ul>
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="identity_access.sso_application_count">
+                          <strong>Applications with Microsoft single sign-on</strong>
+                          <div data-provenance="provided">
+    4 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="identity_access.conditional_access_in_use">
+                          <strong>Conditional Access in use</strong>
+                          <div data-provenance="provided">
+    Yes
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="identity_access.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Identity and access</strong>
+                          <div data-provenance="measured">
+    No
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="identity_access.licence_bundled_assigned">
+                          <strong>Included licence assigned for Identity and access</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="security_compliance" data-status="unknown" data-incomplete role="row" id="readiness-security_compliance">
+                <th scope="row" role="rowheader" data-label="Workload">Security and compliance</th>
+                <td role="cell" data-label="Status">
+                  <span class="status unknown"><span class="status-shape" aria-hidden="true"></span> Unknown</span>
+  <small>Evidence incomplete</small>
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+
+  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span>
+
+
+
+
+                    <p><strong>Evidence still needed</strong></p>
+                    <ul>
+
+                        <li data-missing="security_compliance.protection_or_retention_in_use">
+                          <strong>Microsoft protection or retention in use</strong>
+
+
+  <span data-reason="not_collected_in_this_version">This version does not collect this figure. Ask the person responsible for the service for the information.</span>
+                        </li>
+
+                    </ul>
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="security_compliance.protection_or_retention_in_use">
+                          <strong>Microsoft protection or retention in use</strong>
+                          <div data-provenance="unknown">
+
+    <span class="prov">Unknown</span>
+
+
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="security_compliance.licence_add_on_assigned">
+                          <strong>Separate licence assigned for Security and compliance</strong>
+                          <div data-provenance="measured">
+    No
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="security_compliance.licence_bundled_assigned">
+                          <strong>Included licence assigned for Security and compliance</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="small_apps" data-status="ready" role="row" id="readiness-small_apps">
+                <th scope="row" role="rowheader" data-label="Workload">Small applications</th>
+                <td role="cell" data-label="Status">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="small_apps.in_use">
+                          <strong>Small Microsoft applications in use</strong>
+                          <div data-provenance="provided">
+    No
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="small_apps.licence_bundled_assigned">
+                          <strong>Included licence assigned for Small applications</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+              <tr data-workload="integrations" data-status="needs_work" role="row" id="readiness-integrations">
+                <th scope="row" role="rowheader" data-label="Workload">Integrations</th>
+                <td role="cell" data-label="Status">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                </td>
+                <td role="cell" data-label="Reason and next step">
+
+                    Applications connected to Microsoft 365 need their integrations reviewed before the move.
+
+
+
+
+                </td>
+                <td role="cell" data-label="Evidence">
+
+                    <ul>
+
+                        <li data-evidence="integrations.application_count">
+                          <strong>Applications integrated with Microsoft 365</strong>
+                          <div data-provenance="provided">
+    3 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+                        </li>
+
+                        <li data-evidence="integrations.licence_bundled_assigned">
+                          <strong>Included licence assigned for Integrations</strong>
+                          <div data-provenance="measured">
+    Yes
+    <span class="prov">Measured</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample licence inventory</span>
+        <span>Collection date · 2 November 2026</span>
+
+        <span>Coverage · Complete</span>
+      </small>
+
+  </div>
+
+                        </li>
+
+                    </ul>
+
+                </td>
+              </tr>
+
+          </tbody>
+        </table>
+      </div>
+      <div data-subsection="not-examined">
+        <h3>Not examined</h3>
+        <ul class="not-examined">
+
+            <li data-unexamined-workload="security_compliance"><strong>Security and compliance</strong> ·
+  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span></li>
+
+
+            <li data-unexamined-finding="mail.shared_mailbox_count"><strong>Shared mailboxes</strong> ·
+  <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Supply an Exchange recipient export that includes the mailbox type.</span></li>
+
+            <li data-unexamined-finding="security_compliance.protection_or_retention_in_use"><strong>Microsoft protection or retention in use</strong> ·
+  <span data-reason="not_collected_in_this_version">This version does not collect this figure. Ask the person responsible for the service for the information.</span></li>
+
+
+            <li data-unexamined-collector="exchange_recipients"><strong>Exchange recipient export</strong> ·
+  <span data-reason="source_not_supplied">The data source was missing. Supply the required export and rebuild the report.</span></li>
+
+        </ul>
+      </div>
+    </section>
+    <section data-section="moves">
+      <h2 id="moves-title">What moves where</h2>
+      <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
+        <table class="moves" role="table">
+          <caption data-sample>Scan measurements are simulated.</caption>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader" data-label="Microsoft function">Microsoft function</th>
+              <th scope="col" role="columnheader" data-label="Target replacement">Target replacement</th>
+              <th scope="col" role="columnheader" data-label="Coverage and check date">Coverage and check date</th>
+              <th scope="col" role="columnheader" data-label="Readiness evidence">Readiness evidence</th>
+              <th scope="col" role="columnheader" data-label="Workload status and reason">Workload status and reason</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+
+
+              <tr data-function="identity_management" data-workload="directory" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Entra ID user and group management</th>
+                <td role="cell" data-label="Target replacement">Nubus</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-directory">Evidence for Directory</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Guest accounts require a decision about future access.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="mail_and_calendar" data-workload="mail" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Exchange Online mail and calendar</th>
+                <td role="cell" data-label="Target replacement">Open-Xchange (OX App Suite)</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-mail">Evidence for Mail</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+  <small>Evidence incomplete</small>
+                  <div>Other systems send mail through Microsoft and will need another way to send it.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="personal_files" data-workload="onedrive" data-status="ready" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">OneDrive personal file storage and sync</th>
+                <td role="cell" data-label="Target replacement">Nextcloud Files</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-onedrive">Evidence for OneDrive</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                  <div>OneDrive accounts and storage have been inventoried, and there is no external sharing.</div>
+                </td>
+              </tr>
+
+
+              <tr data-function="team_files" data-workload="sharepoint" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">SharePoint team file libraries</th>
+                <td role="cell" data-label="Target replacement">Shared folders in Nextcloud Files</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-sharepoint">Evidence for SharePoint</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Custom SharePoint solutions need to be reviewed before the sites move.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="sharepoint_workflows" data-workload="sharepoint" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">SharePoint workflows</th>
+                <td role="cell" data-label="Target replacement">Separate redesign of workflows</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-sharepoint">Evidence for SharePoint</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Custom SharePoint solutions need to be reviewed before the sites move.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="chat" data-workload="teams" data-status="ready" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Teams chat</th>
+                <td role="cell" data-label="Target replacement">Element</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-teams">Evidence for Teams</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                  <div>The teams have been counted, there are no guests, and the chat history does not need to be kept.</div>
+                </td>
+              </tr>
+
+
+              <tr data-function="video_meetings" data-workload="teams" data-status="ready" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Teams video meetings</th>
+                <td role="cell" data-label="Target replacement">Jitsi</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-teams">Evidence for Teams</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                  <div>The teams have been counted, there are no guests, and the chat history does not need to be kept.</div>
+                </td>
+              </tr>
+
+
+              <tr data-function="teams_chat_history" data-workload="teams" data-status="ready" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Teams chat history</th>
+                <td role="cell" data-label="Target replacement">Separate decision on retaining past chats</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-teams">Evidence for Teams</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                  <div>The teams have been counted, there are no guests, and the chat history does not need to be kept.</div>
+                </td>
+              </tr>
+
+
+              <tr data-function="office_editing" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Editing Microsoft Office documents</th>
+                <td role="cell" data-label="Target replacement">Collabora Online</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-office_files">Evidence for Office files</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="vba_macros" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">VBA macros in Office files</th>
+                <td role="cell" data-label="Target replacement">Separate conversion or redevelopment</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-office_files">Evidence for Office files</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="device_management" data-workload="device_management" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Device management with Microsoft Intune</th>
+                <td role="cell" data-label="Target replacement">Separate device management service</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-device_management">Evidence for Device management</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Devices managed through Microsoft need another management service.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="desktop_operating_system" data-workload="device_management" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Windows desktop operating system</th>
+                <td role="cell" data-label="Target replacement">Separately managed workstation operating system</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-device_management">Evidence for Device management</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Devices managed through Microsoft need another management service.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="windows_applications" data-workload="windows_software" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Running Windows-only applications</th>
+                <td role="cell" data-label="Target replacement">Separate hosting or replacement of each application</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-windows_software">Evidence for Windows-only software</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="automation_and_low_code" data-workload="power_platform" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Power Platform automation and low-code applications</th>
+                <td role="cell" data-label="Target replacement">Separate review and redevelopment of applications and flows</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-power_platform">Evidence for Power Platform</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Separate Power Platform licences are assigned and the applications and processes they support need review.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="telephony" data-workload="telephony" data-status="blocker" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Teams Phone and public telephone calling</th>
+                <td role="cell" data-label="Target replacement">Separate telephone service</td>
+                <td role="cell" data-label="Coverage and check date">
+                  Not available
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-telephony">Evidence for Telephony</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status blocker"><span class="status-shape" aria-hidden="true"></span> Blocker</span>
+
+                  <div>Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="single_sign_on" data-workload="identity_access" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Entra single sign-on</th>
+                <td role="cell" data-label="Target replacement">Keycloak</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-identity_access">Evidence for Identity and access</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="security_and_compliance" data-workload="security_compliance" data-status="unknown" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft 365 protection and retention controls</th>
+                <td role="cell" data-label="Target replacement">Access controls and malware scanning in openDesk</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-security_compliance">Evidence for Security and compliance</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status unknown"><span class="status-shape" aria-hidden="true"></span> Unknown</span>
+  <small>Evidence incomplete</small>
+                  <div>
+  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span>
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="forms_tasks_bookings" data-workload="small_apps" data-status="ready" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Microsoft Forms, Planner and Bookings</th>
+                <td role="cell" data-label="Target replacement">OpenProject and OX App Suite for tasks</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-small_apps">Evidence for Small applications</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status ready"><span class="status-shape" aria-hidden="true"></span> Ready</span>
+
+                  <div>The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.</div>
+                </td>
+              </tr>
+
+
+              <tr data-function="application_integrations" data-workload="integrations" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Integrations with Microsoft 365 applications</th>
+                <td role="cell" data-label="Target replacement">Interfaces in the openDesk components</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-integrations">Evidence for Integrations</a>
+                </td>
+                <td role="cell" data-label="Workload status and reason">
+                  <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span>
+
+                  <div>Applications connected to Microsoft 365 need their integrations reviewed before the move.
+  </div>
+                </td>
+              </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+        <p><strong>Licences</strong> · There is no function to move.</p>
+
+    </section>
+    <section data-section="attention">
+      <h2>Needs attention</h2>
+      <h3 id="risky-files-title">File types to review</h3>
+      <div class="table-scroll" role="region" aria-labelledby="risky-files-title" tabindex="0">
+        <table class="risky-files" role="table">
+          <caption data-sample>Scan measurements are simulated.</caption>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader" data-label="File type">File type</th>
+              <th scope="col" role="columnheader" data-label="Extensions">Extensions</th>
+              <th scope="col" role="columnheader" data-label="Reported count">Reported count</th>
+              <th scope="col" role="columnheader" data-label="Note">Note</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+
+              <tr data-kind="macro" role="row">
+                <th scope="row" role="rowheader" data-label="File type">May contain macros</th>
+                <td role="cell" data-label="Extensions">
+                  <code>.xlsm</code>, <code>.xltm</code>, <code>.xlam</code>, <code>.docm</code>, <code>.dotm</code>, <code>.pptm</code>, <code>.potm</code>
+                </td>
+                <td role="cell" data-label="Reported count">
+
+    <div data-provenance="provided">
+    271 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+
+                </td>
+                <td role="cell" data-label="Note">The extension alone cannot establish whether a file contains macros or how important they are.</td>
+              </tr>
+
+              <tr data-kind="access" role="row">
+                <th scope="row" role="rowheader" data-label="File type">Microsoft Access</th>
+                <td role="cell" data-label="Extensions">
+                  <code>.accdb</code>, <code>.mdb</code>
+                </td>
+                <td role="cell" data-label="Reported count">
+
+    <div data-provenance="provided">
+    15 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+
+                </td>
+                <td role="cell" data-label="Note">Find out which databases and forms staff still use.</td>
+              </tr>
+
+              <tr data-kind="publisher" role="row">
+                <th scope="row" role="rowheader" data-label="File type">Microsoft Publisher</th>
+                <td role="cell" data-label="Extensions">
+                  <code>.pub</code>
+                </td>
+                <td role="cell" data-label="Reported count">
+
+    <div data-provenance="provided">
+    21 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+
+                </td>
+                <td role="cell" data-label="Note">Check which publications staff still need to edit.</td>
+              </tr>
+
+              <tr data-kind="visio" role="row">
+                <th scope="row" role="rowheader" data-label="File type">Microsoft Visio</th>
+                <td role="cell" data-label="Extensions">
+                  <code>.vsdx</code>
+                </td>
+                <td role="cell" data-label="Reported count">
+
+    <div data-provenance="provided">
+    48 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+
+                </td>
+                <td role="cell" data-label="Note">Check whether staff need to edit the diagrams or only view them.</td>
+              </tr>
+
+              <tr data-kind="onenote" role="row">
+                <th scope="row" role="rowheader" data-label="File type">Microsoft OneNote</th>
+                <td role="cell" data-label="Extensions">
+                  <code>.one</code>
+                </td>
+                <td role="cell" data-label="Reported count">
+
+    <div data-provenance="provided">
+    130 files
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+
+
+                </td>
+                <td role="cell" data-label="Note">Check which notebooks and attachments must be kept.</td>
+              </tr>
+
+          </tbody>
+        </table>
+      </div>
+      <h3 id="software-title">Windows-only software</h3>
+      <dl class="software-counts">
+
+          <dt>Windows-only applications</dt>
+          <dd data-software-count="windows_software.application_count">
+    <div data-provenance="provided">
+    3 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+  </dd>
+
+          <dt>Windows-only applications without a web version</dt>
+          <dd data-software-count="windows_software.without_web_version_count">
+    <div data-provenance="provided">
+    2 applications
+    <span class="prov">Provided</span>
+
+
+
+      <small class="evidence-meta">
+        <span>Source · Sample input</span>
+        <span>Collection date · 10 November 2026</span>
+
+
+      </small>
+
+  </div>
+
+
+  </dd>
+
+      </dl>
+
+        <div class="table-scroll" role="region" aria-labelledby="software-title" tabindex="0">
+          <table role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" role="columnheader" data-label="Application">Application</th>
+                <th scope="col" role="columnheader" data-label="People using it">People using it</th>
+                <th scope="col" role="columnheader" data-label="Vendor offers a web version">Vendor offers a web version</th>
+              </tr>
+            </thead>
+            <tbody role="rowgroup">
+
+                <tr data-software-entry data-provenance="provided" role="row">
+                  <th scope="row" role="rowheader" data-label="Application">
+                    Flurzeichen Register <span class="prov">Provided</span>
+                    <small>Sample input · 10 November 2026</small>
+                  </th>
+                  <td role="cell" data-label="People using it">
+                    <span>14</span>
+                  </td>
+                  <td role="cell" data-label="Vendor offers a web version">
+                    <span>No</span>
+                  </td>
+                </tr>
+
+                <tr data-software-entry data-provenance="provided" role="row">
+                  <th scope="row" role="rowheader" data-label="Application">
+                    Kieselbogen Kasse <span class="prov">Provided</span>
+                    <small>Sample input · 10 November 2026</small>
+                  </th>
+                  <td role="cell" data-label="People using it">
+                    <span>9</span>
+                  </td>
+                  <td role="cell" data-label="Vendor offers a web version">
+                    <span>No</span>
+                  </td>
+                </tr>
+
+                <tr data-software-entry data-provenance="provided" role="row">
+                  <th scope="row" role="rowheader" data-label="Application">
+                    Wegeblick Dienstplan <span class="prov">Provided</span>
+                    <small>Sample input · 10 November 2026</small>
+                  </th>
+                  <td role="cell" data-label="People using it">
+                    <span>22</span>
+                  </td>
+                  <td role="cell" data-label="Vendor offers a web version">
+                    <span>Yes</span>
+                  </td>
+                </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+      <div data-subsection="cannot-be-moved">
+        <h3>Direct transfer unverified</h3>
+
+          <p>A direct transfer for these functions has not been established for the selected profile.</p>
+          <ul class="mapping-gaps">
+
+
+              <li data-gap="sharepoint_workflows" data-need="unknown">
+                <strong>SharePoint workflows</strong>
+                <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
+                <p data-provenance="unknown">
+                  <strong>Needed by this organisation</strong> · Unknown
+
+                    <small>
+  <span data-reason="not_established">The available evidence leaves the answer open. Review the finding with the person responsible for the service.</span></small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="teams_chat_history" data-need="no">
+                <strong>Teams chat history</strong>
+                <p>The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · No
+
+                    <small>
+                      Teams chat history must be kept · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="vba_macros" data-need="unknown">
+                <strong>VBA macros in Office files</strong>
+                <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
+                <p data-provenance="unknown">
+                  <strong>Needed by this organisation</strong> · Unknown
+
+                    <small>
+  <span data-reason="not_established">The available evidence leaves the answer open. Review the finding with the person responsible for the service.</span></small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="device_management" data-need="yes">
+                <strong>Device management with Microsoft Intune</strong>
+                <p>The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · Yes
+
+                    <small>
+                      Microsoft device management in use · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="desktop_operating_system" data-need="yes">
+                <strong>Microsoft Windows desktop operating system</strong>
+                <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · Yes
+
+                    <small>
+                      Windows-only applications without a web version · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="windows_applications" data-need="yes">
+                <strong>Running Windows-only applications</strong>
+                <p>The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · Yes
+
+                    <small>
+                      Windows-only applications · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="automation_and_low_code" data-need="yes">
+                <strong>Power Platform automation and low-code applications</strong>
+                <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · Yes
+
+                    <small>
+                      Power Platform in use · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+
+              <li data-gap="telephony" data-need="yes">
+                <strong>Teams Phone and public telephone calling</strong>
+                <p>Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.</p>
+                <p data-provenance="provided">
+                  <strong>Needed by this organisation</strong> · Yes
+
+                    <small>
+                      Telephony runs through Microsoft · <span class="prov">Provided</span>
+                      · Sample input · 10 November 2026
+                    </small>
+
+                </p>
+                <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+                <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+              </li>
+
+          </ul>
+
+      </div>
+    </section>
+    <section data-section="path">
+      <h2>Suggested path</h2>
+
+        <h3>Confirmed blockers</h3>
+
+
+          <ul data-path-status="blocker" class="path-workloads">
+
+              <li data-path-workload="telephony">
+                <strong>Telephony</strong> · Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
+
+
+              </li>
+
+          </ul>
+
+
+        <h3>Unknowns to resolve first</h3>
+
+
+          <ul data-path-status="unknown" class="path-workloads">
+
+              <li data-path-workload="security_compliance">
+                <strong>Security and compliance</strong> ·
+  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span>
+
+                <small>Evidence incomplete</small>
+              </li>
+
+          </ul>
+
+
+        <h3>Areas where the evidence shows no obstacle</h3>
+
+
+          <ul data-path-status="ready" class="path-workloads">
+
+              <li data-path-workload="licences">
+                <strong>Licences</strong> · The licence products have been recorded and the contract terms have been reviewed.
+
+              </li>
+
+              <li data-path-workload="onedrive">
+                <strong>OneDrive</strong> · OneDrive accounts and storage have been inventoried, and there is no external sharing.
+
+              </li>
+
+              <li data-path-workload="teams">
+                <strong>Teams</strong> · The teams have been counted, there are no guests, and the chat history does not need to be kept.
+
+              </li>
+
+              <li data-path-workload="small_apps">
+                <strong>Small applications</strong> · The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.
+
+              </li>
+
+          </ul>
+
+
+      <p>The report has no department-level evidence, so it cannot identify a department for a pilot. The people responsible for the move choose the pilot group with the organisation.</p>
+      <h3>How a move typically proceeds</h3>
+      <ol>
+        <li>A pilot group tries the new system.</li><li>Files that need conversion are prepared and tested.</li><li>The organisation moves in waves with both systems running side by side.</li><li>The organisation switches off the old system after the move is complete.</li>
+      </ol>
+    </section>
+    <section data-section="appendix">
+      <h2>Appendix</h2>
+      <h3>Collection methods</h3>
+      <p>This report used no Microsoft permissions.</p>
+      <div class="table-scroll" role="region" aria-label="Collection methods" tabindex="0">
+        <table class="collectors" role="table">
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader" data-label="Collection method">Collection method</th>
+              <th scope="col" role="columnheader" data-label="Status">Status</th>
+              <th scope="col" role="columnheader" data-label="Reason and next step">Reason and next step</th>
+              <th scope="col" role="columnheader" data-label="Permissions used">Permissions used</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+
+              <tr data-collector="licences" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">Licence inventory</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="directory" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">Directory inventory</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="mailbox_usage" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">Mailbox usage report</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="onedrive_usage" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">OneDrive usage report</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="sharepoint_site_usage" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">SharePoint site usage report</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="teams_usage" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">Teams usage report</th>
+                <td role="cell" data-label="Status">Completed</td>
+                <td role="cell" data-label="Reason and next step">
+                  —
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+              <tr data-collector="exchange_recipients" role="row">
+                <th scope="row" role="rowheader" data-label="Collection method">Exchange recipient export</th>
+                <td role="cell" data-label="Status">Skipped</td>
+                <td role="cell" data-label="Reason and next step">
+
+
+                    <span data-reason="source_not_supplied">The data source was missing.</span> Supply the required export and rebuild the report.
+
+                </td>
+                <td role="cell" data-label="Permissions used">—</td>
+              </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Readiness rules</h3>
+      <p>Rule file · <code>status.yaml</code></p>
+      <dl class="rule-details">
+
+          <dt>Licences</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Licence products
+        is available
+
+
+      </li>
+
+      <li>
+        Licence terms reviewed
+        == Yes
+
+      </li>
+
+  </ul>
+
+          </dd>
+
+          <dt>Directory</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Internal accounts
+        is available
+
+
+      </li>
+
+      <li>
+        Guests
+        == 0
+
+      </li>
+
+      <li>
+        Account list reviewed
+        == Yes
+
+      </li>
+
+  </ul>
+
+              <div data-rule="directory-guests">
+                <code>directory-guests</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Guest accounts require a decision about future access.
+                <ul>
+
+      <li>
+        Guests
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Mail</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Mailboxes
+        is available
+
+
+      </li>
+
+      <li>
+        Shared mailboxes
+        is available
+
+
+      </li>
+
+      <li>
+        Other systems send mail through Microsoft
+        == No
+
+      </li>
+
+  </ul>
+
+              <div data-rule="mail-other-systems">
+                <code>mail-other-systems</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Other systems send mail through Microsoft and will need another way to send it.
+                <ul>
+
+      <li>
+        Other systems send mail through Microsoft
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>OneDrive</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        OneDrive accounts
+        is available
+
+
+      </li>
+
+      <li>
+        OneDrive storage
+        is available
+
+
+      </li>
+
+      <li>
+        External OneDrive sharing in use
+        == No
+
+      </li>
+
+  </ul>
+
+          </dd>
+
+          <dt>SharePoint</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        SharePoint sites
+        is available
+
+
+      </li>
+
+      <li>
+        Custom SharePoint solutions in use
+        == No
+
+      </li>
+
+  </ul>
+
+              <div data-rule="sharepoint-custom-solutions">
+                <code>sharepoint-custom-solutions</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Custom SharePoint solutions need to be reviewed before the sites move.
+                <ul>
+
+      <li>
+        Custom SharePoint solutions in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Teams</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Teams
+        is available
+
+
+      </li>
+
+      <li>
+        Teams with guests
+        == 0
+
+      </li>
+
+      <li>
+        Teams chat history must be kept
+        == No
+
+      </li>
+
+  </ul>
+
+          </dd>
+
+          <dt>Office files</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Files that may contain macros
+        == 0
+
+      </li>
+
+      <li>
+        Access databases
+        == 0
+
+      </li>
+
+      <li>
+        Publisher files
+        == 0
+
+      </li>
+
+      <li>
+        Visio files
+        == 0
+
+      </li>
+
+      <li>
+        OneNote files
+        == 0
+
+      </li>
+
+  </ul>
+
+              <div data-rule="office-macro">
+                <code>office-macro</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+                <ul>
+
+      <li>
+        Files that may contain macros
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="office-access">
+                <code>office-access</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Review how the organisation uses its Access databases before planning the move.
+                <ul>
+
+      <li>
+        Access databases
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="office-publisher">
+                <code>office-publisher</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Check how the organisation will open and edit its Publisher files.
+                <ul>
+
+      <li>
+        Publisher files
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="office-visio">
+                <code>office-visio</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Check how the organisation will open and edit its Visio files.
+                <ul>
+
+      <li>
+        Visio files
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="office-onenote">
+                <code>office-onenote</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Check how the organisation will move its OneNote notebooks.
+                <ul>
+
+      <li>
+        OneNote files
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Device management</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Microsoft device management in use
+        == No
+
+      </li>
+
+      <li>
+        Windows devices
+        == 0
+
+      </li>
+
+      <li>
+        Separate licence assigned for Device management
+        == No
+
+      </li>
+
+  </ul>
+
+              <div data-rule="devices-managed">
+                <code>devices-managed</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Devices managed through Microsoft need another management service.
+                <ul>
+
+      <li>
+        Microsoft device management in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="devices-windows">
+                <code>devices-windows</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Review which of the Windows devices can move to a different operating system.
+                <ul>
+
+      <li>
+        Windows devices
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Windows-only software</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Windows-only applications
+        == 0
+
+      </li>
+
+      <li>
+        Windows-only applications without a web version
+        == 0
+
+      </li>
+
+  </ul>
+
+              <div data-rule="software-no-web-version">
+                <code>software-no-web-version</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
+                <ul>
+
+      <li>
+        Windows-only applications without a web version
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="software-present">
+                <code>software-present</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Check how staff will use the Windows-only applications after the move.
+                <ul>
+
+      <li>
+        Windows-only applications
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Power Platform</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Power Platform in use
+        == No
+
+      </li>
+
+      <li>
+        Separate licence assigned for Power Platform
+        == No
+
+      </li>
+
+  </ul>
+
+              <div data-rule="power-premium-licences">
+                <code>power-premium-licences</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Separate Power Platform licences are assigned and the applications and processes they support need review.
+                <ul>
+
+      <li>
+        Separate licence assigned for Power Platform
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="power-in-use">
+                <code>power-in-use</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · The Power Platform applications and processes in use need a replacement.
+                <ul>
+
+      <li>
+        Power Platform in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Telephony</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Separate licence assigned for Telephony
+        == No
+
+      </li>
+
+      <li>
+        Telephony runs through Microsoft
+        == No
+        <span class="prov">Provided</span>
+      </li>
+
+  </ul>
+
+              <div data-rule="telephony-no-replacement">
+                <code>telephony-no-replacement</code> · <span class="status blocker"><span class="status-shape" aria-hidden="true"></span> Blocker</span> · Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
+                <ul>
+
+      <li>
+        Separate licence assigned for Telephony
+        == Yes
+
+      </li>
+
+      <li>
+        Telephony replacement available
+        == No
+        <span class="prov">Provided</span>
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="telephony-in-use-no-replacement">
+                <code>telephony-in-use-no-replacement</code> · <span class="status blocker"><span class="status-shape" aria-hidden="true"></span> Blocker</span> · The organisation confirms it runs telephony through Microsoft and has no replacement.
+                <ul>
+
+      <li>
+        Telephony runs through Microsoft
+        == Yes
+        <span class="prov">Provided</span>
+      </li>
+
+      <li>
+        Telephony replacement available
+        == No
+        <span class="prov">Provided</span>
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Identity and access</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Applications with Microsoft single sign-on
+        == 0
+
+      </li>
+
+      <li>
+        Conditional Access in use
+        == No
+
+      </li>
+
+  </ul>
+
+              <div data-rule="identity-sso-applications">
+                <code>identity-sso-applications</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
+                <ul>
+
+      <li>
+        Applications with Microsoft single sign-on
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+              <div data-rule="identity-conditional-access">
+                <code>identity-conditional-access</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Review how the new identity service will enforce the organisation&#39;s access policies.
+                <ul>
+
+      <li>
+        Conditional Access in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+          <dt>Security and compliance</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Microsoft protection or retention in use
+        == No
+
+      </li>
+
+      <li>
+        Separate licence assigned for Security and compliance
+        == No
+
+      </li>
+
+  </ul>
+
+          </dd>
+
+          <dt>Small applications</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Small Microsoft applications in use
+        == No
+
+      </li>
+
+  </ul>
+
+          </dd>
+
+          <dt>Integrations</dt>
+          <dd>
+            Evidence required for Ready
+            <ul>
+
+      <li>
+        Applications integrated with Microsoft 365
+        == 0
+
+      </li>
+
+  </ul>
+
+              <div data-rule="integrations-present">
+                <code>integrations-present</code> · <span class="status needs_work"><span class="status-shape" aria-hidden="true"></span> Needs work</span> · Applications connected to Microsoft 365 need their integrations reviewed before the move.
+                <ul>
+
+      <li>
+        Applications integrated with Microsoft 365
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
+          </dd>
+
+      </dl>
+      <h3>Function mapping</h3>
+      <p>Functions covered by the documented openDesk suite and gaps that require separate work.</p>
+      <p>Mapping file · <code>opendesk.yaml</code></p>
+      <dl class="mapping-details">
+
+          <dt>Microsoft Entra ID user and group management <small>Directory</small></dt>
+          <dd data-mapping-details="identity_management">
+            <p>Nubus · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Exchange Online mail and calendar <small>Mail</small></dt>
+          <dd data-mapping-details="mail_and_calendar">
+            <p>Open-Xchange (OX App Suite) · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>OneDrive personal file storage and sync <small>OneDrive</small></dt>
+          <dd data-mapping-details="personal_files">
+            <p>Nextcloud Files · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>SharePoint team file libraries <small>SharePoint</small></dt>
+          <dd data-mapping-details="team_files">
+            <p>Shared folders in Nextcloud Files · In the suite with limits</p>
+            <p>The file module supports shared folders. SharePoint site structure and library rules need a separate review.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>SharePoint workflows <small>SharePoint</small></dt>
+          <dd data-mapping-details="sharepoint_workflows">
+            <p>Separate redesign of workflows · Not available</p>
+            <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft Teams chat <small>Teams</small></dt>
+          <dd data-mapping-details="chat">
+            <p>Element · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft Teams video meetings <small>Teams</small></dt>
+          <dd data-mapping-details="video_meetings">
+            <p>Jitsi · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Teams chat history <small>Teams</small></dt>
+          <dd data-mapping-details="teams_chat_history">
+            <p>Separate decision on retaining past chats · Not available</p>
+            <p>The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Editing Microsoft Office documents <small>Office files</small></dt>
+          <dd data-mapping-details="office_editing">
+            <p>Collabora Online · In the suite with limits</p>
+            <p>The web office edits documents, spreadsheets and presentations. The guide does not establish that complex layouts and features survive conversion.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>VBA macros in Office files <small>Office files</small></dt>
+          <dd data-mapping-details="vba_macros">
+            <p>Separate conversion or redevelopment · Not available</p>
+            <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Device management with Microsoft Intune <small>Device management</small></dt>
+          <dd data-mapping-details="device_management">
+            <p>Separate device management service · Not available</p>
+            <p>The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft Windows desktop operating system <small>Device management</small></dt>
+          <dd data-mapping-details="desktop_operating_system">
+            <p>Separately managed workstation operating system · Not available</p>
+            <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Running Windows-only applications <small>Windows-only software</small></dt>
+          <dd data-mapping-details="windows_applications">
+            <p>Separate hosting or replacement of each application · Not available</p>
+            <p>The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Power Platform automation and low-code applications <small>Power Platform</small></dt>
+          <dd data-mapping-details="automation_and_low_code">
+            <p>Separate review and redevelopment of applications and flows · Not available</p>
+            <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Teams Phone and public telephone calling <small>Telephony</small></dt>
+          <dd data-mapping-details="telephony">
+            <p>Separate telephone service · Not available</p>
+            <p>Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft Entra single sign-on <small>Identity and access</small></dt>
+          <dd data-mapping-details="single_sign_on">
+            <p>Keycloak · In the suite</p>
+
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft 365 protection and retention controls <small>Security and compliance</small></dt>
+          <dd data-mapping-details="security_and_compliance">
+            <p>Access controls and malware scanning in openDesk · In the suite with limits</p>
+            <p>The architecture documents access control and scanning of files and mail. It leaves organisation-wide retention and legal holds unverified.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Microsoft Forms, Planner and Bookings <small>Small applications</small></dt>
+          <dd data-mapping-details="forms_tasks_bookings">
+            <p>OpenProject and OX App Suite for tasks · In the suite with limits</p>
+            <p>The suite covers project work and personal tasks. The component list does not establish equivalent general forms or public appointment booking.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Integrations with Microsoft 365 applications <small>Integrations</small></dt>
+          <dd data-mapping-details="application_integrations">
+            <p>Interfaces in the openDesk components · In the suite with limits</p>
+            <p>The architecture describes interfaces and integrations within the suite. Existing business application connections need to be checked individually.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-21">21 November 2026</time>
+  </small>
+          </dd>
+
+      </dl>
+
+        <p><strong>Licences</strong> · There is no function to move.</p>
+
+      <h3>How the costs are calculated</h3>
+      <ul>
+        <li>Staying costs five times the annual Microsoft licence cost and five times the annual cost of other existing IT. The three change costs are zero.</li><li>In each exit scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.</li><li>Multiply the monthly hosting cost per user by the number of users and by 60. Hosting starts in the first month. Multiply each annual cost for operations, other target costs and other existing IT by five.</li><li>Direct project costs add one-time migration, application adaptation, external advice and training. Training costs are the days per person times the cost per person per day times the number of people to train.</li><li>The productivity loss block uses the amount entered for productivity loss.</li><li>Parallel running costs the full annual Microsoft licence amount times the number of parallel months, divided by 12.</li><li>The five-year total adds running costs and the three change costs. The comparison subtracts the total for staying from each scenario&#39;s total.</li><li>A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.</li>
+      </ul>
+      <div data-subsection="run-details">
+        <h3>Run details</h3>
+        <dl class="report-meta">
+          <div><dt>Schema version</dt><dd>1.0</dd></div>
+          <div><dt>Scan origin</dt><dd data-source-kind="sample">Sample data</dd></div>
+          <div><dt>Tool that produced the scan</dt><dd data-scan-producer>befund</dd></div>
+          <div><dt>Scan producer version</dt><dd data-producer-version>0.1.0</dd></div>
+          <div><dt>Befund rendering version</dt><dd data-renderer-version>0.1.0</dd></div>
+        </dl>
+        <dl class="run-details">
+          <dt>Scan file date</dt>
+          <dd><time datetime="2026-11-02T09:00:00Z">2 November 2026</time></dd>
+          <dt>Reporting periods in the scan</dt>
+          <dd>
+
+              <ul>
+
+                  <li data-reporting-period="2026-05-06/2026-11-01">6 May to 1 Nov 2026</li>
+
+              </ul>
+
+          </dd>
+          <dt>Inputs file date</dt>
+          <dd>
+            <time datetime="2026-11-10">10 November 2026</time>
+
+          </dd>
+        </dl>
+        <p>SHA-256 checksums of the rule files used</p>
+        <ul>
+
+            <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">9dbcb9e39756a0d7502b7b75cca9de8d8d03a3071143aeafc034fad81ba4082e</code></li>
+
+            <li><code>status.yaml</code> · <code data-checksum="status.yaml">949263f9998e7812a64f329bc275a2eabe52091b042fc12932e49b980a2bd3e2</code></li>
+
+            <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">90b60e105a80482e31e71610ec5660690ce3f23838e6edf1133ccada3c6167c1</code></li>
+
+            <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">51361b45b91e0d372ca414c2b68737c3ccb3206ea1570fd3002980d463dff244</code></li>
+
+            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">bb29c92ca20d79aa757af8bf934d84a60d7c08095070739f1d202f5c17223798</code></li>
+
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer data-section="footer">
+    <p>befund · https://github.com/rouxdutoit/befund</p>
   </footer>
 </body>
 </html>

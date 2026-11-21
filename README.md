@@ -17,9 +17,9 @@ The first run needs a network connection to download the Python packages. After 
 The default is an English report for a fictional town office using the openDesk profile. Try German, the fictional non-profit sample or the Nextcloud profile with these commands.
 
 ```sh
-uv run befund demo --lang de --out ./report-de
-uv run befund demo --sample nonprofit --out ./report-nonprofit
-uv run befund demo --profile nextcloud --out ./report-nextcloud
+uv run befund demo --lang de --out ./report/de
+uv run befund demo --sample nonprofit --out ./report/nonprofit
+uv run befund demo --profile nextcloud --out ./report/nextcloud
 ```
 
 The demo writes `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` and `inputs-<YYYY-MM-DD>-<lang>.yaml` to `./report` by default. `--out` sets a different directory. The date comes from the sample scan. A repeat run replaces files with the same names. The last line it prints is the absolute path of the HTML report.
@@ -29,7 +29,7 @@ The demo writes `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.jso
 Use the scan and inputs copies from the first demo to rebuild the report in German.
 
 ```sh
-uv run befund report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report-rebuilt
+uv run befund report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report/rebuilt
 ```
 
 To try your own answers and costs, copy the example file. Fill in the values you know and leave unanswered fields empty. [Interview checklist](docs/interview-checklist.md)
@@ -41,7 +41,7 @@ cp inputs.example.yaml inputs.yaml
 Rebuild from the same scan using your answers.
 
 ```sh
-uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang de --out ./report-with-answers
+uv run befund report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang de --out ./report/with-answers
 ```
 
 Use `--lang en` or `--lang de` to choose the report language and `--profile opendesk`, `--profile nextcloud` or `--profile generic` to choose the target. With `report`, these flags take precedence over the settings in the inputs file.
@@ -59,6 +59,8 @@ Use `--lang en` or `--lang de` to choose the report language and `--profile open
 9. Footer with the project name.
 
 The report assesses fifteen areas. Each area has a status of Ready, Needs work, Blocker or Unknown, with a reason and its evidence. Figures are marked as measured, provided or unknown. An unknown comes with a reason and a next step. The report provides no overall score or verdict.
+
+Your browser may add the local file path to printed headers and footers. Before saving a PDF to share, open the browser's print settings and turn off **Headers and footers**. Check the preview for the file path.
 
 ## Where the project stands
 

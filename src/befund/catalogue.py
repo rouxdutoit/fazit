@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 from hashlib import sha256
 from importlib.resources import files
 from pathlib import Path
@@ -8,7 +9,7 @@ from pathlib import Path
 from .errors import InputError
 from .parsing import parse_yaml, read_text
 
-VALUE_TYPES = ("count", "bytes", "boolean", "code")
+VALUE_TYPES = ("count", "bytes", "boolean")
 _PROVIDED_KINDS = ("no", "answer", "software_list", "software_list_without_web_version")
 _CODE = re.compile(r"[a-z0-9_]+(?:\.[a-z0-9_]+)*")
 _PERMISSION = re.compile(r"[A-Za-z0-9.]+")
@@ -198,11 +199,15 @@ def _sku_exceptions(value: object, file_name: str) -> frozenset[tuple[str, str]]
 
 def load_catalogue(path: Path | None = None) -> Catalogue:
     source = path if path is not None else files("befund").joinpath("rules", "findings.yaml")
-    text = read_text(source)
-    data = parse_yaml(text, source.name)
+    return _parse_catalogue(read_text(source), source.name)
+
+
+@lru_cache(maxsize=2)
+def _parse_catalogue(text: str, file_name: str) -> Catalogue:
+    data = parse_yaml(text, file_name)
     if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:
-        raise InputError("invalid_field", file=source.name, field="$")
-    workloads = _workloads(data["workloads"], source.name)
+        raise InputError("invalid_field", file=file_name, field="$")
+    workloads = _workloads(data["workloads"], file_name)
     codes = data["codes"]
     if not isinstance(codes, dict) or codes.keys() != {
         "collectors",
@@ -212,15 +217,15 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
         "permissions",
         "sku_exceptions",
     }:
-        raise InputError("invalid_field", file=source.name, field="codes")
-    collector_ids = _code_set(codes["collectors"], source.name, "codes.collectors")
-    measured_sources = _code_set(codes["sources"], source.name, "codes.sources")
-    provided_sources = _code_set(codes["provided_sources"], source.name, "codes.provided_sources")
+        raise InputError("invalid_field", file=file_name, field="codes")
+    collector_ids = _code_set(codes["collectors"], file_name, "codes.collectors")
+    measured_sources = _code_set(codes["sources"], file_name, "codes.sources")
+    provided_sources = _code_set(codes["provided_sources"], file_name, "codes.provided_sources")
     if measured_sources & provided_sources:
-        raise InputError("duplicate_id", file=source.name, field="codes.provided_sources")
+        raise InputError("duplicate_id", file=file_name, field="codes.provided_sources")
     findings = _findings(
         data["findings"],
-        source.name,
+        file_name,
         set(entry.id for entry in workloads),
         collector_ids,
         measured_sources,
@@ -230,10 +235,10 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
         findings=findings,
         collector_ids=collector_ids,
         source_codes=measured_sources | provided_sources,
-        reason_codes=_code_set(codes["reasons"], source.name, "codes.reasons"),
-        permissions=_code_set(codes["permissions"], source.name, "codes.permissions", _PERMISSION),
-        file_name=source.name,
+        reason_codes=_code_set(codes["reasons"], file_name, "codes.reasons"),
+        permissions=_code_set(codes["permissions"], file_name, "codes.permissions", _PERMISSION),
+        file_name=file_name,
         checksum=sha256(text.encode("utf-8")).hexdigest(),
         provided_sources=provided_sources,
-        sku_exceptions=_sku_exceptions(codes["sku_exceptions"], source.name),
+        sku_exceptions=_sku_exceptions(codes["sku_exceptions"], file_name),
     )

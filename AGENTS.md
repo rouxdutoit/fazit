@@ -4,9 +4,8 @@ Instructions for anyone, human or AI, who changes this repository. Short on purp
 
 ## Read first
 
-1. `DECISIONS.md` — what was decided and why. It overrides `HANDOFF.md`.
-2. `HANDOFF.md` §2 — the eight principles. They are not negotiable.
-3. `.planning/PROJECT.md` — scope, constraints, what is out of scope.
+1. [Principles](DECISIONS.md#principles) — the eight rules every change must follow. The rest of `DECISIONS.md` records decisions and overrides `HANDOFF.md`.
+2. `.planning/PROJECT.md` — scope and constraints.
 
 ## What this tool must never do
 
@@ -33,7 +32,7 @@ Each of these has a test. A change that weakens one of those tests is rejected.
 
 ## Report
 
-- One HTML file. Inline CSS, system fonts, no JavaScript unless there is no other way, nothing fetched at view time.
+- One HTML file. Inline CSS, system fonts, no JavaScript, nothing fetched at view time.
 - Semantic HTML: one `h1`, ordered headings, `lang` set, table headers with `scope`, text contrast at WCAG AA in light and dark.
 - Status is never colour alone. Every status has a text label; every figure says whether it was measured, provided or is unknown.
 - It must print cleanly and read well at 360 px.
@@ -64,5 +63,6 @@ All five succeed, and the two reports open with the network off.
 ## Commits
 
 - One logical change per commit. Imperative subject under 72 characters, with a conventional prefix (`feat`, `fix`, `test`, `docs`, `chore`).
-- This project is written with AI assistance and says so. A commit made by a model carries a `Co-Authored-By` trailer naming it. A human maintainer directs the work and is responsible for it.
+- Credit Codex in an `Assisted-by:` trailer and Claude in a `Co-Authored-By:` trailer. Name the model. A human maintainer directs the work and is responsible for it.
+- From the first public release, commits from contributors outside the maintainer team carry a DCO `Signed-off-by:` trailer. See [CONTRIBUTING.md](CONTRIBUTING.md).
 - Never commit anything under `drafts/` or `grants/`, and never commit real tenant data.

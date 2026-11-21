@@ -55,7 +55,7 @@ _QUOTED_FIELDS = tuple(f"current_costs.{name}" for name in _CURRENT_AMOUNTS) + t
     for name in (*_SCENARIO_AMOUNTS, "training_days_per_person")
 )
 _DECIMAL = re.compile(r"[0-9]+(?:\.[0-9]+)?")
-_FIELD_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_.]{0,79}")
+_AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
 
 
 @dataclass(frozen=True)
@@ -109,10 +109,6 @@ class Inputs:
         return "sample.inputs_yaml" if self.answers_are_sample else "inputs_yaml"
 
 
-def empty_inputs() -> Inputs:
-    return Inputs()
-
-
 @dataclass(frozen=True)
 class _InputsReader:
     file_name: str
@@ -127,11 +123,7 @@ class _InputsReader:
             self.fail(field)
         for index, key in enumerate(value):
             if key not in allowed:
-                path = f"{field}.{key}" if field else key
-                self.fail(
-                    path if _FIELD_NAME.fullmatch(key) else f"{field or '$'}[{index}]",
-                    "unknown_field",
-                )
+                self.fail(f"{field or '$'}[{index}]", "unknown_field")
         return value
 
     def name(self, value: object, field: str, limit: int) -> str | None:
@@ -141,7 +133,7 @@ class _InputsReader:
             not isinstance(value, str)
             or not value.strip()
             or len(value) > limit
-            or value.splitlines() != [value]
+            or not value.isprintable()
         ):
             self.fail(field)
         return value
@@ -180,19 +172,23 @@ class _InputsReader:
             self.fail(field)
         return value
 
-    def decimal(self, value: object, field: str) -> Decimal | None:
+    def decimal(
+        self, value: object, field: str, *, pattern: re.Pattern[str] = _DECIMAL
+    ) -> Decimal | None:
         if value is None:
             return None
         if not isinstance(value, str):
             self.fail(field, "money_not_quoted")
-        if not _DECIMAL.fullmatch(value):
+        if not pattern.fullmatch(value):
             self.fail(field)
         return Decimal(value)
 
     def amounts(
         self, row: dict[str, object], field: str, keys: tuple[str, ...], currency: str | None
     ) -> dict[str, Decimal | None]:
-        amounts = {key: self.decimal(row.get(key), f"{field}.{key}") for key in keys}
+        amounts = {
+            key: self.decimal(row.get(key), f"{field}.{key}", pattern=_AMOUNT) for key in keys
+        }
         if currency is None and any(value is not None for value in amounts.values()):
             self.fail("currency", "missing_field")
         return amounts
@@ -237,7 +233,7 @@ class _InputsReader:
 
 
 def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
-    data = parse_yaml(text, file_name, quoted_fields=_QUOTED_FIELDS)
+    data = parse_yaml(text, file_name, quoted_fields=_QUOTED_FIELDS, allow_aliases=False)
     reject_at_signs(data, file_name)
     reader = _InputsReader(file_name)
     row = reader.fields(data, "", _INPUT_KEYS)

@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import ast
 import re
+import subprocess
 import tomllib
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
 
@@ -37,6 +38,7 @@ def test_source_files_start_with_spdx_identifier() -> None:
     sources = (
         *ROOT.glob("src/**/*.py"),
         *ROOT.glob("tests/**/*.py"),
+        *ROOT.glob("site/**/*.py"),
         *ROOT.glob("src/**/*.yaml"),
         *ROOT.glob(".github/workflows/**/*.yml"),
         ROOT / "pyproject.toml",
@@ -73,7 +75,35 @@ def test_dependencies_follow_the_decisions() -> None:
     assert _dependency_names(groups["dev"]) == ["pytest", "ruff"]
     (backend,) = config["build-system"]["requires"]
     assert re.fullmatch(r"hatchling==\d+(?:\.\d+)+", backend)
-    datetime.fromisoformat(config["tool"]["uv"]["exclude-newer"])
+
+
+def test_dependency_cutoff_is_fourteen_days_before_head() -> None:
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    cutoff = datetime.fromisoformat(config["tool"]["uv"]["exclude-newer"])
+    head = subprocess.run(
+        ["git", "show", "-s", "--format=%cI", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    assert cutoff <= datetime.fromisoformat(head.stdout.strip()) - timedelta(days=14)
+
+
+def test_locked_artifacts_were_uploaded_by_the_dependency_cutoff() -> None:
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    lock = tomllib.loads((ROOT / "uv.lock").read_text(encoding="utf-8"))
+    cutoff = config["tool"]["uv"]["exclude-newer"]
+    assert lock["options"]["exclude-newer"] == cutoff
+    before = datetime.fromisoformat(cutoff)
+    indexed = [package for package in lock["package"] if "registry" in package["source"]]
+    assert indexed
+    for package in indexed:
+        artifacts = package.get("wheels", []) + ([package["sdist"]] if "sdist" in package else [])
+        assert artifacts, package["name"]
+        for artifact in artifacts:
+            assert datetime.fromisoformat(artifact["upload-time"]) <= before, artifact["url"]
 
 
 def _imported_modules(tree: ast.AST) -> Iterator[str]:
@@ -99,10 +129,22 @@ def test_contribution_and_security_documents() -> None:
     contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
     assert "Signed-off-by" in contributing
     assert "developercertificate.org" in contributing
+    assert "first public release" in contributing and "outside the maintainer team" in contributing
+    assert "The maintainers attest" in contributing and "initial repository history" in contributing
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    for trailer in ("Assisted-by:", "Co-Authored-By:"):
+        assert trailer in contributing and trailer in agents
     security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
     assert "login.microsoftonline.com" in security
     assert "graph.microsoft.com" in security
-    assert not re.search(r"[\w.+-]+@[\w.-]+\.[a-z]{2,}", security, re.IGNORECASE)
+    assert (
+        "[Report a vulnerability](https://github.com/rouxdutoit/befund/security/advisories/new)"
+        in security
+    )
+    assert "mailto:hello@rouxdutoit.com" in security
+    assert set(re.findall(r"[\w.+-]+@[\w.-]+\.[a-z]{2,}", security, re.I)) == {
+        "hello@rouxdutoit.com"
+    }
 
 
 def readme_code_blocks(readme: str) -> list[str]:
@@ -142,6 +184,10 @@ def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
         "astral-sh/setup-uv",
     ]
     assert all(re.search(r"@[0-9a-fA-F]{40}$", value) for value in actions)
+    setup_uv = next(
+        step for step in steps if step.get("uses", "").startswith("astral-sh/setup-uv@")
+    )
+    assert re.fullmatch(r"\d+\.\d+\.\d+", setup_uv["with"]["version"])
     commands = [step["run"] for step in steps if "run" in step]
     assert commands == [
         'uv sync --locked --python "${{ steps.python.outputs.python-path }}"',
@@ -150,4 +196,5 @@ def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
         "uv run pytest -q",
         "uv run befund demo --lang de",
         "uv run befund demo --lang en",
+        "uv run python site/check_site.py",
     ]

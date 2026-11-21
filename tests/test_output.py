@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from befund.errors import InputError
-from befund.output import write_inside
+from befund.output import write_files, write_inside
 
 
 def test_write_creates_the_output_directory_and_replaces_regular_files(
@@ -64,3 +64,15 @@ def test_replacement_failure_preserves_the_destination_and_cleans_up(
 
     assert destination.read_bytes() == b"Keep this"
     assert list(tmp_path.iterdir()) == [destination]
+
+
+def test_batch_write_failure_while_staging_preserves_existing_outputs(tmp_path: Path) -> None:
+    existing = tmp_path / "scan.json"
+    existing.write_bytes(b"Previous scan")
+
+    with pytest.raises(InputError, match="write_failed") as caught:
+        write_files(tmp_path, {existing.name: "New scan", "report.html": "\ud800"})
+
+    assert caught.value.file == str(tmp_path / "report.html")
+    assert existing.read_bytes() == b"Previous scan"
+    assert list(tmp_path.iterdir()) == [existing]

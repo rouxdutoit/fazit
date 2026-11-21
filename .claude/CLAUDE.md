@@ -8,20 +8,7 @@ A free, open source command-line tool that shows an organisation what it runs on
 
 **Core Value:** An organisation gets honest, inspectable numbers about its own Microsoft dependency, including "unknown" and "not yet", without any of its data leaving the machine.
 
-### Constraints
-
-- **Read-only**: Request only read permissions and call only allow-listed read endpoints — a GET that provisions resources is excluded
-- **Network**: Only `login.microsoftonline.com` and `graph.microsoft.com`, enforced in one transport and by test — the central trust promise
-- **Tokens**: In memory only, never on disk — a scan must leave no credentials behind
-- **Privacy**: No person names or email addresses in the report or `scan.json` unless `--include-names` is passed
-- **Offline report**: One `.html` file with inline CSS and JS, system fonts, no external resources, prints cleanly to PDF
-- **Honest numbers**: No hardcoded prices; unknowns are shown as unknown; a skipped collector never improves a status
-- **Tech stack**: Python 3.12+, Typer, Jinja2, httpx, MSAL for Python, pytest with recorded fixtures, ruff, packaged for `uvx` — small and auditable; ask before adding any other dependency
-- **Languages**: German and English from day one; all user-facing strings in `locales/de.yaml` and `locales/en.yaml`, none hardcoded in templates
-- **Licence**: AGPL-3.0-or-later with SPDX headers — keeps the rule data and the tool from being absorbed into a closed product
-- **Accessibility of status**: Status colours differ in lightness and always carry a text label; blue and orange rather than red and green
-- **CI**: Never needs a live tenant
-- **Plain language**: Code and documentation a council IT officer could read and trust
+The current project constraints are in [AGENTS.md](../AGENTS.md) and the [principles](../DECISIONS.md#principles).
 
 <!-- GSD:project-end -->
 
@@ -78,4 +65,4 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 ## Engineering standards
 
-Read `AGENTS.md` at the repository root before changing code. It holds the rules both Claude and Codex follow here: what the tool must never do, code and report standards, tests, and what "done" means. Product code on this project is written by Codex (GPT-6.2-Sol, max effort) under Claude's coordination; Claude subagents plan, check and review.
+Read [AGENTS.md](../AGENTS.md) before changing code. It covers code, report, test and verification standards. Claude and Codex assist with writing and reviewing changes under the direction of the human maintainer.

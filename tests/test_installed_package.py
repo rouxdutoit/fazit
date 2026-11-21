@@ -14,6 +14,8 @@ from test_repo_basics import LICENSE_SHA256, ROOT
 
 from befund.report import SECTION_ORDER
 
+pytestmark = pytest.mark.slow
+
 _SOCKET_AUDIT_HOOK = """\
 import os
 import sys
@@ -50,7 +52,7 @@ def _run(*args: str | Path, cwd: Path, env: dict[str, str] | None = None) -> str
     return result.stdout
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def installed_package(tmp_path_factory: pytest.TempPathFactory) -> InstalledPackage:
     work = tmp_path_factory.mktemp("installed-package")
     dist, venv = work / "dist", work / "venv"

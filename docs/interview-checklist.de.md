@@ -11,7 +11,6 @@ Erstellen Sie den Bericht mit `befund report SCAN_JSON --inputs inputs.yaml`.
 - Benötigt die Projektleitung den Bericht auf Deutsch (`de`) oder auf Englisch (`en`) (`language`)?
 - Welches Zielprofil hat die IT-Leitung ausgewählt (`opendesk`, `nextcloud` oder `generic`) (`target_profile`)?
 - An welchem Tag wurden die Auskünfte erteilt (`as_of`)?
-- Wurden die Beträge für eine Vorführung erfunden (`amounts_are_invented`)?
 
 ## Heutige Kosten für Microsoft und die übrige IT
 

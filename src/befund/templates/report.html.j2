@@ -47,9 +47,9 @@
     {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
   {% endif %}
 {%- endmacro %}
-{% macro evidence_pair(finding, compact=false) -%}
-  {{ evidence_summary(finding, compact) }}
-  {{ alternative_evidence(finding, compact) }}
+{% macro evidence_pair(finding) -%}
+  {{ evidence_summary(finding) }}
+  {{ alternative_evidence(finding) }}
 {%- endmacro %}
 {% macro attention_evidence(finding) -%}
   {% if finding %}
@@ -154,7 +154,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
   <meta name="color-scheme" content="light dark">
   <title>{{ strings.header.title }}</title>
   <style>
@@ -205,6 +205,7 @@
     h2 { font-size: 1.5rem; }
     h3 { font-size: 1.125rem; }
     p { margin-block: .45rem; }
+    a { color: var(--accent); text-underline-offset: .15em; }
     section { margin-block: 1.75rem; }
     .report-meta {
       display: flex;
@@ -336,8 +337,8 @@
     .risky-files thead th:first-child { width: 18%; }
     .risky-files thead th:nth-child(2) { width: 16%; }
     .risky-files thead th:nth-child(3) { width: 31%; }
-    .readiness ul, .moves ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
-    .readiness li + li, .moves li + li, .not-examined li + li,
+    .readiness ul, .rule-details ul { margin: .35rem 0; padding-inline-start: 1rem; }
+    .readiness li + li, .not-examined li + li,
     .mapping-gaps li + li, .path-workloads li + li { margin-block-start: .4rem; }
     .evidence-meta { display: flex; flex-wrap: wrap; column-gap: .65rem; }
     .workload-evidence, .cost-inputs { border-block-end: 1px solid var(--line); }
@@ -412,6 +413,7 @@
       .prov { padding-inline: .2rem; white-space: nowrap; }
       .table-scroll { overflow: visible; }
       table { font-size: .9em; }
+      thead { break-after: avoid; }
       th, td { padding: .3rem; }
       tr, .headlines li, .mapping-gaps li, .path-workloads li { break-inside: avoid; }
       tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
@@ -484,9 +486,10 @@
                 </tr>
               </thead>
               <tbody role="rowgroup">
-                {% for product, matches in licences %}
-                  <tr data-product="{{ product.sku_part_number }}" data-provenance="measured" role="row">
-                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.sku_part_number }} <small class="prov">{{ strings.provenance.measured }}</small></th>
+                {% for product in licences %}
+                  {% set matches = product.plans %}
+                  <tr data-product="{{ product.id }}" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ strings.provenance.measured }}</small></th>
                     <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
                     <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}</td>
                     <td role="cell" data-label="{{ strings.licences.plans }}">
@@ -657,7 +660,7 @@
           </thead>
           <tbody role="rowgroup">
             {% for row in statuses %}
-              <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} role="row">
+              <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} role="row" id="readiness-{{ row.workload }}">
                 <th scope="row" role="rowheader" data-label="{{ strings.readiness.workload }}">{{ workload_labels[row.workload] }}</th>
                 <td role="cell" data-label="{{ strings.appendix.status }}">
                   {{ workload_status(row) }}
@@ -741,16 +744,7 @@
                   <small>{{ mapping_date(item) }}</small>
                 </td>
                 <td role="cell" data-label="{{ strings.moves.evidence }}">
-                  {% if move_evidence[item.workload] %}
-                    <ul>
-                      {% for finding in move_evidence[item.workload][:3] %}
-                        <li data-move-evidence="{{ finding.id }}">
-                          <strong>{{ finding_labels[finding.id] }}</strong>
-                          {{ evidence_pair(finding, compact=true) }}
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  {% else %}<span data-provenance="unknown">{{ strings.moves.no_evidence }}</span>{% endif %}
+                  <a href="#readiness-{{ item.workload }}">{{ strings.moves.workload_evidence.format(workload=workload_labels[item.workload]) }}</a>
                 </td>
                 <td role="cell" data-label="{{ strings.moves.workload_status }}">
                   {{ workload_status(row) }}
@@ -961,7 +955,10 @@
         <h3>{{ strings.appendix.run_details }}</h3>
         <dl class="report-meta">
           <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>
-          <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
+          <div><dt>{{ strings.appendix.scan_origin }}</dt><dd data-source-kind="{{ scan.source_kind }}">{{ strings.source_kind[scan.source_kind] }}</dd></div>
+          <div><dt>{{ strings.appendix.scan_producer }}</dt><dd data-scan-producer>{{ scan.tool.name }}</dd></div>
+          <div><dt>{{ strings.appendix.producer_version }}</dt><dd data-producer-version>{{ scan.tool.version }}</dd></div>
+          <div><dt>{{ strings.appendix.renderer_version }}</dt><dd data-renderer-version>{{ tool_version }}</dd></div>
         </dl>
         <dl class="run-details">
           <dt>{{ strings.appendix.scan_role }}</dt>
@@ -992,7 +989,7 @@
     </section>
   </main>
   <footer data-section="footer">
-    <p>{{ project_name }} · {{ repository_url or strings.footer.repository_pending }}</p>
+    <p>{{ project_name }} · {{ repository_url }}</p>
   </footer>
 </body>
 </html>

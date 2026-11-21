@@ -37,6 +37,7 @@ select = ["E", "F", "I", "B", "UP", "ANN", "S506", "S701"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: exercises multiple CLI runs or an installed wheel"]
 
 [dependency-groups]
 dev = [

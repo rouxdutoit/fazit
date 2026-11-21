@@ -1,13 +1,20 @@
-"""Check the hand-written pages and their local links without a server."""
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Check local site links and verify the checked-in demo reports."""
 
 import re
 from collections import Counter
 from html.parser import HTMLParser
 from itertools import pairwise
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.parse import unquote, urljoin, urlsplit
 
+from typer.testing import CliRunner
+
+from befund.cli import app
+
 ROOT = Path(__file__).resolve().parent
+DEMO_REPORTS = {ROOT / "demo" / lang / "index.html": lang for lang in ("en", "de")}
 VOID = set("area base br col embed hr img input link meta param source track wbr".split())
 
 
@@ -55,7 +62,7 @@ class Page(HTMLParser):
         else:
             self.stack.pop()
 
-    def check_structure(self) -> None:
+    def check_structure(self, *, require_skip_link: bool) -> None:
         if not self.doctype or self.language not in {"en", "de"}:
             self.errors.append("Expected an HTML doctype and an en or de document language.")
         if self.stack:
@@ -70,7 +77,9 @@ class Page(HTMLParser):
         for element_id, count in self.ids.items():
             if count > 1:
                 self.errors.append(f"Duplicate id {element_id!r}.")
-        if not any(tag == "a" and value == "#main" for tag, _, value, _ in self.links):
+        if require_skip_link and not any(
+            tag == "a" and value == "#main" for tag, _, value, _ in self.links
+        ):
             self.errors.append("Missing skip link to #main.")
 
 
@@ -96,6 +105,26 @@ def check_reference(
     return None
 
 
+def check_demo_reports() -> list[str]:
+    errors = []
+    runner = CliRunner()
+    with TemporaryDirectory(prefix="befund-site-") as temporary:
+        for target, lang in DEMO_REPORTS.items():
+            out = Path(temporary) / lang
+            command = ("demo", "--lang", lang, "--sample", "town", "--profile", "opendesk")
+            result = runner.invoke(app, [*command, "--out", str(out)])
+            name = target.relative_to(ROOT)
+            if result.exit_code != 0:
+                errors.append(f"{name}: Befund demo failed. {result.output.strip()}")
+                continue
+            generated = Path(result.stdout.splitlines()[-1])
+            if not generated.is_file() or not target.is_file():
+                errors.append(f"{name}: Demo report is missing.")
+            elif target.read_bytes() != generated.read_bytes():
+                errors.append(f"{name}: Differs from a fresh befund {' '.join(command)} run.")
+    return errors
+
+
 def main() -> int:
     pages = {
         path: Page(path)
@@ -103,9 +132,9 @@ def main() -> int:
         if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
     }
     references = []
-    errors = []
+    errors = check_demo_reports()
     for path, page in pages.items():
-        page.check_structure()
+        page.check_structure(require_skip_link=path not in DEMO_REPORTS)
         errors.extend(f"{path.relative_to(ROOT)}: {error}" for error in page.errors)
         references.extend((path, *ref) for ref in page.links)
 

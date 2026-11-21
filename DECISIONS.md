@@ -2,6 +2,17 @@
 
 Running log of design decisions, newest first. `HANDOFF.md` is the original spec; where an entry here conflicts with it, this file wins.
 
+## Principles
+
+1. **Read-only.** Request read permissions and use an explicit allowlist of read endpoints. Exclude requests that can change the tenant, even if they use `GET`.
+2. **Local processing.** Assessment data stays on the computer. Live collection may contact only `login.microsoftonline.com` and `graph.microsoft.com`. Import usage reports offline. Omit telemetry, analytics, update checks and CDNs.
+3. **Tokens in memory.** Keep access and refresh tokens in memory.
+4. **Metadata only.** Collect counts, sizes and coded evidence. Leave mail bodies and file contents unopened.
+5. **Privacy by construction.** Exclude collected person names and email addresses. The v1 CLI omits `--include-names`. Reports may show the organisation name and Windows-only application names entered in `inputs.yaml`.
+6. **Offline report.** Produce one self-contained HTML file with inline CSS and system fonts. Omit JavaScript and external resources. The report opens and prints with the network disconnected.
+7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
+8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
+
 ## 2026-11-21 — M0 complete (demo and report)
 
 Befund builds the nine-section report in German and English from either bundled sample or an existing scan, with all three target profiles. These commands run locally with no Microsoft account and contact no host.
@@ -78,11 +89,6 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 ### Decided by the founder, 2026-11-21
 
 - **F1. Yes to the services business.** The founder wants a business in which customers pay for focused time, with everything around that time automated as far as it will go. Consequence for the tool: whatever an assessment repeats (inventory, cost comparison, the report itself, the interview checklist that fills `inputs.yaml`) should be produced by the tool, so that paid time goes to the conversation and the recommendation.
-
-### Open, for the founder
-
-- The funded scope in the Prototype Fund application (deadline 30 November 2026, 15:00 CET).
-- The project name. "M365" is Microsoft's mark; descriptive use is normally acceptable.
 
 ### Verified on primary pages on 2026-11-21
 

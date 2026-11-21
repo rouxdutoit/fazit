@@ -2,11 +2,13 @@
 # EN: Copy this file to inputs.yaml and enter the date the answers were given under as_of.
 # EN: The report marks an empty answer as not provided and leaves results that need it unknown.
 # EN: Put amounts in quotes, use a decimal point and enter "0" only for a confirmed zero.
+# EN: Amounts may have up to 15 digits before the decimal point and up to two after it.
 # EN: A complete comparison needs an amount or an explicit zero in every cost category.
 # EN: Befund contains no prices and makes no estimates.
 # DE: Kopieren Sie diese Datei nach inputs.yaml und tragen Sie unter as_of den Tag ein, an dem Sie die Angaben erhalten haben.
 # DE: Leere Angaben erscheinen im Bericht als nicht angegeben. Ergebnisse, die diese Angaben benötigen, bleiben unbekannt.
 # DE: Setzen Sie Beträge in Anführungszeichen und verwenden Sie einen Dezimalpunkt. Tragen Sie "0" nur bei bestätigten Nullkosten ein.
+# DE: Beträge dürfen bis zu 15 Stellen vor und bis zu zwei Stellen nach dem Dezimalpunkt haben.
 # DE: Für einen vollständigen Vergleich ist in jeder Kostenposition ein Betrag oder eine bestätigte Null erforderlich.
 # DE: Befund enthält keine Preisangaben und nimmt keine Schätzungen vor.
 
