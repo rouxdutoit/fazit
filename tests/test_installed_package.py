@@ -1,0 +1,170 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+import os
+import re
+import subprocess
+import sys
+from dataclasses import dataclass
+from email.parser import BytesParser
+from hashlib import sha256
+from pathlib import Path
+from zipfile import ZipFile
+
+import pytest
+from test_repo_basics import LICENSE_SHA256, ROOT
+
+from befund.report import SECTION_ORDER
+
+_SOCKET_AUDIT_HOOK = """\
+import os
+import sys
+from pathlib import Path
+
+log = Path(os.environ["BEFUND_TEST_SOCKET_LOG"])
+
+def record_socket_event(event: str, args: tuple[object, ...]) -> None:
+    if event.startswith("socket."):
+        with log.open("a", encoding="utf-8") as recorded:
+            recorded.write(event + "\\n")
+        raise OSError(f"Offline test blocked {event}")
+
+sys.addaudithook(record_socket_event)
+log.touch()
+"""
+
+
+@dataclass(frozen=True)
+class InstalledPackage:
+    wheel: Path
+    venv: Path
+
+
+def _venv_program(venv: Path, name: str) -> Path:
+    if os.name == "nt":
+        return venv / "Scripts" / f"{name}.exe"
+    return venv / "bin" / name
+
+
+def _run(*args: str | Path, cwd: Path, env: dict[str, str] | None = None) -> str:
+    result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, f"{args}\n{result.stdout}\n{result.stderr}"
+    return result.stdout
+
+
+@pytest.fixture(scope="module")
+def installed_package(tmp_path_factory: pytest.TempPathFactory) -> InstalledPackage:
+    work = tmp_path_factory.mktemp("installed-package")
+    dist, venv = work / "dist", work / "venv"
+    _run(
+        "uv",
+        "build",
+        "--wheel",
+        "--offline",
+        "--python",
+        sys.executable,
+        "--out-dir",
+        dist,
+        cwd=ROOT,
+    )
+    (wheel,) = dist.glob("*.whl")
+    _run("uv", "venv", "--offline", "--python", sys.executable, venv, cwd=ROOT)
+    python = _venv_program(venv, "python")
+    # The lock file identifies the cached distributions without a fresh registry lookup.
+    _run(
+        "uv",
+        "sync",
+        "--locked",
+        "--offline",
+        "--no-dev",
+        "--no-install-project",
+        "--python",
+        python,
+        cwd=ROOT,
+        env={**os.environ, "UV_PROJECT_ENVIRONMENT": str(venv)},
+    )
+    _run("uv", "pip", "install", "--offline", "--python", python, wheel, cwd=ROOT)
+    return InstalledPackage(wheel, venv)
+
+
+def _audit_environment(work: Path) -> tuple[dict[str, str], Path]:
+    (work / "sitecustomize.py").write_text(_SOCKET_AUDIT_HOOK, encoding="utf-8")
+    log = work / "socket-events.log"
+    return {**os.environ, "PYTHONPATH": str(work), "BEFUND_TEST_SOCKET_LOG": str(log)}, log
+
+
+def test_installed_demo_renders_offline(
+    installed_package: InstalledPackage, tmp_path: Path
+) -> None:
+    assert not tmp_path.resolve().is_relative_to(ROOT)
+    env, audit_log = _audit_environment(tmp_path)
+    venv = installed_package.venv
+    out = tmp_path / "out"
+    stdout = _run(
+        _venv_program(venv, "befund"), "demo", "--lang", "de", "--out", out, cwd=tmp_path, env=env
+    )
+
+    path = Path(stdout.splitlines()[-1])
+    assert path.is_absolute() and path.parent == out and path.is_file()
+    html = path.read_text(encoding="utf-8")
+    assert '<html lang="de">' in html
+    assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
+    assert not audit_log.read_text(encoding="utf-8")
+    location = _run(
+        _venv_program(venv, "python"),
+        "-c",
+        "import befund\nprint(befund.__file__)",
+        cwd=tmp_path,
+        env=env,
+    )
+    module = Path(location.strip()).resolve()
+    assert module.is_file() and module.is_relative_to(venv.resolve())
+    assert not audit_log.read_text(encoding="utf-8")
+
+
+def test_subprocess_audit_records_a_caught_attempt(
+    installed_package: InstalledPackage, tmp_path: Path
+) -> None:
+    env, audit_log = _audit_environment(tmp_path)
+    attempt = """\
+import socket
+
+try:
+    socket.create_connection(("127.0.0.1", 1), timeout=0.1)
+except OSError as error:
+    print(error)
+"""
+    output = _run(
+        _venv_program(installed_package.venv, "python"), "-c", attempt, cwd=tmp_path, env=env
+    )
+    assert output.strip() == "Offline test blocked socket.getaddrinfo"
+    assert audit_log.read_text(encoding="utf-8").splitlines() == ["socket.getaddrinfo"]
+
+
+def test_wheel_contains_runtime_data(installed_package: InstalledPackage) -> None:
+    resources = (
+        "templates/report.html.j2",
+        "locales/de.yaml",
+        "locales/en.yaml",
+        "rules/findings.yaml",
+        "rules/status.yaml",
+        "rules/service_plans.yaml",
+        "rules/risky_file_types.yaml",
+        *(f"rules/mappings/{profile}.yaml" for profile in ("generic", "nextcloud", "opendesk")),
+        *(
+            f"demo/{sample}/{name}"
+            for sample in ("town", "nonprofit")
+            for name in ("scan.json", "inputs.yaml")
+        ),
+    )
+    with ZipFile(installed_package.wheel) as wheel:
+        missing = sorted({f"befund/{name}" for name in resources} - set(wheel.namelist()))
+    assert not missing, f"Missing package data: {', '.join(missing)}"
+
+
+def test_wheel_carries_the_license(installed_package: InstalledPackage) -> None:
+    with ZipFile(installed_package.wheel) as wheel:
+        (metadata,) = (name for name in wheel.namelist() if name.endswith(".dist-info/METADATA"))
+        headers = BytesParser().parsebytes(wheel.read(metadata), headersonly=True)
+        assert headers["License-Expression"] == "AGPL-3.0-or-later"
+        assert headers.get_all("License-File") == ["LICENSE"]
+        licence = wheel.read(f"{metadata.rsplit('/', 1)[0]}/licenses/LICENSE")
+    assert sha256(licence).hexdigest() == LICENSE_SHA256

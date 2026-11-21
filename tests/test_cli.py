@@ -3,6 +3,7 @@ import ast
 import datetime
 import os
 import re
+import shlex
 import socket
 from dataclasses import replace
 from datetime import date, tzinfo
@@ -10,10 +11,11 @@ from hashlib import sha256
 from html import unescape
 from importlib.resources import files
 from pathlib import Path
-from shutil import copytree
+from shutil import copyfile, copytree
 
 import pytest
 import yaml
+from test_repo_basics import ROOT, readme_code_blocks
 from typer.testing import CliRunner
 
 from befund import __version__, i18n, inputs, model, rules
@@ -24,7 +26,7 @@ from befund.errors import InputError
 from befund.i18n import SUPPORTED_LANGUAGES, load_locale
 from befund.model import Coverage, Scan, load_scan, load_scan_text
 from befund.parsing import parse_yaml, read_text
-from befund.report import render_report, report_file_name
+from befund.report import SECTION_ORDER, render_report, report_file_name
 
 runner = CliRunner()
 
@@ -60,6 +62,33 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     assert "data-software-entry" in _section(html, "attention")
     moves = _section(html, "moves")
     assert "Nubus" in moves and "Keycloak" in moves
+
+
+@pytest.mark.parametrize("readme", ["README.md", "README.de.md"])
+def test_readme_commands_run_in_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, readme: str
+) -> None:
+    text = (ROOT / readme).read_text(encoding="utf-8")
+    prefix = "uv run befund "
+    commands = [
+        line
+        for block in readme_code_blocks(text)
+        for line in block.splitlines()
+        if line.startswith(prefix)
+    ]
+    assert commands
+    for name in ("inputs.example.yaml", "inputs.yaml"):
+        copyfile(ROOT / "inputs.example.yaml", tmp_path / name)
+    monkeypatch.chdir(tmp_path)
+
+    for command in commands:
+        result = runner.invoke(app, shlex.split(command.removeprefix(prefix)))
+        assert result.exit_code == 0, f"{command}\n{result.output}"
+        assert not result.stderr, command
+        path = Path(result.stdout.splitlines()[-1])
+        assert path.is_absolute() and path.is_relative_to(tmp_path) and path.is_file()
+        html = path.read_text(encoding="utf-8")
+        assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
 
 
 def _section(html: str, name: str) -> str:

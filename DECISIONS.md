@@ -2,6 +2,31 @@
 
 Running log of design decisions, newest first. `HANDOFF.md` is the original spec; where an entry here conflicts with it, this file wins.
 
+## 2026-11-21 — M0 complete (demo and report)
+
+Befund builds the nine-section report in German and English from either bundled sample or an existing scan, with all three target profiles. These commands run locally with no Microsoft account and contact no host.
+
+- One `as_of` date applies to all answers in `inputs.yaml`. An omitted date is labelled as such. `amounts_are_invented` labels costs independently of the scan and of the origin of the answers.
+- The catalogue uses `provided` values `no`, `answer`, `software_list` and `software_list_without_web_version`. The last two derive counts from the Windows-only software list. A positive lower bound can establish a problem when some application answers are still missing.
+- The scan format contains no free text. The loader validates registered codes, rejects `@` and counts discarded fields and findings without exposing their keys. The display name and Windows-only application names are taken from `inputs.yaml`. JSON files omit SPDX headers because JSON has no comment syntax.
+- Coverage is `complete`, `partial` or `unknown`. Counts must fit within the total. Complete counts cover the total with zero failures. Complete measurements take precedence over manual answers. A complete manual answer can replace a partial measurement for evaluation, with both shown. A positive measured lower bound takes precedence over a supplied zero and is shown as a conflict.
+- Status rules use `exists`, `==`, `>` and `>=`. There is no `missing` operator. A confirmed problem can set a status while required evidence remains incomplete. Missing, skipped, unknown or partial required evidence is listed with reasons and next steps, and precludes Ready. A partial count can confirm a positive finding. Telephony needs a manual confirmation that Microsoft telephony is out of use before it can be Ready.
+- Licence evidence gives the SKU part number and GUID, the plan name and GUID, and purchased and assigned counts. The associated `licences` collector must be present and able to supply evidence. The samples use real product and service plan identifiers checked against Microsoft's licensing reference, with simulated counts. Classification uses the product and plan pair to distinguish an assigned add-on from entitlement bundled with a suite. Audio Conferencing is a meetings signal. The derived finding forms are `licences.product_count`, `<workload>.licence_add_on_assigned` and `<workload>.licence_bundled_assigned`.
+- Mappings use `no_function` for workloads with no function to transfer. The generic profile has no project documentation citations or check dates. Each transfer gap shows the documented limitation and the organisation's need separately. The need remains unknown without a specific complete answer. Checksums in the appendix use the bytes that were parsed, with one read per rule file.
+- The report is `report-<YYYY-MM-DD>-<lang>.html`. The demo also writes `scan-<YYYY-MM-DD>-<lang>.json` and `inputs-<YYYY-MM-DD>-<lang>.yaml`. The date is taken from the scan. Each write stays inside the resolved `--out` directory, refuses symbolic links at the destination and replaces an existing regular file of the same name atomically.
+- The wheel includes the report template, locales, rule files and both sets of sample files. The installed-package test checks these files, the licence and the offline console entry point. Its subprocess audit hook records and blocks socket operations, including attempts caught by the caller.
+
+Costs use five years and the following formulas. Both exit scenarios use their own inputs and the same ongoing other IT cost as staying.
+
+- Stay running cost = 5 × (annual Microsoft licences + annual other IT). The three change blocks are zero.
+- Exit running cost = annual retained Microsoft licences × (60 − parallel months) ÷ 12 + monthly hosting per person × users × 60 + 5 × (annual operations + annual other recurring costs + annual other IT).
+- Direct project cost = migration + application adaptation + external advice + training days per person × day rate × people trained.
+- Productivity loss = the supplied total for lost working time.
+- Parallel running = annual current Microsoft licences × parallel months ÷ 12.
+- Scenario total = running cost + direct project cost + productivity loss + parallel running. Difference from staying = scenario total − stay total.
+
+An unknown factor leaves a cost unknown unless another factor in that product is zero. A comparison stays unknown when either total is unknown. The calculation reconciles prorated lines in exact twelfths before division. Repeating amounts use high-precision Decimal values and are rounded to cents only for display.
+
 ## 2026-11-21: outcome of the Claude vs Codex analysis
 
 Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort) and one rebuttal each. The working documents are kept outside the repository. Both sides ended at "build with changes" and agree on everything below.
