@@ -47,7 +47,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
 - [ ] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
 - [ ] **REPT-05**: Status is never conveyed by colour alone: each status has a text label, and status colours differ in lightness
-- [ ] **REPT-06**: Person names and email addresses are absent from the report and `scan.json` unless `--include-names` is passed
+- [ ] **REPT-06**: Person names and email addresses are absent from the report, `scan.json`, the filename and printed output, because schema 1.x has no field that can hold them and unknown fields are dropped
 
 ### Languages
 
@@ -84,7 +84,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **SAFE-02**: A test proves the requested scopes contain no write or manage scope
 - [ ] **SAFE-03**: A test runs a scan against fixtures with a temporary home directory and finds no token-like string on disk
 - [ ] **SAFE-04**: A test parses generated reports and finds no `src` or `href` that would load an external resource and no external stylesheet
-- [ ] **SAFE-05**: A test proves that with default flags no fixture name or email address appears in the report or `scan.json`
+- [ ] **SAFE-05**: A test plants names, email addresses and credential-like strings in a `scan.json` and proves none of them reaches the report, the JSON copy, the filename or the printed path
 - [ ] **SAFE-06**: A test proves a collector returning `403` is skipped, listed in the appendix, and the report still renders
 - [ ] **SAFE-07**: CI runs the whole test suite without a live tenant
 
@@ -118,6 +118,8 @@ Deferred. Tracked but not in the current roadmap.
 - **CONV-01**: User can answer the manual inputs through an interactive prompt
 - **CONV-02**: User can sign in through a project-owned public multi-tenant client ID
 - **CONV-03**: Others can contribute rule packs for further target stacks through a documented, checked format
+- **CONV-04**: User can opt in to per-person detail with `--include-names`, once a collector exists that can supply it
+- **CONV-05**: User can point the tool at their own rule files with `--rules DIR`
 
 ## Out of Scope
 

@@ -34,6 +34,8 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D16. `hatchling` is the build backend, pinned to an exact version.** It is needed to build the package and is not a runtime dependency.
 - **D17. No package release younger than 14 days is installed.** `pyproject.toml` sets uv's `exclude-newer` to a fixed date, moved forward deliberately. A release that is a few days old has not been looked at by anyone yet.
 - **D18. Command-line help is English only.** Everything in the report and every message the tool prints exists in German and English. Help text for commands and options stays in English, because the language is not known until the arguments have been parsed.
+- **D19. Privacy is by construction, and there is no `--include-names` in v1.** `scan.json` 1.x has no field that can hold a person's name or address, collectors write codes and counts only, and the loader drops anything it does not know. The handoff's opt-in flag returns when a collector exists that could supply names. This replaces redaction, which only protects the fields someone remembered to list.
+- **D20. No overall verdict.** The report gives status per area and says what must be resolved first. It does not say "go" or "no go", and it uses no numeric threshold.
 
 ### Milestone order
 
