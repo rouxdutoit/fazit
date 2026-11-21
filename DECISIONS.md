@@ -36,6 +36,9 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D18. Command-line help is English only.** Everything in the report and every message the tool prints exists in German and English. Help text for commands and options stays in English, because the language is not known until the arguments have been parsed.
 - **D19. Privacy is by construction, and there is no `--include-names` in v1.** `scan.json` 1.x has no field that can hold a person's name or address, collectors write codes and counts only, and the loader drops anything it does not know. The handoff's opt-in flag returns when a collector exists that could supply names. This replaces redaction, which only protects the fields someone remembered to list.
 - **D20. No overall verdict.** The report gives status per area and says what must be resolved first. It does not say "go" or "no go", and it uses no numeric threshold.
+- **D21. Fifteen areas are assessed, not nine.** Public evaluations found their real gaps outside mail and files: telephony, Power Platform, identity, device management, security and compliance, small apps such as Forms and Planner, and integrations with business applications. Licence data shows which of these an organisation pays for, without reading any content.
+- **D22. Costs are shown in three blocks:** direct project cost, productivity loss, and parallel running. Comparing licences with hosting alone understates the cost of leaving.
+- **D23. A "second source" scenario is deferred.** Keeping Microsoft 365 and building a fallback for chosen areas is a real option for many organisations. It is not in v1.
 
 ### Milestone order
 
