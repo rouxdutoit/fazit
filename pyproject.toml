@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 [project]
-name = "fazit"
+name = "befund"
 version = "0.1.0"
 description = "Build local reports on Microsoft 365 exit readiness."
 requires-python = ">=3.12"
@@ -12,17 +12,17 @@ dependencies = [
 ]
 
 [project.scripts]
-fazit = "fazit.cli:main"
+befund = "befund.cli:main"
 
 [build-system]
 requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
-artifacts = ["src/fazit/demo/*/scan.json"]
+artifacts = ["src/befund/demo/*/scan.json"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fazit"]
+packages = ["src/befund"]
 
 [tool.uv]
 exclude-newer = "2026-11-07T00:00:00Z"

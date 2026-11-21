@@ -177,7 +177,7 @@ def render_report(
         if entry.provided in ("software_list", "software_list_without_web_version"):
             software.append((entry, finding))
 
-    source = files("fazit").joinpath("templates", "report.html.j2")
+    source = files("befund").joinpath("templates", "report.html.j2")
     template = Environment(autoescape=True, undefined=StrictUndefined).from_string(
         read_text(source)
     )

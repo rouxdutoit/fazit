@@ -131,7 +131,7 @@ def _code_set(
 
 
 def load_catalogue(path: Path | None = None) -> Catalogue:
-    source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
+    source = path if path is not None else files("befund").joinpath("rules", "findings.yaml")
     text = read_text(source)
     data = parse_yaml(text, source.name)
     if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:

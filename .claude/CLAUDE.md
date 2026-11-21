@@ -2,7 +2,7 @@
 
 ## Project
 
-**fazit**
+**befund**
 
 A free, open source command-line tool that shows an organisation what it runs on Microsoft 365, what would break if it moved to an open source stack (openDesk, Nextcloud, LibreOffice, Linux), and what that move would cost. It works read-only and locally, and writes one self-contained HTML report in German or English that opens offline. It is used mainly by integrators and municipal IT providers on behalf of organisations with roughly 200 to 2,000 seats in Germany, Austria and Switzerland, and it stays simple enough for a council IT officer to run alone.
 

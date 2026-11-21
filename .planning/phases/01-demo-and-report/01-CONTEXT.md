@@ -16,8 +16,8 @@ Source of these decisions: `HANDOFF.md` (original spec) and `DECISIONS.md` (agre
 ## Implementation Decisions
 
 ### Packaging and layout
-- **D-01:** Source layout is `src/fazit/` following `HANDOFF.md` section 11, minus the Microsoft modules (`auth.py`, `graph.py`, `collectors/`), which arrive in Phase 3.
-- **D-02:** `pyproject.toml` uses PEP 621 metadata with the `hatchling` build backend, `requires-python = ">=3.12"`, a console script `fazit`, and is managed with `uv` (`uv sync`, `uv run pytest`, `uv run ruff check`). `uv.lock` is committed.
+- **D-01:** Source layout is `src/befund/` following `HANDOFF.md` section 11, minus the Microsoft modules (`auth.py`, `graph.py`, `collectors/`), which arrive in Phase 3.
+- **D-02:** `pyproject.toml` uses PEP 621 metadata with the `hatchling` build backend, `requires-python = ">=3.12"`, a console script `befund`, and is managed with `uv` (`uv sync`, `uv run pytest`, `uv run ruff check`). `uv.lock` is committed.
 - **D-03:** Runtime dependencies in this phase are exactly `typer`, `jinja2` and `pyyaml`. Dev dependencies are `pytest` and `ruff`. `pyyaml` is new relative to the handoff's list; it is required by the YAML files the handoff itself mandates and is recorded in `DECISIONS.md`. No `pydantic`, no `babel`, no `rich` beyond what `typer` pulls in. `httpx` and `msal` are not added in this phase.
 - **D-04:** Data files (templates, locales, rules, sample data) live inside the package and are read with `importlib.resources`, so the installed tool works without the repository.
 

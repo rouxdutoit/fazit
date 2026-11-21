@@ -9,11 +9,11 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from fazit import report as report_module
-from fazit.cli import app
-from fazit.i18n import load_locale
-from fazit.report import SECTION_ORDER
-from fazit.rules import PROFILES
+from befund import report as report_module
+from befund.cli import app
+from befund.i18n import load_locale
+from befund.report import SECTION_ORDER
+from befund.rules import PROFILES
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 RESOURCE_ELEMENTS = {
@@ -74,7 +74,7 @@ def _rebuild(scan: Path, out: Path, lang: str, *, profile: str = "opendesk") -> 
 
 
 def _sample_scan(sample: str) -> Path:
-    return Path(str(files("fazit").joinpath("demo", sample, "scan.json")))
+    return Path(str(files("befund").joinpath("demo", sample, "scan.json")))
 
 
 @pytest.mark.parametrize(("sample", "lang"), [*SAMPLES, ("planted", "en")])

@@ -1,6 +1,6 @@
-# Fazit
+# Befund
 
-> Named Fazit on 2026-11-21 (`DECISIONS.md` D24). The working name was `m365-exit-scan`.
+> Named Befund on 2026-11-21 (`DECISIONS.md` D25), after briefly being Fazit (D24). The working name was `m365-exit-scan`.
 
 ## What This Is
 

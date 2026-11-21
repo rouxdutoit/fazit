@@ -13,7 +13,7 @@ DEFAULT_LANGUAGE = "en"
 def load_locale(lang: str) -> dict:
     if lang not in SUPPORTED_LANGUAGES:
         raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
-    locale = files("fazit").joinpath("locales", f"{lang}.yaml")
+    locale = files("befund").joinpath("locales", f"{lang}.yaml")
     strings = parse_yaml(read_text(locale), locale.name)
     if not isinstance(strings, dict):
         raise InputError("invalid_field", file=locale.name, field="$")

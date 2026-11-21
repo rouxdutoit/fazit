@@ -1,4 +1,4 @@
-# Requirements: fazit
+# Requirements: befund
 
 **Defined:** 2026-11-21
 **Core Value:** An organisation gets honest, inspectable numbers about its own Microsoft dependency, including "unknown" and "not yet", without any of its data leaving the machine.
@@ -90,7 +90,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 
 ### Distribution and documentation
 
-- [ ] **DIST-01**: User can run the tool with `uvx fazit demo` from PyPI
+- [ ] **DIST-01**: User can run the tool with `uvx befund demo` from PyPI
 - [ ] **DIST-02**: User can run a signed, self-contained Windows build without installing Python
 - [ ] **DIST-03**: Repository has `LICENSE` (AGPL-3.0-or-later), SPDX headers, `CONTRIBUTING.md` and `SECURITY.md`
 - [ ] **DOCS-01**: README exists in English and German, shows the `demo` command first, and states that the code is written with AI assistance

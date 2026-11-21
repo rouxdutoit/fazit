@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "tool": {
-    "name": "fazit",
+    "name": "befund",
     "version": "0.1.0",
     "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"
   },
