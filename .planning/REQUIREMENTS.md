@@ -27,7 +27,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 
 - [ ] **RULE-01**: User can choose a target profile (`opendesk`, `nextcloud`, `generic`) that maps each Microsoft service to its open source replacement, defined in a YAML file
 - [ ] **RULE-02**: Each workload gets a status of Ready, Needs work, Blocker or Unknown with a human-readable reason, from rules in a YAML file
-- [ ] **RULE-03**: A workload with missing or skipped data is Unknown and never Ready
+- [ ] **RULE-03**: A workload with missing, partial or skipped evidence is never Ready: it is Unknown unless a problem confirmed by complete evidence gives it a worse status, and it is always marked incomplete with the missing items listed
 - [ ] **RULE-04**: Rule and mapping files are validated on load, and an invalid file produces an error that names the file and the field
 - [ ] **RULE-05**: The list of risky file types is configurable, excludes `.dotx`, and macro-enabled types are reported as "may contain macros"
 
