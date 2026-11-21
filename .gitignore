@@ -8,5 +8,6 @@ build/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
-report/
-scan.json
+/report/
+/scan.json
+/.claude/launch.json

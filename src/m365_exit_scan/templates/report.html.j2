@@ -1,53 +1,202 @@
 {# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% macro column(text) -%}
+  <th scope="col" role="columnheader" data-label="{{ text }}">{{ text }}</th>
+{%- endmacro %}
 <!doctype html>
 <html lang="{{ lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta name="color-scheme" content="light dark">
   <title>{{ strings.header.title }}</title>
   <style>
-    :root { color-scheme: light dark; }
-    body { font: 1rem/1.5 system-ui, sans-serif; margin: 1rem auto; max-width: 70rem; padding: 0 1rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: start; vertical-align: top; padding: .4rem; border-bottom: 1px solid; overflow-wrap: anywhere; }
-    caption { text-align: start; font-weight: 600; }
-    .table-scroll { overflow-x: auto; margin-block: .8rem; }
-    .evidence { min-width: 47rem; }
-    .headlines { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 1rem; padding: 0; list-style: none; }
-    .headlines li { border: 1px solid; padding: .65rem; }
-    .headlines strong, small { display: block; }
-    .prov { border: 1px solid; padding: .05rem .25rem; display: inline-block; }
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --text: #172833;
+      --muted: #475b69;
+      --line: #bfccd5;
+      --accent: #255b7b;
+      --surface: #eff4f7;
+    }
+    @media screen and (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #151e26;
+        --text: #edf3f7;
+        --muted: #bbc9d4;
+        --line: #506270;
+        --accent: #a7d3ef;
+        --surface: #22323f;
+      }
+    }
+    body {
+      max-width: 60rem;
+      margin: 0 auto;
+      padding: clamp(1rem, 3vw, 2rem);
+      background: var(--bg);
+      color: var(--text);
+      font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    header {
+      border-block-start: .3rem solid var(--accent);
+      border-block-end: 1px solid var(--line);
+      padding-block: 1.25rem 1rem;
+    }
+    h1, h2, h3 { line-height: 1.2; margin-block: 0 .7rem; }
+    h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.125rem; }
+    p { margin-block: .45rem; }
+    section { margin-block: 1.75rem; }
+    .report-meta {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: 1.4rem;
+      margin-block: .75rem 1.2rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .report-meta div { display: flex; flex-wrap: wrap; column-gap: .45ch; }
+    .report-meta dd { margin: 0; font-weight: 650; }
+    .muted, small { color: var(--muted); }
+    .sample-note {
+      background: var(--surface);
+      border-inline-start: .2rem solid var(--accent);
+      margin-block: .8rem 0;
+      padding: .5rem .7rem;
+    }
+    .headlines {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+      gap: .75rem;
+      margin-block: 1rem 1.5rem;
+      padding: 0;
+      list-style: none;
+    }
+    .headlines li {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .3rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: .25rem;
+      padding: .75rem;
+    }
+    .figure { font-size: 1.25rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+    small { display: block; }
+    .prov {
+      display: inline-block;
+      border: 1px solid currentColor;
+      border-radius: .2rem;
+      padding: .05rem .35rem;
+      color: var(--muted);
+      font-size: .85em;
+    }
     [data-provenance="provided"] .prov { border-style: dotted; }
     [data-provenance="unknown"] .prov { border-style: dashed; }
-    footer { margin-top: 2rem; }
+    .table-scroll { overflow-x: auto; margin-block: .65rem 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .evidence, .collectors { table-layout: fixed; }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: .45rem .55rem;
+      text-align: start;
+      vertical-align: top;
+      hyphens: auto;
+    }
+    thead th { background: var(--surface); box-sizing: border-box; }
+    .evidence thead th:nth-child(1) { width: 15%; }
+    .evidence thead th:nth-child(2) { width: 16%; }
+    .evidence thead th:nth-child(n+3):nth-child(-n+5) { width: 12%; }
+    .evidence thead th:nth-child(n+6) { width: 11%; }
+    .collectors thead th:nth-child(1) { width: 24%; }
+    .collectors thead th:nth-child(2) { width: 16%; }
+    .collectors thead th:nth-child(4) { width: 18%; }
+    th[scope="rowgroup"] { color: var(--accent); padding-block-start: .8rem; }
+    caption { text-align: start; color: var(--muted); padding-block-end: .5rem; }
+    .table-note { color: var(--muted); }
+    footer {
+      padding-block-start: .65rem;
+      border-block-start: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    @media screen and (max-width: 40rem) {
+      .headlines { grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr)); }
+      table, caption, tbody, tr, th, td { display: block; }
+      table { font-size: 1rem; }
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      tbody tr {
+        margin-block-end: .6rem;
+        border: 1px solid var(--line);
+        border-radius: .25rem;
+      }
+      tbody :is(th, td) { border: 0; padding: .35rem .65rem; }
+      tbody th { background: var(--surface); }
+      tbody td + td { border-block-start: 1px solid var(--line); }
+      td[data-label]::before {
+        display: block;
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: .85rem;
+        font-weight: 650;
+      }
+    }
+    @page { margin: 15mm; }
     @media print {
-      :root { color-scheme: light; }
-      body { font-size: 10pt; }
+      body {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        font-size: 10pt;
+        print-color-adjust: exact;
+      }
+      h1, h2, h3 { break-after: avoid; }
+      .headlines { grid-template-columns: repeat(4, 1fr); gap: .45rem; }
+      .prov { padding-inline: .2rem; white-space: nowrap; }
       .table-scroll { overflow: visible; }
-      .evidence { min-width: 0; }
+      table { font-size: .9em; }
+      th, td { padding: .3rem; }
       tr, .headlines li { break-inside: avoid; }
+      tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
     }
   </style>
 </head>
 <body>
   <header data-section="header">
     <h1>{{ strings.header.title }}</h1>
-    <p>{{ strings.header.scan_date }} <time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></p>
-    <p>{{ strings.header.tool_version }} {{ tool_version }}</p>
+    <dl class="report-meta">
+      <div>
+        <dt>{{ strings.header.scan_date }}</dt>
+        <dd><time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></dd>
+      </div>
+      <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
+    </dl>
     <p>{{ strings.header.local }}</p>
-    <p>{{ strings.header.offline }}</p>
-    {% if scan.source_kind == "sample" %}<p>{{ strings.header.sample }}</p>{% endif %}
+    <p class="muted">{{ strings.header.offline }}</p>
+    {% if scan.source_kind == "sample" %}<p class="sample-note">{{ strings.header.sample }}</p>{% endif %}
   </header>
   <main>
     <section data-section="found">
       <h2>{{ strings.found.title }}</h2>
-      <ul class="headlines">
+      <ul class="headlines" role="list">
         {% for entry, finding in headlines %}
           {% set provenance = finding.provenance if finding else 'unknown' %}
           <li data-provenance="{{ provenance }}">
             <strong>{{ label(entry.label) }}</strong>
-            {% if finding and finding.value is not none %}{{ value_text(entry, finding) }}{% endif %}
+            {% if finding and finding.value is not none %}<span class="figure">{{ value_text(entry, finding) }}</span>{% endif %}
             <span class="prov">{{ strings.provenance[provenance] }}</span>
             {% if provenance == 'unknown' %}
               {% set code = finding.missing_reason if finding else ('not_in_scan' if entry.provided == 'no' else 'answer_not_provided') %}
@@ -59,44 +208,49 @@
           </li>
         {% endfor %}
       </ul>
-      <div class="table-scroll" role="region" aria-label="{{ strings.found.evidence }}" tabindex="0">
-        <table class="evidence">
+      <h3 id="evidence-title">{{ strings.found.evidence }}</h3>
+      <div class="table-scroll" role="region" aria-labelledby="evidence-title" tabindex="0">
+        <table class="evidence" role="table">
           {% if scan.source_kind == 'sample' %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
-          <thead>
-            <tr>
-              <th scope="col">{{ strings.found.finding }}</th>
-              <th scope="col">{{ strings.found.value }}</th>
-              <th scope="col">{{ strings.found.provenance }}</th>
-              <th scope="col">{{ strings.found.collector }}</th>
-              <th scope="col">{{ strings.found.source }}</th>
-              <th scope="col">{{ strings.found.collected }}</th>
-              <th scope="col">{{ strings.found.period }}</th>
-              <th scope="col">{{ strings.found.coverage }}</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              {{ column(strings.found.finding) }}
+              {{ column(strings.found.value) }}
+              {{ column(strings.found.provenance) }}
+              {{ column(strings.found.collector) }}
+              {{ column(strings.found.source) }}
+              {{ column(strings.found.collected) }}
+              {{ column(strings.found.period) }}
+              {{ column(strings.found.coverage) }}
             </tr>
           </thead>
           {% for workload, rows in groups if rows %}
-            <tbody>
-              <tr><th scope="rowgroup" colspan="8">{{ label(workload.label) }}</th></tr>
+            <tbody role="rowgroup">
+              <tr role="row">
+                <th scope="rowgroup" role="rowheader" colspan="8" data-label="{{ label(workload.label) }}">{{ label(workload.label) }}</th>
+              </tr>
               {% for entry, finding in rows %}
-                <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}">
-                  <th scope="row">{{ label(entry.label) }}</th>
-                  <td>
+                <tr data-finding="{{ finding.id }}" data-provenance="{{ finding.provenance }}" role="row">
+                  <th scope="row" role="rowheader" data-label="{{ strings.found.finding }}">{{ label(entry.label) }}</th>
+                  <td role="cell" data-label="{{ strings.found.value }}">
                     {{ value_text(entry, finding) }}
                     {% if finding.missing_reason %}
                       {% set reason, fix = reason_text(finding.missing_reason) %}
                       <small data-reason="{{ finding.missing_reason }}">{{ reason }} {{ fix }}</small>
                     {% endif %}
                   </td>
-                  <td><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
-                  <td>{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
-                  <td>{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</td>
-                  <td>{{ format.date(finding.collected_at) if finding.collected_at else (strings.common.date_not_supplied if finding.provenance == 'provided' else strings.common.unavailable) }}</td>
-                  <td>{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
-                  <td>{{ coverage_text(finding.coverage) }}</td>
+                  <td role="cell" data-label="{{ strings.found.provenance }}"><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
+                  <td role="cell" data-label="{{ strings.found.collector }}">{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
+                  <td role="cell" data-label="{{ strings.found.source }}">{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</td>
+                  <td role="cell" data-label="{{ strings.found.collected }}">{{ format.date(finding.collected_at) if finding.collected_at else (strings.common.date_not_supplied if finding.provenance == 'provided' else strings.common.unavailable) }}</td>
+                  <td role="cell" data-label="{{ strings.found.period }}">{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
+                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ coverage_text(finding.coverage) }}</td>
                 </tr>
               {% endfor %}
               {% set note = strings.found.notes.get(workload.id) %}
-              {% if scan.source_kind == 'sample' and note %}<tr><td colspan="8">{{ note }}</td></tr>{% endif %}
+              {% if scan.source_kind == 'sample' and note %}
+                <tr role="row"><td class="table-note" role="cell" colspan="8" data-label="{{ strings.found.note }}">{{ note }}</td></tr>
+              {% endif %}
             </tbody>
           {% endfor %}
         </table>
@@ -107,27 +261,27 @@
       <h3>{{ strings.appendix.collectors }}</h3>
       {% if scan.source_kind == 'sample' %}<p>{{ strings.appendix.sample_permissions }}</p>{% endif %}
       <div class="table-scroll" role="region" aria-label="{{ strings.appendix.collectors }}" tabindex="0">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">{{ strings.found.collector }}</th>
-              <th scope="col">{{ strings.appendix.status }}</th>
-              <th scope="col">{{ strings.appendix.reason }}</th>
-              <th scope="col">{{ strings.appendix.permissions }}</th>
+        <table class="collectors" role="table">
+          <thead role="rowgroup">
+            <tr role="row">
+              {{ column(strings.found.collector) }}
+              {{ column(strings.appendix.status) }}
+              {{ column(strings.appendix.reason) }}
+              {{ column(strings.appendix.permissions) }}
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup">
             {% for collector in scan.collectors %}
-              <tr data-collector="{{ collector.id }}">
-                <th scope="row">{{ code_label('collector', collector.id) }}</th>
-                <td>{{ code_label('collector_status', collector.status) }}</td>
-                <td>
+              <tr data-collector="{{ collector.id }}" role="row">
+                <th scope="row" role="rowheader" data-label="{{ strings.found.collector }}">{{ code_label('collector', collector.id) }}</th>
+                <td role="cell" data-label="{{ strings.appendix.status }}">{{ code_label('collector_status', collector.status) }}</td>
+                <td role="cell" data-label="{{ strings.appendix.reason }}">
                   {% if collector.reason %}
                     {% set reason, fix = reason_text(collector.reason) %}
                     <span data-reason="{{ collector.reason }}">{{ reason }}</span> {{ fix }}
                   {% else %}{{ strings.common.unavailable }}{% endif %}
                 </td>
-                <td>{{ collector.permissions_used|join(', ') or strings.common.unavailable }}</td>
+                <td role="cell" data-label="{{ strings.appendix.permissions }}">{{ collector.permissions_used|join(', ') or strings.common.unavailable }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -136,9 +290,9 @@
       {% if scan.dropped_count %}
         <p data-ignored-count="{{ scan.dropped_count }}">{{ strings.appendix.ignored.format(count=format.integer(scan.dropped_count)) }}</p>
       {% endif %}
-      <dl>
-        <dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd>
-        <dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd>
+      <dl class="report-meta">
+        <div><dt>{{ strings.appendix.schema_version }}</dt><dd>{{ scan.schema_version }}</dd></div>
+        <div><dt>{{ strings.header.tool_version }}</dt><dd>{{ tool_version }}</dd></div>
       </dl>
     </section>
   </main>

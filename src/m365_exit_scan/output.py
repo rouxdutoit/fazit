@@ -8,14 +8,14 @@ from .errors import InputError
 
 def write_inside(out_dir: Path, file_name: str, text: str) -> Path:
     location = str(out_dir)
+    if file_name in {"", "."} or ".." in file_name or any(char in file_name for char in "/\\:\0"):
+        raise InputError("write_failed", file=location, field="--out")
+
     try:
         directory = out_dir.resolve()
         directory.mkdir(parents=True, exist_ok=True)
     except (OSError, RuntimeError, ValueError):
         raise InputError("out_dir", file=location, field="--out") from None
-
-    if file_name in {"", ".", ".."} or any(char in file_name for char in "/\\:\0"):
-        raise InputError("write_failed", file=location, field="--out")
 
     destination = directory / file_name
     temporary = None

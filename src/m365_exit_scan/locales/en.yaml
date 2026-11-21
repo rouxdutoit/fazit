@@ -18,6 +18,7 @@ found:
   period: Reporting period
   coverage: Coverage
   sample: Scan measurements are simulated.
+  note: Note
   partial_positive: 'At least {value}'
   partial_zero: '{value} in the items checked'
   notes:
@@ -192,6 +193,8 @@ format:
 cli:
   error_prefix: 'Error: {message}'
   version: '{version}'
+  sample_scan: Sample scan saved to {path}.
+  sample_inputs: Sample inputs saved to {path}.
 errors:
   invalid_json: The JSON in {file} is invalid at {field}.
   invalid_yaml: The YAML in {file} is invalid at {field}.

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "m365-exit-scan",
+    "version": "0.1.0",
+    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"
+  },
+  "generated_at": "2026-11-02T09:00:00Z",
+  "source_kind": "import",
+  "operator": "Erika Mustermann",
+  "Erika Mustermann": "planted-secret",
+  "organisation": {"display_name": "Erika Mustermann"},
+  "collectors": [
+    {
+      "id": "directory",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": ["User.Read.All"],
+      "granted_by": "Max Mustermann"
+    },
+    {
+      "id": "exchange_recipients",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "licences",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "directory.user_count",
+      "workload": "directory",
+      "value": 91,
+      "unit": "users",
+      "provenance": "measured",
+      "collector": "directory",
+      "source": "sample.directory",
+      "collected_at": "2026-11-02",
+      "period": "2026-05-06/2026-11-01",
+      "coverage": {"kind": "complete", "scanned": 91, "failed": 0, "total": 91},
+      "missing_reason": null,
+      "owner": "Erika Mustermann"
+    },
+    {
+      "id": "mail.shared_mailbox_count",
+      "workload": "mail",
+      "value": null,
+      "unit": "mailboxes",
+      "provenance": "unknown",
+      "collector": "exchange_recipients",
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "needs_recipient_export"
+    },
+    {
+      "id": "mail.largest_mailboxes",
+      "value": [{"display_name": "Max Mustermann", "size": 10}]
+    }
+  ],
+  "licences": {
+    "collector": "licences",
+    "source": "sample.licences",
+    "collected_at": "2026-11-02",
+    "coverage": {"kind": "complete", "scanned": 1, "failed": 0, "total": 1},
+    "products": [
+      {
+        "sku_part_number": "SAMPLE_SKU",
+        "sku_guid": "00000000-0000-4000-8000-000000000001",
+        "purchased": 91,
+        "assigned": 85,
+        "service_plans": [{"name": "SAMPLE_PLAN", "guid": "00000000-0000-4000-8000-000000000002"}],
+        "admin_contact": "planted-secret"
+      }
+    ]
+  }
+}

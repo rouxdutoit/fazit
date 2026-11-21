@@ -1,0 +1,625 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "m365-exit-scan",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-11-05T10:00:00Z",
+  "source_kind": "sample",
+  "collectors": [
+    {
+      "id": "licences",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    },
+    {
+      "id": "directory",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    },
+    {
+      "id": "mailbox_usage",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    },
+    {
+      "id": "onedrive_usage",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    },
+    {
+      "id": "sharepoint_site_usage",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "teams_usage",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    },
+    {
+      "id": "exchange_recipients",
+      "status": "ok",
+      "reason": null,
+      "permissions_used": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "licences.contract_terms_known",
+      "workload": "licences",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "directory.user_count",
+      "workload": "directory",
+      "value": 21,
+      "unit": "users",
+      "provenance": "measured",
+      "collector": "directory",
+      "source": "sample.directory",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": null,
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "directory.licensed_user_count",
+      "workload": "directory",
+      "value": 20,
+      "unit": "users",
+      "provenance": "measured",
+      "collector": "directory",
+      "source": "sample.directory",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": null,
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "directory.guest_count",
+      "workload": "directory",
+      "value": 0,
+      "unit": "users",
+      "provenance": "measured",
+      "collector": "directory",
+      "source": "sample.directory",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": null,
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "directory.group_count",
+      "workload": "directory",
+      "value": 8,
+      "unit": "groups",
+      "provenance": "measured",
+      "collector": "directory",
+      "source": "sample.directory",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": null,
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "directory.account_list_reviewed",
+      "workload": "directory",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "mail.mailbox_count",
+      "workload": "mail",
+      "value": 22,
+      "unit": "mailboxes",
+      "provenance": "measured",
+      "collector": "mailbox_usage",
+      "source": "sample.mailbox_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "mail.shared_mailbox_count",
+      "workload": "mail",
+      "value": 2,
+      "unit": "mailboxes",
+      "provenance": "measured",
+      "collector": "exchange_recipients",
+      "source": "sample.exchange_recipients",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": null,
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "mail.storage_bytes",
+      "workload": "mail",
+      "value": 64400000000,
+      "unit": "bytes",
+      "provenance": "measured",
+      "collector": "mailbox_usage",
+      "source": "sample.mailbox_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "mail.item_count",
+      "workload": "mail",
+      "value": 102300,
+      "unit": "items",
+      "provenance": "measured",
+      "collector": "mailbox_usage",
+      "source": "sample.mailbox_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "mail.other_systems_send_mail",
+      "workload": "mail",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "onedrive.account_count",
+      "workload": "onedrive",
+      "value": 20,
+      "unit": "accounts",
+      "provenance": "measured",
+      "collector": "onedrive_usage",
+      "source": "sample.onedrive_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "onedrive.storage_bytes",
+      "workload": "onedrive",
+      "value": 52500000000,
+      "unit": "bytes",
+      "provenance": "measured",
+      "collector": "onedrive_usage",
+      "source": "sample.onedrive_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "partial",
+        "scanned": 18,
+        "failed": 2,
+        "total": 20
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "onedrive.external_sharing_in_use",
+      "workload": "onedrive",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "sharepoint.site_count",
+      "workload": "sharepoint",
+      "value": null,
+      "unit": "sites",
+      "provenance": "unknown",
+      "collector": "sharepoint_site_usage",
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "collector_skipped"
+    },
+    {
+      "id": "sharepoint.storage_bytes",
+      "workload": "sharepoint",
+      "value": null,
+      "unit": "bytes",
+      "provenance": "unknown",
+      "collector": "sharepoint_site_usage",
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "collector_skipped"
+    },
+    {
+      "id": "sharepoint.file_count",
+      "workload": "sharepoint",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": "sharepoint_site_usage",
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "collector_skipped"
+    },
+    {
+      "id": "sharepoint.custom_solutions_in_use",
+      "workload": "sharepoint",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "teams.team_count",
+      "workload": "teams",
+      "value": 6,
+      "unit": "teams",
+      "provenance": "measured",
+      "collector": "teams_usage",
+      "source": "sample.teams_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "teams.channel_count",
+      "workload": "teams",
+      "value": 14,
+      "unit": "channels",
+      "provenance": "measured",
+      "collector": "teams_usage",
+      "source": "sample.teams_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "teams.teams_with_guests_count",
+      "workload": "teams",
+      "value": 2,
+      "unit": "teams",
+      "provenance": "measured",
+      "collector": "teams_usage",
+      "source": "sample.teams_usage",
+      "collected_at": "2026-11-05T10:00:00Z",
+      "period": "2026-05-09/2026-11-04",
+      "coverage": {
+        "kind": "complete"
+      },
+      "missing_reason": null
+    },
+    {
+      "id": "teams.chat_history_must_be_kept",
+      "workload": "teams",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.kind.macro",
+      "workload": "office_files",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.kind.access",
+      "workload": "office_files",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.kind.publisher",
+      "workload": "office_files",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.kind.visio",
+      "workload": "office_files",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.kind.onenote",
+      "workload": "office_files",
+      "value": null,
+      "unit": "files",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "device_management.device_count",
+      "workload": "device_management",
+      "value": 22,
+      "unit": "devices",
+      "provenance": "provided",
+      "collector": null,
+      "source": "sample.interview",
+      "collected_at": "2026-10-30",
+      "period": null,
+      "coverage": null,
+      "missing_reason": null
+    },
+    {
+      "id": "device_management.windows_device_count",
+      "workload": "device_management",
+      "value": null,
+      "unit": "devices",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "device_management.in_use",
+      "workload": "device_management",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "windows_software.application_count",
+      "workload": "windows_software",
+      "value": null,
+      "unit": "applications",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "windows_software.without_web_version_count",
+      "workload": "windows_software",
+      "value": null,
+      "unit": "applications",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "power_platform.in_use",
+      "workload": "power_platform",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "telephony.replacement_available",
+      "workload": "telephony",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "identity_access.sso_application_count",
+      "workload": "identity_access",
+      "value": null,
+      "unit": "applications",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "identity_access.conditional_access_in_use",
+      "workload": "identity_access",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "security_compliance.protection_or_retention_in_use",
+      "workload": "security_compliance",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "small_apps.in_use",
+      "workload": "small_apps",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "integrations.application_count",
+      "workload": "integrations",
+      "value": null,
+      "unit": "applications",
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "not_collected_in_this_version"
+    }
+  ],
+  "licences": {
+    "collector": "licences",
+    "source": "sample.licences",
+    "collected_at": "2026-11-05T10:00:00Z",
+    "coverage": {
+      "kind": "complete"
+    },
+    "products": [
+      {
+        "sku_part_number": "SAMPLE_SMALL_SUITE",
+        "sku_guid": "00000000-0000-4000-8000-000000000004",
+        "purchased": 20,
+        "assigned": 20,
+        "service_plans": [
+          {
+            "name": "FLOW_O365_P1",
+            "guid": "00000000-0000-4000-8000-000000000065"
+          },
+          {
+            "name": "POWERAPPS_O365_P1",
+            "guid": "00000000-0000-4000-8000-000000000066"
+          },
+          {
+            "name": "FORMS_PLAN_E1",
+            "guid": "00000000-0000-4000-8000-00000000006c"
+          },
+          {
+            "name": "PROJECTWORKMANAGEMENT",
+            "guid": "00000000-0000-4000-8000-00000000006d"
+          }
+        ]
+      }
+    ]
+  }
+}

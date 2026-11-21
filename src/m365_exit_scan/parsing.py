@@ -25,6 +25,19 @@ def read_text(path: Path | Traversable) -> str:
         raise InputError("not_readable", file=path.name, field="$") from None
 
 
+def reject_at_signs(value: object, file_name: str, field: str = "$") -> None:
+    if isinstance(value, str) and "@" in value:
+        raise InputError("contains_at", file=file_name, field=field)
+    if isinstance(value, dict):
+        for index, (key, item) in enumerate(value.items()):
+            member = f"{field}[{index}]"
+            reject_at_signs(key, file_name, member)
+            reject_at_signs(item, file_name, member)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            reject_at_signs(item, file_name, f"{field}[{index}]")
+
+
 def _finite(value: object, file_name: str, field: str) -> None:
     if isinstance(value, float) and not isfinite(value):
         raise InputError("non_finite_number", file=file_name, field=field)

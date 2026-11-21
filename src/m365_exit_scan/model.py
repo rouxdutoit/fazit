@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import json
 import re
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Never
@@ -10,7 +11,7 @@ from uuid import UUID
 from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry
 from .errors import InputError
-from .parsing import parse_json, read_text
+from .parsing import parse_json, read_text, reject_at_signs
 
 SCHEMA_VERSION = "1.0"
 SUPPORTED_SCHEMA_MAJOR = 1
@@ -135,18 +136,6 @@ class _ScanReader:
 
     def fail(self, field: str, code: str = "invalid_field") -> Never:
         raise InputError(code, file=self.file_name, field=field or "$")
-
-    def check_text(self, value: object, field: str = "$") -> None:
-        if isinstance(value, str) and "@" in value:
-            self.fail(field, "contains_at")
-        if isinstance(value, dict):
-            for index, (key, item) in enumerate(value.items()):
-                member = f"{field}[{index}]"
-                self.check_text(key, member)
-                self.check_text(item, member)
-        elif isinstance(value, list):
-            for index, item in enumerate(value):
-                self.check_text(item, f"{field}[{index}]")
 
     def fields(
         self,
@@ -431,7 +420,7 @@ class _ScanReader:
         )
 
     def scan(self, value: object) -> Scan:
-        self.check_text(value)
+        reject_at_signs(value, self.file_name)
         if not isinstance(value, dict):
             self.fail("$")
         version = self.schema_version(value.get("schema_version"))
@@ -467,3 +456,9 @@ def load_scan_text(text: str, file_name: str, catalogue: Catalogue) -> Scan:
 
 def load_scan(path: Path, catalogue: Catalogue) -> Scan:
     return load_scan_text(read_text(path), path.name, catalogue)
+
+
+def scan_to_json(scan: Scan) -> str:
+    data = asdict(scan)
+    del data["dropped_count"]
+    return json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"

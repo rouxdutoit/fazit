@@ -18,6 +18,7 @@ found:
   period: Berichtszeitraum
   coverage: Umfang der Erhebung
   sample: Die Messwerte der Erhebung sind simuliert.
+  note: Hinweis
   partial_positive: 'Mindestens {value}'
   partial_zero: '{value} im geprüften Bestand'
   notes:
@@ -192,6 +193,8 @@ format:
 cli:
   error_prefix: 'Fehler: {message}'
   version: '{version}'
+  sample_scan: Die Beispielerhebung wurde unter {path} gespeichert.
+  sample_inputs: Die Beispieleingaben wurden unter {path} gespeichert.
 errors:
   invalid_json: Die Datei {file} enthält an der Stelle {field} ungültiges JSON.
   invalid_yaml: Die Datei {file} enthält an der Stelle {field} ungültiges YAML.

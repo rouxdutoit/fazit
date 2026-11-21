@@ -1,19 +1,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import ast
+import datetime
+import os
 import re
 import socket
 from dataclasses import replace
+from datetime import date, tzinfo
 from importlib.resources import files
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
-from m365_exit_scan import __version__
+from m365_exit_scan import __version__, i18n, model
+from m365_exit_scan import report as report_module
 from m365_exit_scan.catalogue import load_catalogue
 from m365_exit_scan.cli import app
 from m365_exit_scan.errors import InputError
 from m365_exit_scan.i18n import load_locale
-from m365_exit_scan.model import Coverage, Scan, load_scan_text
+from m365_exit_scan.model import Coverage, Scan, load_scan, load_scan_text
 from m365_exit_scan.parsing import read_text
 from m365_exit_scan.report import render_report, report_file_name
 
@@ -25,7 +30,12 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     report = tmp_path / "report-2026-11-02-en.html"
-    assert result.stdout.splitlines() == [str(report)]
+    strings = load_locale("en")["cli"]
+    assert result.stdout.splitlines() == [
+        strings["sample_scan"].format(path=tmp_path / "scan-2026-11-02-en.json"),
+        strings["sample_inputs"].format(path=tmp_path / "inputs-2026-11-02-en.yaml"),
+        str(report),
+    ]
     assert report.is_file()
     html = report.read_text(encoding="utf-8")
     assert re.findall(r'data-section="([^"]+)"', html) == ["header", "found", "appendix", "footer"]
@@ -65,13 +75,17 @@ def test_audit_hook_records_caught_socket_attempts(offline: list[str]) -> None:
     assert offline.pop(0) == "socket.getaddrinfo"
 
 
-def test_demo_refuses_a_symlink_destination(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "name",
+    ["report-2026-11-02-en.html", "scan-2026-11-02-en.json", "inputs-2026-11-02-en.yaml"],
+)
+def test_demo_refuses_a_symlink_destination(tmp_path: Path, name: str) -> None:
     outside = tmp_path / "outside.html"
     outside.write_bytes(b"Preserve this file")
     out = tmp_path / "report"
     out.mkdir()
-    destination = out / "report-2026-11-02-en.html"
-    destination.symlink_to(outside)
+    destination = out / name
+    os.symlink(outside, destination)
 
     result = runner.invoke(app, ["demo", "--out", str(out)])
 
@@ -98,8 +112,18 @@ def test_cli_renders_both_samples_in_both_languages(
 
     assert result.exit_code == 0, result.output
     report = tmp_path / f"report-{date}-{lang}.html"
-    assert result.stdout.splitlines() == [str(report)]
+    scan_path = tmp_path / f"scan-{date}-{lang}.json"
+    inputs_path = tmp_path / f"inputs-{date}-{lang}.yaml"
+    strings = load_locale(lang)["cli"]
+    assert result.stdout.splitlines() == [
+        strings["sample_scan"].format(path=scan_path),
+        strings["sample_inputs"].format(path=inputs_path),
+        str(report),
+    ]
     assert not result.stderr and report.is_file()
+    assert load_scan(scan_path, load_catalogue()) == _sample_scan(sample)
+    inputs = files("m365_exit_scan").joinpath("demo", sample, "inputs.yaml")
+    assert inputs_path.read_bytes() == inputs.read_bytes()
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
     assert load_locale(lang)["header"]["sample"] in html
@@ -224,3 +248,166 @@ def test_version_works_without_a_command() -> None:
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert result.stdout.strip() == __version__
+
+
+def test_report_rebuilds_a_demo_copy(tmp_path: Path) -> None:
+    demo_out = tmp_path / "demo"
+    demo_result = runner.invoke(app, ["demo", "--out", str(demo_out)])
+    assert demo_result.exit_code == 0, demo_result.output
+    scan = demo_out / "scan-2026-11-02-en.json"
+    assert scan.is_file()
+
+    out = tmp_path / "rebuilt"
+    result = runner.invoke(app, ["report", str(scan), "--lang", "de", "--out", str(out)])
+
+    assert result.exit_code == 0, result.output
+    report = out / "report-2026-11-02-de.html"
+    assert result.stdout.splitlines() == [str(report.resolve())]
+    assert not result.stderr
+    assert list(out.iterdir()) == [report]
+    html = report.read_text(encoding="utf-8")
+    assert 'lang="de"' in html
+    assert "2. November 2026" in html
+
+
+def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
+    outside = tmp_path / "outside.html"
+    outside.write_bytes(b"Preserve this file")
+    out = tmp_path / "out"
+    out.mkdir()
+    destination = out / "report-2026-11-02-en.html"
+    os.symlink(outside, destination)
+    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+
+    result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
+
+    assert result.exit_code == 2 and not result.stdout
+    assert "symbolic link" in result.stderr
+    assert destination.is_symlink()
+    assert outside.read_bytes() == b"Preserve this file"
+
+
+@pytest.mark.parametrize(
+    ("kind", "code", "field", "details"),
+    [
+        ("missing", "file_not_found", "$", {}),
+        ("directory", "is_directory", "$", {}),
+        ("not_utf8", "not_utf8", "$", {}),
+        ("schema", "schema_version", "schema_version", {"found": "2.0", "supported": "1.x"}),
+    ],
+)
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_report_errors_name_the_file_and_field(
+    tmp_path: Path, kind: str, code: str, field: str, details: dict[str, str], lang: str
+) -> None:
+    scan = tmp_path / "inventory.json"
+    if kind == "directory":
+        scan.mkdir()
+    elif kind == "not_utf8":
+        scan.write_bytes(b"\xff")
+    elif kind == "schema":
+        scan.write_text('{"schema_version": "2.0"}', encoding="utf-8")
+    out = tmp_path / "out"
+    arguments = ["report", str(scan), "--out", str(out)]
+    if lang == "de":
+        arguments.extend(["--lang", "de"])
+
+    result = runner.invoke(app, arguments)
+
+    strings = load_locale(lang)
+    message = strings["errors"][code].format(file=scan.name, field=field, **details)
+    assert result.exit_code == 2
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
+    assert not result.stdout and not out.exists()
+
+
+def test_report_debug_exposes_the_input_error(tmp_path: Path) -> None:
+    scan = tmp_path / "missing.json"
+    with pytest.raises(InputError, match="file_not_found"):
+        runner.invoke(app, ["--debug", "report", str(scan)], catch_exceptions=False)
+
+
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions")
+def test_report_refuses_an_unwritable_output_directory(tmp_path: Path) -> None:
+    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    out = tmp_path / "unwritable"
+    out.mkdir(mode=0o500)
+    try:
+        result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
+
+        assert result.exit_code == 2
+        assert not result.stdout
+        assert len(result.stderr.splitlines()) == 1
+        assert result.stderr.startswith("Error:")
+        assert "--out" in result.stderr and out.name in result.stderr
+        assert not list(out.iterdir())
+    finally:
+        out.chmod(0o700)
+
+
+def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
+    class SystemDate(date):
+        @classmethod
+        def today(cls) -> date:
+            return day
+
+    class SystemDateTime(datetime.datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> datetime.datetime:
+            return cls(day.year, day.month, day.day, tzinfo=tz)
+
+        @classmethod
+        def utcnow(cls) -> datetime.datetime:
+            return cls.now()
+
+    for module in (datetime, model, i18n, report_module):
+        patch.setattr(module, "date", SystemDate)
+    for module in (datetime, model):
+        patch.setattr(module, "datetime", SystemDateTime)
+
+
+def test_report_bytes_and_name_ignore_the_system_day(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    reports = []
+    for day in (date(2027, 1, 1), date(2031, 12, 31)):
+        out = tmp_path / day.isoformat()
+        with monkeypatch.context() as patch:
+            _set_system_day(patch, day)
+            result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
+        assert result.exit_code == 0, result.output
+        path = Path(result.stdout.strip())
+        assert path.is_file() and path.parent == out
+        reports.append((path.name, path.read_bytes()))
+
+    assert reports[0] == reports[1]
+
+
+def test_source_does_not_read_the_clock() -> None:
+    source = Path(__file__).resolve().parents[1] / "src"
+    wall_clock = {"today", "now", "utcnow"}
+    time_functions = {"time", "localtime", "gmtime"}
+    for path in sorted(source.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        time_modules = {"time"}
+        forbidden = set(wall_clock)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                time_modules.update(
+                    alias.asname or alias.name for alias in node.names if alias.name == "time"
+                )
+            elif isinstance(node, ast.ImportFrom) and node.module == "time":
+                forbidden.update(
+                    alias.asname or alias.name
+                    for alias in node.names
+                    if alias.name in time_functions
+                )
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = ast.unparse(node.func)
+            module, _, attribute = name.rpartition(".")
+            reads_clock = attribute in wall_clock or name in forbidden
+            reads_clock |= module in time_modules and attribute in time_functions
+            assert not reads_clock, f"{path}:{node.lineno} calls {name}"
