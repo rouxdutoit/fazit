@@ -1,4 +1,4 @@
-# Roadmap: m365-exit-scan
+# Roadmap: fazit
 
 ## Overview
 
@@ -76,7 +76,7 @@ Plans, run one at a time in this order:
 **Depends on**: Phase 3
 **Requirements**: DIST-01, DIST-02, DOCS-02, DOCS-03, DOCS-04
 **Success Criteria** (what must be TRUE):
-  1. A user with `uv` installed runs `uvx m365-exit-scan demo` and gets the report, installed from the tagged release on PyPI.
+  1. A user with `uv` installed runs `uvx fazit demo` and gets the report, installed from the tagged release on PyPI.
   2. A user on a Windows machine without Python downloads the self-contained build, sees a valid signature on it, and runs `demo` to get the same report.
   3. An administrator follows the app-registration guide in German or English from nothing to a passing `doctor` run, and the guide says who can grant consent.
   4. A reader finds every scope the tool can request, with the reason for it, in `docs/permissions.md`, and every `scan.json` field in `docs/schema.md`, and both match what the released tool does.

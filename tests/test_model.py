@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from m365_exit_scan.catalogue import Catalogue, load_catalogue
-from m365_exit_scan.errors import InputError
-from m365_exit_scan.i18n import error_sentence, load_locale
-from m365_exit_scan.model import Coverage, Scan, load_scan, load_scan_text
-from m365_exit_scan.parsing import parse_json, parse_yaml, read_text
-from m365_exit_scan.report import render_report
+from fazit.catalogue import Catalogue, load_catalogue
+from fazit.errors import InputError
+from fazit.i18n import error_sentence, load_locale
+from fazit.model import Coverage, Scan, load_scan, load_scan_text
+from fazit.parsing import parse_json, parse_yaml, read_text
+from fazit.report import render_report
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def _finding(finding_id: str, **overrides: object) -> dict[str, object]:
 def scan_data() -> dict:
     return {
         "schema_version": "1.0",
-        "tool": {"name": "m365-exit-scan", "version": "0.1.0"},
+        "tool": {"name": "fazit", "version": "0.1.0"},
         "generated_at": "2026-11-02T09:00:00Z",
         "source_kind": "import",
         "collectors": [
@@ -134,7 +134,7 @@ def test_catalogue_and_town_sample_agree(catalogue: Catalogue) -> None:
         "small_apps",
         "integrations",
     )
-    town = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    town = files("fazit").joinpath("demo", "town", "scan.json")
     scan = load_scan_text(read_text(town), town.name, catalogue)
 
     assert tuple(finding.id for finding in scan.findings) == tuple(
@@ -154,7 +154,7 @@ def test_catalogue_and_town_sample_agree(catalogue: Catalogue) -> None:
 
 
 def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
-    source = files("m365_exit_scan").joinpath("rules", "findings.yaml")
+    source = files("fazit").joinpath("rules", "findings.yaml")
     bad = tmp_path / "findings.yaml"
     bad.write_text(
         read_text(source).replace("workload: licences", "workload: absent", 1), encoding="utf-8"

@@ -103,7 +103,7 @@ class RiskyKind:
 
 
 def rules_dir() -> Traversable:
-    return files("m365_exit_scan").joinpath("rules")
+    return files("fazit").joinpath("rules")
 
 
 class _RuleReader:

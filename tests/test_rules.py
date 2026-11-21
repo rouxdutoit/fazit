@@ -10,12 +10,12 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from m365_exit_scan import rules
-from m365_exit_scan.catalogue import Catalogue, load_catalogue
-from m365_exit_scan.cli import app
-from m365_exit_scan.errors import InputError
-from m365_exit_scan.i18n import load_locale
-from m365_exit_scan.model import (
+from fazit import rules
+from fazit.catalogue import Catalogue, load_catalogue
+from fazit.cli import app
+from fazit.errors import InputError
+from fazit.i18n import load_locale
+from fazit.model import (
     Coverage,
     Finding,
     FindingValue,
@@ -25,9 +25,9 @@ from m365_exit_scan.model import (
     load_scan_text,
     scan_to_json,
 )
-from m365_exit_scan.parsing import parse_yaml, read_text
-from m365_exit_scan.report import SECTION_ORDER, render_report
-from m365_exit_scan.rules import (
+from fazit.parsing import parse_yaml, read_text
+from fazit.report import SECTION_ORDER, render_report
+from fazit.rules import (
     MissingEvidence,
     StatusRuleSet,
     WorkloadStatus,
@@ -51,7 +51,7 @@ def catalogue() -> Catalogue:
 
 
 def sample_scan(sample: str, catalogue: Catalogue) -> Scan:
-    source = files("m365_exit_scan").joinpath("demo", sample, "scan.json")
+    source = files("fazit").joinpath("demo", sample, "scan.json")
     return load_scan_text(read_text(source), source.name, catalogue)
 
 
@@ -795,7 +795,7 @@ def _attention(html: str) -> str:
 def test_attention_shows_risky_types_and_windows_software(
     tmp_path: Path, catalogue: Catalogue, lang: str
 ) -> None:
-    source = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     result = CliRunner().invoke(
         app, ["report", str(source), "--lang", lang, "--out", str(tmp_path)]
     )

@@ -15,15 +15,15 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from m365_exit_scan import __version__, i18n, model, rules
-from m365_exit_scan import report as report_module
-from m365_exit_scan.catalogue import load_catalogue
-from m365_exit_scan.cli import app
-from m365_exit_scan.errors import InputError
-from m365_exit_scan.i18n import load_locale
-from m365_exit_scan.model import Coverage, Scan, load_scan, load_scan_text
-from m365_exit_scan.parsing import parse_yaml, read_text
-from m365_exit_scan.report import render_report, report_file_name
+from fazit import __version__, i18n, model, rules
+from fazit import report as report_module
+from fazit.catalogue import load_catalogue
+from fazit.cli import app
+from fazit.errors import InputError
+from fazit.i18n import load_locale
+from fazit.model import Coverage, Scan, load_scan, load_scan_text
+from fazit.parsing import parse_yaml, read_text
+from fazit.report import render_report, report_file_name
 
 runner = CliRunner()
 
@@ -107,7 +107,7 @@ def test_demo_refuses_a_symlink_destination(tmp_path: Path, name: str) -> None:
 
 
 def _sample_scan(name: str) -> Scan:
-    source = files("m365_exit_scan").joinpath("demo", name, "scan.json")
+    source = files("fazit").joinpath("demo", name, "scan.json")
     return load_scan_text(read_text(source), source.name, load_catalogue())
 
 
@@ -132,7 +132,7 @@ def test_cli_renders_both_samples_in_both_languages(
     ]
     assert not result.stderr and report.is_file()
     assert load_scan(scan_path, load_catalogue()) == _sample_scan(sample)
-    inputs = files("m365_exit_scan").joinpath("demo", sample, "inputs.yaml")
+    inputs = files("fazit").joinpath("demo", sample, "inputs.yaml")
     assert inputs_path.read_bytes() == inputs.read_bytes()
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
@@ -200,7 +200,7 @@ def test_provided_answer_source_is_independent_of_scan_source() -> None:
 
 @pytest.mark.parametrize(("sample", "lang"), [("town", "en"), ("nonprofit", "de")])
 def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> None:
-    scan_path = files("m365_exit_scan").joinpath("demo", sample, "scan.json")
+    scan_path = files("fazit").joinpath("demo", sample, "scan.json")
     result = runner.invoke(app, ["report", str(scan_path), "--lang", lang, "--out", str(tmp_path)])
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.strip())
@@ -269,7 +269,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
 def test_changed_rule_changes_demo_status_and_escapes_the_reason(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     original = runner.invoke(app, ["report", str(scan), "--out", str(tmp_path / "original")])
     assert original.exit_code == 0, original.output
     html = Path(original.stdout.strip()).read_text(encoding="utf-8")
@@ -404,7 +404,7 @@ def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
     out.mkdir()
     destination = out / "report-2026-11-02-en.html"
     os.symlink(outside, destination)
-    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
 
     result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
 
@@ -456,7 +456,7 @@ def test_report_debug_exposes_the_input_error(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions")
 def test_report_refuses_an_unwritable_output_directory(tmp_path: Path) -> None:
-    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     out = tmp_path / "unwritable"
     out.mkdir(mode=0o500)
     try:
@@ -496,7 +496,7 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
 def test_report_bytes_and_name_ignore_the_system_day(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    scan = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    scan = files("fazit").joinpath("demo", "town", "scan.json")
     reports = []
     for day in (date(2027, 1, 1), date(2031, 12, 31)):
         out = tmp_path / day.isoformat()

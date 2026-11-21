@@ -1,6 +1,6 @@
-# m365-exit-scan
+# Fazit
 
-> Working name. "M365" is Microsoft's mark; the name may change before the first public release.
+> Named Fazit on 2026-11-21 (`DECISIONS.md` D24). The working name was `m365-exit-scan`.
 
 ## What This Is
 

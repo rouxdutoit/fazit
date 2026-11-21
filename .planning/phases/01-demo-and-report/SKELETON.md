@@ -1,4 +1,4 @@
-# Walking Skeleton — m365-exit-scan
+# Walking Skeleton — fazit
 
 **Phase:** 1
 **Generated:** 2026-11-21 (revised the same day after two plan reviews and the reference teardown; decisions D-39 to D-65)
@@ -9,7 +9,7 @@ This file is the contract for the seven plans of Phase 1 (01-01 to 01-07, run on
 
 ## Capability Proven End-to-End
 
-A user runs one command, `uv run m365-exit-scan demo`, with no Microsoft account, and gets one real, self-contained HTML report file built from a bundled `scan.json`, with the absolute path of that file printed as the last line of standard output. The run opens no socket.
+A user runs one command, `uv run fazit demo`, with no Microsoft account, and gets one real, self-contained HTML report file built from a bundled `scan.json`, with the absolute path of that file printed as the last line of standard output. The run opens no socket.
 
 The path that proves it: console script, Typer command, sample file read through `importlib.resources`, validation into dataclasses, Jinja2 template with strings from a locale file, one `.html` file on disk.
 
@@ -20,7 +20,7 @@ The path that proves it: console script, Typer command, sample file read through
 | Application shape | Local command-line tool. No server, no accounts, no hosted part. | Data must never leave the machine. |
 | Language and packaging | Python 3.12 or newer, PEP 621 `pyproject.toml`, `hatchling` pinned to one exact version, managed with `uv`, `uv.lock` committed, `exclude-newer` set to a fixed date (D-02, DECISIONS.md D16, D17). | Small, auditable, no package younger than 14 days. |
 | Dependencies | Runtime: `typer`, `jinja2`, `pyyaml`. Development: `pytest`, `ruff`. Nothing else (D-03). | A short list is part of the trust story. |
-| Commands | Typer. Console script `m365-exit-scan` points at `m365_exit_scan.cli:main`. Help text is English (D-55). | DECISIONS.md D18. |
+| Commands | Typer. Console script `fazit` points at `fazit.cli:main`. Help text is English (D-55). | DECISIONS.md D18. |
 | Rendering | One Jinja2 template, autoescape on, no JavaScript, inline CSS, one output file, a restrictive content security policy (D-25). | The report must open offline and print cleanly. |
 | Data layer | No database. Inputs are files: `scan.json`, `inputs.yaml`, and YAML data files inside the package. Output is one `.html` file. Frozen dataclasses (D-09). | Nothing is stored between runs. |
 | Judgement in data | Workloads, finding ids, status rules, service plans, risky file types, mappings and all words live in YAML inside the package, read with `importlib.resources` (D-04, D-59). | Adding a workload is a data change only. |
@@ -30,7 +30,7 @@ The path that proves it: console script, Typer command, sample file read through
 | Reproducible | No function reads the clock. File name and scan date come from `scan.generated_at` (D-49). | The same inputs give the same bytes on any day. |
 | Sign-in and network | None in this phase. The test suite fails on any socket creation (D-52). | Phase 1 contains no Microsoft code. |
 | Deployment target | None. | The tool runs on the user's own machine. |
-| Directory layout | `src/m365_exit_scan/` as in HANDOFF.md section 11, without `auth.py`, `graph.py`, `collectors/` and `privacy.py`; with `parsing.py`, `catalogue.py`, `output.py` and `inputs.py` (D-01, D-40). | Modules follow the jobs that exist, not the handoff's list. |
+| Directory layout | `src/fazit/` as in HANDOFF.md section 11, without `auth.py`, `graph.py`, `collectors/` and `privacy.py`; with `parsing.py`, `catalogue.py`, `output.py` and `inputs.py` (D-01, D-40). | Modules follow the jobs that exist, not the handoff's list. |
 | Error style | One exception type, `InputError`, carrying a code, the file and the field, never the offending value. The command prints one sentence from the locale files, exit code 2, no traceback unless `--debug` (D-08). Messages use `--lang` when given, else English (D-55). | A council IT officer must be able to act on the message. |
 | Languages | `locales/en.yaml` and `locales/de.yaml`, identical key sets, a small formatter of our own (D-31). | German and English from the first run. |
 | Licence | AGPL-3.0-or-later with SPDX headers (D-34). | Settled by the founder in DECISIONS.md S5. |
@@ -42,7 +42,7 @@ The path that proves it: console script, Typer command, sample file read through
 - [ ] Routing: does not apply, there is no server. Its place is taken by the command table: `demo` and `report`.
 - [ ] Database: does not apply. Its place is taken by one real read (the bundled `scan.json`, parsed and validated) and one real write (the report file).
 - [ ] UI: the report is a document without interactive elements, because D-25 allows no JavaScript. The user's interaction is the command; the file on disk is the response.
-- [ ] Deployment: does not apply. The documented local full-stack run is `uv run m365-exit-scan demo --out ./report`.
+- [ ] Deployment: does not apply. The documented local full-stack run is `uv run fazit demo --out ./report`.
 
 ## Contracts Fixed by the Skeleton
 
@@ -278,7 +278,7 @@ Two edge cases. Partial exit with P = 0 and M unknown: parallel running is 0, th
 | Decision | Rating | Why |
 |---|---|---|
 | Shape of `scan.json` (D-09 to D-13, D-40 to D-42, D-60, D-62) | costly now, one-way from the first public release | Phase 2 and Phase 3 write this shape. Once a release is out, files exist on other people's machines. `schema_version` and the D-13 refusal keep a later change a versioned one. Confirm the shape before Phase 4. |
-| Package name `m365_exit_scan` and command `m365-exit-scan` | costly now, one-way after publication on PyPI | A rename touches the package directory, every import, the console script and the documents. Decide before Phase 4. |
+| Package name `fazit` and command `fazit` | costly now, one-way after publication on PyPI | A rename touches the package directory, every import, the console script and the documents. Decide before Phase 4. |
 | Licence AGPL-3.0-or-later | one-way once the repository is public and takes outside contributions | Settled by the founder (DECISIONS.md S5, HANDOFF.md section 3). |
 
 No checkpoint was added for any of the three: Phase 1 publishes nothing.

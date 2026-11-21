@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from m365_exit_scan.errors import InputError
-from m365_exit_scan.output import write_inside
+from fazit.errors import InputError
+from fazit.output import write_inside
 
 
 def test_write_creates_the_output_directory_and_replaces_regular_files(

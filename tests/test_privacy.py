@@ -9,10 +9,10 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner, Result
 
-from m365_exit_scan import cli
-from m365_exit_scan.catalogue import load_catalogue
-from m365_exit_scan.i18n import load_locale
-from m365_exit_scan.model import load_scan, load_scan_text, scan_to_json
+from fazit import cli
+from fazit.catalogue import load_catalogue
+from fazit.i18n import load_locale
+from fazit.model import load_scan, load_scan_text, scan_to_json
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 PRIVATE_TEXT = ("Mustermann", "eyJhbGci", "planted-secret")
@@ -170,7 +170,7 @@ def test_report_rejects_unregistered_evidence_codes(
 def test_demo_rejects_addresses_in_inputs_names(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, inputs: str
 ) -> None:
-    source = files("m365_exit_scan").joinpath("demo", "town", "scan.json")
+    source = files("fazit").joinpath("demo", "town", "scan.json")
     sample = _sample_directory(tmp_path, monkeypatch)
     (sample / "scan.json").write_bytes(source.read_bytes())
     (sample / "inputs.yaml").write_text(inputs, encoding="utf-8")

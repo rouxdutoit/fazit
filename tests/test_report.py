@@ -9,10 +9,10 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from m365_exit_scan import report as report_module
-from m365_exit_scan.cli import app
-from m365_exit_scan.i18n import load_locale
-from m365_exit_scan.report import SECTION_ORDER
+from fazit import report as report_module
+from fazit.cli import app
+from fazit.i18n import load_locale
+from fazit.report import SECTION_ORDER
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 RESOURCE_ELEMENTS = {
@@ -71,7 +71,7 @@ def _rebuild(scan: Path, out: Path, lang: str) -> str:
 
 
 def _sample_scan(sample: str) -> Path:
-    return Path(str(files("m365_exit_scan").joinpath("demo", sample, "scan.json")))
+    return Path(str(files("fazit").joinpath("demo", sample, "scan.json")))
 
 
 @pytest.mark.parametrize(("sample", "lang"), [*SAMPLES, ("planted", "en")])
