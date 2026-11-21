@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
   title: Microsoft 365 inventory
+  organisation: Organisation
+  unnamed_organisation: This organisation
   scan_date: Evidence date
   tool_version: Tool version
   target_profile: Target profile
@@ -20,6 +22,7 @@ found:
   coverage: Coverage
   sample: Scan measurements are simulated.
   note: Note
+  comparison: For comparison only
   partial_positive: 'At least {value}'
   partial_zero: '{value} in the items checked'
   notes:
@@ -77,6 +80,9 @@ attention:
   count: Reported count
   none_reported: None were reported.
   software: Windows-only software
+  software_name: Application
+  software_users: People using it
+  software_web_version: Vendor offers a web version
   cannot_be_moved: Cannot be moved
   gap_scope: A direct transfer for these functions has not been established for the selected profile.
   needed_here: Needed by this organisation
@@ -290,6 +296,7 @@ finding:
 common:
   unavailable: '—'
   date_not_supplied: Date not supplied
+  not_stated: Not stated
   'yes': 'Yes'
   'no': 'No'
 months: [January, February, March, April, May, June, July, August, September, October, November, December]
@@ -308,6 +315,8 @@ errors:
   invalid_json: The JSON in {file} is invalid at {field}.
   invalid_yaml: The YAML in {file} is invalid at {field}.
   invalid_field: Check the value of {field} in {file}.
+  unknown_field: Remove the unrecognised field {field} from {file}.
+  money_not_quoted: Put the decimal value of {field} in quotation marks in {file}.
   missing_field: Supply a value for {field} in {file}.
   invalid_code: Choose a supported code for {field} in {file}.
   contains_at: Remove text containing an at sign from {field} in {file}.

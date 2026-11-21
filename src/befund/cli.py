@@ -9,9 +9,10 @@ from . import PROJECT_NAME, __version__
 from .catalogue import load_catalogue
 from .errors import InputError
 from .i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, error_sentence, load_locale
+from .inputs import empty_inputs, load_inputs, load_inputs_text
 from .model import load_scan, load_scan_text, scan_to_json
 from .output import write_inside
-from .parsing import parse_yaml, read_text, reject_at_signs
+from .parsing import read_text
 from .report import render_report, report_file_name
 from .rules import PROFILES
 
@@ -67,13 +68,15 @@ def demo(
             raise InputError("unsupported_sample", file=PROJECT_NAME, field="--sample")
         sample_files = files("befund").joinpath("demo", sample)
         source = sample_files.joinpath("scan.json")
-        inputs = sample_files.joinpath("inputs.yaml")
+        answers = sample_files.joinpath("inputs.yaml")
         catalogue = load_catalogue()
         scan = load_scan_text(read_text(source), source.name, catalogue)
-        inputs_text = read_text(inputs)
-        reject_at_signs(parse_yaml(inputs_text, inputs.name), inputs.name)
+        inputs_text = read_text(answers)
+        inputs = load_inputs_text(inputs_text, answers.name, catalogue)
 
-        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue)
+        html = render_report(
+            scan, lang=lang, profile=profile, catalogue=catalogue, inputs=inputs, sample_inputs=True
+        )
         stamp = f"{scan.generated_at[:10]}-{lang}"
         scan_path = write_inside(out, f"scan-{stamp}.json", scan_to_json(scan))
         inputs_path = write_inside(out, f"inputs-{stamp}.yaml", inputs_text)
@@ -90,19 +93,32 @@ def demo(
 def report(
     ctx: typer.Context,
     scan_json: Annotated[Path, typer.Argument(help="Scan JSON file to rebuild the report from.")],
-    lang: Annotated[str, typer.Option(help="Report language (en or de).")] = DEFAULT_LANGUAGE,
+    inputs: Annotated[
+        Path | None, typer.Option(help="YAML file with manual answers and costs.")
+    ] = None,
+    lang: Annotated[str | None, typer.Option(help="Report language (en or de).")] = None,
     out: Annotated[Path, typer.Option(help="Directory for the report.")] = Path("report"),
-    profile: Annotated[str, typer.Option(help=_PROFILE_HELP)] = "opendesk",
+    profile: Annotated[str | None, typer.Option(help=_PROFILE_HELP)] = None,
 ) -> None:
     """Build a report from an existing scan file."""
+    message_lang = lang if lang is not None else DEFAULT_LANGUAGE
     try:
-        _check_language(lang)
+        _check_language(message_lang)
         catalogue = load_catalogue()
         scan = load_scan(scan_json, catalogue)
-        html = render_report(scan, lang=lang, profile=profile, catalogue=catalogue)
-        path = write_inside(out, report_file_name(scan.generated_at, lang=lang), html)
+        answers = load_inputs(inputs, catalogue) if inputs is not None else empty_inputs()
+        report_lang = lang if lang is not None else answers.language or DEFAULT_LANGUAGE
+        target = profile if profile is not None else answers.target_profile or "opendesk"
+        html = render_report(
+            scan,
+            lang=report_lang,
+            profile=target,
+            catalogue=catalogue,
+            inputs=answers if inputs is not None else None,
+        )
+        path = write_inside(out, report_file_name(scan.generated_at, lang=report_lang), html)
     except InputError as error:
-        _exit_with_error(ctx, lang, error)
+        _exit_with_error(ctx, message_lang, error)
     typer.echo(str(path))
 
 

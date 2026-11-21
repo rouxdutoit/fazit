@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from collections import Counter
-from dataclasses import dataclass
 from datetime import date
 from functools import partial
 from importlib.resources import files
@@ -11,6 +10,7 @@ from . import PROJECT_NAME, REPOSITORY_URL, __version__
 from .catalogue import Catalogue, load_catalogue
 from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES, Formatter, code_label, reason_text
+from .inputs import Inputs, combine, provided_findings
 from .model import Coverage, Finding, FindingValue, Scan
 from .parsing import read_text
 from .rules import (
@@ -24,7 +24,6 @@ from .rules import (
     load_service_plans,
     load_status_rules,
     mapping_need,
-    select_evidence,
 )
 
 SECTION_ORDER = (
@@ -113,28 +112,6 @@ def _finding_labels(
     return labels
 
 
-@dataclass(frozen=True)
-class _ReportEvidence:
-    by_id: dict[str, Finding]
-    alternatives: dict[str, Finding]
-    conflicts: frozenset[str]
-
-
-def _report_evidence(scan: Scan, provided: tuple[Finding, ...]) -> _ReportEvidence:
-    by_id = {finding.id: finding for finding in scan.findings}
-    alternatives: dict[str, Finding] = {}
-    conflicts: set[str] = set()
-    for supplied in provided:
-        recorded = by_id.get(supplied.id)
-        selected = select_evidence(recorded, supplied)
-        by_id[supplied.id] = selected
-        if recorded and recorded.provenance == "measured" and supplied.provenance == "provided":
-            alternatives[supplied.id] = recorded if selected is supplied else supplied
-            if evidence_conflicts(recorded, supplied):
-                conflicts.add(supplied.id)
-    return _ReportEvidence(by_id, alternatives, frozenset(conflicts))
-
-
 def render_report(
     scan: Scan,
     *,
@@ -142,6 +119,8 @@ def render_report(
     profile: str = "opendesk",
     catalogue: Catalogue | None = None,
     provided: tuple[Finding, ...] = (),
+    inputs: Inputs | None = None,
+    sample_inputs: bool = False,
 ) -> str:
     formatter = Formatter(lang)
     strings = formatter.strings
@@ -151,12 +130,15 @@ def render_report(
     status_rules = load_status_rules(catalogue, checksums=checksums)
     risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
     mapping = load_mapping(profile, catalogue, checksums=checksums)
+    if inputs is not None:
+        provided += provided_findings(inputs, catalogue)
+    scan, other_evidence = combine(scan, provided)
     derived = licence_findings(scan, plans, catalogue)
     products = () if scan.licences is None else scan.licences.products
     licences = [(product, classify_product(product, plans)) for product in products]
     workload_labels = {entry.id: _label(strings, entry.label) for entry in catalogue.workloads}
-    evidence = _report_evidence(scan, provided)
-    by_id = evidence.by_id | {item.id: item for item in derived}
+    by_id = {item.id: item for item in scan.findings + derived}
+    conflicts = {item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}
     statuses = evaluate(
         by_id, status_rules, catalogue, collectors={item.id: item for item in scan.collectors}
     )
@@ -183,6 +165,8 @@ def render_report(
     )
     return template.render(
         scan=scan,
+        inputs=inputs,
+        input_source="sample.interview" if sample_inputs else "inputs_yaml",
         lang=lang,
         strings=strings,
         label=partial(_label, strings),
@@ -210,8 +194,8 @@ def render_report(
         ],
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         software=software,
-        alternatives=evidence.alternatives,
-        conflicts=evidence.conflicts,
+        alternatives={item.id: item for item in other_evidence},
+        conflicts=conflicts,
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[
             collector for collector in scan.collectors if collector.status == "skipped"

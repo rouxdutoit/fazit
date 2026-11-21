@@ -1,2 +1,74 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# EN: The amounts are invented and serve only to demonstrate the report.
+# DE: Die Beträge sind frei erfunden und dienen ausschließlich der Vorführung.
 organisation_name: Stadtverwaltung Musterstadt
+currency: EUR
+language: null
+target_profile: null
+as_of: "2026-11-10"
+amounts_are_invented: true
+current_costs:
+  microsoft_licences_per_year: "100000"
+  other_it_per_year: "20000"
+target_costs:
+  partial_exit:
+    users: 30
+    retained_microsoft_licences_per_year: "60000"
+    hosting_per_user_per_month: "8.50"
+    operations_per_year: "6000"
+    other_recurring_per_year: "1500"
+    one_time_migration: "15000"
+    application_adaptation: "4000"
+    external_advice: "3000"
+    training_days_per_person: 2
+    training_day_rate: "400"
+    training_staff: 30
+    productivity_loss: "9000"
+    parallel_running_months: 6
+  full_exit:
+    users: 85
+    retained_microsoft_licences_per_year: "0"
+    hosting_per_user_per_month: "8.50"
+    operations_per_year: "12000"
+    other_recurring_per_year: "2000"
+    one_time_migration: "40000"
+    application_adaptation: "10000"
+    external_advice: "8000"
+    training_days_per_person: 2
+    training_day_rate: "400"
+    training_staff: 85
+    productivity_loss: "25000"
+    parallel_running_months: 12
+windows_only_software:
+  - name: Flurzeichen Register
+    users: 14
+    vendor_has_web_version: false
+  - name: Kieselbogen Kasse
+    users: 9
+    vendor_has_web_version: false
+  - name: Wegeblick Dienstplan
+    users: 22
+    vendor_has_web_version: true
+provided_counts:
+  office_files.kind.macro: 271
+  office_files.kind.access: 15
+  office_files.kind.publisher: 21
+  office_files.kind.visio: 48
+  office_files.kind.onenote: 130
+  device_management.windows_device_count: 88
+  identity_access.sso_application_count: 4
+  integrations.application_count: 3
+confirmations:
+  licences.contract_terms_known: true
+  directory.account_list_reviewed: true
+  mail.other_systems_send_mail: true
+  onedrive.external_sharing_in_use: false
+  sharepoint.custom_solutions_in_use: true
+  teams.chat_history_must_be_kept: false
+  device_management.in_use: true
+  power_platform.in_use: true
+  telephony.in_use: true
+  telephony.replacement_available: false
+  identity_access.conditional_access_in_use: true
+  security_compliance.protection_or_retention_in_use: null
+  small_apps.in_use: false

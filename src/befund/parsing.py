@@ -92,11 +92,29 @@ def _check_yaml(node: Node, file_name: str, field: str, active: set[Node], seen:
     seen.add(node)
 
 
-def parse_yaml(text: str, file_name: str) -> object:
+def _check_quotes(node: Node, file_name: str, field: str) -> None:
+    member: Node | None = node
+    for part in field.split("."):
+        if not isinstance(member, MappingNode):
+            return
+        member = next((value for key, value in member.value if key.value == part), None)
+    if (
+        isinstance(member, ScalarNode)
+        and member.tag == "tag:yaml.org,2002:str"
+        and member.style not in ("'", '"')
+    ):
+        reject_at_signs(member.value, file_name, field)
+        raise InputError("money_not_quoted", file=file_name, field=field)
+
+
+def parse_yaml(text: str, file_name: str, *, quoted_fields: tuple[str, ...] = ()) -> object:
     try:
         node = yaml.compose(text, Loader=yaml.SafeLoader)
         if node is not None:
             _check_yaml(node, file_name, "$", set(), set())
+            # YAML can interpret an unquoted amount with a leading zero as text.
+            for field in quoted_fields:
+                _check_quotes(node, file_name, field)
         return yaml.safe_load(text)
     except (yaml.YAMLError, ValueError, OverflowError, RecursionError, LookupError, AttributeError):
         raise InputError("invalid_yaml", file=file_name, field="$") from None

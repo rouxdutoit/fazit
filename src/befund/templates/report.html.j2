@@ -8,8 +8,15 @@
 {%- endmacro %}
 {% macro finding_date(finding) -%}
   {% if finding.collected_at %}{{ format.date(finding.collected_at) }}
-  {%- elif finding.provenance == 'provided' %}{{ strings.common.date_not_supplied }}
+  {%- elif finding.provenance == 'provided' or finding.source == 'inputs_yaml' %}{{ strings.common.date_not_supplied }}
   {%- else %}{{ strings.common.unavailable }}{% endif %}
+{%- endmacro %}
+{% macro finding_source(finding) -%}
+  {% set source = input_source if finding.source == 'inputs_yaml' else finding.source %}
+  {{ code_label('source', source) if source else strings.common.unavailable }}
+{%- endmacro %}
+{% macro finding_coverage(finding) -%}
+  {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source == 'inputs_yaml') }}
 {%- endmacro %}
 {% macro evidence_summary(finding, compact=false) -%}
   <div data-provenance="{{ finding.provenance }}">
@@ -17,38 +24,52 @@
     <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
     <small class="evidence-meta">
       {% if not compact %}
-        <span>{{ strings.found.source }} · {{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</span>
+        <span>{{ strings.found.source }} · {{ finding_source(finding) }}</span>
         <span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>
         <span>{{ strings.found.period }} · {{ format.period(finding.period) if finding.period else strings.common.unavailable }}</span>
-        <span>{{ strings.found.coverage }} · {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+        <span>{{ strings.found.coverage }} · {{ finding_coverage(finding) }}</span>
       {% else %}
-        {% if finding.provenance == 'provided' and finding.source %}
-          <span>{{ code_label('source', finding.source) }}</span>
+        {% if finding.provenance == 'provided' %}
+          <span>{{ finding_source(finding) }} · {{ finding_date(finding) }}</span>
         {% endif %}
         {% if finding.coverage and finding.coverage.kind != 'complete' %}
-          <span>{{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</span>
+          <span>{{ finding_coverage(finding) }}</span>
         {% endif %}
       {% endif %}
     </small>
   </div>
 {%- endmacro %}
+{% macro alternative_evidence(finding, compact=false) -%}
+  {% if finding.id in alternatives %}
+    <small>{{ strings.found.comparison }}</small>
+    {{ evidence_summary(alternatives[finding.id], compact) }}
+    {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+  {% endif %}
+{%- endmacro %}
 {% macro evidence_pair(finding, compact=false) -%}
   {{ evidence_summary(finding, compact) }}
-  {% if finding.id in alternatives %}{{ evidence_summary(alternatives[finding.id], compact) }}{% endif %}
-  {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+  {{ alternative_evidence(finding, compact) }}
 {%- endmacro %}
 {% macro attention_evidence(finding) -%}
-  {% if finding and finding.provenance != 'unknown' %}
+  {% if finding %}
     {{ evidence_pair(finding) }}
-    {% if finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial' %}
+    {% if finding.missing_reason %}
+      <small>{{ reason_detail(finding.missing_reason) }}</small>
+    {% elif finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial' %}
       <small>{{ reason_detail('answer_not_provided') }}</small>
     {% endif %}
   {% else %}
     <div data-provenance="unknown">
       <span class="prov">{{ strings.provenance.unknown }}</span>
-      <small>{{ reason_detail(finding.missing_reason if finding else 'answer_not_provided') }}</small>
+      <small>{{ reason_detail('answer_not_provided') }}</small>
     </div>
   {% endif %}
+{%- endmacro %}
+{% macro missing_answer() -%}
+  <span data-provenance="unknown">
+    {{ strings.common.not_stated }}
+    <small>{{ reason_detail('answer_not_provided') }}</small>
+  </span>
 {%- endmacro %}
 {% macro status_label(status) -%}
   <span class="status {{ status }}"><span class="status-shape" aria-hidden="true"></span> {{ strings.status[status] }}</span>
@@ -335,6 +356,10 @@
     <h1>{{ strings.header.title }}</h1>
     <dl class="report-meta">
       <div>
+        <dt>{{ strings.header.organisation }}</dt>
+        <dd>{{ inputs.organisation_name if inputs and inputs.organisation_name else strings.header.unnamed_organisation }}</dd>
+      </div>
+      <div>
         <dt>{{ strings.header.scan_date }}</dt>
         <dd><time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time></dd>
       </div>
@@ -360,8 +385,9 @@
               {% set reason, fix = reason_text(code) %}
               <small data-reason="{{ code }}">{{ reason }} {{ fix }}</small>
             {% elif provenance == 'provided' %}
-              <small>{{ code_label('source', finding.source) }}</small>
+              <small>{{ finding_source(finding) }} · {{ finding_date(finding) }}</small>
             {% endif %}
+            {% if finding %}{{ alternative_evidence(finding, compact=true) }}{% endif %}
           </li>
         {% endfor %}
       </ul>
@@ -440,21 +466,14 @@
                       {% set reason, fix = reason_text(finding.missing_reason) %}
                       <small data-reason="{{ finding.missing_reason }}">{{ reason }} {{ fix }}</small>
                     {% endif %}
-                    {% if finding.id in alternatives %}
-                      {% set other = alternatives[finding.id] %}
-                      <div data-provenance="{{ other.provenance }}">
-                        {{ value_text(other) }} <span class="prov">{{ strings.provenance[other.provenance] }}</span>
-                        <small>{{ code_label('source', other.source) }}</small>
-                      </div>
-                      {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
-                    {% endif %}
+                    {{ alternative_evidence(finding) }}
                   </td>
                   <td role="cell" data-label="{{ strings.found.provenance }}"><span class="prov">{{ strings.provenance[finding.provenance] }}</span></td>
                   <td role="cell" data-label="{{ strings.found.collector }}">{{ code_label('collector', finding.collector) if finding.collector else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.source }}">{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}</td>
+                  <td role="cell" data-label="{{ strings.found.source }}">{{ finding_source(finding) }}</td>
                   <td role="cell" data-label="{{ strings.found.collected }}">{{ finding_date(finding) }}</td>
                   <td role="cell" data-label="{{ strings.found.period }}">{{ format.period(finding.period) if finding.period else strings.common.unavailable }}</td>
-                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ coverage_text(finding.coverage, provided=finding.provenance == 'provided') }}</td>
+                  <td role="cell" data-label="{{ strings.found.coverage }}">{{ finding_coverage(finding) }}</td>
                 </tr>
               {% endfor %}
               {% set note = strings.found.notes.get(workload.id) %}
@@ -630,13 +649,42 @@
           </tbody>
         </table>
       </div>
-      <h3>{{ strings.attention.software }}</h3>
+      <h3 id="software-title">{{ strings.attention.software }}</h3>
       <dl class="software-counts">
         {% for entry, finding in software %}
           <dt>{{ label(entry.label) }}</dt>
           <dd data-software-count="{{ entry.id }}">{{ attention_evidence(finding) }}</dd>
         {% endfor %}
       </dl>
+      {% if inputs and inputs.windows_only_software %}
+        <div class="table-scroll" role="region" aria-labelledby="software-title" tabindex="0">
+          <table role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                {{ column(strings.attention.software_name) }}
+                {{ column(strings.attention.software_users) }}
+                {{ column(strings.attention.software_web_version) }}
+              </tr>
+            </thead>
+            <tbody role="rowgroup">
+              {% for item in inputs.windows_only_software %}
+                <tr data-software-entry data-provenance="provided" role="row">
+                  <th scope="row" role="rowheader" data-label="{{ strings.attention.software_name }}">
+                    {{ item.name }} <span class="prov">{{ strings.provenance.provided }}</span>
+                    <small>{{ code_label('source', input_source) }} · {{ format.date(inputs.as_of) if inputs.as_of else strings.common.date_not_supplied }}</small>
+                  </th>
+                  <td role="cell" data-label="{{ strings.attention.software_users }}">
+                    {% if item.users is none %}{{ missing_answer() }}{% else %}<span>{{ format.integer(item.users) }}</span>{% endif %}
+                  </td>
+                  <td role="cell" data-label="{{ strings.attention.software_web_version }}">
+                    {% if item.vendor_has_web_version is none %}{{ missing_answer() }}{% else %}<span>{{ literal_text(item.vendor_has_web_version) }}</span>{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
       <div data-subsection="cannot-be-moved">
         <h3>{{ strings.attention.cannot_be_moved }}</h3>
         {% if mapping_gaps %}
@@ -654,7 +702,7 @@
                   {% else %}
                     <small>
                       {{ finding_labels[finding.id] }} · <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
-                      · {{ code_label('source', finding.source) }} · {{ finding_date(finding) }}
+                      · {{ finding_source(finding) }} · {{ finding_date(finding) }}
                     </small>
                   {% endif %}
                 </p>

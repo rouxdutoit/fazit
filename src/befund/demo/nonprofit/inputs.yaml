@@ -1,2 +1,65 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# EN: The amounts are invented and serve only to demonstrate the report.
+# DE: Die Beträge sind frei erfunden und dienen ausschließlich der Vorführung.
 organisation_name: Linden Bridge Association
+currency: EUR
+language: null
+target_profile: null
+as_of: "2026-11-12"
+amounts_are_invented: true
+current_costs:
+  microsoft_licences_per_year: "3200"
+  other_it_per_year: "1200"
+target_costs:
+  partial_exit:
+    users: 8
+    retained_microsoft_licences_per_year: "1800"
+    hosting_per_user_per_month: "6.50"
+    operations_per_year: "1600"
+    other_recurring_per_year: "0"
+    one_time_migration: "1200"
+    application_adaptation: "0"
+    external_advice: "800"
+    training_days_per_person: "0.5"
+    training_day_rate: "250"
+    training_staff: 8
+    productivity_loss: "400"
+    parallel_running_months: 3
+  full_exit:
+    users: 20
+    retained_microsoft_licences_per_year: "0"
+    hosting_per_user_per_month: "6.50"
+    operations_per_year: "2400"
+    other_recurring_per_year: "500"
+    one_time_migration: "3600"
+    application_adaptation: "500"
+    external_advice: "1600"
+    training_days_per_person: 1
+    training_day_rate: "250"
+    training_staff: 20
+    productivity_loss: null
+    parallel_running_months: 6
+windows_only_software: []
+provided_counts:
+  office_files.kind.macro: 40
+  office_files.kind.access: 0
+  office_files.kind.publisher: 3
+  office_files.kind.visio: 0
+  office_files.kind.onenote: 12
+  device_management.windows_device_count: 15
+  identity_access.sso_application_count: 0
+  integrations.application_count: null
+confirmations:
+  licences.contract_terms_known: false
+  directory.account_list_reviewed: true
+  mail.other_systems_send_mail: false
+  onedrive.external_sharing_in_use: true
+  sharepoint.custom_solutions_in_use: false
+  teams.chat_history_must_be_kept: false
+  device_management.in_use: false
+  power_platform.in_use: false
+  telephony.in_use: false
+  telephony.replacement_available: null
+  identity_access.conditional_access_in_use: false
+  security_compliance.protection_or_retention_in_use: false
+  small_apps.in_use: true

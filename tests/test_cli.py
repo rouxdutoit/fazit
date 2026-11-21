@@ -16,7 +16,7 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from befund import __version__, i18n, model, rules
+from befund import __version__, i18n, inputs, model, rules
 from befund import report as report_module
 from befund.catalogue import load_catalogue
 from befund.cli import app
@@ -55,6 +55,8 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     header = load_locale("en")["header"]
     assert all(header[key] in html for key in ("local", "offline", "sample"))
     assert 'data-finding="directory.user_count"' in html
+    assert "Stadtverwaltung Musterstadt" in html
+    assert "data-software-entry" in _section(html, "attention")
     moves = _section(html, "moves")
     assert "Nubus" in moves and "Keycloak" in moves
 
@@ -542,6 +544,107 @@ def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
+    ("text", "options", "lang", "profile"),
+    [
+        ("", [], "en", "opendesk"),
+        ("language: de\ntarget_profile: generic\n", [], "de", "generic"),
+        ("language: de\ntarget_profile: generic\n", ["--lang", "en"], "en", "generic"),
+        ("language: de\ntarget_profile: generic\n", ["--profile", "nextcloud"], "de", "nextcloud"),
+    ],
+)
+def test_report_resolves_options_and_displays_organisation_from_inputs(
+    tmp_path: Path, text: str, options: list[str], lang: str, profile: str
+) -> None:
+    scan = files("befund").joinpath("demo", "town", "scan.json")
+    answers = tmp_path / "office-interview.yaml"
+    answers.write_text(text + "organisation_name: West Weir Council\n", encoding="utf-8")
+    out = tmp_path / "out"
+
+    result = runner.invoke(
+        app, ["report", str(scan), "--inputs", str(answers), "--out", str(out), *options]
+    )
+
+    assert result.exit_code == 0 and not result.stderr, result.output
+    report_path = out / f"report-2026-11-02-{lang}.html"
+    assert result.stdout.splitlines() == [str(report_path)]
+    assert list(out.iterdir()) == [report_path]
+    html = report_path.read_text(encoding="utf-8")
+    header = html.split("</header>", 1)[0]
+    assert f'<html lang="{lang}">' in html
+    assert "West Weir Council" in header and "West Weir Council" not in result.stdout
+    assert rules.load_mapping(profile, load_catalogue()).label[lang] in header
+    assert answers.name not in html
+
+
+@pytest.mark.parametrize(("lang", "prefix"), [(None, "Error:"), ("de", "Fehler:")])
+def test_report_input_errors_use_the_flag_language(
+    tmp_path: Path, lang: str | None, prefix: str
+) -> None:
+    scan = files("befund").joinpath("demo", "town", "scan.json")
+    answers = tmp_path / "office-interview.yaml"
+    answers.write_text("language: de\ncurency: EUR\n", encoding="utf-8")
+    out = tmp_path / "out"
+    options = [] if lang is None else ["--lang", lang]
+
+    result = runner.invoke(
+        app, ["report", str(scan), "--inputs", str(answers), "--out", str(out), *options]
+    )
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1 and result.stderr.startswith(prefix)
+    assert answers.name in result.stderr and "curency" in result.stderr
+
+
+@pytest.mark.parametrize("kind", ["missing", "directory"])
+def test_report_rejects_missing_or_directory_inputs(tmp_path: Path, kind: str) -> None:
+    scan = files("befund").joinpath("demo", "town", "scan.json")
+    answers = tmp_path / "office-interview.yaml"
+    if kind == "directory":
+        answers.mkdir()
+    out = tmp_path / "out"
+
+    result = runner.invoke(app, ["report", str(scan), "--inputs", str(answers), "--out", str(out)])
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1 and answers.name in result.stderr
+
+
+def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
+    demo = tmp_path / "demo"
+    result = runner.invoke(app, ["demo", "--out", str(demo)])
+    assert result.exit_code == 0, result.output
+    demo_report = Path(result.stdout.splitlines()[-1])
+    assert demo_report.is_file()
+    source, answers = demo / "scan-2026-11-02-en.json", demo / "inputs-2026-11-02-en.yaml"
+    assert source.is_file() and answers.is_file()
+    out = tmp_path / "rebuilt"
+
+    result = runner.invoke(
+        app, ["report", str(source), "--inputs", str(answers), "--out", str(out)]
+    )
+
+    assert result.exit_code == 0, result.output
+    path = Path(result.stdout.strip())
+    assert path.is_file() and path.parent == out
+    html = path.read_text(encoding="utf-8")
+    readiness = _section(html, "readiness")
+    assert 'data-workload="telephony" data-status="blocker"' in readiness
+    assert 'data-workload="windows_software" data-status="blocker"' in readiness
+    assert 'data-workload="mail" data-status="needs_work" data-incomplete' in readiness
+    assert 'data-reason="needs_recipient_export"' in readiness
+    assert 'data-workload="mail" data-status="ready"' not in readiness
+    macro = re.compile(r'<tr data-finding="office_files.kind.macro".*?</tr>', re.S)
+    assert "Sample interview answer" in macro.search(demo_report.read_text(encoding="utf-8"))[0]
+    assert "Answer in the inputs file" in macro.search(html)[0]
+
+    scan_only = runner.invoke(app, ["report", str(source), "--out", str(tmp_path / "scan-only")])
+    assert scan_only.exit_code == 0, scan_only.output
+    scan_html = Path(scan_only.stdout.strip()).read_text(encoding="utf-8")
+    assert 'data-workload="telephony" data-status="unknown"' in _section(scan_html, "readiness")
+    assert "This organisation" in scan_html.split("</header>", 1)[0]
+
+
+@pytest.mark.parametrize(
     ("kind", "code", "field", "details"),
     [
         ("missing", "file_not_found", "$", {}),
@@ -614,22 +717,25 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
         def utcnow(cls) -> datetime.datetime:
             return cls.now()
 
-    for module in (datetime, model, i18n, report_module):
+    for module in (datetime, model, i18n, inputs, report_module):
         patch.setattr(module, "date", SystemDate)
     for module in (datetime, model):
         patch.setattr(module, "datetime", SystemDateTime)
 
 
+@pytest.mark.parametrize("with_inputs", [False, True])
 def test_report_bytes_and_name_ignore_the_system_day(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, with_inputs: bool
 ) -> None:
     scan = files("befund").joinpath("demo", "town", "scan.json")
+    answers = files("befund").joinpath("demo", "town", "inputs.yaml")
+    options = ["--inputs", str(answers)] if with_inputs else []
     reports = []
     for day in (date(2027, 1, 1), date(2031, 12, 31)):
         out = tmp_path / day.isoformat()
         with monkeypatch.context() as patch:
             _set_system_day(patch, day)
-            result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
+            result = runner.invoke(app, ["report", str(scan), "--out", str(out), *options])
         assert result.exit_code == 0, result.output
         path = Path(result.stdout.strip())
         assert path.is_file() and path.parent == out

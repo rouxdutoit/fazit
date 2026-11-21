@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
   title: Bestandsaufnahme zu Microsoft 365
+  organisation: Organisation
+  unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung
   tool_version: Programmversion
   target_profile: Zielprofil
@@ -20,6 +22,7 @@ found:
   coverage: Umfang der Erhebung
   sample: Die Messwerte der Erhebung sind simuliert.
   note: Hinweis
+  comparison: Nur zum Vergleich
   partial_positive: 'Mindestens {value}'
   partial_zero: '{value} im geprüften Bestand'
   notes:
@@ -77,6 +80,9 @@ attention:
   count: Gemeldete Anzahl
   none_reported: Für diesen Dateityp wurden keine Dateien gemeldet.
   software: Reine Windows-Anwendungen
+  software_name: Anwendung
+  software_users: Anzahl der Nutzenden
+  software_web_version: Webversion beim Anbieter verfügbar
   cannot_be_moved: Nicht direkt übertragbar
   gap_scope: Für diese Funktionen ist im gewählten Profil keine direkte Übernahme belegt.
   needed_here: Für diese Organisation erforderlich
@@ -290,6 +296,7 @@ finding:
 common:
   unavailable: '—'
   date_not_supplied: Datum nicht angegeben
+  not_stated: Nicht angegeben
   'yes': 'Ja'
   'no': 'Nein'
 months: [Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November, Dezember]
@@ -308,6 +315,8 @@ errors:
   invalid_json: Die Datei {file} enthält an der Stelle {field} ungültiges JSON.
   invalid_yaml: Die Datei {file} enthält an der Stelle {field} ungültiges YAML.
   invalid_field: Prüfen Sie das Feld {field} in der Datei {file}.
+  unknown_field: Entfernen Sie das unbekannte Feld {field} aus der Datei {file}.
+  money_not_quoted: Setzen Sie die Dezimalzahl für {field} in der Datei {file} in Anführungszeichen.
   missing_field: Ergänzen Sie das Feld {field} in der Datei {file}.
   invalid_code: Geben Sie für {field} in der Datei {file} einen zulässigen Code an.
   contains_at: Entfernen Sie Text mit einem At-Zeichen aus {field} in der Datei {file}.

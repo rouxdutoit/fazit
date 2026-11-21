@@ -1,0 +1,210 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# EN: Copy this file to inputs.yaml and enter the date the answers were given under as_of.
+# EN: The report marks an empty answer as not provided and leaves results that need it unknown.
+# EN: Put amounts in quotes, use a decimal point and enter "0" only for a confirmed zero.
+# EN: A complete comparison needs an amount or an explicit zero in every cost category.
+# EN: Befund contains no prices and makes no estimates.
+# DE: Kopieren Sie diese Datei nach inputs.yaml und tragen Sie unter as_of den Tag ein, an dem Sie die Angaben erhalten haben.
+# DE: Leere Angaben erscheinen im Bericht als nicht angegeben. Ergebnisse, die diese Angaben benötigen, bleiben unbekannt.
+# DE: Setzen Sie Beträge in Anführungszeichen und verwenden Sie einen Dezimalpunkt. Tragen Sie "0" nur bei bestätigten Nullkosten ein.
+# DE: Für einen vollständigen Vergleich ist in jeder Kostenposition ein Betrag oder eine bestätigte Null erforderlich.
+# DE: Befund enthält keine Preisangaben und nimmt keine Schätzungen vor.
+
+# EN: Enter the organisation name as it should appear in the report, in one line of up to 120 characters.
+# DE: Tragen Sie den Namen der Organisation so ein, wie er im Bericht stehen soll, in einer Zeile mit höchstens 120 Zeichen.
+organisation_name: null
+# EN: Enter one three-letter uppercase currency code for all amounts.
+# DE: Geben Sie für alle Beträge dasselbe Währungskürzel aus drei Großbuchstaben an.
+currency: null
+# EN: Enter en for English or de for German.
+# DE: Geben Sie de für Deutsch oder en für Englisch an.
+language: null
+# EN: Enter opendesk, nextcloud or generic for the target profile.
+# DE: Wählen Sie opendesk, nextcloud oder generic als Zielprofil.
+target_profile: null
+# EN: Enter the date the answers were given as YYYY-MM-DD in quotes.
+# DE: Geben Sie das Datum der Auskunft in Anführungszeichen im Format JJJJ-MM-TT an.
+as_of: null
+# EN: Keep false for your organisation's costs and use true for invented demonstration amounts.
+# DE: Lassen Sie false für Kosten Ihrer Organisation stehen. Verwenden Sie true für erfundene Beispielbeträge.
+amounts_are_invented: false
+# EN: Enter the annual costs of the current setup.
+# DE: Tragen Sie die jährlichen Kosten der bestehenden IT-Umgebung ein.
+current_costs:
+  # EN: Enter the annual amount paid for Microsoft licences, in the chosen currency.
+  # DE: Tragen Sie die jährlichen Ausgaben für Microsoft-Lizenzen in der gewählten Währung ein.
+  microsoft_licences_per_year: null
+  # EN: Enter the annual amount for other IT that continues in all scenarios, in the chosen currency.
+  # DE: Tragen Sie die jährlichen Kosten für die übrige IT ein, die in allen Szenarien weiterlaufen.
+  other_it_per_year: null
+# EN: Enter separate answers for a partial and a full exit.
+# DE: Erfassen Sie die Angaben zum teilweisen und zum vollständigen Wechsel getrennt.
+target_costs:
+  # EN: Enter the costs and headcounts for moving some of the work to the new platform.
+  # DE: Erfassen Sie Kosten und Personenzahlen für einen Wechsel, bei dem ein Teil der Arbeit auf die neue Plattform verlagert wird.
+  partial_exit:
+    # EN: Enter the number of people who would work on the new platform in the partial exit.
+    # DE: Geben Sie an, wie viele Personen beim teilweisen Wechsel auf der neuen Plattform arbeiten würden.
+    users: null
+    # EN: Enter the annual amount for Microsoft licences kept after parallel running ends.
+    # DE: Tragen Sie den Jahresbetrag für Microsoft-Lizenzen ein, die nach dem Parallelbetrieb weiter benötigt werden.
+    retained_microsoft_licences_per_year: null
+    # EN: Enter the hosting amount per person per month.
+    # DE: Tragen Sie die Hostingkosten je Person und Monat ein.
+    hosting_per_user_per_month: null
+    # EN: Enter the annual amount for staff or services to operate the new platform.
+    # DE: Geben Sie die jährlichen Personal- oder Dienstleistungskosten für den Betrieb der neuen Plattform an.
+    operations_per_year: null
+    # EN: Enter the annual amount for any other recurring costs of the new platform.
+    # DE: Tragen Sie die übrigen jährlich wiederkehrenden Kosten der neuen Plattform ein.
+    other_recurring_per_year: null
+    # EN: Enter the one-time amount for carrying out the move.
+    # DE: Tragen Sie die einmaligen Kosten für die Durchführung der Umstellung ein.
+    one_time_migration: null
+    # EN: Enter the one-time amount for adapting applications.
+    # DE: Tragen Sie die einmaligen Kosten für die Anpassung der Anwendungen ein.
+    application_adaptation: null
+    # EN: Enter the one-time amount for external advice.
+    # DE: Geben Sie die einmaligen Kosten für externe Beratung an.
+    external_advice: null
+    # EN: Enter training days per person as a whole number or a quoted decimal.
+    # DE: Geben Sie die Schulungstage je Person als ganze Zahl oder als Dezimalzahl in Anführungszeichen mit Dezimalpunkt an.
+    training_days_per_person: null
+    # EN: Enter the cost of one training day for one person.
+    # DE: Tragen Sie die Kosten für einen Schulungstag je Person ein.
+    training_day_rate: null
+    # EN: Enter the number of staff who would take the training.
+    # DE: Geben Sie an, wie viele Beschäftigte an der Schulung teilnehmen würden.
+    training_staff: null
+    # EN: Enter the total amount for work time lost during the change.
+    # DE: Tragen Sie die Gesamtkosten für den vorübergehenden Arbeitszeitverlust bei der Umstellung ein.
+    productivity_loss: null
+    # EN: Enter the number of months when both systems are paid for, from 0 to 60.
+    # DE: Geben Sie an, wie viele Monate beide Systeme bezahlt werden, mindestens 0 und höchstens 60.
+    parallel_running_months: null
+  # EN: Enter the costs and headcounts for moving all the work in scope to the new platform.
+  # DE: Erfassen Sie Kosten und Personenzahlen für den vollständigen Wechsel der betrachteten Arbeitsbereiche.
+  full_exit:
+    # EN: Enter the number of people who would work on the new platform in the full exit.
+    # DE: Geben Sie an, wie viele Personen beim vollständigen Wechsel auf der neuen Plattform arbeiten würden.
+    users: null
+    # EN: Enter the annual amount for any Microsoft licences kept after parallel running ends.
+    # DE: Geben Sie an, welche jährlichen Kosten für nach dem Parallelbetrieb verbleibende Microsoft-Lizenzen anfallen.
+    retained_microsoft_licences_per_year: null
+    # EN: Enter the hosting amount per person per month.
+    # DE: Tragen Sie die Hostingkosten je Person und Monat ein.
+    hosting_per_user_per_month: null
+    # EN: Enter the annual amount for staff or services to operate the new platform.
+    # DE: Geben Sie die jährlichen Personal- oder Dienstleistungskosten für den Betrieb der neuen Plattform an.
+    operations_per_year: null
+    # EN: Enter the annual amount for any other recurring costs of the new platform.
+    # DE: Tragen Sie die übrigen jährlich wiederkehrenden Kosten der neuen Plattform ein.
+    other_recurring_per_year: null
+    # EN: Enter the one-time amount for carrying out the move.
+    # DE: Tragen Sie die einmaligen Kosten für die Durchführung der Umstellung ein.
+    one_time_migration: null
+    # EN: Enter the one-time amount for adapting applications.
+    # DE: Tragen Sie die einmaligen Kosten für die Anpassung der Anwendungen ein.
+    application_adaptation: null
+    # EN: Enter the one-time amount for external advice.
+    # DE: Geben Sie die einmaligen Kosten für externe Beratung an.
+    external_advice: null
+    # EN: Enter training days per person as a whole number or a quoted decimal.
+    # DE: Geben Sie die Schulungstage je Person als ganze Zahl oder als Dezimalzahl in Anführungszeichen mit Dezimalpunkt an.
+    training_days_per_person: null
+    # EN: Enter the cost of one training day for one person.
+    # DE: Tragen Sie die Kosten für einen Schulungstag je Person ein.
+    training_day_rate: null
+    # EN: Enter the number of staff who would take the training.
+    # DE: Geben Sie an, wie viele Beschäftigte an der Schulung teilnehmen würden.
+    training_staff: null
+    # EN: Enter the total amount for work time lost during the change.
+    # DE: Tragen Sie die Gesamtkosten für den vorübergehenden Arbeitszeitverlust bei der Umstellung ein.
+    productivity_loss: null
+    # EN: Enter the number of months when both systems are paid for, from 0 to 60.
+    # DE: Geben Sie an, wie viele Monate beide Systeme bezahlt werden, mindestens 0 und höchstens 60.
+    parallel_running_months: null
+# EN: To list Windows-only applications, remove null and fill in one entry per application. Use [] if there are none.
+# DE: Ersetzen Sie null durch einen Eintrag je reiner Windows-Anwendung. Tragen Sie [] ein, wenn es keine gibt.
+windows_only_software: null
+  # EN: Enter the application name on one line, using at most 80 characters.
+  # DE: Tragen Sie den Namen der Anwendung in einer Zeile mit höchstens 80 Zeichen ein.
+  # - name: "Flurzweig Register"
+  # EN: Enter the number of people who use the application.
+  # DE: Geben Sie an, wie viele Personen die Anwendung nutzen.
+  #   users: null
+  # EN: Enter true if the vendor has a web version, or false if there is none.
+  # DE: Geben Sie true ein, wenn der Anbieter eine Webversion anbietet, andernfalls false.
+  #   vendor_has_web_version: null
+# EN: Enter known counts as whole numbers, including zero when the count is confirmed.
+# DE: Tragen Sie bekannte Anzahlen als ganze Zahlen ein. Geben Sie bei bestätigtem Nullbestand 0 ein.
+provided_counts:
+  # EN: Enter the number of files whose extensions allow macros.
+  # DE: Geben Sie die Anzahl der Dateien an, deren Endung auf mögliche Makros hinweist.
+  office_files.kind.macro: null
+  # EN: Enter the number of Access database files.
+  # DE: Tragen Sie die Anzahl der Access-Datenbankdateien ein.
+  office_files.kind.access: null
+  # EN: Enter the number of Publisher files.
+  # DE: Tragen Sie die Anzahl der Publisher-Dateien ein.
+  office_files.kind.publisher: null
+  # EN: Enter the number of Visio drawing files.
+  # DE: Tragen Sie die Anzahl der Visio-Zeichnungsdateien ein.
+  office_files.kind.visio: null
+  # EN: Enter the number of OneNote files.
+  # DE: Tragen Sie die Anzahl der OneNote-Dateien ein.
+  office_files.kind.onenote: null
+  # EN: Enter the total number of devices in scope.
+  # DE: Geben Sie an, wie viele Geräte insgesamt zur Bestandsaufnahme gehören.
+  device_management.device_count: null
+  # EN: Enter the number of devices running Windows.
+  # DE: Geben Sie an, wie viele der Geräte unter Windows laufen.
+  device_management.windows_device_count: null
+  # EN: Enter the number of applications that use Microsoft single sign-on.
+  # DE: Tragen Sie die Anzahl der Anwendungen ein, die die zentrale Anmeldung über Microsoft nutzen.
+  identity_access.sso_application_count: null
+  # EN: Enter the number of business applications connected to Microsoft 365.
+  # DE: Geben Sie an, wie viele Fachanwendungen an Microsoft 365 angebunden sind.
+  integrations.application_count: null
+# EN: Use true for a confirmed yes and false for a confirmed no.
+# DE: Geben Sie true für ein bestätigtes Ja und false für ein bestätigtes Nein ein.
+confirmations:
+  # EN: Confirm whether the Microsoft licence contract terms have been reviewed.
+  # DE: Geben Sie an, ob die Microsoft-Lizenzbedingungen geprüft wurden.
+  licences.contract_terms_known: null
+  # EN: Confirm whether IT has reviewed the current account list.
+  # DE: Geben Sie an, ob die IT-Stelle die aktuelle Kontenliste geprüft hat.
+  directory.account_list_reviewed: null
+  # EN: Confirm whether other systems send mail through Microsoft.
+  # DE: Geben Sie an, ob andere Systeme E-Mails über Microsoft versenden.
+  mail.other_systems_send_mail: null
+  # EN: Confirm whether files in OneDrive are shared with people outside the organisation.
+  # DE: Geben Sie an, ob Dateien in OneDrive für Personen außerhalb der Organisation freigegeben werden.
+  onedrive.external_sharing_in_use: null
+  # EN: Confirm whether the organisation uses tailored SharePoint solutions.
+  # DE: Geben Sie an, ob die Organisation individuell angepasste SharePoint-Lösungen einsetzt.
+  sharepoint.custom_solutions_in_use: null
+  # EN: Confirm whether Teams chat history must be kept.
+  # DE: Geben Sie an, ob der Chatverlauf aus Teams erhalten bleiben muss.
+  teams.chat_history_must_be_kept: null
+  # EN: Confirm whether the organisation manages any devices through Microsoft.
+  # DE: Geben Sie an, ob die Organisation Geräte über Microsoft verwaltet.
+  device_management.in_use: null
+  # EN: Confirm whether the organisation uses Power Platform.
+  # DE: Geben Sie an, ob Power Platform im Einsatz ist.
+  power_platform.in_use: null
+  # EN: Confirm whether any of the organisation's telephony runs through Microsoft.
+  # DE: Geben Sie an, ob die Organisation Telefonie über Microsoft betreibt.
+  telephony.in_use: null
+  # EN: Confirm whether a replacement is available for Microsoft telephony in use.
+  # DE: Geben Sie an, ob für die genutzte Microsoft-Telefonie eine Alternative zur Verfügung steht.
+  telephony.replacement_available: null
+  # EN: Confirm whether Conditional Access is in use.
+  # DE: Geben Sie an, ob die Organisation bedingten Zugriff nutzt.
+  identity_access.conditional_access_in_use: null
+  # EN: Confirm whether Microsoft protection or retention features are in use.
+  # DE: Geben Sie an, ob Schutz- oder Aufbewahrungsfunktionen von Microsoft im Einsatz sind.
+  security_compliance.protection_or_retention_in_use: null
+  # EN: Confirm whether any smaller Microsoft apps such as Forms, Planner or Bookings are in use.
+  # DE: Geben Sie an, ob kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings genutzt werden.
+  small_apps.in_use: null
