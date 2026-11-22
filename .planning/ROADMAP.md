@@ -87,7 +87,7 @@ Plans, run one at a time in this order:
 **Goal**: A real organisation's admin-centre CSV exports become a `scan.json` and a report on the user's own machine, with no sign-in, no consent and no network access, and with nothing kept but aggregates
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05, DATA-01, IMPT-06, VALD-01
+**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05, DATA-01, IMPT-06, VALD-01, MODL-05
 **Success Criteria** (what must be TRUE):
   1. With the network switched off and without signing in, a user points `import` at admin-centre exports (mailbox, OneDrive, SharePoint site and Teams usage, and licences) and gets a `scan.json` and a report in German or English, with the report path printed.
   2. The `scan.json` written by `import` holds aggregates only, with no per-user rows, person names or email addresses by default, and each imported figure shows its source file, reporting period and coverage in the report.

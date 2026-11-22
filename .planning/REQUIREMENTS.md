@@ -22,6 +22,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [x] **MODL-02**: Every finding records its source, collection date, reporting period, coverage, and the reason for any missing value
 - [x] **MODL-03**: Every value is marked as measured, provided by the user, or unknown, and the report shows the three differently
 - [x] **MODL-04**: Bundled sample data describes a fictional 85-person town office and a fictional 20-person non-profit
+- [ ] **MODL-05**: Each collector and source writes one collection time and one reporting period per scan, so every observation from it can be compared with the others; the licensed headcount needed to reconcile licences comes from an export the user can obtain. *Why: release review round 5 (F5-02) found that comparisons are skipped when stamps differ, and planned exports carry no licensed headcount.*
 
 ### Rules and mapping
 
@@ -231,6 +232,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VALD-01 | Phase 2 | Pending |
 | DIST-04 | Phase 2.1 | Pending |
 | DIST-05 | Phase 2.1 | Pending |
+| MODL-05 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 70 total
@@ -240,7 +242,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Phase 1.1 (AI Assistants and Decision Window): 2
 - Phase 1.2 (Outputs for Integrators): 4
 - Phase 1.3 (Sovereignty Criteria): 1
-- Phase 2 (Import): 9
+- Phase 2 (Import): 10
 - Phase 2.1 (Packaging and Launch): 4
 - Phase 3 (Doctor, Sign-in and Live Counts): 16
 - Phase 4 (Documentation for Live Scans): 3
