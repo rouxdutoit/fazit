@@ -12,6 +12,7 @@ from zipfile import ZipFile
 import pytest
 from test_repo_basics import LICENSE_SHA256, ROOT
 
+from fazit.i18n import load_locale
 from fazit.report import SECTION_ORDER
 
 pytestmark = pytest.mark.slow
@@ -120,6 +121,121 @@ def test_installed_demo_renders_offline(
     module = Path(location.strip()).resolve()
     assert module.is_file() and module.is_relative_to(venv.resolve())
     assert not audit_log.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("name", "content", "code", "field"),
+    [
+        pytest.param("inventory.json", None, "file_not_found", "$", id="missing"),
+        pytest.param("inventory.json", None, "is_directory", "$", id="directory"),
+        pytest.param("inventory.json", b"", "invalid_json", "$", id="empty"),
+        pytest.param("inventory.json", b"{", "invalid_json", "$", id="invalid-json"),
+        pytest.param("inventory.json", b"[]", "invalid_field", "$", id="json-array"),
+        pytest.param(
+            "inventory.json",
+            b'{"schema_version": "2.0"}',
+            "schema_version",
+            "schema_version",
+            id="schema-version",
+        ),
+        pytest.param("inventory.json", b"\xff", "not_utf8", "$", id="utf8"),
+        pytest.param(
+            "answers.yaml",
+            b"currency: EUR\ncurrency: CHF\n",
+            "duplicate_key",
+            "$[1]",
+            id="duplicate-yaml-key",
+        ),
+        pytest.param(
+            "answers.yaml",
+            b"windows_only_software: 42\n",
+            "invalid_field",
+            "windows_only_software",
+            id="wrong-type",
+        ),
+        pytest.param(
+            "answers.yaml",
+            b'currency: EUR\ncurrent_costs: {other_it_per_year: "-0.01"}\n',
+            "invalid_field",
+            "current_costs.other_it_per_year",
+            id="negative",
+        ),
+        pytest.param(
+            "answers.yaml",
+            b"current_costs: {other_it_per_year: .inf}\n",
+            "non_finite_number",
+            "$[0][0]",
+            id="non-finite",
+        ),
+        pytest.param(
+            "inventory.json",
+            b"[" * 1500 + b"0" + b"]" * 1500,
+            "invalid_json",
+            "$",
+            id="deep-json",
+        ),
+        pytest.param(
+            "answers.yaml",
+            b"x: " + b"[" * 1500 + b"0" + b"]" * 1500,
+            "invalid_yaml",
+            "$",
+            id="deep-yaml",
+        ),
+        pytest.param("out", b"Keep this file.\n", "out_dir", "--out", id="out-is-file"),
+    ],
+)
+def test_installed_report_rejects_malformed_files_offline(
+    installed_package: InstalledPackage,
+    tmp_path: Path,
+    name: str,
+    content: bytes | None,
+    code: str,
+    field: str,
+) -> None:
+    source, bad, out = tmp_path / "inventory.json", tmp_path / name, tmp_path / "out"
+    if bad != source:
+        with ZipFile(installed_package.wheel) as wheel:
+            source.write_bytes(wheel.read("fazit/demo/town/scan.json"))
+    if content is not None:
+        bad.write_bytes(content)
+    elif code == "is_directory":
+        bad.mkdir()
+    command = [
+        _venv_program(installed_package.venv, "fazit"),
+        "report",
+        str(source),
+        "--out",
+        str(out),
+    ]
+    if bad.suffix == ".yaml":
+        command.extend(("--inputs", str(bad)))
+    env, audit_log = _audit_environment(tmp_path)
+    audit_log.touch()
+    before = _contents(tmp_path)
+    result = subprocess.run(
+        command,
+        cwd=tmp_path,
+        env={**env, "PYTHONDONTWRITEBYTECODE": "1"},
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    strings = load_locale("en")
+    message = strings["errors"][code].format(
+        file=str(out) if bad == out else name, field=field, found="2.0", supported="1.x"
+    )
+    assert result.returncode == 2 and not result.stdout
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
+    assert message.endswith(".")
+    assert not audit_log.read_bytes()
+    assert _contents(tmp_path) == before
+
+
+def _contents(directory: Path) -> dict[Path, bytes | None]:
+    return {
+        path.relative_to(directory): path.read_bytes() if path.is_file() else None
+        for path in directory.rglob("*")
+    }
 
 
 def test_subprocess_audit_records_a_caught_attempt(
