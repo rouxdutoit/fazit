@@ -651,7 +651,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
         line = next(line for line in text.splitlines() if f"`{kind.finding_id}`" in line)
         assert set(re.findall(r"`\.([a-z0-9]+)`", line)) == set(kind.extensions)
     if suffix == ".de":
-        assert "Sie" in text
+        assert not re.search(r"\b(?:du|dich|dir|dein(?:e[rmns]?)?)\b", text, re.IGNORECASE)
 
 
 def test_every_provided_finding_is_used_by_the_report(catalogue: Catalogue) -> None:

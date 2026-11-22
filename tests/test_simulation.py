@@ -12,6 +12,24 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import yaml
+from helpers import (
+    ADDRESS,
+    CSS_RESOURCE,
+    NAME,
+    RESOURCE_ATTRIBUTES,
+    RESOURCE_ELEMENTS,
+    SINGLE_TOKENS,
+    TOKEN,
+    ReportDocument,
+    assert_no_private_text,
+    audit_environment,
+    readiness_row,
+    rebuild_report,
+    report_section,
+    runner,
+    sample_inputs_path,
+    sample_scan_path,
+)
 from hypothesis import example, given
 from hypothesis import strategies as st
 from tenants import (
@@ -23,21 +41,6 @@ from tenants import (
     Tenant,
     degraded_tenants,
     tenants,
-)
-from test_cli import _section
-from test_evidence_cli import _readiness
-from test_installed_package import _audit_environment
-from test_privacy import ADDRESS, NAME, SINGLE_TOKENS, TOKEN, _assert_no_private_text
-from test_report import (
-    CSS_RESOURCE,
-    EMBEDDED_FONT,
-    RESOURCE_ATTRIBUTES,
-    RESOURCE_ELEMENTS,
-    ReportDocument,
-    _rebuild,
-    _sample_inputs,
-    _sample_scan,
-    runner,
 )
 
 from fazit.cli import app
@@ -78,7 +81,7 @@ OFFICE = Tenant(
 OFFICE_PARTIAL = replace(
     OFFICE, scan=replace(OFFICE.scan, findings=(replace(MACROS, coverage=Coverage("partial")),))
 )
-NONPROFIT = load_scan(_sample_scan("nonprofit"), CATALOGUE)
+NONPROFIT = load_scan(sample_scan_path("nonprofit"), CATALOGUE)
 LICENSED_ACCOUNTS = NONPROFIT.finding("directory.licensed_user_count")
 assert LICENSED_ACCOUNTS is not None and NONPROFIT.licences is not None
 UNASSIGNED = Tenant(
@@ -133,11 +136,13 @@ def _render(tenant: Tenant) -> str:
     with TemporaryDirectory() as temporary:
         work = Path(temporary).resolve()
         scan, inputs = _write_tenant(tenant, work)
-        return _rebuild(scan, work / "out", tenant.lang, profile=tenant.profile, inputs=inputs)
+        return rebuild_report(
+            scan, work / "out", tenant.lang, profile=tenant.profile, inputs=inputs
+        )
 
 
 def _statuses(html: str) -> dict[str, str]:
-    readiness = _section(html, "readiness")
+    readiness = report_section(html, "readiness")
     statuses = dict(re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness))
     assert tuple(statuses) == CATALOGUE.workload_ids
     assert set(statuses.values()) <= set(STATUSES)
@@ -156,7 +161,7 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
         supplied = {finding.id: finding for finding in provided_findings(inputs, CATALOGUE)}
     unavailable = {row.id for row in tenant.scan.collectors if row.status != "ok"}
     licences = tenant.scan.licences
-    readiness = _section(html, "readiness")
+    readiness = report_section(html, "readiness")
     for key, answer in supplied.items():
         finding = recorded.get(key)
         if (
@@ -166,11 +171,11 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             and (answer.coverage is None or answer.coverage.kind == "complete")
             and finding.value != answer.value
         ):
-            row = _readiness(readiness, finding.workload)
+            row = readiness_row(readiness, finding.workload)
             assert 'data-reason="confirmation_conflict"' in row
             assert statuses[finding.workload] != "ready"
     for workload, block in STATUS_RULES.workloads.items():
-        row = _readiness(readiness, workload)
+        row = readiness_row(readiness, workload)
         gaps = re.findall(r'<li data-missing="([^"]+)">(.*?)</li>', row, re.S)
         assert ("data-incomplete" in row) == bool(gaps)
         if gaps:
@@ -269,7 +274,7 @@ def test_person_data_stays_out_of_report_outputs(tenant: Tenant) -> None:
         assert result.exit_code == 0 and not result.stderr, result.output
         assert list(out.iterdir()) == [Path(result.stdout.strip())]
         markers = (NAME, TOKEN, *SINGLE_TOKENS)
-        _assert_no_private_text(result, out, *markers)
+        assert_no_private_text(result, out, *markers)
         clean = scan_to_json(load_scan(scan, CATALOGUE), plans=PLANS)
         assert all(text not in clean for text in markers)
 
@@ -279,15 +284,15 @@ def test_person_data_stays_out_of_report_outputs(tenant: Tenant) -> None:
         result = runner.invoke(app, [*command, "--out", str(rejected)])
         assert result.exit_code == 2 and not result.stdout and not rejected.exists(), result.output
         assert len(result.stderr.splitlines()) == 1
-        _assert_no_private_text(result, rejected, ADDRESS, *markers)
+        assert_no_private_text(result, rejected, ADDRESS, *markers)
 
 
 @given(tenant=tenants(), compare_processes=st.just(False))
 @example(tenant=OFFICE, compare_processes=True)
 @example(
     tenant=Tenant(
-        load_scan(_sample_scan("town"), CATALOGUE),
-        yaml.safe_load(_sample_inputs("town").read_text(encoding="utf-8")),
+        load_scan(sample_scan_path("town"), CATALOGUE),
+        yaml.safe_load(sample_inputs_path("town").read_text(encoding="utf-8")),
         "en",
         "opendesk",
     ),
@@ -300,12 +305,12 @@ def test_same_tenant_produces_identical_bytes(tenant: Tenant, compare_processes:
         copies = []
         for index in range(2):
             out = work / str(index)
-            _rebuild(scan, out, tenant.lang, profile=tenant.profile, inputs=inputs)
+            rebuild_report(scan, out, tenant.lang, profile=tenant.profile, inputs=inputs)
             (report,) = out.iterdir()
             copies.append(report.read_bytes())
         assert copies[0] == copies[1]
         if compare_processes:
-            env, audit_log = _audit_environment(work)
+            env, audit_log = audit_environment(work)
             command = ["report", str(scan), "--lang", tenant.lang, "--profile", tenant.profile]
             if inputs is not None:
                 command.extend(("--inputs", str(inputs)))
@@ -411,7 +416,7 @@ def test_report_costs_reconcile_against_exact_fractions(tenant: Tenant) -> None:
             for id in ("partial_exit", "full_exit")
         ),
     ]
-    html = _section(_render(tenant), "costs")
+    html = report_section(_render(tenant), "costs")
     assert html.count("data-invented-amounts") == (2 if inputs.get("amounts_are_invented") else 0)
     groups = dict(re.findall(r'<tbody data-block="([^"]+)"[^>]*>(.*?)</tbody>', html, re.S))
     assert groups.keys() == scenarios[1].keys()
@@ -463,4 +468,3 @@ def test_generated_reports_keep_the_offline_csp(tenant: Tenant) -> None:
             if directive == "content-security-policy":
                 policies.append(attrs["content"])
     assert policies == [CSP]
-    assert all(not CSS_RESOURCE.search(EMBEDDED_FONT.sub("", style)) for style in document.styles)

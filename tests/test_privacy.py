@@ -8,7 +8,15 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner, Result
+from helpers import (
+    ADDRESS,
+    NAME,
+    PLANTED_SCAN,
+    SINGLE_TOKENS,
+    TOKEN,
+    assert_no_private_text,
+    runner,
+)
 
 from fazit import cli
 from fazit.catalogue import load_catalogue
@@ -16,26 +24,9 @@ from fazit.i18n import load_locale
 from fazit.licences import load_service_plans, scan_to_json
 from fazit.model import ServicePlan, load_scan, load_scan_text
 
-PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 PRIVATE_TEXT = ("Mustermann", "eyJhbGci", "planted-secret")
 IGNORED_KEYS = ("operator", "granted_by", "owner", "access_token", "admin_contact", "display_name")
-NAME = "Erika Mustermann"
-ADDRESS = "erika.mustermann@example.invalid"
-TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"
-SINGLE_TOKENS = ("ReviewMarker", "Erika_Mustermann")
-
-runner = CliRunner()
-
 type Position = tuple[str | int, ...]
-
-
-def _assert_no_private_text(result: Result, out: Path, *planted: str) -> None:
-    files_written = list(out.iterdir()) if out.exists() else []
-    output = [result.stdout, result.stderr]
-    for file in files_written:
-        output.extend((file.name, file.read_text(encoding="utf-8")))
-    for text in planted:
-        assert all(text not in part for part in output), text
 
 
 def _sample_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -72,7 +63,7 @@ def test_ignored_scan_data_leaves_only_a_count_in_the_report(
     html = Path(result.stdout.strip()).read_text(encoding="utf-8")
     assert 'data-ignored-count="8"' in html
     assert load_locale("en")["appendix"]["ignored"].format(count=8) in html
-    _assert_no_private_text(result, out, *ignored)
+    assert_no_private_text(result, out, *ignored)
 
     sample = _sample_directory(tmp_path, monkeypatch)
     (sample / "scan.json").write_bytes(PLANTED_SCAN.read_bytes())
@@ -81,7 +72,7 @@ def test_ignored_scan_data_leaves_only_a_count_in_the_report(
     result = runner.invoke(cli.app, ["demo", "--out", str(demo_out)])
     assert result.exit_code == 0, result.output
     assert (demo_out / "scan-2026-11-02-en.json").read_text(encoding="utf-8") == copied
-    _assert_no_private_text(result, demo_out, *ignored)
+    assert_no_private_text(result, demo_out, *ignored)
 
 
 def test_unregistered_licence_identifiers_are_private_in_both_commands(
@@ -108,7 +99,7 @@ def test_unregistered_licence_identifiers_are_private_in_both_commands(
         out = tmp_path / f"{command[0]}-out"
         result = runner.invoke(cli.app, [*command, "--out", str(out)])
         assert result.exit_code == 0 and not result.stderr, result.output
-        _assert_no_private_text(result, out, *SINGLE_TOKENS, phone["sku_guid"], private_guid)
+        assert_no_private_text(result, out, *SINGLE_TOKENS, phone["sku_guid"], private_guid)
         html = Path(result.stdout.splitlines()[-1]).read_text(encoding="utf-8")
         assert 'data-product="SPE_E3"' in html
         assert "Unregistered product 1" in html and "Unregistered product 2" in html
@@ -149,7 +140,7 @@ def test_unknown_input_key_reports_position(tmp_path: Path, planted: str) -> Non
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert len(result.stderr.splitlines()) == 1
     assert answers.name in result.stderr and "current_costs[0]" in result.stderr
-    _assert_no_private_text(result, out, planted)
+    assert_no_private_text(result, out, planted)
 
 
 # Windows forbids C0 control characters in file names but allows a bidi override.
@@ -192,7 +183,7 @@ def test_report_rejects_nonprintable_names(tmp_path: Path, character: str, field
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert len(result.stderr.splitlines()) == 1
     assert field in result.stderr and answers.name in result.stderr
-    _assert_no_private_text(result, out, character)
+    assert_no_private_text(result, out, character)
 
 
 def _positions(value: object, path: Position = ()) -> Iterator[Position]:
@@ -243,7 +234,7 @@ def test_privacy_in_every_scan_field_and_key(
         out = tmp_path / str(index)
         result = runner.invoke(cli.app, ["report", str(scan_file), "--out", str(out)])
         assert result.exit_code in (0, 2), (position, result.exception)
-        _assert_no_private_text(result, out, *PRIVATE_TEXT, planted)
+        assert_no_private_text(result, out, *PRIVATE_TEXT, planted)
         if planted == ADDRESS:
             assert result.exit_code == 2, position
             assert strings["errors"]["contains_at"].split("{")[0] in result.stderr
@@ -283,7 +274,7 @@ def test_report_rejects_unregistered_evidence_codes(
 
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert f"{group}[{index}].{field}" in result.stderr
-    _assert_no_private_text(result, out, planted)
+    assert_no_private_text(result, out, planted)
 
 
 @pytest.mark.parametrize(
@@ -307,4 +298,4 @@ def test_demo_rejects_addresses_in_inputs_names(
 
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert "inputs.yaml" in result.stderr and "at sign" in result.stderr
-    _assert_no_private_text(result, out, ADDRESS)
+    assert_no_private_text(result, out, ADDRESS)

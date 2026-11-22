@@ -10,8 +10,8 @@ from shutil import copytree
 
 import pytest
 import yaml
+from helpers import readiness_row, report_section, runner
 from report_expectations import SECTION_ORDER
-from typer.testing import CliRunner
 
 from fazit import rules
 from fazit.catalogue import Catalogue, load_catalogue
@@ -427,7 +427,7 @@ def test_report_counts_unclassified_plans_without_showing_their_names(
     scan = replace(scan, licences=replace(scan.licences, products=(suite, phone, reporting)))
     source = tmp_path / "scan.json"
     source.write_text(json.dumps(asdict(scan)), encoding="utf-8")
-    result = CliRunner().invoke(app, ["report", str(source), "--out", str(tmp_path / "out")])
+    result = runner.invoke(app, ["report", str(source), "--out", str(tmp_path / "out")])
 
     assert result.exit_code == 0, result.output
     report = Path(result.stdout.strip())
@@ -487,12 +487,6 @@ def _status(
 
 def _set_value(findings: dict[str, Finding], finding_id: str, value: FindingValue) -> None:
     findings[finding_id] = replace(findings[finding_id], value=value)
-
-
-def _readiness_row(html: str, workload: str) -> str:
-    row = re.search(rf'<tr data-workload="{workload}"[^>]*>.*?</tr>', html, re.S)
-    assert row is not None, workload
-    return row[0]
 
 
 def test_mail_is_unknown_until_a_problem_is_confirmed(
@@ -712,7 +706,7 @@ def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
         )
     )
     html = render_report(sample_scan("town", catalogue), lang="en", inputs=inputs)
-    row = _readiness_row(html, "windows_software")
+    row = readiness_row(html, "windows_software")
 
     assert 'data-status="needs_work" data-incomplete' in row
     assert "At least one Windows-only application has no web version" in row
@@ -768,7 +762,7 @@ def test_partial_positive_overrides_a_provided_zero_and_displays_both(
         ),
     )
     html = render_report(scan, lang="en", inputs=Inputs(provided_counts={answer.id: 0}))
-    row = _readiness_row(html, "integrations")
+    row = readiness_row(html, "integrations")
 
     assert 'data-status="needs_work" data-incomplete' in row
     assert "At least 4 applications" in row and 'data-provenance="measured"' in row
@@ -812,7 +806,7 @@ def test_complete_counts_must_agree_but_a_partial_count_can_be_consistent(
         scan, findings=tuple(recorded if item.id == answer.id else item for item in scan.findings)
     )
     html = render_report(scan, lang="en", inputs=Inputs(provided_counts={answer.id: 7}))
-    row = _readiness_row(html, "integrations")
+    row = readiness_row(html, "integrations")
 
     assert f'data-status="{status}"' in row
     assert ("data-incomplete" in row) is (coverage == "complete")
@@ -969,16 +963,13 @@ def test_bad_catalogue_label_exits_with_a_localised_sentence(
     path.write_text(data.replace(before, after, 1), encoding="utf-8")
     monkeypatch.setattr("fazit.catalogue.files", lambda _: tmp_path)
     out = tmp_path / "out"
-    command = ["demo", "--lang", lang, "--out", str(out)]
     strings = load_locale(lang)
 
-    result = CliRunner().invoke(app, command)
+    result = runner.invoke(app, ["demo", "--lang", lang, "--out", str(out)])
 
     message = strings["errors"]["invalid_label"].format(file=path.name, field=field)
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
     assert result.exit_code == 2 and not result.stdout and not out.exists()
-    debug = CliRunner().invoke(app, ["--debug", *command])
-    assert isinstance(debug.exception, InputError) and debug.exception.field == field
 
 
 def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
@@ -991,7 +982,7 @@ def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
     path.write_text(source.replace("  licences: Lizenzen\n", "", 1), encoding="utf-8")
     monkeypatch.setattr("fazit.i18n.files", lambda _: tmp_path)
 
-    result = CliRunner().invoke(app, ["demo", "--lang", "en", "--out", str(tmp_path / "out")])
+    result = runner.invoke(app, ["demo", "--lang", "en", "--out", str(tmp_path / "out")])
 
     assert result.exit_code == 2 and not result.stdout
     assert len(result.stderr.splitlines()) == 1
@@ -1080,25 +1071,17 @@ def test_bad_risky_file_list_names_the_file_and_field(
     assert (caught.value.file, caught.value.field) == (path.name, field)
 
 
-def _attention(html: str) -> str:
-    section = re.search(r'<section data-section="attention">.*?</section>', html, re.S)
-    assert section is not None
-    return section[0]
-
-
 @pytest.mark.parametrize("lang", ["en", "de"])
 def test_attention_shows_risky_types_and_windows_software(
     tmp_path: Path, catalogue: Catalogue, lang: str
 ) -> None:
     source = files("fazit").joinpath("demo", "town", "scan.json")
-    result = CliRunner().invoke(
-        app, ["report", str(source), "--lang", lang, "--out", str(tmp_path)]
-    )
+    result = runner.invoke(app, ["report", str(source), "--lang", lang, "--out", str(tmp_path)])
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.strip())
     assert path.is_file()
     html = path.read_text(encoding="utf-8")
-    section = _attention(html)
+    section = report_section(html, "attention")
     strings = load_locale(lang)
     assert "<caption data-sample>" in section
     for kind in load_risky_file_types(catalogue):
@@ -1135,7 +1118,9 @@ def test_attention_shows_provided_counts_and_zero_explicitly(catalogue: Catalogu
         provided_counts={"office_files.kind.macro": 40, "office_files.kind.access": 0},
         windows_only_software=software,
     )
-    section = _attention(render_report(sample_scan("town", catalogue), lang="en", inputs=inputs))
+    section = report_section(
+        render_report(sample_scan("town", catalogue), lang="en", inputs=inputs), "attention"
+    )
 
     assert "40 files" in section and "0 files" in section and "None were reported." in section
     assert "4 applications" in section and "1 application" in section
@@ -1159,12 +1144,12 @@ def test_removing_an_extension_changes_the_next_demo(
     path.write_text(source.replace(", potm", ""), encoding="utf-8")
     monkeypatch.setattr(rules, "rules_dir", lambda: copied)
 
-    result = CliRunner().invoke(app, ["demo", "--out", str(tmp_path / "out")])
+    result = runner.invoke(app, ["demo", "--out", str(tmp_path / "out")])
 
     assert result.exit_code == 0, result.output
     report = Path(result.stdout.splitlines()[-1])
     assert report.is_file()
-    section = _attention(report.read_text(encoding="utf-8"))
+    section = report_section(report.read_text(encoding="utf-8"), "attention")
     assert "<code>.pptm</code>" in section and "<code>.potm</code>" not in section
 
 
@@ -1175,7 +1160,7 @@ def test_attention_lists_each_unavailable_function_from_the_profile(
     mapping = load_mapping(profile, catalogue)
     gaps = [row for row in mapping.functions if row.coverage == "not_available"]
     html = render_report(sample_scan("town", catalogue), lang="en", profile=profile)
-    section = _attention(html)
+    section = report_section(html, "attention")
     details = dict(re.findall(r'<li data-gap="([^"]+)"([^>]*)>.*?</li>', section, re.S))
 
     assert 'data-subsection="cannot-be-moved"' in section
@@ -1219,7 +1204,7 @@ def test_gap_need_uses_only_its_declared_complete_answer(
         partial = replace(finding, value=answer, coverage=Coverage(coverage))
         scan = replace(scan, findings=(*scan.findings, partial))
         inputs = Inputs()
-    section = _attention(render_report(scan, lang="en", inputs=inputs))
+    section = report_section(render_report(scan, lang="en", inputs=inputs), "attention")
     entry = re.search(rf'<li data-gap="{gap.function}".*?</li>', section, re.S)
 
     assert entry is not None and f'data-need="{expected}"' in entry[0]
@@ -1247,12 +1232,12 @@ def test_marking_a_mapping_unavailable_adds_it_to_the_gap_list(
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
     monkeypatch.setattr(rules, "rules_dir", lambda: copied)
 
-    result = CliRunner().invoke(app, ["demo", "--out", str(tmp_path / "out")])
+    result = runner.invoke(app, ["demo", "--out", str(tmp_path / "out")])
 
     assert result.exit_code == 0, result.output
     report = Path(result.stdout.splitlines()[-1])
     assert report.is_file()
-    section = _attention(report.read_text(encoding="utf-8"))
+    section = report_section(report.read_text(encoding="utf-8"), "attention")
     assert f'data-gap="{changed["function"]}" data-need="unknown"' in section
 
 

@@ -5,7 +5,8 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner, Result
+from helpers import readiness_row, runner
+from typer.testing import Result
 
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
@@ -51,18 +52,12 @@ def _report(tmp_path: Path, scan: dict, answers: str | None = None) -> Result:
         inputs.write_text(answers, encoding="utf-8")
         options = ["--inputs", str(inputs)]
     command = ["report", str(source), "--out", str(tmp_path / "out"), *options]
-    return CliRunner().invoke(app, command)
+    return runner.invoke(app, command)
 
 
 def _html(result: Result) -> str:
     assert result.exit_code == 0 and not result.stderr, result.output
     return Path(result.stdout.strip()).read_text(encoding="utf-8")
-
-
-def _readiness(html: str, workload: str) -> str:
-    row = re.search(rf'<tr data-workload="{workload}".*?</tr>', html, re.S)
-    assert row is not None
-    return row[0]
 
 
 def _reject_scan(tmp_path: Path, scan: dict, field: str, answers: str | None = None) -> str:
@@ -94,8 +89,8 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
     after = _html(_report(tmp_path / "directory-skipped", scan, answers))
 
     for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
-        assert 'data-status="unknown"' in _readiness(before, workload)
-        row = _readiness(after, workload)
+        assert 'data-status="unknown"' in readiness_row(before, workload)
+        row = readiness_row(after, workload)
         assert 'data-status="unknown"' in row, workload
         assert f'data-reason="{reason}"' in row
     product["assigned"] = assigned
@@ -103,7 +98,7 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
     assert re.search(
         r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
         r'<div data-provenance="measured">\s*Yes',
-        _readiness(positive, "small_apps"),
+        readiness_row(positive, "small_apps"),
     )
 
 
@@ -175,7 +170,7 @@ def test_supplied_zero_preserves_a_skipped_observation(tmp_path: Path, town_scan
     answers = f"provided_counts: {{{finding_id}: 0}}"
 
     checked = _html(_report(tmp_path / "checked", town_scan, answers))
-    row = _readiness(checked, "integrations")
+    row = readiness_row(checked, "integrations")
     assert 'data-status="needs_work"' in row
     assert "3 applications" in row and "0 applications" in row
 
@@ -187,7 +182,7 @@ def test_supplied_zero_preserves_a_skipped_observation(tmp_path: Path, town_scan
                 value=None, provenance="unknown", coverage=None, missing_reason="permission_denied"
             )
     skipped = _html(_report(tmp_path / "skipped", town_scan, answers))
-    row = _readiness(skipped, "integrations")
+    row = readiness_row(skipped, "integrations")
     assert 'data-status="unknown" data-incomplete' in row
     assert f'data-missing="{finding_id}"' in row
     assert 'data-reason="permission_denied"' in row
@@ -223,7 +218,7 @@ def test_incomplete_bound_collector_is_reported_without_a_scan_finding(
             tmp_path / "omitted-finding", town_scan, f"provided_counts: {{{finding_id}: {answer}}}"
         )
     )
-    row = _readiness(html, "integrations")
+    row = readiness_row(html, "integrations")
     strings = load_locale("en")
 
     assert f'data-status="{status}" data-incomplete' in row
@@ -241,7 +236,7 @@ def test_shared_mailboxes_require_the_exchange_recipient_export(
     _finding(town_scan, "mail.other_systems_send_mail")["value"] = False
     answers = "confirmations: {mail.other_systems_send_mail: false}"
     original = _html(_report(tmp_path / "missing", town_scan, answers))
-    row = _readiness(original, "mail")
+    row = readiness_row(original, "mail")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="needs_recipient_export"' in row
 
@@ -264,7 +259,7 @@ def test_shared_mailboxes_require_the_exchange_recipient_export(
 
     finding.update(source="sample.exchange_recipients")
     verified = _html(_report(tmp_path / "recipient-export", town_scan, answers))
-    assert 'data-status="ready"' in _readiness(verified, "mail")
+    assert 'data-status="ready"' in readiness_row(verified, "mail")
 
 
 @pytest.mark.parametrize("source", ["sample.mailbox_usage", "inputs_yaml"])
@@ -316,7 +311,7 @@ confirmations:
 
     html = _html(_report(tmp_path / "empty-inventory", town_scan, answers))
 
-    row = _readiness(html, "licences")
+    row = readiness_row(html, "licences")
     assert f'data-status="{status}"' in row
     evidence = re.search(r'<li data-evidence="licences\.product_count">.*?</li>', row, re.S)
     assert evidence is not None
@@ -327,7 +322,7 @@ confirmations:
         assert "data-incomplete" in row and f'data-reason="{reason}"' in row
     else:
         assert "data-incomplete" not in row and "0 of 0 scanned" in evidence[0]
-    telephony = _readiness(html, "telephony")
+    telephony = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in telephony
     if coverage != "complete":
         assert 'data-reason="licence_products_missing"' in telephony
@@ -345,7 +340,7 @@ def test_complete_licence_inventory_rejects_a_missing_product(
     licences = town_scan["licences"]
     licences["coverage"] = {"kind": "complete", "scanned": 3, "failed": 0, "total": 3}
     baseline = _html(_report(tmp_path / "all-products", town_scan, NO_TELEPHONY))
-    assert 'data-status="needs_work"' in _readiness(baseline, "telephony")
+    assert 'data-status="needs_work"' in readiness_row(baseline, "telephony")
 
     licences["products"] = [
         item for item in licences["products"] if item["sku_part_number"] != "MCOEV"
@@ -405,16 +400,16 @@ def test_only_assigned_unidentified_products_leave_licence_signals_unknown(
     assert products[1]["sku_part_number"] == "MCOEV"
     products[1] = {**identity, "purchased": 0, "assigned": 0, "service_plans": []}
     html = _html(_report(tmp_path / "unassigned", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert 'data-status="ready"' in row and 'data-provenance="measured"' in row
 
     products[1].update(purchased=12, assigned=12)
     html = _html(_report(tmp_path / "assigned", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-provenance="unknown"' in row
     assert 'data-reason="licence_plan_list_missing"' in row
-    assert 'data-status="needs_work"' in _readiness(html, "power_platform")
+    assert 'data-status="needs_work"' in readiness_row(html, "power_platform")
 
 
 @pytest.mark.parametrize("empty_inventory", [False, True])
@@ -431,7 +426,7 @@ def test_licensed_accounts_make_zero_assignments_inconclusive(
         )
 
     html = _html(_report(tmp_path / "contradictory-assignments", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_assignments_conflict"' in row
     assert "Licence assignments contradict licensed accounts." in row
@@ -439,7 +434,7 @@ def test_licensed_accounts_make_zero_assignments_inconclusive(
         assert f'data-unexamined-finding="{workload}.licence_add_on_assigned"' in html
     if empty_inventory:
         assert "Licence products found: 0" in html
-        row = _readiness(html, "licences")
+        row = readiness_row(html, "licences")
         assert 'data-status="unknown" data-incomplete' in row
         assert 'data-reason="licence_assignments_conflict"' in row
 
@@ -519,13 +514,13 @@ def test_missing_roster_plan_leaves_add_on_absence_unknown(
     if not assigned:
         _finding(town_scan, "directory.licensed_user_count")["value"] = 0
     baseline = _html(_report(tmp_path / "complete-roster", town_scan, NO_TELEPHONY))
-    assert f'data-status="{baseline_status}"' in _readiness(baseline, "telephony")
+    assert f'data-status="{baseline_status}"' in readiness_row(baseline, "telephony")
 
     service_plans = product["service_plans"]
     (missing,) = [plan for plan in service_plans if plan["name"] == removed]
     service_plans.remove(missing)
     html = _html(_report(tmp_path / "incomplete-roster", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
 
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
@@ -543,7 +538,7 @@ def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     tmp_path: Path, town_scan: dict, plan_list: str
 ) -> None:
     checked = _html(_report(tmp_path / "with-plans", town_scan, NO_TELEPHONY))
-    assert 'data-status="needs_work"' in _readiness(checked, "telephony")
+    assert 'data-status="needs_work"' in readiness_row(checked, "telephony")
 
     phone = next(
         item for item in town_scan["licences"]["products"] if item["sku_part_number"] == "MCOEV"
@@ -553,7 +548,7 @@ def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     else:
         phone["service_plans"] = [] if plan_list == "empty" else None
     html = _html(_report(tmp_path / "no-plans", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
     assert 'data-reason="licence_plan_list_missing"' in html
@@ -570,13 +565,13 @@ def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
         products=[phone], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
     )
     baseline = _html(_report(tmp_path / "classified-phone", town_scan, NO_TELEPHONY))
-    assert 'data-status="needs_work"' in _readiness(baseline, "telephony")
+    assert 'data-status="needs_work"' in readiness_row(baseline, "telephony")
 
     phone["service_plans"] = [
         {"name": "REVIEW_PLAN", "guid": "00000000-0000-4000-8000-000000000001"}
     ]
     html = _html(_report(tmp_path / "unclassified-phone", town_scan, NO_TELEPHONY))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
 
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
@@ -602,7 +597,7 @@ confirmations:
   telephony.replacement_available: false
 """
     baseline = _html(_report(tmp_path / "known-plans", town_scan, answers))
-    assert 'data-status="ready"' in _readiness(baseline, "teams")
+    assert 'data-status="ready"' in readiness_row(baseline, "teams")
 
     suite = next(
         item for item in town_scan["licences"]["products"] if item["sku_part_number"] == "SPE_E3"
@@ -612,15 +607,15 @@ confirmations:
     )
     html = _html(_report(tmp_path / "unlisted-plan", town_scan, answers))
     assert "Unclassified service plans in this product: 1." in html
-    row = _readiness(html, "teams")
+    row = readiness_row(html, "teams")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_not_classified"' in row
-    assert 'data-status="needs_work"' in _readiness(html, "telephony")
+    assert 'data-status="needs_work"' in readiness_row(html, "telephony")
 
     suite["assigned"] = 0
     html = _html(_report(tmp_path / "unassigned-plan", town_scan, answers))
     assert "Unclassified service plans in this product: 1." in html
-    assert 'data-status="ready"' in _readiness(html, "teams")
+    assert 'data-status="ready"' in readiness_row(html, "teams")
 
 
 @pytest.mark.parametrize("partial_by", ["coverage", "collector"])
@@ -639,8 +634,8 @@ confirmations:
     ]
     licences["coverage"] = {"kind": "complete", "scanned": 2, "failed": 0, "total": 2}
     checked = _html(_report(tmp_path / "complete-licences", town_scan, answers))
-    assert 'data-status="needs_work"' in _readiness(checked, "telephony")
-    assert 'data-status="ready"' in _readiness(checked, "power_platform")
+    assert 'data-status="needs_work"' in readiness_row(checked, "telephony")
+    assert 'data-status="ready"' in readiness_row(checked, "power_platform")
 
     if partial_by == "coverage":
         licences["coverage"] = {"kind": "partial", "scanned": 2, "failed": 1, "total": 3}
@@ -650,13 +645,13 @@ confirmations:
         collector.update(status="partial", reason="not_in_export")
         reason = "not_in_export"
     html = _html(_report(tmp_path / "partial-licences", town_scan, answers))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert 'data-status="needs_work" data-incomplete' in row
     assert "Review whether the assigned Teams Phone licences are still needed" in row
     assert 'data-reason="coverage_partial"' in row
     if partial_by == "coverage":
         assert "2 of 3 scanned" in row
-    row = _readiness(html, "power_platform")
+    row = readiness_row(html, "power_platform")
     assert 'data-status="unknown" data-incomplete' in row
     assert f'data-reason="{reason}"' in row
     assert 'data-provenance="unknown"' in row
@@ -712,14 +707,14 @@ confirmations:
 """
     baseline = _html(_report(tmp_path / "confirmation-only", town_scan, answers))
     expected = "blocker" if provided else "ready"
-    assert f'data-status="{expected}"' in _readiness(baseline, "telephony")
+    assert f'data-status="{expected}"' in readiness_row(baseline, "telephony")
 
     town_scan["collectors"].append(
         {"id": "telephony", "status": "ok", "reason": None, "permissions_used": []}
     )
     _measure(town_scan, "telephony.in_use", measured, "telephony", kind=coverage)
     html = _html(_report(tmp_path / "both-observations", town_scan, answers))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in row
     evidence = re.search(r'<li data-evidence="telephony.in_use">.*?</li>', row, re.S)
     assert evidence is not None
@@ -780,7 +775,7 @@ def test_measured_lower_bound_takes_precedence_over_a_smaller_provided_total(
         _report(tmp_path / "bounds", town_scan, f"provided_counts: {{{finding_id}: {provided}}}")
     )
 
-    row = _readiness(html, workload)
+    row = readiness_row(html, workload)
     assert 'data-status="needs_work" data-incomplete' in row
     evidence = re.search(rf'<li data-evidence="{re.escape(finding_id)}">.*?</li>', row, re.S)
     assert evidence is not None
@@ -798,7 +793,7 @@ def test_measured_positive_count_cannot_be_overridden_by_zero(
     answers = f'as_of: "2026-11-02"\nprovided_counts: {{{finding_id}: 0}}'
 
     html = _html(_report(tmp_path / "conflicting-counts", town_scan, answers))
-    row = _readiness(html, "integrations")
+    row = readiness_row(html, "integrations")
     status = "unknown" if kind == "complete" else "needs_work"
     assert f'data-status="{status}" data-incomplete' in row
     strings = load_locale("en")
@@ -815,7 +810,7 @@ def test_measured_positive_count_cannot_be_overridden_by_zero(
     ]
     assert 'data-path-status="ready" data-path-workload="integrations"' not in html
 
-    scan_only = _readiness(_html(_report(tmp_path / "scan-only", town_scan)), "integrations")
+    scan_only = readiness_row(_html(_report(tmp_path / "scan-only", town_scan)), "integrations")
     assert 'data-status="needs_work"' in scan_only
     assert ("data-incomplete" in scan_only) is (kind != "complete")
 
@@ -863,7 +858,7 @@ def test_disagreeing_provided_answers_remain_visible_and_undecided(
     answers = f"{date_input}confirmations: {{small_apps.in_use: {str(not recorded).lower()}}}"
 
     html = _html(_report(tmp_path / "disagreeing-answers", town_scan, answers))
-    row = _readiness(html, "small_apps")
+    row = readiness_row(html, "small_apps")
     strings = load_locale("en")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="provided_answers_conflict"' in row
@@ -932,7 +927,7 @@ confirmations:
 """
 
     html = _html(_report(tmp_path / "transfer-evidence", town_scan, inputs))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in row
     if status == "needs_work":
         assert "Review whether the assigned Teams Phone licences are still needed" in row
@@ -970,7 +965,7 @@ def test_assigned_phone_licences_do_not_establish_operational_use(
         _measure(town_scan, "telephony.in_use", in_use, "telephony")
 
     html = _html(_report(tmp_path / "phone-use", town_scan, answers))
-    row = _readiness(html, "telephony")
+    row = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in row
     assert f'data-gap="telephony" data-need="{need}"' in html
     if in_use is False:
@@ -991,7 +986,7 @@ def test_header_shows_both_file_dates_when_samples_are_mixed(
     assert "inputs.yaml" in inputs[0] and 'datetime="2026-11-12"' in inputs[0]
     assert "Linden Bridge Association" in header and "inventory.json" not in header
     assert "answers.yaml" not in header
-    assert 'data-status="ready"' in _readiness(html, "sharepoint")
+    assert 'data-status="ready"' in readiness_row(html, "sharepoint")
 
 
 @pytest.mark.parametrize(
@@ -1018,7 +1013,7 @@ def test_windows_dependency_is_scoped_to_the_desktop_move(
     applications_need: str,
 ) -> None:
     html = _html(_report(tmp_path / "desktop", town_scan, f"windows_only_software: {software}"))
-    row = _readiness(html, "windows_software")
+    row = readiness_row(html, "windows_software")
 
     assert f'data-status="{status}"' in row
     assert f'data-gap="desktop_operating_system" data-need="{desktop_need}"' in html
@@ -1071,7 +1066,7 @@ confirmations:
 
     html = _html(_report(tmp_path / "disputed-desktop", town_scan, answers))
 
-    row = _readiness(html, "windows_software")
+    row = readiness_row(html, "windows_software")
     assert 'data-reason="provided_answers_conflict"' in row
     gap = re.search(
         r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S

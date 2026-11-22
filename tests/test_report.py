@@ -4,15 +4,23 @@ import re
 from collections import Counter
 from hashlib import sha256
 from html import unescape
-from html.parser import HTMLParser
-from importlib.resources import files
 from itertools import pairwise
 from pathlib import Path
 from shutil import copytree
 
 import pytest
+from helpers import (
+    CSS_RESOURCE,
+    PLANTED_SCAN,
+    RESOURCE_ATTRIBUTES,
+    RESOURCE_ELEMENTS,
+    ReportDocument,
+    rebuild_report,
+    runner,
+    sample_inputs_path,
+    sample_scan_path,
+)
 from report_expectations import SECTION_ORDER
-from typer.testing import CliRunner
 
 from fazit import __version__, catalogue, rules
 from fazit import report as report_module
@@ -20,82 +28,15 @@ from fazit.cli import app
 from fazit.i18n import load_locale
 from fazit.mappings import PROFILES
 
-PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
-RESOURCE_ELEMENTS = {
-    "audio",
-    "base",
-    "embed",
-    "form",
-    "frame",
-    "iframe",
-    "img",
-    "link",
-    "object",
-    "script",
-    "source",
-    "track",
-    "image",
-    "use",
-    "foreignobject",
-    "feimage",
-    "video",
-}
-RESOURCE_ATTRIBUTES = {"action", "background", "formaction", "ping", "poster", "src", "srcset"}
-CSS_RESOURCE = re.compile(r"@import\b|\b(?:url|src|image-set)\s*\(", re.IGNORECASE)
 # The report embeds its two fonts; nothing else in its CSS may point anywhere.
 EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
 
-runner = CliRunner()
-
-
-class ReportDocument(HTMLParser):
-    def __init__(self, html: str) -> None:
-        super().__init__()
-        self.tags: list[tuple[str, dict[str, str | None]]] = []
-        self.styles: list[str] = []
-        self._in_style = False
-        self.feed(html)
-        self.close()
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        self.tags.append((tag, dict(attrs)))
-        if tag == "style":
-            self._in_style = True
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag == "style":
-            self._in_style = False
-
-    def handle_data(self, data: str) -> None:
-        if self._in_style:
-            self.styles.append(data)
-
-
-def _rebuild(
-    scan: Path, out: Path, lang: str, *, profile: str = "opendesk", inputs: Path | None = None
-) -> str:
-    command = ["report", str(scan), "--lang", lang, "--profile", profile, "--out", str(out)]
-    if inputs is not None:
-        command.extend(["--inputs", str(inputs)])
-    result = runner.invoke(app, command)
-    assert result.exit_code == 0, result.output
-    path = Path(result.stdout.strip())
-    assert path.is_file() and path.parent == out
-    assert not result.stderr
-    return path.read_text(encoding="utf-8")
-
-
-def _sample_scan(sample: str) -> Path:
-    return Path(str(files("fazit").joinpath("demo", sample, "scan.json")))
-
-
-def _sample_inputs(sample: str) -> Path:
-    return _sample_scan(sample).with_name("inputs.yaml")
-
 
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
-    return _rebuild(_sample_scan(sample), out, lang, profile=profile, inputs=_sample_inputs(sample))
+    return rebuild_report(
+        sample_scan_path(sample), out, lang, profile=profile, inputs=sample_inputs_path(sample)
+    )
 
 
 @pytest.mark.parametrize(("sample", "lang"), [*SAMPLES, ("planted", "en")])
@@ -104,7 +45,7 @@ def test_report_cannot_fetch_resources(
     tmp_path: Path, sample: str, lang: str, profile: str
 ) -> None:
     html = (
-        _rebuild(PLANTED_SCAN, tmp_path, lang, profile=profile)
+        rebuild_report(PLANTED_SCAN, tmp_path, lang, profile=profile)
         if sample == "planted"
         else _sample_report(sample, tmp_path, lang, profile)
     )
@@ -149,7 +90,7 @@ def test_scan_organisation_markup_is_ignored(tmp_path: Path) -> None:
     scan = tmp_path / "scan.json"
     scan.write_text(json.dumps(data), encoding="utf-8")
 
-    html = _rebuild(scan, tmp_path / "out", "en")
+    html = rebuild_report(scan, tmp_path / "out", "en")
 
     assert "example.invalid" not in html
     assert all(tag != "img" for tag, _ in ReportDocument(html).tags)
@@ -163,13 +104,15 @@ def test_rendered_text_is_autoescaped(
     text = '<img src="https://example.invalid/repository">'
     monkeypatch.setattr(report_module, "REPOSITORY_URL", text)
     markup = '<img src="https://example.invalid/organisation">'
-    original = _sample_inputs(sample).read_text(encoding="utf-8")
+    original = sample_inputs_path(sample).read_text(encoding="utf-8")
     inputs = tmp_path / "inputs.yaml"
     edited = re.sub(
         r"^organisation_name:.*$", f"organisation_name: '{markup}'", original, flags=re.M
     )
     inputs.write_text(edited, encoding="utf-8")
-    html = _rebuild(_sample_scan(sample), tmp_path / "out", lang, profile=profile, inputs=inputs)
+    html = rebuild_report(
+        sample_scan_path(sample), tmp_path / "out", lang, profile=profile, inputs=inputs
+    )
 
     assert "&lt;img src=" in html and "example.invalid/repository" in html
     header = html.split("</header>", 1)[0]
@@ -310,7 +253,7 @@ def _checksums(html: str) -> dict[str, str]:
 
 @pytest.mark.parametrize("lang", ["en", "de"])
 def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> None:
-    data = json.loads(_sample_scan("town").read_bytes())
+    data = json.loads(sample_scan_path("town").read_bytes())
     data["findings"] = [row for row in data["findings"] if row["source"] is None]
     data["licences"] = None
     scan = tmp_path / "PrivateScanMarker.json"
@@ -321,7 +264,7 @@ def test_report_records_scan_origin_and_versions(tmp_path: Path, lang: str) -> N
         data["source_kind"] = source
         data["tool"]["version"] = version
         scan.write_text(json.dumps(data), encoding="utf-8")
-        html = _rebuild(scan, tmp_path / f"out-{index}", lang)
+        html = rebuild_report(scan, tmp_path / f"out-{index}", lang)
         assert "PrivateScanMarker" not in html
         assert "scan.json" in html.split("</header>", 1)[0]
         assert "data-sample" not in html
@@ -382,14 +325,14 @@ def test_checksums_use_the_five_rule_reads(tmp_path: Path, monkeypatch: pytest.M
 @pytest.mark.parametrize("with_date", [True, False])
 def test_run_details_use_dates_and_roles_without_filenames(tmp_path: Path, with_date: bool) -> None:
     scan = tmp_path / "private-scan-name.json"
-    scan.write_bytes(_sample_scan("town").read_bytes())
+    scan.write_bytes(sample_scan_path("town").read_bytes())
     inputs = tmp_path / "private-inputs-name.yaml"
-    text = _sample_inputs("town").read_text(encoding="utf-8")
+    text = sample_inputs_path("town").read_text(encoding="utf-8")
     inputs.write_text(
         text if with_date else text.replace('as_of: "2026-11-10"', "as_of: null"), encoding="utf-8"
     )
 
-    html = _rebuild(scan, tmp_path / "out", "en", inputs=inputs)
+    html = rebuild_report(scan, tmp_path / "out", "en", inputs=inputs)
 
     header = html.split("</header>", 1)[0]
     details = html.split('data-subsection="run-details"', 1)[1]
@@ -422,7 +365,7 @@ def test_workload_evidence_stays_in_the_document_with_localised_reasons(tmp_path
         if tag == "details" and "data-evidence-workload" in attrs
     ]
     assert details and all("open" not in attrs for attrs in details)
-    data = json.loads(_sample_scan("town").read_text(encoding="utf-8"))
+    data = json.loads(sample_scan_path("town").read_text(encoding="utf-8"))
     assert {row["workload"] for row in data["findings"]} == {
         attrs["data-evidence-workload"] for attrs in details
     }

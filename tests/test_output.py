@@ -39,18 +39,56 @@ def test_write_refuses_names_that_are_not_basenames(tmp_path: Path, name: str) -
     assert not out.exists()
 
 
-def test_write_refuses_a_dangling_destination_link(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("kind", "error"),
+    [
+        ("symlink", "destination_is_link"),
+        ("dangling", "destination_is_link"),
+        ("directory", "destination_not_file"),
+        pytest.param(
+            "fifo",
+            "destination_not_file",
+            marks=pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="Requires FIFO support"),
+        ),
+    ],
+)
+def test_batch_rejects_unsafe_destinations_before_writing_any_output(
+    tmp_path: Path, kind: str, error: str
+) -> None:
     out = tmp_path / "out"
     out.mkdir()
-    outside = tmp_path / "missing"
+    existing = out / "scan.json"
+    existing.write_bytes(b"Previous scan")
     destination = out / "report.html"
-    os.symlink(outside, destination)
+    outside = tmp_path / "outside.html"
+    if kind in {"symlink", "dangling"}:
+        if kind == "symlink":
+            outside.write_bytes(b"Keep this")
+        destination.symlink_to(outside)
+    elif kind == "directory":
+        destination.mkdir()
+    else:
+        os.mkfifo(destination)
+    metadata = destination.lstat()
 
-    with pytest.raises(InputError, match="destination_is_link"):
-        write_inside(out, destination.name, "Never written")
+    with pytest.raises(InputError, match=error) as caught:
+        write_files(
+            out,
+            {
+                existing.name: "New scan",
+                "inputs.yaml": "New inputs",
+                destination.name: "New report",
+            },
+        )
 
-    assert not outside.exists()
-    assert destination.is_symlink()
+    assert caught.value.field == "--out" and caught.value.file == str(destination)
+    assert set(out.iterdir()) == {existing, destination}
+    assert existing.read_bytes() == b"Previous scan"
+    assert destination.lstat() == metadata
+    if kind == "symlink":
+        assert outside.read_bytes() == b"Keep this"
+    else:
+        assert not outside.exists()
 
 
 def test_replacement_failure_preserves_the_destination_and_cleans_up(

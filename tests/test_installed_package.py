@@ -10,29 +10,12 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
+from helpers import LICENSE_SHA256, ROOT, audit_environment
 from report_expectations import SECTION_ORDER
-from test_repo_basics import LICENSE_SHA256, ROOT
 
 from fazit.i18n import load_locale
 
 pytestmark = pytest.mark.slow
-
-_SOCKET_AUDIT_HOOK = """\
-import os
-import sys
-from pathlib import Path
-
-log = Path(os.environ["FAZIT_TEST_SOCKET_LOG"])
-
-def record_socket_event(event: str, args: tuple[object, ...]) -> None:
-    if event.startswith("socket."):
-        with log.open("a", encoding="utf-8") as recorded:
-            recorded.write(event + "\\n")
-        raise OSError(f"Offline test blocked {event}")
-
-sys.addaudithook(record_socket_event)
-log.touch()
-"""
 
 
 @dataclass(frozen=True)
@@ -88,17 +71,11 @@ def installed_package(tmp_path_factory: pytest.TempPathFactory) -> InstalledPack
     return InstalledPackage(wheel, venv)
 
 
-def _audit_environment(work: Path) -> tuple[dict[str, str], Path]:
-    (work / "sitecustomize.py").write_text(_SOCKET_AUDIT_HOOK, encoding="utf-8")
-    log = work / "socket-events.log"
-    return {**os.environ, "PYTHONPATH": str(work), "FAZIT_TEST_SOCKET_LOG": str(log)}, log
-
-
 def test_installed_demo_renders_offline(
     installed_package: InstalledPackage, tmp_path: Path
 ) -> None:
     assert not tmp_path.resolve().is_relative_to(ROOT)
-    env, audit_log = _audit_environment(tmp_path)
+    env, audit_log = audit_environment(tmp_path)
     venv = installed_package.venv
     out = tmp_path / "out"
     stdout = _run(
@@ -220,7 +197,7 @@ def test_installed_report_rejects_malformed_files_offline(
     ]
     if bad.suffix == ".yaml":
         command.extend(("--inputs", str(bad)))
-    env, audit_log = _audit_environment(tmp_path)
+    env, audit_log = audit_environment(tmp_path)
     audit_log.touch()
     before = _contents(tmp_path)
     result = subprocess.run(
@@ -252,7 +229,7 @@ def _contents(directory: Path) -> dict[Path, bytes | None]:
 def test_subprocess_audit_records_a_caught_attempt(
     installed_package: InstalledPackage, tmp_path: Path
 ) -> None:
-    env, audit_log = _audit_environment(tmp_path)
+    env, audit_log = audit_environment(tmp_path)
     attempt = """\
 import socket
 

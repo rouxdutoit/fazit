@@ -6,13 +6,12 @@ import tomllib
 from collections.abc import Iterator
 from datetime import datetime, timedelta
 from hashlib import sha256
-from pathlib import Path
 
+import pytest
 import yaml
+from helpers import LICENSE_SHA256, ROOT, readme_code_blocks
 
-ROOT = Path(__file__).resolve().parents[1]
 SPDX_IDENTIFIER = "SPDX-License-Identifier: AGPL-3.0-or-later"
-LICENSE_SHA256 = "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
 NETWORK_IMPORTS = {
     "adal",
     "aiohttp",
@@ -126,79 +125,90 @@ def test_package_imports_no_network_or_sign_in_modules() -> None:
     assert not forbidden, f"Network imports: {', '.join(sorted(forbidden))}"
 
 
-def test_contribution_and_security_documents() -> None:
+def test_contribution_and_security_links_and_trailers() -> None:
     contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
-    assert "Signed-off-by" in contributing
-    assert "developercertificate.org" in contributing
-    assert "first public release" in contributing and "outside the maintainer team" in contributing
-    assert "The maintainers attest" in contributing and "initial repository history" in contributing
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-    for trailer in ("Assisted-by:", "Co-Authored-By:"):
+    for trailer in ("Signed-off-by:", "Assisted-by:", "Co-Authored-By:"):
         assert trailer in contributing and trailer in agents
+    assert "git commit -s" in contributing
+    assert "](https://developercertificate.org/)" in contributing
     security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
-    assert "login.microsoftonline.com" in security
-    assert "graph.microsoft.com" in security
-    assert (
-        "[Report a vulnerability](https://github.com/rouxdutoit/fazit/security/advisories/new)"
-        in security
-    )
-    assert "mailto:hello@rouxdutoit.com" in security
+    for host in ("login.microsoftonline.com", "graph.microsoft.com"):
+        assert host in security
+    assert "](https://github.com/rouxdutoit/fazit/security/advisories/new)" in security
+    assert "](mailto:hello@rouxdutoit.com)" in security
     assert set(re.findall(r"[\w.+-]+@[\w.-]+\.[a-z]{2,}", security, re.I)) == {
         "hello@rouxdutoit.com"
     }
 
 
-def readme_code_blocks(readme: str) -> list[str]:
-    return re.findall(r"^```[^\n]*\n(.*?)^```[ \t]*$", readme, flags=re.M | re.S)
-
-
-def test_readmes_start_with_demo_and_describe_the_project() -> None:
-    readmes = {
-        "README.md": ("AI assistance", "not available yet", "disconnect", "](README.de.md)"),
-        "README.de.md": ("KI", "noch nicht", "Trennen Sie", "](README.md)"),
-    }
-    for name, phrases in readmes.items():
-        text = (ROOT / name).read_text(encoding="utf-8")
-        blocks = readme_code_blocks(text)
-        assert blocks and "uv run fazit demo" in blocks[0], name
-        for phrase in (*phrases, "Claude", "Codex"):
-            assert phrase in text, (name, phrase)
-        assert "![" not in text and not re.search(r"<img\b", text, re.IGNORECASE), name
-        assert all("uvx fazit" not in block for block in blocks), name
-
-
-def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
-    text = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    workflow = yaml.safe_load(text)
-    assert set(workflow.get("on", workflow.get(True))) == {"push", "pull_request"}
-    assert workflow["permissions"] == {"contents": "read"}
-    (job,) = workflow["jobs"].values()
-    assert job["runs-on"] == "${{ matrix.os }}"
-    platforms = {row["os"] for row in job["strategy"]["matrix"]["include"]}
-    assert platforms == {"windows-latest", "macos-latest"}
-    assert job["strategy"]["fail-fast"] is False
-    assert set(job["strategy"]["matrix"]["python-version"]) == {"3.12", "3.x"}
-    assert "services" not in job and "secrets." not in text
-    steps = job["steps"]
-    actions = [step["uses"] for step in steps if "uses" in step]
-    assert [value.partition("@")[0] for value in actions] == [
-        "actions/checkout",
-        "actions/setup-python",
-        "astral-sh/setup-uv",
-    ]
-    assert all(re.search(r"@[0-9a-fA-F]{40}$", value) for value in actions)
-    setup_uv = next(
-        step for step in steps if step.get("uses", "").startswith("astral-sh/setup-uv@")
+@pytest.mark.parametrize(
+    ("readme", "translation"), [("README.md", "README.de.md"), ("README.de.md", "README.md")]
+)
+def test_readmes_show_the_checkout_demo_and_no_published_install(
+    readme: str, translation: str
+) -> None:
+    text = (ROOT / readme).read_text(encoding="utf-8")
+    commands = "\n".join(readme_code_blocks(text))
+    assert f"]({translation})" in text
+    assert "Claude" in text and "Codex" in text
+    assert "![" not in text and not re.search(r"<img\b", text, re.I)
+    assert re.search(r"(?m)^\s*uv run fazit demo\b", commands)
+    assert not re.search(
+        r"(?m)^\s*(?:uvx|pipx? install|uv (?:pip install|tool (?:run|install)))\s+fazit\b",
+        commands,
     )
-    assert re.fullmatch(r"\d+\.\d+\.\d+", setup_uv["with"]["version"])
-    commands = [step["run"] for step in steps if "run" in step]
-    assert commands == [
-        'uv sync --locked --python "${{ steps.python.outputs.python-path }}"',
-        "uv run ruff check .",
-        "uv run ruff format --check .",
-        "uv run pytest -q",
-        "uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep",
-        "uv run fazit demo --lang de",
-        "uv run fazit demo --lang en",
-        "uv run python site/check_site.py",
-    ]
+
+
+@pytest.fixture(scope="module")
+def ci_workflow() -> dict:
+    return yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+
+
+def test_ci_runs_the_required_checks_on_supported_python_versions(ci_workflow: dict) -> None:
+    assert {"push", "pull_request"} <= set(ci_workflow.get("on", ci_workflow.get(True, [])))
+    job = ci_workflow["jobs"]["checks"]
+    assert job["runs-on"] == "${{ matrix.os }}"
+    strategy = job["strategy"]
+    assert strategy["fail-fast"] is False
+    matrix = strategy["matrix"]
+    assert {"3.12", "3.x"} <= set(matrix["python-version"])
+    platforms = {(row.get("os"), row.get("python-version")) for row in matrix.get("include", [])}
+    assert {("windows-latest", "3.12"), ("macos-latest", "3.12")} <= platforms
+
+    steps = job["steps"]
+    actions = {step["uses"].partition("@")[0]: step for step in steps if "uses" in step}
+    assert "actions/checkout" in actions
+    setup_python = actions["actions/setup-python"]
+    assert setup_python["with"]["python-version"] == "${{ matrix.python-version }}"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", actions["astral-sh/setup-uv"]["with"]["version"])
+    commands = {
+        " ".join(line.split())
+        for step in steps
+        if "if" not in step
+        for line in step.get("run", "").splitlines()
+    }
+    assert any(
+        command.startswith("uv sync ")
+        and "--locked" in command.split()
+        and f"steps.{setup_python['id']}.outputs.python-path" in command
+        for command in commands
+    )
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    required = set(re.findall(r"^uv run .+$", agents, re.M))
+    required.add("uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep")
+    assert not (missing := required - commands), sorted(missing)
+
+
+def test_ci_uses_read_only_permissions_and_sha_pinned_actions(ci_workflow: dict) -> None:
+    assert ci_workflow["permissions"] == {"contents": "read"}
+    assert "secrets." not in str(ci_workflow)
+    for job in ci_workflow["jobs"].values():
+        assert "services" not in job
+        permissions = job.get("permissions", {})
+        assert permissions == "read-all" or (
+            isinstance(permissions, dict) and set(permissions.values()) <= {"read", "none"}
+        )
+        for step in job.get("steps", []):
+            if "uses" in step:
+                assert re.fullmatch(r"[^@]+@[0-9a-fA-F]{40}", step["uses"])

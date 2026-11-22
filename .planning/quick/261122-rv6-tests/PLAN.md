@@ -2,7 +2,7 @@
 quick_id: 261122-rv6
 slug: tests
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review batch 6, a leaner test suite with the same protection

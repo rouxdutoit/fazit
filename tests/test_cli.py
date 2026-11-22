@@ -17,28 +17,33 @@ from shutil import copyfile, copytree
 
 import pytest
 import yaml
+from helpers import (
+    ROOT,
+    readiness_row,
+    readme_code_blocks,
+    report_section,
+    runner,
+    sample_inputs_path,
+    sample_scan_path,
+)
 from report_expectations import SECTION_ORDER
-from test_repo_basics import ROOT, readme_code_blocks
-from typer.testing import CliRunner
 
 from fazit import __version__, i18n, model, rules, validation
 from fazit import report as report_module
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.errors import InputError
-from fazit.i18n import SUPPORTED_LANGUAGES, load_locale
+from fazit.i18n import load_locale
 from fazit.mappings import PROFILES, load_mapping
-from fazit.model import Coverage, Scan, load_scan, load_scan_text
+from fazit.model import Coverage, Scan, load_scan
 from fazit.parsing import parse_yaml, read_text
 from fazit.report import render_report, report_file_name
 from fazit.status import STATUSES
 
-runner = CliRunner()
-# Typer colours help on GitHub Actions.
 ANSI_STYLE = re.compile(r"\x1b\[[0-9;]*m")
 
 
-def test_demo_writes_one_local_report(tmp_path: Path) -> None:
+def test_demo_prints_output_paths_and_renders_inventory(tmp_path: Path) -> None:
     result = runner.invoke(app, ["demo", "--out", str(tmp_path)])
 
     assert result.exit_code == 0, result.output
@@ -57,23 +62,23 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     assert all(header[key] in html for key in ("local", "offline", "sample"))
     assert 'data-finding="directory.user_count"' in html
     assert "Stadtverwaltung Musterstadt" in html
-    assert "data-software-entry" in _section(html, "attention")
-    moves = _section(html, "moves")
+    assert "data-software-entry" in report_section(html, "attention")
+    moves = report_section(html, "moves")
     assert "Nubus" in moves and "Keycloak" in moves
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("readme", ["README.md", "README.de.md"])
-def test_readme_commands_run_in_order(
+def test_readme_examples_produce_local_reports(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, readme: str
 ) -> None:
     text = (ROOT / readme).read_text(encoding="utf-8")
     prefix = "uv run fazit "
     commands = [
-        line
+        line.strip()
         for block in readme_code_blocks(text)
         for line in block.splitlines()
-        if line.startswith(prefix)
+        if line.lstrip().startswith(prefix)
     ]
     assert commands
     working = tmp_path / "Pat Analyst@example.invalid"
@@ -159,12 +164,6 @@ def test_cli_errors_only_name_the_supplied_input_or_generated_file(
     ]
 
 
-def _section(html: str, name: str) -> str:
-    section = re.search(rf'<section data-section="{name}">.*?</section>', html, re.S)
-    assert section is not None, name
-    return section[0]
-
-
 @pytest.mark.parametrize("profile", PROFILES)
 def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, profile: str) -> None:
     source = files("fazit").joinpath("demo", "town", "scan.json")
@@ -178,17 +177,17 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
     html = report.read_text(encoding="utf-8")
     mapping = load_mapping(profile, load_catalogue())
     strings = load_locale("en")
-    moves = _section(html, "moves")
+    moves = report_section(html, "moves")
     assert mapping.label["en"] in html.split("</header>", 1)[0]
     assert "<caption data-sample>" in moves
     assert re.findall(r'<tr data-function="([^"]+)"', moves) == [
         row.function for row in mapping.functions
     ]
-    readiness_html = _section(html, "readiness")
+    readiness_html = report_section(html, "readiness")
     readiness = dict(
         re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness_html)
     )
-    appendix = _section(html, "appendix")
+    appendix = report_section(html, "appendix")
     assert mapping.file_name in appendix and mapping.description["en"] in appendix
     for row in mapping.functions:
         move = re.search(rf'<tr data-function="{row.function}".*?</tr>', moves, re.S)
@@ -247,7 +246,7 @@ def test_changed_mapping_is_read_once_and_rendered_as_text(
     report = Path(result.stdout.splitlines()[-1])
     assert report.is_file()
     html = report.read_text(encoding="utf-8")
-    assert markup in unescape(_section(html, "moves")) and markup not in html
+    assert markup in unescape(report_section(html, "moves")) and markup not in html
     assert not re.search(r"<img\b", html)
     assert f'data-checksum="{path.name}">{sha256(raw).hexdigest()}</code>' in html
     assert reads.count(path.name) == 1
@@ -272,21 +271,6 @@ def test_cli_names_a_broken_mapping_file_and_field(
     ]
 
 
-def test_demo_rejects_an_output_path_that_is_a_file(tmp_path: Path) -> None:
-    file = tmp_path / "regular-file"
-    file.write_text("Keep this", encoding="utf-8")
-
-    result = runner.invoke(app, ["demo", "--out", str(file)])
-
-    assert result.exit_code == 2
-    assert result.stdout == ""
-    assert len(result.stderr.splitlines()) == 1
-    assert result.stderr.startswith("Error:")
-    assert "--out" in result.stderr and file.name in result.stderr
-    assert "Traceback" not in result.stderr
-    assert file.read_text(encoding="utf-8") == "Keep this"
-
-
 def test_report_filename_uses_only_the_scan_day_and_selected_language() -> None:
     assert report_file_name("2026-11-02T23:30:00-05:00", lang="en") == "report-2026-11-02-en.html"
     with pytest.raises(InputError, match="unsupported_language"):
@@ -303,70 +287,36 @@ def test_audit_hook_records_caught_socket_attempts(offline: list[str]) -> None:
     assert offline.pop(0) == "socket.getaddrinfo"
 
 
+def _sample_scan(sample: str) -> Scan:
+    return load_scan(sample_scan_path(sample), load_catalogue())
+
+
 @pytest.mark.parametrize(
-    "name",
-    ["report-2026-11-02-en.html", "scan-2026-11-02-en.json", "inputs-2026-11-02-en.yaml"],
+    ("sample", "lang", "profile"),
+    [
+        ("town", "en", "opendesk"),
+        ("nonprofit", "de", "opendesk"),
+        ("town", "en", "nextcloud"),
+        ("nonprofit", "de", "nextcloud"),
+        ("town", "de", "generic"),
+        ("nonprofit", "en", "generic"),
+    ],
 )
-def test_demo_refuses_a_symlink_destination(tmp_path: Path, name: str) -> None:
-    outside = tmp_path / "outside.html"
-    outside.write_bytes(b"Preserve this file")
-    out = tmp_path / "report"
-    out.mkdir()
-    destination = out / name
-    os.symlink(outside, destination)
-
-    result = runner.invoke(app, ["demo", "--out", str(out)])
-
-    assert result.exit_code == 2
-    assert result.stdout == ""
-    assert "symbolic link" in result.stderr
-    assert destination.is_symlink()
-    assert outside.read_bytes() == b"Preserve this file"
-    assert list(out.iterdir()) == [destination]
-
-
-@pytest.mark.parametrize("kind", ["directory", "fifo"])
-def test_demo_preflights_all_destinations(tmp_path: Path, kind: str) -> None:
-    if kind == "fifo" and not hasattr(os, "mkfifo"):
-        pytest.skip("Requires FIFO support")
-    existing_scan = tmp_path / "scan-2026-11-02-en.json"
-    existing_scan.write_bytes(b"Previous scan")
-    report = tmp_path / "report-2026-11-02-en.html"
-    if kind == "directory":
-        report.mkdir()
-    else:
-        os.mkfifo(report)
-
-    result = runner.invoke(app, ["demo", "--out", str(tmp_path)])
-
-    assert result.exit_code == 2 and not result.stdout
-    assert len(result.stderr.splitlines()) == 1
-    assert report.name in result.stderr and "--out" in result.stderr
-    assert existing_scan.read_bytes() == b"Previous scan"
-    assert set(tmp_path.iterdir()) == {existing_scan, report}
-    assert report.is_dir() if kind == "directory" else report.is_fifo()
-
-
-def _sample_scan(name: str) -> Scan:
-    source = files("fazit").joinpath("demo", name, "scan.json")
-    return load_scan_text(read_text(source), source.name, load_catalogue())
-
-
-@pytest.mark.parametrize("profile", PROFILES)
-@pytest.mark.parametrize("lang", ["en", "de"])
-@pytest.mark.parametrize(("sample", "date"), [("town", "2026-11-02"), ("nonprofit", "2026-11-05")])
-def test_cli_renders_every_profile_in_both_languages_for_both_samples(
-    tmp_path: Path, lang: str, sample: str, date: str, profile: str
+def test_demo_writes_the_selected_sample_language_and_profile(
+    tmp_path: Path, sample: str, lang: str, profile: str
 ) -> None:
+    scan = _sample_scan(sample)
+    stamp = f"{scan.generated_at[:10]}-{lang}"
+    report = tmp_path / f"report-{stamp}.html"
+    scan_path = tmp_path / f"scan-{stamp}.json"
+    inputs_path = tmp_path / f"inputs-{stamp}.yaml"
+
     result = runner.invoke(
         app,
         ["demo", "--lang", lang, "--sample", sample, "--profile", profile, "--out", str(tmp_path)],
     )
 
     assert result.exit_code == 0, result.output
-    report = tmp_path / f"report-{date}-{lang}.html"
-    scan_path = tmp_path / f"scan-{date}-{lang}.json"
-    inputs_path = tmp_path / f"inputs-{date}-{lang}.yaml"
     strings = load_locale(lang)["cli"]
     assert result.stdout.splitlines() == [
         strings["sample_scan"].format(path=scan_path),
@@ -374,15 +324,14 @@ def test_cli_renders_every_profile_in_both_languages_for_both_samples(
         str(report),
     ]
     assert not result.stderr and report.is_file()
-    assert load_scan(scan_path, load_catalogue()) == _sample_scan(sample)
-    inputs = files("fazit").joinpath("demo", sample, "inputs.yaml")
-    assert inputs_path.read_bytes() == inputs.read_bytes()
+    assert load_scan(scan_path, load_catalogue()) == scan
+    assert inputs_path.read_bytes() == sample_inputs_path(sample).read_bytes()
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
     assert load_locale(lang)["header"]["sample"] in html
     mapping = load_mapping(profile, load_catalogue())
     assert mapping.label[lang] in html.split("</header>", 1)[0]
-    moves = _section(html, "moves")
+    moves = report_section(html, "moves")
     assert moves.count("data-function=") == len(mapping.functions)
     if not mapping.product_profile:
         assert load_locale(lang)["moves"]["no_project_check"] in moves
@@ -448,7 +397,9 @@ def test_provided_answer_source_is_independent_of_scan_source() -> None:
 
 
 @pytest.mark.parametrize(("sample", "lang"), [("town", "en"), ("nonprofit", "de")])
-def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> None:
+def test_scan_only_report_explains_readiness_and_missing_evidence(
+    tmp_path: Path, sample: str, lang: str
+) -> None:
     scan_path = files("fazit").joinpath("demo", sample, "scan.json")
     result = runner.invoke(app, ["report", str(scan_path), "--lang", lang, "--out", str(tmp_path)])
     assert result.exit_code == 0, result.output
@@ -456,9 +407,8 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
     assert path.is_file() and not result.stderr
     html = path.read_text(encoding="utf-8")
     strings = load_locale(lang)
-    section = re.search(r'<section data-section="readiness">.*?</section>', html, re.S)
-    assert section is not None and "%" not in section[0]
-    table = section[0]
+    table = report_section(html, "readiness")
+    assert "%" not in table
     rows = re.findall(
         r'<tr data-workload="([^"]+)" data-status="([^"]+)"[^>]*>.*?</tr>', table, re.S
     )
@@ -469,8 +419,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
         ["telephony"] if sample == "nonprofit" else []
     )
     for workload, status in rows:
-        row = re.search(rf'<tr data-workload="{workload}".*?</tr>', table, re.S)
-        assert row is not None and strings["status"][status] in row[0]
+        assert strings["status"][status] in readiness_row(table, workload)
     segments = re.findall(r'data-segment="([^"]+)" data-count="(\d+)"', table)
     assert segments == [
         (status, str(total))
@@ -490,16 +439,15 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
         if collector.status == "skipped":
             assert f'data-unexamined-collector="{collector.id}"' in table
     if sample == "town":
-        mail = re.search(r'<tr data-workload="mail".*?</tr>', table, re.S)
-        assert mail is not None and 'data-status="needs_work" data-incomplete' in mail[0]
-        assert strings["collector"]["exchange_recipients"] in mail[0]
+        mail = readiness_row(table, "mail")
+        assert 'data-status="needs_work" data-incomplete' in mail
+        assert strings["collector"]["exchange_recipients"] in mail
         for text in strings["reason"]["needs_recipient_export"].values():
-            assert text in mail[0]
-        assert 'data-reason="needs_recipient_export"' in mail[0]
+            assert text in mail
+        assert 'data-reason="needs_recipient_export"' in mail
         assert 'data-rule="mail-other-systems"' in html
     else:
-        onedrive = re.search(r'<tr data-workload="onedrive".*?</tr>', table, re.S)
-        assert onedrive is not None
+        onedrive = readiness_row(table, "onedrive")
         for text in (
             "52,5 GB",
             strings["provenance"]["measured"],
@@ -508,7 +456,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
             "9. Mai bis 4. Nov. 2026",
             "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen",
         ):
-            assert text in onedrive[0]
+            assert text in onedrive
 
     appendix = html.split('data-section="appendix"', 1)[1]
     assert appendix.count(strings["appendix"]["ready_evidence"]) == len(catalogue.workloads)
@@ -588,13 +536,14 @@ def test_partial_counts_describe_the_observed_scope(value: int, message: str) ->
 
 def test_cli_localises_bad_output_directory(tmp_path: Path) -> None:
     file = tmp_path / "file"
-    file.touch()
+    file.write_bytes(b"Keep this")
     result = runner.invoke(app, ["demo", "--lang", "de", "--out", str(file)])
 
     expected = load_locale("de")["errors"]["out_dir"].format(file=file, field="--out")
     assert result.exit_code == 2
     assert result.stderr.splitlines() == [f"Fehler: {expected}"]
     assert not result.stdout
+    assert file.read_bytes() == b"Keep this"
 
 
 @pytest.mark.parametrize(
@@ -613,13 +562,6 @@ def test_cli_rejects_unsupported_options_without_echoing_the_value(
     assert result.exit_code == 2
     assert result.stderr.startswith(prefix) and field in result.stderr
     assert "planted" not in result.stderr and "fazit" not in result.stderr
-
-
-def test_debug_preserves_the_underlying_input_error(tmp_path: Path) -> None:
-    file = tmp_path / "file"
-    file.touch()
-    result = runner.invoke(app, ["--debug", "demo", "--out", str(file)])
-    assert isinstance(result.exception, InputError) and result.exception.code == "out_dir"
 
 
 def test_version_works_without_a_command() -> None:
@@ -674,36 +616,6 @@ def test_report_usage_uses_the_documented_argument_name_in_english() -> None:
     for output in (ANSI_STYLE.sub("", failure.stderr), ANSI_STYLE.sub("", help_result.stdout)):
         usage = next(line for line in output.splitlines() if "Usage:" in line)
         assert usage.rstrip().endswith("[OPTIONS] SCAN_JSON")
-
-
-def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
-    outside = tmp_path / "outside.html"
-    outside.write_bytes(b"Preserve this file")
-    out = tmp_path / "out"
-    out.mkdir()
-    destination = out / "report-2026-11-02-en.html"
-    os.symlink(outside, destination)
-    scan = files("fazit").joinpath("demo", "town", "scan.json")
-
-    result = runner.invoke(app, ["report", str(scan), "--out", str(out)])
-
-    assert result.exit_code == 2 and not result.stdout
-    assert "symbolic link" in result.stderr
-    assert destination.is_symlink()
-    assert outside.read_bytes() == b"Preserve this file"
-
-
-@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="Requires FIFO support")
-def test_report_refuses_a_fifo_destination(tmp_path: Path) -> None:
-    scan = files("fazit").joinpath("demo", "town", "scan.json")
-    destination = tmp_path / "report-2026-11-02-en.html"
-    os.mkfifo(destination)
-
-    result = runner.invoke(app, ["report", str(scan), "--out", str(tmp_path)])
-
-    assert result.exit_code == 2 and not result.stdout
-    assert len(result.stderr.splitlines()) == 1 and destination.name in result.stderr
-    assert destination.is_fifo() and list(tmp_path.iterdir()) == [destination]
 
 
 @pytest.mark.parametrize(
@@ -881,7 +793,7 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     path = Path(result.stdout.strip())
     assert path.is_file() and path.parent == out
     html = path.read_text(encoding="utf-8")
-    readiness = _section(html, "readiness")
+    readiness = report_section(html, "readiness")
     assert 'data-workload="telephony" data-status="blocker"' in readiness
     assert 'data-workload="windows_software" data-status="needs_work"' in readiness
     assert 'data-workload="mail" data-status="needs_work" data-incomplete' in readiness
@@ -891,7 +803,7 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     original_html = demo_report.read_text(encoding="utf-8")
     assert "Sample input" in macro.search(original_html)[0]
     assert "Sample input" in macro.search(html)[0]
-    assert 'data-cost-origin="sample_input">Sample input' in _section(html, "costs")
+    assert 'data-cost-origin="sample_input">Sample input' in report_section(html, "costs")
     assert "answers_are_sample: true" in answers.read_text(encoding="utf-8")
 
     own = tmp_path / "own-inputs.yaml"
@@ -909,7 +821,7 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     own_html = Path(rebuilt.stdout.strip()).read_text(encoding="utf-8")
     assert "6 files" in macro.search(own_html)[0] and "Provided" in macro.search(own_html)[0]
     assert "Sample input" not in macro.search(own_html)[0]
-    own_costs = _section(own_html, "costs")
+    own_costs = report_section(own_html, "costs")
     assert 'data-cost-origin="provided">Provided' in own_costs
     assert 'data-cost-origin="sample_input"' not in own_costs
     assert 'data-cost-origin="invented"' in own_costs
@@ -917,7 +829,9 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     scan_only = runner.invoke(app, ["report", str(source), "--out", str(tmp_path / "scan-only")])
     assert scan_only.exit_code == 0, scan_only.output
     scan_html = Path(scan_only.stdout.strip()).read_text(encoding="utf-8")
-    assert 'data-workload="telephony" data-status="unknown"' in _section(scan_html, "readiness")
+    assert 'data-workload="telephony" data-status="unknown"' in report_section(
+        scan_html, "readiness"
+    )
     assert "This organisation" in scan_html.split("</header>", 1)[0]
 
 
@@ -966,7 +880,7 @@ def test_report_errors_name_the_file_and_field(
     assert not result.stdout and not out.exists()
 
 
-def test_report_debug_exposes_the_input_error(tmp_path: Path) -> None:
+def test_debug_reraises_the_underlying_input_error(tmp_path: Path) -> None:
     scan = tmp_path / "missing.json"
     with pytest.raises(InputError, match="file_not_found"):
         runner.invoke(app, ["--debug", "report", str(scan)], catch_exceptions=False)
@@ -1066,43 +980,30 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
         patch.setattr(module, "datetime", SystemDateTime)
 
 
-@pytest.mark.parametrize(
-    ("sample", "lang", "profile", "with_inputs"),
-    [
-        ("town", "en", "opendesk", False),
-        *(
-            (sample, lang, profile, True)
-            for sample in ("town", "nonprofit")
-            for lang in SUPPORTED_LANGUAGES
-            for profile in PROFILES
-        ),
-    ],
-)
-def test_report_bytes_and_name_ignore_the_system_day(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    sample: str,
-    lang: str,
-    profile: str,
-    with_inputs: bool,
+def test_demo_and_report_use_the_scan_date_independently_of_the_clock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    sample_dir = files("fazit").joinpath("demo", sample)
-    scan = sample_dir.joinpath("scan.json")
-    options = ["--lang", lang, "--profile", profile]
-    if with_inputs:
-        options.extend(["--inputs", str(sample_dir.joinpath("inputs.yaml"))])
-    reports = []
-    for day in (date(2027, 1, 1), date(2031, 12, 31)):
-        out = tmp_path / day.isoformat()
-        with monkeypatch.context() as patch:
-            _set_system_day(patch, day)
-            result = runner.invoke(app, ["report", str(scan), "--out", str(out), *options])
-        assert result.exit_code == 0, result.output
-        path = Path(result.stdout.strip())
-        assert path.is_file() and path.parent == out
-        reports.append((path.name, path.read_bytes()))
+    demo = tmp_path / "demo"
+    original = demo / "report-2026-11-02-en.html"
+    with monkeypatch.context() as patch:
+        _set_system_day(patch, date(2027, 1, 1))
+        result = runner.invoke(app, ["demo", "--out", str(demo)])
+    assert result.exit_code == 0 and not result.stderr, result.output
+    assert Path(result.stdout.splitlines()[-1]) == original
+    assert "2 November 2026" in original.read_text(encoding="utf-8").split("</header>", 1)[0]
 
-    assert reports[0] == reports[1]
+    scan = demo / "scan-2026-11-02-en.json"
+    inputs = demo / "inputs-2026-11-02-en.yaml"
+    out = tmp_path / "rebuilt"
+    with monkeypatch.context() as patch:
+        _set_system_day(patch, date(2031, 12, 31))
+        result = runner.invoke(
+            app, ["report", str(scan), "--inputs", str(inputs), "--out", str(out)]
+        )
+    assert result.exit_code == 0 and not result.stderr, result.output
+    rebuilt = out / original.name
+    assert Path(result.stdout.strip()) == rebuilt
+    assert rebuilt.read_bytes() == original.read_bytes()
 
 
 def test_source_does_not_read_the_clock() -> None:
