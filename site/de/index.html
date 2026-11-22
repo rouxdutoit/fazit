@@ -77,7 +77,7 @@
       <p class="hero-sub">Fazit zeigt, worauf Ihre Organisation angewiesen ist, was bei einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er über fünf Jahre kosten würde. Das kostenlose Open-Source-Programm erstellt den Bericht auf Ihrem Rechner.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/de/">Beispielbericht ansehen</a>
-        <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+        <a class="btn btn-secondary" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
       </div>
       <ul class="figures">
         <li><span class="figure-num">15</span><span>Prüfbereiche, von E-Mail bis Telefonie</span></li>
@@ -114,31 +114,29 @@
       <div class="sec-body">
         <p class="sec-intro">Kann die Stadt auf Teams Phone verzichten? Aus dem Beispielbericht für eine fiktive Stadtverwaltung, deren Messwerte simuliert sind.</p>
         <article class="finding" aria-labelledby="finding-title">
-          <header class="finding-head">
-            <h3 id="finding-title">Telefonie</h3>
-            <span class="status status-blocker">Hindernis</span>
-          </header>
+          <p class="finding-area" id="finding-title">Telefonie</p>
+          <p class="finding-status"><span class="status-shape blocker" aria-hidden="true"></span>Hindernis</p>
           <p class="finding-reason">Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.</p>
           <dl class="evidence">
             <div>
               <dt>Separat zugewiesene Lizenz für Telefonie</dt>
-              <dd><strong>Ja</strong> <span class="tag">Erhoben</span></dd>
-              <dd class="evidence-meta">Lizenzbestand aus Beispieldaten · 2. November 2026 · Vollständig, 3 von 3 geprüft, 0 fehlgeschlagen</dd>
+              <dd class="evidence-value">Ja</dd>
+              <dd class="evidence-meta">Erhoben aus dem Lizenzbestand der Beispieldaten am 2. November 2026. Vollständig: 3 von 3 geprüft, 0 fehlgeschlagen.</dd>
             </div>
             <div>
               <dt>Telefonie läuft über Microsoft</dt>
-              <dd><strong>Ja</strong> <span class="tag">Bereitgestellt</span></dd>
-              <dd class="evidence-meta">Beispielangabe · 10. November 2026</dd>
+              <dd class="evidence-value">Ja</dd>
+              <dd class="evidence-meta">Bereitgestellt in den Beispielangaben am 10. November 2026.</dd>
             </div>
             <div>
               <dt>Alternative zur Telefonie verfügbar</dt>
-              <dd><strong>Nein</strong> <span class="tag">Bereitgestellt</span></dd>
-              <dd class="evidence-meta">Beispielangabe · 10. November 2026</dd>
+              <dd class="evidence-value">Nein</dd>
+              <dd class="evidence-meta">Bereitgestellt in den Beispielangaben am 10. November 2026.</dd>
             </div>
           </dl>
-          <p class="finding-target"><span>openDesk</span> Telefondienst: nicht in der Suite enthalten, geprüft am 21. November 2026.</p>
+          <p class="finding-target">In openDesk ist kein Telefondienst enthalten; dafür ist ein eigener Anbieter nötig. Geprüft am 21. November 2026.</p>
         </article>
-        <p class="tally">Das ganze Beispiel: Bereit 4 · Handlungsbedarf 9 · Hindernis 1 · Unbekannt 1</p>
+        <p class="tally">Im ganzen Beispiel: 4 Bereiche bereit, 9 mit Handlungsbedarf, 1 Hindernis und 1 unbekannt.</p>
         <p class="section-link"><a href="/demo/de/#readiness-title">Abschnitt zur Bereitschaft öffnen</a></p>
       </div>
     </section>
@@ -176,20 +174,20 @@
               <tr role="row"><th scope="col" role="columnheader">Bereich</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
             </thead>
             <tbody role="rowgroup">
-              <tr role="row"><th scope="row" role="rowheader">Verzeichnisdienst</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Nubus</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Benutzer- und Gruppenverwaltung</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">E-Mail</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Open-Xchange</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Erfordert einen eigenen Mailserver</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Nextcloud Files</td><td role="cell" data-label="Nextcloud"><span class="cov cov-full">In der Suite</span> Nextcloud Files</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Gemeinsame Ordner; Abläufe neu gestalten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Teamordner; Abläufe in Nextcloud Flow neu aufbauen</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Element und Jitsi; bisherige Chats werden nicht übernommen</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Talk; bisherige Chats werden nicht übernommen</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Office-Dateien</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Collabora Online; Makros überarbeiten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Office; Makros überarbeiten</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Geräteverwaltung</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Eigener Dienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Nicht in der Suite</span> Eigener Dienst</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Reine Windows-Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Jede Anwendung einzeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Nicht in der Suite</span> Jede Anwendung einzeln</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Anwendungen und Abläufe neu entwickeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Flow und Tables</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Telefonie</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Eigener Telefondienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Talk mit SIP-Gateway</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Identität und Zugriff</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Keycloak</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Community-App für Single Sign-on</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Sicherheit und Compliance</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Zugriffskontrollen und Virenprüfung</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Dateischutz und Aufbewahrung</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Kleinere Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> OpenProject und OX App Suite</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Forms, Deck und Calendar</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Anbindungen an Fachanwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Schnittstellen der Komponenten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Schnittstellen von Nextcloud</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Verzeichnisdienst</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span> Nubus</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Benutzer- und Gruppenverwaltung</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">E-Mail</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span> Open-Xchange</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Erfordert einen eigenen Mailserver</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span> Nextcloud Files</td><td role="cell" data-label="Nextcloud"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span> Nextcloud Files</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Gemeinsame Ordner; Abläufe neu gestalten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Teamordner; Abläufe in Nextcloud Flow neu aufbauen</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Element und Jitsi; bisherige Chats werden nicht übernommen</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Nextcloud Talk; bisherige Chats werden nicht übernommen</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Office-Dateien</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Collabora Online; Makros überarbeiten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Nextcloud Office; Makros überarbeiten</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Geräteverwaltung</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Eigener Dienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Eigener Dienst</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Reine Windows-Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Jede Anwendung einzeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Jede Anwendung einzeln</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Anwendungen und Abläufe neu entwickeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Nextcloud Flow und Tables</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Telefonie</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span> Eigener Telefondienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Nextcloud Talk mit SIP-Gateway</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Identität und Zugriff</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span> Keycloak</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Community-App für Single Sign-on</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Sicherheit und Compliance</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Zugriffskontrollen und Virenprüfung</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Dateischutz und Aufbewahrung</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Kleinere Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> OpenProject und OX App Suite</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Forms, Deck und Calendar</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Anbindungen an Fachanwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Schnittstellen der Komponenten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span> Schnittstellen von Nextcloud</td></tr>
             </tbody>
           </table>
         </div>

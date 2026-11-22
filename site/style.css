@@ -60,6 +60,13 @@
     color-mix(in srgb, var(--fg) 8%, var(--bg)),
     color-mix(in srgb, var(--fg) 11%, var(--bg))
   );
+  --fs-display: clamp(2.125rem, 4vw, 3.5rem);
+  --fs-title: clamp(1.75rem, 3vw, 2.25rem);
+  --fs-headline: 1.375rem;
+  --fs-lead: clamp(1.1875rem, 1.8vw, 1.3125rem);
+  --fs-body: 1.0625rem;
+  --fs-subhead: 0.9375rem;
+  --fs-footnote: 0.8125rem;
   --sans: Figtree, ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --gutter: 20px;
@@ -67,7 +74,7 @@
   --bar-h: 72px;
   --hit: 44px;
   --radius: 4px;
-  --radius-card: 8px;
+  --radius-card: 14px;
 }
 
 :root[data-theme="light"] {
@@ -93,7 +100,7 @@ body {
   flex-direction: column;
   background: var(--bg);
   color: var(--fg);
-  font: 400 1.0625rem / 1.5 var(--sans);
+  font: 400 var(--fs-body) / 1.5 var(--sans);
 }
 
 main {
@@ -109,8 +116,8 @@ h1, h2, h3, p {
 }
 
 h3 {
-  font-size: 1.0625rem;
-  font-weight: 650;
+  font-size: var(--fs-body);
+  font-weight: 600;
 }
 
 a {
@@ -205,7 +212,7 @@ code {
   align-items: center;
   min-height: var(--hit);
   color: var(--fg-2);
-  font-size: 0.9375rem;
+  font-size: var(--fs-subhead);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -223,7 +230,8 @@ code {
   padding: 0 10px;
   margin-inline-start: auto;
   border-radius: var(--radius);
-  font: 500 0.875rem / 1.25 var(--mono);
+  font-size: var(--fs-subhead);
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -354,13 +362,15 @@ code {
 
 .hero-name, .command-label, .eyebrow {
   color: var(--fg-2);
-  font: 500 0.875rem / 1.45 var(--mono);
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .hero h1, .page-intro h1 {
-  font-size: clamp(2.125rem, 4vw, 3.5rem);
+  font-size: var(--fs-display);
   line-height: 1.07;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.025em;
   text-wrap: balance;
 }
@@ -389,10 +399,11 @@ code {
   align-items: center;
   justify-content: center;
   min-height: var(--hit);
-  padding: 10px 16px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  font: 550 0.875rem / 1.35 var(--mono);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  line-height: 1.35;
   text-decoration: none;
 }
 
@@ -405,14 +416,12 @@ code {
   background: color-mix(in srgb, var(--solid-bg) 88%, var(--bg));
 }
 
-.btn-outline {
-  border-color: var(--line);
-  background: var(--bg);
+.btn-secondary {
+  background: var(--fill-2);
 }
 
-.btn-outline:hover {
-  border-color: var(--fg);
-  background: var(--fill);
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 }
 
 .command {
@@ -422,8 +431,7 @@ code {
 }
 
 .command-label {
-  margin-bottom: 6px;
-  font-size: 0.8125rem;
+  margin-bottom: 8px;
 }
 
 .command-line {
@@ -432,14 +440,13 @@ code {
   justify-content: space-between;
   gap: 8px;
   min-height: 50px;
-  padding: 3px 5px 3px 14px;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  padding: 3px 5px 3px 16px;
+  border-radius: var(--radius-card);
   background: var(--fill);
 }
 
 .command-line code, .copy {
-  font-size: 0.875rem;
+  font-size: var(--fs-subhead);
 }
 
 .command-line code {
@@ -454,14 +461,13 @@ code {
   border: 0;
   border-radius: var(--radius);
   background: transparent;
-  font-family: var(--mono);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .copy-message {
   margin-top: 6px;
   color: var(--fg-2);
-  font-size: 0.875rem;
+  font-size: var(--fs-footnote);
 }
 
 .copy-message:empty {
@@ -477,32 +483,28 @@ code {
 .figures {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  max-width: 56rem;
-  margin: 40px auto 0;
+  gap: 28px 24px;
+  max-width: 52rem;
+  margin: 48px auto 0;
   padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-card);
-  background: var(--rule);
   list-style: none;
-  text-align: left;
 }
 
 .figures li {
   display: grid;
   align-content: start;
+  justify-items: center;
   gap: 6px;
-  padding: 18px 20px 20px;
-  background: var(--bg);
   color: var(--fg-2);
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: var(--fs-subhead);
+  line-height: 1.45;
+  text-wrap: balance;
 }
 
 .figure-num {
   color: var(--fg);
-  font: 600 clamp(1.75rem, 3vw, 2.25rem) / 1 var(--mono);
+  font: 700 var(--fs-title) / 1.05 var(--sans);
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
 }
 
@@ -513,9 +515,9 @@ code {
 }
 
 .lead {
-  font-size: clamp(1.1875rem, 2vw, 1.375rem);
+  font-size: var(--fs-lead);
   line-height: 1.4;
-  font-weight: 550;
+  font-weight: 400;
   text-wrap: pretty;
 }
 
@@ -524,121 +526,128 @@ code {
 }
 
 .finding {
-  margin-top: 20px;
-  padding: 20px 24px 22px;
-  border: 1px solid var(--rule);
+  margin-top: 24px;
+  padding: clamp(24px, 4vw, 36px);
   border-radius: var(--radius-card);
   background: var(--fill);
 }
 
-.finding-head {
+.finding-area {
+  color: var(--fg-2);
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+}
+
+.finding-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: var(--fs-title);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
-.finding-head h3 {
-  font-size: 1.1875rem;
+.status-shape {
+  flex: none;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 2px;
 }
 
-.status {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font: 600 0.8125rem / 1.5 var(--mono);
-  white-space: nowrap;
-}
-
-.status-blocker {
-  background: var(--solid-bg);
-  color: var(--solid-fg);
+.status-shape.blocker {
+  background: light-dark(#762e16, #c0603a);
 }
 
 .finding-reason {
+  max-width: 36em;
   margin-top: 10px;
-  max-width: 40em;
 }
 
 .evidence {
-  margin: 18px 0 0;
-  border-top: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin: 32px 0 0;
 }
 
 .evidence > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 16px;
-  padding-block: 12px;
-  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
 }
 
 .evidence dt {
-  font-size: 0.9375rem;
+  order: 2;
+  margin-top: 6px;
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .evidence dd {
   margin: 0;
-  text-align: end;
-  white-space: nowrap;
 }
 
-.evidence .evidence-meta {
-  grid-column: 1 / -1;
-  color: var(--fg-2);
-  font: 400 0.8125rem / 1.5 var(--mono);
-  text-align: start;
-  white-space: normal;
+.evidence-value {
+  order: 1;
+  font-size: var(--fs-title);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.tag {
-  margin-inline-start: 6px;
-  padding: 1px 7px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+.evidence-meta {
+  order: 3;
+  margin-top: 6px !important;
   color: var(--fg-2);
-  font: 500 0.75rem / 1.5 var(--mono);
+  font-size: var(--fs-footnote);
+  line-height: 1.45;
+}
+
+@media (min-width: 640px) {
+  .evidence {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
 }
 
 .finding-target {
-  margin-top: 14px;
+  max-width: 40em;
+  margin-top: 28px;
   color: var(--fg-2);
-  font-size: 0.9375rem;
-}
-
-.finding-target span {
-  margin-inline-end: 6px;
-  color: var(--fg);
-  font: 600 0.8125rem / 1.5 var(--mono);
+  font-size: var(--fs-footnote);
 }
 
 .tally {
   margin-top: 16px;
   color: var(--fg-2);
-  font: 500 0.875rem / 1.5 var(--mono);
+  font-size: var(--fs-subhead);
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
-  margin: 20px 0 12px;
+  gap: 8px 24px;
+  margin: 24px 0 8px;
   padding: 0;
+  color: var(--fg-2);
+  font-size: var(--fs-subhead);
   list-style: none;
 }
 
 .cov {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: var(--fg-2);
-  font: 500 0.75rem / 1.5 var(--mono);
-  white-space: nowrap;
+  gap: 8px;
+  vertical-align: -1px;
 }
 
 .cov::before {
   flex: none;
   width: 11px;
   height: 11px;
+  box-sizing: border-box;
   border: 1.5px solid var(--fg);
   border-radius: 50%;
   content: "";
@@ -652,20 +661,18 @@ code {
   background: linear-gradient(90deg, var(--fg) 50%, transparent 50%);
 }
 
-.table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-card);
+td > .cov {
+  margin-inline-end: 4px;
 }
 
 .coverage {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9375rem;
+  font-size: var(--fs-subhead);
 }
 
 .coverage th, .coverage td {
-  padding: 12px 16px;
+  padding: 14px 16px 14px 0;
   border-bottom: 1px solid var(--rule);
   text-align: start;
   vertical-align: top;
@@ -676,24 +683,21 @@ code {
 }
 
 .coverage thead th {
-  background: var(--fill);
-  font: 600 0.8125rem / 1.5 var(--mono);
-}
-
-.coverage tbody th {
-  width: 26%;
+  padding-block: 8px;
+  color: var(--fg-2);
+  font-size: var(--fs-footnote);
   font-weight: 600;
 }
 
-.coverage td .cov {
-  display: flex;
-  margin-bottom: 2px;
+.coverage tbody th {
+  width: 28%;
+  font-weight: 600;
 }
 
 .table-note {
-  margin-top: 12px;
+  margin-top: 16px;
   color: var(--fg-2);
-  font-size: 0.875rem;
+  font-size: var(--fs-footnote);
 }
 
 .sec-body .command {
@@ -701,26 +705,6 @@ code {
 }
 
 @media (max-width: 600px) {
-  .figures li {
-    padding: 14px 14px 16px;
-  }
-
-  .finding {
-    padding: 16px 16px 18px;
-  }
-
-  .evidence > div {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .evidence dd {
-    text-align: start;
-  }
-
-  .coverage {
-    font-size: 0.875rem;
-  }
-
   .coverage thead {
     position: absolute;
     width: 1px;
@@ -732,6 +716,8 @@ code {
   .coverage tr {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+    padding-block: 14px;
     border-bottom: 1px solid var(--rule);
   }
 
@@ -740,26 +726,23 @@ code {
   }
 
   .coverage th, .coverage td {
-    padding: 10px 14px;
+    padding: 0;
     border-bottom: 0;
   }
 
   .coverage tbody th {
     grid-column: 1 / -1;
     width: auto;
-    padding-bottom: 0;
+    margin-bottom: 8px;
   }
 
   .coverage td::before {
     display: block;
     margin-bottom: 2px;
-    color: var(--fg);
-    font: 600 0.75rem / 1.5 var(--mono);
+    color: var(--fg-2);
+    font-size: var(--fs-footnote);
+    font-weight: 600;
     content: attr(data-label);
-  }
-
-  .coverage td .cov {
-    white-space: normal;
   }
 }
 
@@ -792,8 +775,8 @@ code {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--rule);
   border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 8%);
 }
 
 .report-preview figcaption {
@@ -804,7 +787,7 @@ code {
   gap: 4px 24px;
   margin-top: 10px;
   color: var(--fg-2);
-  font-size: 0.9375rem;
+  font-size: var(--fs-subhead);
 }
 
 .report-preview figcaption a {
@@ -879,8 +862,8 @@ code {
 }
 
 .sec-label {
-  font-weight: 650;
-  font-size: 1.375rem;
+  font-weight: 700;
+  font-size: var(--fs-headline);
   line-height: 1.25;
   text-wrap: balance;
 }
@@ -933,7 +916,7 @@ code {
 }
 
 .rows dt {
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .rows dd {
@@ -942,7 +925,7 @@ code {
 }
 
 .stages dt {
-  font: 550 0.875rem / 1.5 var(--mono);
+  font-weight: 600;
 }
 
 .areas {
@@ -951,7 +934,7 @@ code {
   gap: 8px 20px;
   margin: 12px 0 0;
   padding-inline-start: 1.1em;
-  font-size: 0.9375rem;
+  font-size: var(--fs-subhead);
 }
 
 .steps {
@@ -965,7 +948,7 @@ code {
 
 .steps li::marker {
   color: var(--fg-2);
-  font: 500 0.875rem / 1 var(--mono);
+  font: 600 var(--fs-subhead) / 1 var(--sans);
 }
 
 .steps li + li {
@@ -1010,19 +993,30 @@ code {
   display: block;
   margin-top: 4px;
   color: var(--fg-2);
-  font-size: 0.9375rem;
+  font-size: var(--fs-subhead);
 }
 
 .note {
-  padding: 14px 18px;
-  border-inline-start: 3px solid var(--line);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  border-radius: var(--radius-card);
   background: var(--fill);
+}
+
+.section-link a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.section-link a::after {
+  content: " ›";
+}
+
+.section-link a:hover {
+  text-decoration: underline;
 }
 
 .sec-body .section-link {
   margin-top: 20px;
-  font: 550 0.875rem / 1.5 var(--mono);
 }
 
 .legal-intro {
@@ -1049,8 +1043,8 @@ code {
 }
 
 .legal-part h2 {
-  font-size: 1.125rem;
-  font-weight: 650;
+  font-size: var(--fs-body);
+  font-weight: 700;
 }
 
 .legal-part p, .legal-part address {
@@ -1076,9 +1070,9 @@ code {
 
 .center-page h1 {
   margin: 8px 0 16px;
-  font-size: clamp(2rem, 5vw, 2.625rem);
+  font-size: var(--fs-display);
   line-height: 1.15;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .center-page p {
@@ -1112,8 +1106,8 @@ code {
 }
 
 .foot-heading {
-  font-weight: 650;
-  font-size: 0.9375rem;
+  font-weight: 600;
+  font-size: var(--fs-subhead);
 }
 
 .foot-cols ul {
@@ -1127,7 +1121,7 @@ code {
   align-items: center;
   min-height: 32px;
   color: var(--fg-2);
-  font-size: 0.875rem;
+  font-size: var(--fs-footnote);
   text-decoration: none;
 }
 
@@ -1141,7 +1135,7 @@ code {
   padding-top: 16px;
   border-top: 1px solid var(--rule);
   color: var(--fg-2);
-  font-size: 0.875rem;
+  font-size: var(--fs-footnote);
 }
 
 .theme {
@@ -1149,12 +1143,13 @@ code {
   align-items: center;
   min-height: var(--hit);
   gap: 8px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--fill);
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill-2);
   color: var(--fg);
-  font: 500 0.875rem / 1.25 var(--mono);
+  font-size: var(--fs-footnote);
+  font-weight: 600;
 }
 
 .theme::before {

@@ -28,3 +28,15 @@ Navigation now links Example, Coverage, How it works and Safeguards.
 - `node --check site/site.js`: pass.
 - Checked on localhost:8767 at desktop and 375 px, light and dark, English and German; no horizontal scrolling at 375 px.
 - Not done: an automated axe run (loading axe-core from a CDN was blocked in this session) and a manual reduced-motion check.
+
+## Follow-up: hierarchy, borders and type scale (same day)
+
+Founder feedback: labels should not float on the far right, no borders, and copy sizes and fonts should be consistent.
+
+- **Type scale.** Seven tokens in `style.css` (`--fs-display`, `--fs-title`, `--fs-headline`, `--fs-lead`, `--fs-body`, `--fs-subhead`, `--fs-footnote`) replace the eleven ad-hoc sizes. Three weights: 400, 600 for labels and buttons, 700 for headings and figures.
+- **Fonts.** Figtree for all text, including buttons, eyebrows, labels, figures and the language switch. Geist Mono only for code and the scramble glyphs.
+- **No borders.** Cards, the command line, notes, the theme button and the secondary button use fills; the report screenshot uses a soft shadow. Hairline dividers between rows and sections remain.
+- **Finding card.** Reads top to bottom on one left edge: area, status with the report's blocker square, reason, then three facts (large value, label, source in fine print). Pills and right-aligned tags removed.
+- **Coverage table.** Status shown once as a symbol with screen-reader text; no repeated labels, no outer box.
+- **Links and buttons.** Section links in semibold with a chevron; buttons rounded, primary solid and secondary filled.
+- **Menus.** Every subpage now links the same home sections as the home page (Example, Coverage, How it works, Safeguards).

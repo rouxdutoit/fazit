@@ -77,7 +77,7 @@
       <p class="hero-sub">Fazit shows what your organisation relies on, what would need work on openDesk, Nextcloud or LibreOffice, and what a move would cost over five years. The free, open source tool creates the report on your computer.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/en/">View sample report</a>
-        <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Source code</a>
+        <a class="btn btn-secondary" href="https://github.com/rouxdutoit/fazit">Source code</a>
       </div>
       <ul class="figures">
         <li><span class="figure-num">15</span><span>areas assessed, from mail to telephony</span></li>
@@ -114,31 +114,29 @@
       <div class="sec-body">
         <p class="sec-intro">Can the town give up Teams Phone? From the sample report for a fictional town administration, whose measurements are simulated.</p>
         <article class="finding" aria-labelledby="finding-title">
-          <header class="finding-head">
-            <h3 id="finding-title">Telephony</h3>
-            <span class="status status-blocker">Blocker</span>
-          </header>
+          <p class="finding-area" id="finding-title">Telephony</p>
+          <p class="finding-status"><span class="status-shape blocker" aria-hidden="true"></span>Blocker</p>
           <p class="finding-reason">Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.</p>
           <dl class="evidence">
             <div>
               <dt>Separate licence assigned for Telephony</dt>
-              <dd><strong>Yes</strong> <span class="tag">Measured</span></dd>
-              <dd class="evidence-meta">Sample licence inventory · 2 November 2026 · Complete, 3 of 3 scanned, 0 failed</dd>
+              <dd class="evidence-value">Yes</dd>
+              <dd class="evidence-meta">Measured from the sample licence inventory on 2 November 2026. Complete: 3 of 3 scanned, 0 failed.</dd>
             </div>
             <div>
               <dt>Telephony runs through Microsoft</dt>
-              <dd><strong>Yes</strong> <span class="tag">Provided</span></dd>
-              <dd class="evidence-meta">Sample input · 10 November 2026</dd>
+              <dd class="evidence-value">Yes</dd>
+              <dd class="evidence-meta">Provided in the sample input on 10 November 2026.</dd>
             </div>
             <div>
               <dt>Telephony replacement available</dt>
-              <dd><strong>No</strong> <span class="tag">Provided</span></dd>
-              <dd class="evidence-meta">Sample input · 10 November 2026</dd>
+              <dd class="evidence-value">No</dd>
+              <dd class="evidence-meta">Provided in the sample input on 10 November 2026.</dd>
             </div>
           </dl>
-          <p class="finding-target"><span>openDesk</span> Telephone service: not available in the suite, checked 21 November 2026.</p>
+          <p class="finding-target">On openDesk, telephone service is not in the suite and needs a separate provider. Checked 21 November 2026.</p>
         </article>
-        <p class="tally">The whole sample: Ready 4 · Needs work 9 · Blocker 1 · Unknown 1</p>
+        <p class="tally">Across the whole sample: 4 ready, 9 needing work, 1 blocker and 1 unknown.</p>
         <p class="section-link"><a href="/demo/en/#readiness-title">Open the readiness section</a></p>
       </div>
     </section>
@@ -176,20 +174,20 @@
               <tr role="row"><th scope="col" role="columnheader">Area</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
             </thead>
             <tbody role="rowgroup">
-              <tr role="row"><th scope="row" role="rowheader">Directory</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In the suite</span> Nubus</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> User and group administration</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Mail</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In the suite</span> Open-Xchange</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Needs a separate mail server</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In the suite</span> Nextcloud Files</td><td role="cell" data-label="Nextcloud"><span class="cov cov-full">In the suite</span> Nextcloud Files</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> Shared folders; workflows need a redesign</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Team folders; workflows rebuilt in Nextcloud Flow</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> Element and Jitsi; past chats stay behind</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Nextcloud Talk; past chats stay behind</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Office files</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> Collabora Online; macros need rework</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Nextcloud Office; macros need rework</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Not in the suite</span> Separate service</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Not in the suite</span> Separate service</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Not in the suite</span> Each application separately</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Not in the suite</span> Each application separately</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Not in the suite</span> Apps and flows redeveloped</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Nextcloud Flow and Tables</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Not in the suite</span> Separate telephone service</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Nextcloud Talk with a SIP gateway</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In the suite</span> Keycloak</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Community app for single sign-on</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> Access controls and malware scanning</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> File protection and retention</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> OpenProject and OX App Suite</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Forms, Deck and Calendar</td></tr>
-              <tr role="row"><th scope="row" role="rowheader">Integrations</th><td role="cell" data-label="openDesk"><span class="cov cov-part">With limits</span> Interfaces of the components</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">With limits</span> Nextcloud interfaces</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Directory</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span> Nubus</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> User and group administration</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Mail</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span> Open-Xchange</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Needs a separate mail server</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span> Nextcloud Files</td><td role="cell" data-label="Nextcloud"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span> Nextcloud Files</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Shared folders; workflows need a redesign</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Team folders; workflows rebuilt in Nextcloud Flow</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Element and Jitsi; past chats stay behind</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Nextcloud Talk; past chats stay behind</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Office files</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Collabora Online; macros need rework</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Nextcloud Office; macros need rework</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Separate service</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Separate service</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Each application separately</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Each application separately</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Apps and flows redeveloped</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Nextcloud Flow and Tables</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span> Separate telephone service</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Nextcloud Talk with a SIP gateway</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span> Keycloak</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Community app for single sign-on</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Access controls and malware scanning</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> File protection and retention</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> OpenProject and OX App Suite</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Forms, Deck and Calendar</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Integrations</th><td role="cell" data-label="openDesk"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Interfaces of the components</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part"><span class="sr-only">With limits: </span></span> Nextcloud interfaces</td></tr>
             </tbody>
           </table>
         </div>
