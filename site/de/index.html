@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
-  <title>Fazit · Den Umstieg von Microsoft 365 prüfen</title>
+  <meta name="description" content="Fazit zeigt, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
+  <title>Fazit · Ihre Abhängigkeit von Microsoft 365, belegt</title>
   <link rel="canonical" href="https://fazit.dev/de/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/">
   <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
-  <meta property="og:title" content="Fazit · Den Umstieg von Microsoft 365 prüfen">
-  <meta property="og:description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
+  <meta property="og:title" content="Fazit · Ihre Abhängigkeit von Microsoft 365, belegt">
+  <meta property="og:description" content="Fazit zeigt, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
   <meta property="og:url" content="https://fazit.dev/de/">
   <meta property="og:locale" content="de_DE">
   <meta property="og:locale:alternate" content="en_GB">
@@ -21,8 +21,8 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Fazit · Den Umstieg von Microsoft 365 prüfen">
-  <meta name="twitter:description" content="Fazit erstellt lokale Berichte über Abhängigkeiten von Microsoft 365, die Bereitschaft zum Umstieg und die Kosten über fünf Jahre.">
+  <meta name="twitter:title" content="Fazit · Ihre Abhängigkeit von Microsoft 365, belegt">
+  <meta name="twitter:description" content="Fazit zeigt, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
   <meta name="twitter:image" content="https://fazit.dev/og.png">
   <meta name="twitter:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -37,10 +37,10 @@
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">Fazit</a>
       <nav class="bar-links" aria-label="Hauptnavigation">
         <div class="nav-group">
-          <a href="#report">Bericht</a>
+          <a href="#example">Beispiel</a>
+          <a href="#coverage">Abdeckung</a>
           <a href="#how">Ablauf</a>
           <a href="#safeguards">Daten und Zugriff</a>
-          <a href="#status">Stand</a>
         </div>
         <div class="nav-group">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -54,10 +54,10 @@
         <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
         <nav class="menu-panel" aria-label="Hauptnavigation">
           <div class="nav-group">
-            <a href="#report">Bericht</a>
+            <a href="#example">Beispiel</a>
+            <a href="#coverage">Abdeckung</a>
             <a href="#how">Ablauf</a>
             <a href="#safeguards">Daten und Zugriff</a>
-            <a href="#status">Stand</a>
           </div>
           <div class="nav-group">
             <a href="/de/pilots/">Pilotprüfungen</a>
@@ -72,21 +72,19 @@
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
-      <p class="hero-name">Fazit</p>
-      <h1 id="hero-title">Den Umstieg von Microsoft 365 prüfen</h1>
-      <p class="hero-sub">Ermitteln Sie, welche Funktionen Ihre Organisation nutzt, was vor einem Umstieg auf Open Source zu klären ist und wie sich die Kosten unterscheiden. Das kostenlose Programm erstellt den Bericht auf Ihrem Rechner.</p>
+      <p class="eyebrow">Für Entscheidungen zur digitalen Souveränität in Deutschland, Österreich und der Schweiz</p>
+      <h1 id="hero-title" data-scramble>Ihre Abhängigkeit von Microsoft 365, belegt</h1>
+      <p class="hero-sub">Fazit zeigt, worauf Ihre Organisation angewiesen ist, was bei einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er über fünf Jahre kosten würde. Das kostenlose Open-Source-Programm erstellt den Bericht auf Ihrem Rechner.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/demo/de/">Beispielbericht ansehen</a>
         <a class="btn btn-outline" href="https://github.com/rouxdutoit/fazit">Quellcode</a>
       </div>
-      <div class="command" role="group" aria-labelledby="command-label">
-        <p class="command-label" id="command-label">Beispiel aus dem Quellcode starten</p>
-        <div class="command-line">
-          <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
-          <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden>Kopieren</button>
-        </div>
-        <p class="copy-message" role="status"></p>
-      </div>
+      <ul class="figures">
+        <li><span class="figure-num">15</span><span>Prüfbereiche, von E-Mail bis Telefonie</span></li>
+        <li><span class="figure-num">52</span><span>Lizenzprodukte von Microsoft zugeordnet, 1.343 Einträge mit Microsofts Liste abgeglichen</span></li>
+        <li><span class="figure-num">0</span><span>Netzwerkverbindungen in der aktuellen Version</span></li>
+        <li><span class="figure-num">3</span><span>Zielprofile: openDesk, Nextcloud und allgemein</span></li>
+      </ul>
     </section>
 
     <figure class="report-preview">
@@ -102,8 +100,51 @@
       </figcaption>
     </figure>
 
+    <section class="sec grid" id="why" aria-labelledby="why-title">
+      <h2 class="sec-label" id="why-title" data-scramble>Warum Fazit</h2>
+      <div class="sec-body">
+        <p class="lead">Viele Behörden und Unternehmen erwägen einen Umstieg von Microsoft 365 – aus Gründen der digitalen Souveränität, des Datenschutzes oder der Kosten. Nur wenige können genau sagen, wovon sie abhängen.</p>
+        <p>Das Hindernis, mit dem niemand gerechnet hat, etwa die Telefonie oder Hunderte geschäftskritische Makros, zeigt sich dann erst mitten im Projekt. Fazit ist darauf ausgelegt, diese Frage vorab zu beantworten, auf Grundlage der Daten Ihrer Organisation. Es legt für jeden Befund die Nachweise offen und nennt „unbekannt“, wo Nachweise fehlen.</p>
+        <p>Fazit vergibt keine Gesamtnote und empfiehlt keinen Anbieter. Ob, was und wann umgestellt wird, entscheidet Ihre Organisation.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="example" aria-labelledby="example-title">
+      <h2 class="sec-label" id="example-title" data-scramble>Ein Befund im Detail</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Kann die Stadt auf Teams Phone verzichten? Aus dem Beispielbericht für eine fiktive Stadtverwaltung, deren Messwerte simuliert sind.</p>
+        <article class="finding" aria-labelledby="finding-title">
+          <header class="finding-head">
+            <h3 id="finding-title">Telefonie</h3>
+            <span class="status status-blocker">Hindernis</span>
+          </header>
+          <p class="finding-reason">Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.</p>
+          <dl class="evidence">
+            <div>
+              <dt>Separat zugewiesene Lizenz für Telefonie</dt>
+              <dd><strong>Ja</strong> <span class="tag">Erhoben</span></dd>
+              <dd class="evidence-meta">Lizenzbestand aus Beispieldaten · 2. November 2026 · Vollständig, 3 von 3 geprüft, 0 fehlgeschlagen</dd>
+            </div>
+            <div>
+              <dt>Telefonie läuft über Microsoft</dt>
+              <dd><strong>Ja</strong> <span class="tag">Bereitgestellt</span></dd>
+              <dd class="evidence-meta">Beispielangabe · 10. November 2026</dd>
+            </div>
+            <div>
+              <dt>Alternative zur Telefonie verfügbar</dt>
+              <dd><strong>Nein</strong> <span class="tag">Bereitgestellt</span></dd>
+              <dd class="evidence-meta">Beispielangabe · 10. November 2026</dd>
+            </div>
+          </dl>
+          <p class="finding-target"><span>openDesk</span> Telefondienst: nicht in der Suite enthalten, geprüft am 21. November 2026.</p>
+        </article>
+        <p class="tally">Das ganze Beispiel: Bereit 4 · Handlungsbedarf 9 · Hindernis 1 · Unbekannt 1</p>
+        <p class="section-link"><a href="/demo/de/#readiness-title">Abschnitt zur Bereitschaft öffnen</a></p>
+      </div>
+    </section>
+
     <section class="sec grid" id="report" aria-labelledby="report-title">
-      <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
+      <h2 class="sec-label" id="report-title" data-scramble>Was der Bericht enthält</h2>
       <div class="sec-body">
         <p class="sec-intro">Sie erhalten eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können sie speichern, ohne Internetverbindung lesen und ausdrucken.</p>
         <dl class="rows">
@@ -116,32 +157,69 @@
           <div><dt>Weiteres Vorgehen</dt><dd>Hindernisse, offene Fragen und Bereiche, die für einen Pilotbetrieb infrage kommen.</dd></div>
           <div><dt>Anhang</dt><dd>Erhebungsmethoden, Prüfregeln, Zuordnungen, Kostenberechnung und Angaben zum Programmlauf.</dd></div>
         </dl>
-        <div class="subsection">
-          <h3>Fünfzehn Prüfbereiche</h3>
-          <ul class="areas">
-            <li>Lizenzen</li>
-            <li>Verzeichnisdienst</li>
-            <li>E-Mail</li>
-            <li>OneDrive</li>
-            <li>SharePoint</li>
-            <li>Teams</li>
-            <li>Office-Dateien</li>
-            <li>Geräteverwaltung</li>
-            <li>Reine Windows-Anwendungen</li>
-            <li>Power Platform</li>
-            <li>Telefonie</li>
-            <li>Identität und Zugriff</li>
-            <li>Sicherheit und Compliance</li>
-            <li>Kleinere Anwendungen</li>
-            <li>Anbindungen an Fachanwendungen</li>
-          </ul>
+      </div>
+    </section>
+
+    <section class="sec grid" id="coverage" aria-labelledby="coverage-title">
+      <h2 class="sec-label" id="coverage-title" data-scramble>Was die Zielsysteme abdecken</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Jedes Zielprofil hält Funktion für Funktion fest, was laut Produktdokumentation abgedeckt ist, mit Quelle und Prüfdatum. Der Bericht wendet das auf die Funktionen an, die Ihre Organisation tatsächlich nutzt.</p>
+        <ul class="legend" aria-label="Legende">
+          <li><span class="cov cov-full">In der Suite</span></li>
+          <li><span class="cov cov-part">Mit Einschränkungen</span></li>
+          <li><span class="cov cov-none">Nicht in der Suite</span></li>
+        </ul>
+        <div class="table-wrap">
+          <table class="coverage" role="table">
+            <caption class="sr-only">Abdeckung der Bereiche durch openDesk und Nextcloud</caption>
+            <thead role="rowgroup">
+              <tr role="row"><th scope="col" role="columnheader">Bereich</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
+            </thead>
+            <tbody role="rowgroup">
+              <tr role="row"><th scope="row" role="rowheader">Verzeichnisdienst</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Nubus</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Benutzer- und Gruppenverwaltung</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">E-Mail</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Open-Xchange</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Erfordert einen eigenen Mailserver</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Nextcloud Files</td><td role="cell" data-label="Nextcloud"><span class="cov cov-full">In der Suite</span> Nextcloud Files</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Gemeinsame Ordner; Abläufe neu gestalten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Teamordner; Abläufe in Nextcloud Flow neu aufbauen</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Element und Jitsi; bisherige Chats werden nicht übernommen</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Talk; bisherige Chats werden nicht übernommen</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Office-Dateien</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Collabora Online; Makros überarbeiten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Office; Makros überarbeiten</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Geräteverwaltung</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Eigener Dienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Nicht in der Suite</span> Eigener Dienst</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Reine Windows-Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Jede Anwendung einzeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-none">Nicht in der Suite</span> Jede Anwendung einzeln</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Anwendungen und Abläufe neu entwickeln</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Flow und Tables</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Telefonie</th><td role="cell" data-label="openDesk"><span class="cov cov-none">Nicht in der Suite</span> Eigener Telefondienst</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Nextcloud Talk mit SIP-Gateway</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Identität und Zugriff</th><td role="cell" data-label="openDesk"><span class="cov cov-full">In der Suite</span> Keycloak</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Community-App für Single Sign-on</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Sicherheit und Compliance</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Zugriffskontrollen und Virenprüfung</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Dateischutz und Aufbewahrung</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Kleinere Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> OpenProject und OX App Suite</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Forms, Deck und Calendar</td></tr>
+              <tr role="row"><th scope="row" role="rowheader">Anbindungen an Fachanwendungen</th><td role="cell" data-label="openDesk"><span class="cov cov-part">Mit Einschränkungen</span> Schnittstellen der Komponenten</td><td role="cell" data-label="Nextcloud"><span class="cov cov-part">Mit Einschränkungen</span> Schnittstellen von Nextcloud</td></tr>
+            </tbody>
+          </table>
         </div>
+        <p class="table-note">Abgeglichen mit der Dokumentation der Projekte am 21. November 2026. Für Lizenzen gibt es kein Gegenstück; sie erscheinen in der Kostenrechnung. Für Arbeitsplätze mit Linux und LibreOffice verwenden Sie das allgemeine Profil.</p>
+        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings" hreflang="en">Zuordnungen und Quellen ansehen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="audience" aria-labelledby="audience-title">
+      <h2 class="sec-label" id="audience-title" data-scramble>Für wen Fazit gedacht ist</h2>
+      <div class="sec-body">
+        <dl class="rows">
+          <div><dt><a href="/de/integrators/">IT-Dienstleister</a></dt><dd>Führen Sie für jeden Kunden dieselbe belegte Bestandsaufnahme durch und leiten Sie den Projektplan aus den Befunden ab. Unternehmen, die eine echte Bestandsaufnahme mit Fazit durchgeführt haben, können sich kostenlos eintragen lassen.</dd></div>
+          <div><dt>Kommunale IT-Dienstleister</dt><dd>Bieten Sie Ihren Mitgliedsorganisationen eine Bestandsaufnahme an, bei der die Daten auf dem ausführenden Rechner bleiben.</dd></div>
+          <div><dt>IT-Leitungen</dt><dd>Führen Sie Fazit selbst aus und legen Sie Ihrer Leitung einen belegten Bericht vor. Für das Beispiel brauchen Sie kein Microsoft-Konto.</dd></div>
+        </dl>
       </div>
     </section>
 
     <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
+      <h2 class="sec-label" id="how-title" data-scramble>So funktioniert Fazit</h2>
       <div class="sec-body">
+        <div class="command" role="group" aria-labelledby="command-label">
+          <p class="command-label" id="command-label">Beispiel aus dem Quellcode starten</p>
+          <div class="command-line">
+            <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
+            <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden>Kopieren</button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
         <ol class="steps">
           <li>
             <h3>Vorbereiten</h3>
@@ -160,7 +238,7 @@
     </section>
 
     <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title">Was Fazit ausschließt</h2>
+      <h2 class="sec-label" id="safeguards-title" data-scramble>Was Fazit ausschließt</h2>
       <div class="sec-body">
         <ul class="safeguards">
           <li>Schreibzugriffe auf Microsoft 365 sowie Aufrufe außerhalb der Freigabeliste für Lesezugriffe.</li>
@@ -178,7 +256,7 @@
     </section>
 
     <section class="sec grid" id="claims" aria-labelledby="claims-title">
-      <h2 class="sec-label" id="claims-title">Was die Befunde aussagen</h2>
+      <h2 class="sec-label" id="claims-title" data-scramble>Was die Befunde aussagen</h2>
       <div class="sec-body">
         <p>Der Bericht nennt zu jedem Befund, soweit vorhanden, Quelle, Datum, Berichtszeitraum und Umfang der Erhebung. Er kennzeichnet Zahlen als erhoben, bereitgestellt oder unbekannt. Bei fehlenden Nachweisen nennt er den Grund und den nächsten Prüfschritt. Fehlen erforderliche Kostenangaben, bleibt die Summe unbekannt.</p>
         <p>Fazit bewertet jeden Bereich einzeln. Eine Gesamtbewertung gibt es nicht. Über den Umstieg entscheidet Ihre Organisation.</p>
@@ -187,7 +265,7 @@
     </section>
 
     <section class="sec grid" id="sources" aria-labelledby="sources-title">
-      <h2 class="sec-label" id="sources-title">Fachliche Grundlagen</h2>
+      <h2 class="sec-label" id="sources-title" data-scramble>Fachliche Grundlagen</h2>
       <div class="sec-body">
         <ul class="sources">
           <li>
@@ -206,8 +284,20 @@
       </div>
     </section>
 
+    <section class="sec grid" id="free" aria-labelledby="free-title">
+      <h2 class="sec-label" id="free-title" data-scramble>Dauerhaft kostenlos</h2>
+      <div class="sec-body">
+        <p class="sec-intro">Fazit ist kostenlos und quelloffen unter der AGPL-3.0-or-later. Keine Funktion bleibt einer bezahlten Version vorbehalten.</p>
+        <dl class="rows">
+          <div><dt><a href="/de/pilots/">Pilotprüfungen</a></dt><dd>Je eine kostenlose Prüfung für eine Organisation in Deutschland, Österreich und der Schweiz. Interessensbekundungen sind bis zum 28. Februar 2027 möglich.</dd></div>
+          <div><dt><a href="/de/integrators/">Für IT-Dienstleister</a></dt><dd>Einsatz in eigenen Bestandsaufnahmen und Aufnahmekriterien für das geplante Verzeichnis.</dd></div>
+          <div><dt><a href="/de/security/">Sicherheit und Datenschutz</a></dt><dd>Prüfen Sie die Schutzmaßnahmen oder melden Sie vertraulich eine Schwachstelle.</dd></div>
+        </dl>
+      </div>
+    </section>
+
     <section class="sec grid" id="status" aria-labelledby="status-title">
-      <h2 class="sec-label" id="status-title">Projektstand</h2>
+      <h2 class="sec-label" id="status-title" data-scramble>Projektstand</h2>
       <div class="sec-body">
         <dl class="rows stages">
           <div><dt>Verfügbar</dt><dd>Sie können Fazit aus dem Quellcode starten und Berichte aus Beispieldaten oder einer vorhandenen Erhebungsdatei erstellen. Das Paket ist noch nicht auf PyPI veröffentlicht.</dd></div>
@@ -217,19 +307,8 @@
       </div>
     </section>
 
-    <section class="sec grid" id="participate" aria-labelledby="participate-title">
-      <h2 class="sec-label" id="participate-title">Mit Fazit arbeiten</h2>
-      <div class="sec-body">
-        <dl class="rows">
-          <div><dt><a href="/de/pilots/">Pilotprüfungen</a></dt><dd>Je eine kostenlose Prüfung für eine Organisation in Deutschland, Österreich und der Schweiz.</dd></div>
-          <div><dt><a href="/de/integrators/">Für IT-Dienstleister</a></dt><dd>Einsatz in eigenen Bestandsaufnahmen und Aufnahmekriterien für das geplante Verzeichnis.</dd></div>
-          <div><dt><a href="/de/security/">Sicherheit und Datenschutz</a></dt><dd>Prüfen Sie die Schutzmaßnahmen oder melden Sie vertraulich eine Schwachstelle.</dd></div>
-        </dl>
-      </div>
-    </section>
-
     <section class="sec grid" id="development" aria-labelledby="development-title">
-      <h2 class="sec-label" id="development-title">Wie Fazit entsteht</h2>
+      <h2 class="sec-label" id="development-title" data-scramble>Wie Fazit entsteht</h2>
       <div class="sec-body">
         <p>Claude und Codex unterstützen die Entwicklung und prüfen gegenseitig ihren Code. Der Projektverantwortliche leitet die Arbeit und verantwortet das Ergebnis. Für jede Schutzmaßnahme der aktuellen Version gibt es einen Test, den Sie selbst ausführen können. Die Tests für die Direkterhebung folgen mit der Anmeldung.</p>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Tests im Quellcode ansehen</a></p>

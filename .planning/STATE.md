@@ -74,6 +74,12 @@ None yet.
 - [Phase 3] A person cannot verify sign-in, and fixtures cannot be recorded, without a test tenant and an app registration. CI still needs neither.
 - [Phase 4] The signed Windows build needs a signing certificate or signing service; obtaining one takes time and should start before Phase 4.
 
+## Quick Tasks Completed
+
+| ID | Date | Task | Directory |
+|----|------|------|-----------|
+| 261122-ego | 2026-11-22 | Home page rework after the Pandex comparison, with the text-scramble effect | `.planning/quick/261122-ego-home-page-rework-after-pandex-comparison/` |
+
 ## Deferred Items
 
 Items acknowledged and deferred at milestone close, most recent first:

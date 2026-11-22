@@ -2,6 +2,9 @@
   const root = document.documentElement;
   const systemTheme = matchMedia("(prefers-color-scheme: dark)");
   const storageKey = "fazit-theme";
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const animate = !reducedMotion.matches && "IntersectionObserver" in window;
+  if (animate) root.classList.add("js");
 
   try {
     const saved = localStorage.getItem(storageKey);
@@ -9,6 +12,63 @@
   } catch {
     // The system preference also works when browser storage is unavailable.
   }
+
+  // Headings resolve from random glyphs into their text, like evidence into a conclusion.
+  // Screen readers get the plain text throughout; reduced motion skips the effect.
+  const glyphs = "-_/\\|<>~^*+=:;!?#%&@0123456789";
+  const randomGlyph = () => glyphs[Math.floor(Math.random() * glyphs.length)];
+  const prepared = new WeakMap();
+
+  const prepare = (element) => {
+    const text = element.textContent;
+    const plain = document.createElement("span");
+    const shown = document.createElement("span");
+    const chars = [];
+    plain.className = "sr-only";
+    plain.textContent = text;
+    shown.setAttribute("aria-hidden", "true");
+    for (const char of text) {
+      if (/\s/.test(char)) {
+        shown.append(char);
+        continue;
+      }
+      const span = document.createElement("span");
+      span.className = "ch wait";
+      span.textContent = char;
+      shown.append(span);
+      chars.push(span);
+    }
+    element.replaceChildren(plain, shown);
+    element.classList.add("ready");
+    prepared.set(element, { text, chars });
+  };
+
+  const decode = (element, delay) => {
+    const { text, chars } = prepared.get(element);
+    const step = Math.min(18, 800 / Math.max(1, chars.length));
+    let start = 0;
+    let lastSwap = 0;
+    const frame = (now) => {
+      start ||= now;
+      const elapsed = now - start;
+      const swap = now - lastSwap > 42;
+      if (swap) lastSwap = now;
+      let done = 0;
+      chars.forEach((span, index) => {
+        const from = index * step;
+        if (elapsed >= from + 200) {
+          span.className = "ch";
+          done += 1;
+        } else if (elapsed >= from && (swap || span.classList.contains("wait"))) {
+          span.className = "ch sg";
+          span.dataset.g = randomGlyph();
+        }
+      });
+      if (done < chars.length) requestAnimationFrame(frame);
+      else element.textContent = text;
+    };
+    setTimeout(() => requestAnimationFrame(frame), delay);
+  };
 
   document.addEventListener("DOMContentLoaded", () => {
     const theme = document.querySelector("[data-theme-toggle]");
@@ -54,6 +114,26 @@
           menu.querySelector("summary").focus();
         }
       });
+    }
+
+    if (animate) {
+      try {
+        const targets = [...document.querySelectorAll("[data-scramble]")];
+        const observer = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            observer.unobserve(entry.target);
+            decode(entry.target, 0);
+          }
+        }, { rootMargin: "0px 0px -8% 0px" });
+        for (const element of targets) {
+          prepare(element);
+          if (element.closest(".hero")) decode(element, 150);
+          else observer.observe(element);
+        }
+      } catch {
+        root.classList.remove("js");
+      }
     }
 
     const copy = document.querySelector("[data-copy]");
