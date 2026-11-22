@@ -105,6 +105,7 @@ Erfassen Sie die Anzahlen unter `provided_counts` und verwenden Sie unter `confi
 - Wie viele Geräte umfasst der von der IT-Stelle erfasste Bestand (`device_management.device_count`)?
 - Wie viele dieser Geräte laufen nach Auskunft der IT-Stelle unter Windows (`device_management.windows_device_count`)?
 - Verwaltet Ihre Organisation Geräte über Microsoft (`device_management.in_use`)?
+- Benötigen Sie Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie (`device_management.windows_desktops_required`)?
 
 ### Power Platform
 

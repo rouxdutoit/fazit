@@ -294,6 +294,9 @@ reason:
   licence_assignments_conflict:
     label: Licence assignments contradict licensed accounts.
     fix: Check the directory count and licence inventory for the same organisation and collect the figures again.
+  licence_directory_unverified:
+    label: The directory does not confirm the empty licence inventory.
+    fix: Check the count of licensed accounts against the licence inventory.
   coverage_partial:
     label: The measurement covers only part of the scope.
     fix: Check the remaining items before drawing a conclusion about the whole scope.
@@ -387,6 +390,7 @@ finding:
   device_management.device_count: Devices
   device_management.windows_device_count: Windows devices
   device_management.in_use: Microsoft device management in use
+  device_management.windows_desktops_required: Windows desktops required for applications, devices or peripherals
   windows_software.application_count: Windows-only applications
   windows_software.without_web_version_count: Windows-only applications without a web version
   power_platform.in_use: Power Platform in use
@@ -427,12 +431,14 @@ errors:
   money_not_quoted: Put the decimal value of {field} in quotation marks in {file}.
   missing_field: Supply a value for {field} in {file}.
   invalid_code: Choose a supported code for {field} in {file}.
+  invalid_label: Supply label text in both languages for {field} in {file}.
   contains_at: Remove text containing an at sign from {field} in {file}.
   duplicate_key: Remove the repeated key at {field} in {file}.
   duplicate_id: The identifier at {field} in {file} is already listed.
   non_finite_number: Supply a finite number for {field} in {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
   invalid_licence_coverage: Complete coverage in {field} in {file} requires the scanned and total counts to match the number of listed licence products, with zero failures.
+  licence_products_exceed_coverage: The number of listed licence products exceeds the count at {field} in {file}.
   invalid_collector: The collection method for {field} in {file} must have run.
   invalid_evidence_source: The collection method or source at {field} in {file} is invalid for {finding}.
   inputs_source_in_scan: The source at {field} in {file} is reserved for answers read from the inputs file.
@@ -442,6 +448,7 @@ errors:
   collection_after_scan: The collection date at {field} in {file} is later than the scan date.
   sku_identity_mismatch: The product code and GUID at {field} in {file} must match the same catalogue entry.
   coverage_total_conflict: The total at {field} in {file} disagrees with the count for {related} in the same scan.
+  subset_count_exceeds_population: The count at {field} in {file} exceeds the number of items it covers.
   file_not_found: The file {file} could not be found at {field}.
   is_directory: The location {file} for {field} is a directory.
   not_readable: The file {file} for {field} could not be read.

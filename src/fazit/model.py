@@ -141,12 +141,19 @@ class Licences:
     coverage: Coverage
     products: tuple[Product, ...]
 
-    def check_complete_coverage(self, file_name: str) -> None:
+    def check_coverage(self, file_name: str) -> None:
         count = len(self.products)
         if self.coverage.kind == "complete" and self.coverage != Coverage(
             "complete", scanned=count, failed=0, total=count
         ):
             raise InputError("invalid_licence_coverage", file=file_name, field="licences.coverage")
+        for field, bound in (("scanned", self.coverage.scanned), ("total", self.coverage.total)):
+            if bound is not None and count > bound:
+                raise InputError(
+                    "licence_products_exceed_coverage",
+                    file=file_name,
+                    field=f"licences.coverage.{field}",
+                )
 
 
 @dataclass(frozen=True)
@@ -393,7 +400,7 @@ class _ScanReader:
         self, value: object, collectors: dict[str, Collector], generated_at: str
     ) -> tuple[Finding, ...]:
         findings = []
-        coverage_references: list[tuple[str, int, str]] = []
+        subsets: list[tuple[str, Finding, str]] = []
         seen: set[str] = set()
         for index, item in enumerate(self.list(value, "findings")):
             field = f"findings[{index}]"
@@ -410,32 +417,38 @@ class _ScanReader:
                 finding = self.finding(item, field, entry, collectors)
                 self.check_finding_dates(finding, field, generated_at)
                 findings.append(finding)
-                if (
-                    entry.coverage_total_from
-                    and finding.coverage
-                    and finding.coverage.total is not None
-                ):
-                    coverage_references.append(
-                        (
-                            entry.coverage_total_from,
-                            finding.coverage.total,
-                            f"{field}.coverage.total",
-                        )
-                    )
-        self.check_coverage_totals(findings, coverage_references)
+                if entry.coverage_total_from:
+                    subsets.append((entry.coverage_total_from, finding, field))
+        self.check_subsets(findings, subsets)
         return tuple(findings)
 
-    def check_coverage_totals(
-        self, findings: list[Finding], references: list[tuple[str, int, str]]
+    def check_subsets(
+        self, findings: list[Finding], subsets: list[tuple[str, Finding, str]]
     ) -> None:
         by_id = {finding.id: finding for finding in findings}
-        for related, total, field in references:
-            count = by_id.get(related)
-            if count is None or type(count.value) is not int:
-                continue
-            exact = count.coverage is None or count.coverage.kind == "complete"
-            if total < count.value or (exact and total > count.value):
-                self.fail(field, "coverage_total_conflict", related=related)
+        for related, subset, field in subsets:
+            population = by_id.get(related)
+            coverage = subset.coverage
+            total = coverage.total if coverage else None
+            bounds = [coverage.scanned, total] if coverage else []
+            if (
+                population is not None
+                and type(population.value) is int
+                and subset.source == population.source
+                and (subset.period or subset.collected_at)
+                == (population.period or population.collected_at)
+            ):
+                exact = population.coverage is None or population.coverage.kind == "complete"
+                if total is not None and (
+                    total < population.value or (exact and total > population.value)
+                ):
+                    self.fail(f"{field}.coverage.total", "coverage_total_conflict", related=related)
+                if exact:
+                    bounds.append(population.value)
+            if type(subset.value) is int and any(
+                bound is not None and subset.value > bound for bound in bounds
+            ):
+                self.fail(f"{field}.value", "subset_count_exceeds_population")
 
     def guid(self, value: object, field: str) -> str:
         if not isinstance(value, str) or len(value) != 36:
@@ -524,7 +537,7 @@ class _ScanReader:
             coverage=self.coverage(row["coverage"], "licences.coverage"),
             products=tuple(products),
         )
-        licences.check_complete_coverage(self.file_name)
+        licences.check_coverage(self.file_name)
         return licences
 
     def scan(self, value: object) -> Scan:

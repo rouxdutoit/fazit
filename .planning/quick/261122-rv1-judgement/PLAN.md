@@ -2,7 +2,7 @@
 quick_id: 261122-rv1
 slug: judgement
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review batch 1, judgement

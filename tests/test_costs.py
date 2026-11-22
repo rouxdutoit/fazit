@@ -401,3 +401,24 @@ def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -
     html = path.read_text(encoding="utf-8")
     assert "<caption data-sample>" in html
     assert load_locale("en")["header"]["sample"] in html
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_padded_headcount_is_rejected_instead_of_changing_the_total(
+    tmp_path: Path, lang: str
+) -> None:
+    source = files("fazit").joinpath("demo", "town")
+    inputs = tmp_path / "inputs.yaml"
+    original = source.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    inputs.write_text(original, encoding="utf-8")
+    command = ("report", str(source.joinpath("scan.json")), "--inputs", str(inputs), "--lang", lang)
+    section = _cost_section(tmp_path / "valid", *command)
+    assert _rendered_totals(section)["partial_exit"] == "527800"
+
+    inputs.write_text(original.replace("users: 30", "users: 030", 1), encoding="utf-8")
+    out = tmp_path / "rejected"
+    result = CliRunner().invoke(app, [*command, "--out", str(out)])
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
+    assert len(result.stderr.splitlines()) == 1
+    assert "inputs.yaml" in result.stderr and "target_costs.partial_exit.users" in result.stderr

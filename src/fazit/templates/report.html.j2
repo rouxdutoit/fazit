@@ -44,7 +44,9 @@
   {% if finding.id in alternatives %}
     <small>{{ strings.found.comparison }}</small>
     {{ evidence_summary(alternatives[finding.id], compact) }}
-    {% if finding.id in conflicts %}<small>{{ strings.readiness.conflict }}</small>{% endif %}
+    {% if finding.id in conflicts %}
+      <small>{{ strings.readiness.conflict if finding.is_lower_bound else strings.reason.confirmation_conflict.label }}</small>
+    {% endif %}
     {% if finding.id in answer_conflicts %}<small>{{ strings.reason.provided_answers_conflict.label }}</small>{% endif %}
   {% endif %}
 {%- endmacro %}
@@ -798,7 +800,7 @@
                 </td>
                 <td role="cell" data-label="{{ strings.attention.count }}">
                   {{ attention_evidence(finding) }}
-                  {% if finding and finding.value == 0 and finding.id not in answer_conflicts and (not finding.coverage or finding.coverage.kind == 'complete') %}
+                  {% if finding and finding.value == 0 and finding.id not in conflicts and finding.id not in answer_conflicts and (not finding.coverage or finding.coverage.kind == 'complete') %}
                     <small>{{ strings.attention.none_reported }}</small>
                   {% endif %}
                 </td>

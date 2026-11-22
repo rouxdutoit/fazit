@@ -316,7 +316,8 @@ def _product_findings(catalogue: Catalogue, *products: Product) -> dict[str, Fin
         scan,
         licences=replace(scan.licences, products=products, coverage=coverage),
         findings=tuple(
-            finding for finding in scan.findings if finding.id != "directory.licensed_user_count"
+            replace(finding, value=0) if finding.id == "directory.licensed_user_count" else finding
+            for finding in scan.findings
         ),
     )
     return {
@@ -333,9 +334,10 @@ def test_no_licence_block_and_no_assigned_licences(catalogue: Catalogue) -> None
     assert scan.licences is not None
     empty = _product_findings(catalogue)
     assert len(empty) == 1 + 2 * len(catalogue.workloads)
+    count = empty.pop("licences.product_count")
+    assert (count.value, count.provenance, count.missing_reason) == (0, "measured", None)
     assert all(
-        (finding.value, finding.provenance, finding.missing_reason)
-        == (None, "unknown", "licence_products_missing")
+        (finding.value, finding.provenance, finding.missing_reason) == (False, "measured", None)
         for finding in empty.values()
     )
     unassigned = [replace(product, assigned=0) for product in scan.licences.products]
@@ -547,8 +549,12 @@ def test_onedrive_requires_external_sharing_answer(
     [
         (True, False, True, "blocker", False),
         (True, True, True, "needs_work", False),
+        (True, False, False, "needs_work", False),
+        (True, True, False, "needs_work", False),
+        (True, None, False, "needs_work", False),
         (True, None, True, "unknown", True),
         (True, None, None, "unknown", True),
+        (True, False, None, "unknown", True),
         (False, False, False, "ready", False),
         (False, None, False, "ready", False),
         (False, None, None, "unknown", True),
@@ -576,7 +582,7 @@ def test_telephony_needs_replacement_or_explicit_non_use(
     row = _status("telephony", findings, status_rules, catalogue)
 
     assert row.status == status and row.incomplete == incomplete
-    if assigned and replacement is None:
+    if assigned and replacement is None and in_use is not False:
         assert row.deciding is None
         assert findings["telephony.licence_add_on_assigned"] in row.evidence
         assert (
@@ -786,12 +792,13 @@ def test_partial_positive_overrides_a_provided_zero_and_displays_both(
 @pytest.mark.parametrize(
     ("coverage", "count", "status", "first", "second"),
     [
-        ("complete", 0, "ready", "0 applications", "7 applications"),
+        ("complete", 0, "unknown", "0 applications", "7 applications"),
+        ("complete", 8, "unknown", "8 applications", "7 applications"),
         ("partial", 0, "needs_work", "7 applications", "0 applications in the items checked"),
         ("partial", 4, "needs_work", "7 applications", "At least 4 applications"),
     ],
 )
-def test_complete_evidence_decides_when_values_do_not_conflict_with_a_lower_bound(
+def test_complete_counts_must_agree_but_a_partial_count_can_be_consistent(
     complete_evidence: dict[str, Finding],
     catalogue: Catalogue,
     coverage: str,
@@ -816,9 +823,19 @@ def test_complete_evidence_decides_when_values_do_not_conflict_with_a_lower_boun
     html = render_report(scan, lang="en", inputs=Inputs(provided_counts={answer.id: 7}))
     row = _readiness_row(html, "integrations")
 
-    assert f'data-status="{status}"' in row and "data-incomplete" not in row
+    assert f'data-status="{status}"' in row
+    assert ("data-incomplete" in row) is (coverage == "complete")
     assert row.index(first) < row.index(second)
-    assert load_locale("en")["readiness"]["conflict"] not in row
+    strings = load_locale("en")
+    assert strings["readiness"]["conflict"] not in row
+    assert (strings["reason"]["confirmation_conflict"]["label"] in row) is (coverage == "complete")
+    if coverage == "complete":
+        for source in ("sample.directory", "inputs_yaml"):
+            assert strings["source"][source] in row
+        ready = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+        assert ready is None or 'data-path-workload="integrations"' not in ready[0]
+        assert "need their integrations reviewed" not in row
+        assert "shows no applications integrated" not in row
 
 
 def test_when_ready_evidence_is_false_and_no_problem_fires(
@@ -932,6 +949,62 @@ def test_bad_status_rule_names_the_file_and_field(
         load_status_rules(catalogue, path)
 
     assert (caught.value.file, caught.value.field) == (path.name, field)
+
+
+@pytest.mark.parametrize(
+    ("field", "before", "after", "lang"),
+    [
+        ("workloads[0].label", "label: workload.licences", "label: workload.licensse", "de"),
+        (
+            "findings[0].label",
+            "label: finding.licences.contract_terms_known",
+            "label: finding.licences.contract_terms",
+            "en",
+        ),
+        ("findings[1].unit", "unit: users", "unit: usres", "de"),
+    ],
+)
+def test_bad_catalogue_label_exits_with_a_localised_sentence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    before: str,
+    after: str,
+    lang: str,
+) -> None:
+    path = tmp_path / "rules" / "findings.yaml"
+    path.parent.mkdir()
+    data = read_text(rules_dir().joinpath(path.name))
+    path.write_text(data.replace(before, after, 1), encoding="utf-8")
+    monkeypatch.setattr("fazit.catalogue.files", lambda _: tmp_path)
+    out = tmp_path / "out"
+    command = ["demo", "--lang", lang, "--out", str(out)]
+    strings = load_locale(lang)
+
+    result = CliRunner().invoke(app, command)
+
+    message = strings["errors"]["invalid_label"].format(file=path.name, field=field)
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    debug = CliRunner().invoke(app, ["--debug", *command])
+    assert isinstance(debug.exception, InputError) and debug.exception.field == field
+
+
+def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    locales = tmp_path / "locales"
+    copytree(Path(str(files("fazit").joinpath("locales"))), locales)
+    path = locales / "de.yaml"
+    source = path.read_text(encoding="utf-8")
+    path.write_text(source.replace("  licences: Lizenzen\n", "", 1), encoding="utf-8")
+    monkeypatch.setattr("fazit.i18n.files", lambda _: tmp_path)
+
+    result = CliRunner().invoke(app, ["demo", "--lang", "en", "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 2 and not result.stdout
+    assert len(result.stderr.splitlines()) == 1
+    assert "workloads[0].label" in result.stderr and "findings.yaml" in result.stderr
 
 
 def test_shipped_risky_extensions(catalogue: Catalogue) -> None:

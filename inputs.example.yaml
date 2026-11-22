@@ -141,8 +141,8 @@ windows_only_software: null
   # EN: Enter true if the vendor has a web version, or false if there is none.
   # DE: Geben Sie true ein, wenn der Anbieter eine Webversion anbietet, andernfalls false.
   #   vendor_has_web_version: null
-# EN: Enter known counts as whole numbers, including zero when the count is confirmed.
-# DE: Tragen Sie bekannte Anzahlen als ganze Zahlen ein. Geben Sie bei bestätigtem Nullbestand 0 ein.
+# EN: Enter whole numbers using digits without leading zeros or separators. Enter 0 for a confirmed zero.
+# DE: Geben Sie ganze Zahlen ohne führende Nullen und ohne Trennzeichen ein. Geben Sie bei bestätigtem Nullbestand 0 ein.
 provided_counts:
   # EN: Enter the number of files whose extensions allow macros.
   # DE: Geben Sie die Anzahl der Dateien an, deren Endung auf mögliche Makros hinweist.
@@ -195,6 +195,9 @@ confirmations:
   # EN: Confirm whether the organisation manages any devices through Microsoft.
   # DE: Geben Sie an, ob die Organisation Geräte über Microsoft verwaltet.
   device_management.in_use: null
+  # EN: Check applications, devices and peripherals before answering whether Windows desktops are required.
+  # DE: Prüfen Sie Anwendungen, Geräte und Peripherie und geben Sie an, ob Windows-Arbeitsplätze erforderlich sind.
+  device_management.windows_desktops_required: null
   # EN: Confirm whether the organisation uses Power Platform.
   # DE: Geben Sie an, ob Power Platform im Einsatz ist.
   power_platform.in_use: null

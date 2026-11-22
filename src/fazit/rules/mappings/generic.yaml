@@ -74,7 +74,8 @@ functions:
     coverage: open_source_third_party
   - function: desktop_operating_system
     workload: device_management
-    need_finding: windows_software.without_web_version_count
+    need_finding: device_management.windows_desktops_required
+    need_if_positive: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Open source workstation operating system, de: Quelloffenes Betriebssystem für Arbeitsplatzrechner}
     coverage: open_source_community

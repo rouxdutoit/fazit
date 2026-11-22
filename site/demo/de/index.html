@@ -1416,6 +1416,23 @@
                     </td>
                   </tr>
 
+                  <tr data-finding="device_management.windows_desktops_required" data-provenance="unknown" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie erforderlich</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="unknown">
+
+    <span class="prov">Unbekannt</span>
+
+
+
+  </div>
+
+
+                      <small>
+  <span data-reason="answer_not_provided">Die Angabe fehlt. Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.</span></small>
+                    </td>
+                  </tr>
+
 
 
               </tbody>
@@ -3647,13 +3664,9 @@
                 </td>
                 <td role="cell" data-label="Grund und nächster Schritt">
 
-                    Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
+                    Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
 
 
-
-                    <ul>
-                      <li>Die Organisation bestätigt, dass sie Telefonie über Microsoft betreibt und keine Alternative verfügbar ist.</li>
-                    </ul>
 
 
                 </td>
@@ -4047,6 +4060,9 @@
             <li data-unexamined-finding="mail.shared_mailbox_count"><strong>Freigegebene Postfächer</strong> ·
   <span data-reason="needs_recipient_export">Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor. Stellen Sie einen Export der Exchange-Empfänger mit Angabe des Postfachtyps bereit.</span></li>
 
+            <li data-unexamined-finding="device_management.windows_desktops_required"><strong>Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie erforderlich</strong> ·
+  <span data-reason="answer_not_provided">Die Angabe fehlt. Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.</span></li>
+
             <li data-unexamined-finding="security_compliance.protection_or_retention_in_use"><strong>Schutz- oder Aufbewahrungsfunktionen von Microsoft im Einsatz</strong> ·
   <span data-reason="not_collected_in_this_version">Diese Programmversion erhebt die Angabe nicht. Fragen Sie bei der für den Dienst zuständigen Stelle nach.</span></li>
 
@@ -4394,7 +4410,7 @@
                 <td role="cell" data-label="Status und Begründung für den Bereich">
                   <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis</span>
 
-                  <div>Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
+                  <div>Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
   </div>
                 </td>
               </tr>
@@ -4924,7 +4940,7 @@
           <ul data-path-status="blocker" class="path-workloads">
 
               <li data-path-workload="telephony">
-                <strong>Telefonie</strong> · Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
+                <strong>Telefonie</strong> · Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
 
 
               </li>
@@ -5539,32 +5555,13 @@
   </ul>
 
               <div data-rule="telephony-no-replacement">
-                <code>telephony-no-replacement</code> · <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis</span> · Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
-                <ul>
-
-      <li>
-        Separat zugewiesene Lizenz für Telefonie
-        == Ja
-
-      </li>
-
-      <li>
-        Alternative zur Telefonie verfügbar
-        == Nein
-        <span class="prov">Bereitgestellt</span>
-      </li>
-
-  </ul>
-              </div>
-
-              <div data-rule="telephony-in-use-no-replacement">
-                <code>telephony-in-use-no-replacement</code> · <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis</span> · Die Organisation bestätigt, dass sie Telefonie über Microsoft betreibt und keine Alternative verfügbar ist.
+                <code>telephony-no-replacement</code> · <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis</span> · Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
                 <ul>
 
       <li>
         Telefonie läuft über Microsoft
         == Ja
-        <span class="prov">Bereitgestellt</span>
+
       </li>
 
       <li>
@@ -5943,15 +5940,15 @@
         <p>SHA-256-Prüfsummen der verwendeten Regeldateien</p>
         <ul>
 
-            <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">46c2d325f5390d98a545615917aef216ec9b45a1eab91cf872297c0748ee3353</code></li>
+            <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">9562231bd7ff664065df1ea726bc782e1dc012f2daf995d31995f8aad892218b</code></li>
 
-            <li><code>status.yaml</code> · <code data-checksum="status.yaml">949263f9998e7812a64f329bc275a2eabe52091b042fc12932e49b980a2bd3e2</code></li>
+            <li><code>status.yaml</code> · <code data-checksum="status.yaml">e1be62c78fe675f7bfcb8146c649cadc01d8e0e7625d2d23c9f4155489fa2e76</code></li>
 
             <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">90b60e105a80482e31e71610ec5660690ce3f23838e6edf1133ccada3c6167c1</code></li>
 
             <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">51361b45b91e0d372ca414c2b68737c3ccb3206ea1570fd3002980d463dff244</code></li>
 
-            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">bb29c92ca20d79aa757af8bf934d84a60d7c08095070739f1d202f5c17223798</code></li>
+            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">92d5d995207717d719b0569f4b0842f204d48722e5d17a961a493e90cedc698c</code></li>
 
         </ul>
       </div>

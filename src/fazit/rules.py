@@ -16,7 +16,7 @@ from typing import Never
 from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
-from .model import Collector, Finding, FindingValue, Product, Scan
+from .model import Collector, Coverage, Finding, FindingValue, Product, Scan
 from .parsing import parse_yaml, read_text
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
@@ -134,6 +134,7 @@ class FunctionMapping:
     checked_on: date | None
     note: MappingABC[str, str] | None
     need_finding: str | None = None
+    need_if_positive: str | None = None
 
 
 @dataclass(frozen=True)
@@ -220,7 +221,7 @@ def _function_mapping(
         field,
         ("function", "workload", "microsoft", "replacement", "coverage")
         + (references if product_profile else ()),
-        ("note", "need_finding") + (() if product_profile else references),
+        ("note", "need_finding", "need_if_positive") + (() if product_profile else references),
     )
     workload = reader.choice(row["workload"], f"{field}.workload", catalogue.workload_ids)
     steps = COVERAGE_LADDER if product_profile else COVERAGE_LADDER[4:]
@@ -237,8 +238,8 @@ def _function_mapping(
             if row.get(key) is not None:
                 reader.fail(f"{field}.{key}")
     need_finding = row.get("need_finding")
+    entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
     if need_finding is not None:
-        entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
         if entry is None or not (
             (entry.type == "boolean" and entry.workload == workload)
             or (
@@ -247,6 +248,11 @@ def _function_mapping(
             )
         ):
             reader.fail(f"{field}.need_finding")
+    need_if_positive = row.get("need_if_positive")
+    if need_if_positive is not None:
+        count = catalogue.finding(need_if_positive) if isinstance(need_if_positive, str) else None
+        if entry is None or entry.type != "boolean" or count is None or count.type != "count":
+            reader.fail(f"{field}.need_if_positive")
     return FunctionMapping(
         function=reader.matches(row["function"], f"{field}.function", _RULE_ID),
         workload=workload,
@@ -257,6 +263,7 @@ def _function_mapping(
         checked_on=checked_on,
         note=reader.bilingual(row["note"], f"{field}.note") if "note" in row else None,
         need_finding=need_finding,
+        need_if_positive=need_if_positive,
     )
 
 
@@ -450,6 +457,12 @@ def _licence_signals(
     return assigned, next((code for code in _PLAN_GAP_REASONS if code in gaps), None)
 
 
+def _coverage_gap(coverage: Coverage | None) -> str | None:
+    if coverage is None or coverage.kind == "unknown":
+        return "coverage_unknown"
+    return "coverage_partial" if coverage.kind == "partial" else None
+
+
 def licence_findings(
     scan: Scan,
     plans: tuple[ServicePlan, ...],
@@ -460,42 +473,53 @@ def licence_findings(
     licences = scan.licences
     if licences is None:
         return ()
-    licences.check_complete_coverage(file_name)
-    coverage = licences.coverage
+    licences.check_coverage(file_name)
     collector = scan.collector(licences.collector)
-    coverage_gap = None
-    if collector is not None and collector.status == "partial":
-        coverage_gap = collector.reason
+    coverage = licences.coverage
+    coverage_gap = _coverage_gap(coverage)
+    if collector and collector.status == "partial":
         if coverage.kind == "complete":
             coverage = replace(coverage, kind="partial")
-    coverage_gap = coverage_gap or {
-        "partial": "coverage_partial",
-        "unknown": "coverage_unknown",
-    }.get(coverage.kind)
+        coverage_gap = collector.reason or "coverage_partial"
     count = len(licences.products)
+    known_count = count > 0 or (
+        coverage.kind == "complete" and collector is not None and collector.status == "ok"
+    )
+    list_gap = None if known_count else "licence_products_missing"
+    assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
+    absence_gap = list_gap or classification_gap or coverage_gap
+    absence_collector = licences.collector
+    if absence_gap is None and not any(product.assigned for product in licences.products):
+        accounts = scan.finding("directory.licensed_user_count")
+        directory = scan.collector("directory")
+        if accounts is not None and type(accounts.value) is int and accounts.value > 0:
+            absence_gap = "licence_assignments_conflict"
+        else:
+            absence_collector = "directory"
+            absence_gap = (directory.reason if directory else None) or (
+                accounts.missing_reason or _coverage_gap(accounts.coverage)
+                if accounts
+                else "not_in_scan"
+            )
+        if count == 0 and absence_gap:
+            list_gap = (
+                absence_gap
+                if absence_gap == "licence_assignments_conflict"
+                else "licence_directory_unverified"
+            )
     product_count = Finding(
         id=_PRODUCT_COUNT,
         workload=_PRODUCT_COUNT.split(".")[0],
-        value=count or None,
+        value=count if known_count else None,
         unit="products",
-        provenance="measured" if count else "unknown",
+        provenance="measured" if known_count else "unknown",
         collector=licences.collector,
         source=licences.source,
         collected_at=licences.collected_at,
         period=None,
         coverage=coverage,
-        missing_reason=None if count else "licence_products_missing",
+        missing_reason=list_gap,
     )
-    assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
-    absence_gap = product_count.missing_reason or classification_gap or coverage_gap
-    licensed_accounts = scan.finding("directory.licensed_user_count")
-    if (
-        licensed_accounts is not None
-        and type(licensed_accounts.value) is int
-        and licensed_accounts.value > 0
-        and not any(product.assigned for product in licences.products)
-    ):
-        absence_gap = "licence_assignments_conflict"
     findings = [product_count]
     for workload in catalogue.workload_ids:
         for signal in _SIGNALS:
@@ -509,6 +533,7 @@ def licence_findings(
                     value=None if missing else value,
                     unit=None,
                     provenance="unknown" if missing else "measured",
+                    collector=absence_collector if missing else licences.collector,
                     missing_reason=missing,
                 )
             )
@@ -626,16 +651,18 @@ def mapping_need(finding: Finding | None) -> str:
     return "unknown"
 
 
-def evidence_conflicts(measured: Finding, provided: Finding) -> bool:
-    return (
+def evidence_conflicts(first: Finding, second: Finding) -> bool:
+    measured, provided = (first, second) if first.provenance == "measured" else (second, first)
+    if not (
         measured.provenance == "measured"
+        and measured.value is not None
         and provided.provenance == "provided"
         and _complete(provided)
-        and type(measured.value) is int
-        and type(provided.value) is int
-        and measured.value > 0
-        and measured.value > provided.value
-    )
+    ):
+        return False
+    if _complete(measured) or type(measured.value) is bool:
+        return measured.value != provided.value
+    return measured.is_lower_bound and measured.value > provided.value
 
 
 def provided_answers_conflict(first: Finding, second: Finding) -> bool:
@@ -648,9 +675,11 @@ def select_evidence(recorded: Finding | None, supplied: Finding) -> Finding:
     if supplied.provenance == "unknown":
         return recorded
     if recorded.provenance == "measured":
-        if _complete(recorded) or evidence_conflicts(recorded, supplied):
+        if _complete(recorded):
             return recorded
-        if not _complete(supplied) and recorded.is_lower_bound:
+        if recorded.is_lower_bound and (
+            not _complete(supplied) or evidence_conflicts(recorded, supplied)
+        ):
             return recorded
     return supplied
 
@@ -684,9 +713,6 @@ def _observation_gaps(
     collectors: MappingABC[str, Collector],
 ) -> Iterator[MissingEvidence]:
     required = {condition.finding for condition in conditions}
-    confirmations = {
-        condition.finding for condition in conditions if condition.provenance == "provided"
-    }
     for finding_id, alternative in alternatives.items():
         if alternative.workload != workload:
             continue
@@ -698,15 +724,6 @@ def _observation_gaps(
         if provided_answers_conflict(primary, alternative):
             yield MissingEvidence(finding_id, "provided_answers_conflict", None)
         elif evidence_conflicts(primary, alternative):
-            yield MissingEvidence(finding_id, "confirmation_conflict", None)
-        elif (
-            finding_id in confirmations
-            and {primary.provenance, alternative.provenance} == {"measured", "provided"}
-            and primary.value is not None
-            and alternative.value is not None
-            and primary.value != alternative.value
-            and (type(primary.value) is bool or (_complete(primary) and _complete(alternative)))
-        ):
             yield MissingEvidence(finding_id, "confirmation_conflict", None)
 
 
@@ -746,8 +763,10 @@ def _gap(
     collector_id = finding.collector if finding else None
     if finding is None:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
+    elif finding.missing_reason is not None:
+        code = finding.missing_reason
     elif finding.provenance == "unknown":
-        code = finding.missing_reason or "not_established"
+        code = "not_established"
     elif condition.provenance is not None and condition.provenance != finding.provenance:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
         collector_id = None
@@ -841,13 +860,17 @@ def _evaluate_workload(
     observation_gaps = tuple(
         _observation_gaps(workload, conditions, findings, alternatives, collectors)
     )
-    conflicted_answers = {
+    disputed = {
         gap.finding_id: gap
         for gap in observation_gaps
         if gap.reason_code == "provided_answers_conflict"
+        or (
+            gap.reason_code == "confirmation_conflict"
+            and not findings[gap.finding_id].is_lower_bound
+        )
     }
     gaps = {
-        condition: conflicted_answers.get(condition.finding)
+        condition: disputed.get(condition.finding)
         or _gap(condition, evidence, provided_ids, collectors)
         for condition, evidence in observations.items()
     }

@@ -294,6 +294,9 @@ reason:
   licence_assignments_conflict:
     label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
     fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
+  licence_directory_unverified:
+    label: Der leere Lizenzbestand ist durch das Verzeichnis nicht bestätigt.
+    fix: Gleichen Sie die Zahl der lizenzierten Konten mit dem Lizenzbestand ab.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.
@@ -387,6 +390,7 @@ finding:
   device_management.device_count: Geräte
   device_management.windows_device_count: Windows-Geräte
   device_management.in_use: Geräteverwaltung von Microsoft im Einsatz
+  device_management.windows_desktops_required: Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie erforderlich
   windows_software.application_count: Anwendungen, die nur unter Windows laufen
   windows_software.without_web_version_count: Reine Windows-Anwendungen ohne Webversion
   power_platform.in_use: Power Platform im Einsatz
@@ -427,12 +431,14 @@ errors:
   money_not_quoted: Setzen Sie die Dezimalzahl für {field} in der Datei {file} in Anführungszeichen.
   missing_field: Ergänzen Sie das Feld {field} in der Datei {file}.
   invalid_code: Geben Sie für {field} in der Datei {file} einen zulässigen Code an.
+  invalid_label: Hinterlegen Sie für {field} in der Datei {file} eine Bezeichnung auf Deutsch und Englisch.
   contains_at: Entfernen Sie Text mit einem At-Zeichen aus {field} in der Datei {file}.
   duplicate_key: Entfernen Sie den doppelten Schlüssel an der Stelle {field} in der Datei {file}.
   duplicate_id: Die Kennung in {field} ist in der Datei {file} bereits vorhanden.
   non_finite_number: Geben Sie für {field} in der Datei {file} eine endliche Zahl an.
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
   invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
+  licence_products_exceed_coverage: Die Zahl der aufgeführten Lizenzprodukte überschreitet die Angabe in {field} in der Datei {file}.
   invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
   invalid_evidence_source: Das Erhebungsverfahren oder die Quelle unter {field} in der Datei {file} ist für {finding} ungültig.
   inputs_source_in_scan: Die Quelle im Feld {field} der Datei {file} ist Angaben aus der Eingabedatei vorbehalten.
@@ -442,6 +448,7 @@ errors:
   collection_after_scan: Das Erhebungsdatum im Feld {field} der Datei {file} liegt nach dem Datum der Erhebungsdatei.
   sku_identity_mismatch: Produktcode und GUID unter {field} in der Datei {file} müssen demselben Katalogeintrag entsprechen.
   coverage_total_conflict: Die Gesamtzahl in {field} der Datei {file} widerspricht der Angabe für {related} in derselben Erhebung.
+  subset_count_exceeds_population: Die Angabe in {field} in der Datei {file} überschreitet die Zahl der erfassten Elemente.
   file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
   is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
   not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import base64
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -106,7 +106,7 @@ def _value_text(finding: Finding, formatter: Formatter) -> str:
         type(value) is int
         and value == 0
         and finding.coverage
-        and finding.coverage.kind == "partial"
+        and finding.coverage.kind != "complete"
     ):
         return strings["found"]["partial_zero"].format(value=text)
     return text
@@ -262,23 +262,41 @@ def _prepare_report(
 
 
 def _mapping_gaps(
-    mapping: Mapping, by_id: dict[str, Finding], statuses: dict[str, WorkloadStatus]
+    mapping: Mapping, by_id: dict[str, Finding], statuses: tuple[WorkloadStatus, ...]
 ) -> list[tuple[FunctionMapping, Finding | None, str, tuple[str, ...]]]:
+    missing: dict[str, list[str]] = defaultdict(list)
+    for row in statuses:
+        for gap in row.missing:
+            missing[gap.finding_id].append(gap.reason_code)
     gaps = []
     for item in mapping.functions:
         if item.coverage != "not_available":
             continue
         finding = by_id.get(item.need_finding) if item.need_finding else None
+        need = mapping_need(finding)
         reasons = tuple(
             dict.fromkeys(
-                gap.reason_code
-                for gap in statuses[item.workload].missing
-                if gap.finding_id == item.need_finding
+                code
+                for code in missing.get(item.need_finding, ())
+                if code != "answer_not_provided" or need == "unknown"
             )
         )
-        need = "unknown" if reasons else mapping_need(finding)
+        if reasons:
+            need = "unknown"
+        if item.need_if_positive and need != "yes":
+            count = by_id.get(item.need_if_positive)
+            disputes = tuple(
+                code
+                for code in ("confirmation_conflict", "provided_answers_conflict")
+                if code in missing[item.need_if_positive]
+            )
+            if disputes:
+                finding, need, reasons = count, "unknown", disputes
+            elif count is not None and type(count.value) is int and count.value > 0:
+                finding, need, reasons = count, "yes", ()
         if need == "unknown" and not reasons:
-            reasons = ((finding.missing_reason if finding else None) or "not_established",)
+            default = "answer_not_provided" if item.need_if_positive else "not_established"
+            reasons = ((finding.missing_reason if finding else None) or default,)
         gaps.append((item, finding, need, reasons))
     return gaps
 
@@ -323,7 +341,7 @@ def _evidence_context(
         status_counts=[(status, counts[status]) for status in STATUSES],
         status_rules=status_rules,
         status_by_workload=status_by_workload,
-        mapping_gaps=_mapping_gaps(mapping, by_id, status_by_workload),
+        mapping_gaps=_mapping_gaps(mapping, by_id, statuses),
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[
             collector for collector in scan.collectors if collector.status == "skipped"

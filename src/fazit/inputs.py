@@ -49,12 +49,13 @@ _SCENARIO_KEYS = (
     "training_staff",
     "parallel_running_months",
 )
+_SOFTWARE_KEYS = ("name", "users", "vendor_has_web_version")
 _QUOTED_FIELDS = tuple(f"current_costs.{name}" for name in _CURRENT_AMOUNTS) + tuple(
     f"target_costs.{scenario}.{name}"
     for scenario in _SCENARIOS
     for name in (*_SCENARIO_AMOUNTS, "training_days_per_person")
 )
-_DECIMAL = re.compile(r"[0-9]+(?:\.[0-9]+)?")
+_DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
 _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
 
 
@@ -212,7 +213,7 @@ class _InputsReader:
         )
 
     def software_entry(self, value: object, field: str) -> WindowsSoftware:
-        row = self.fields(value, field, ("name", "users", "vendor_has_web_version"))
+        row = self.fields(value, field, _SOFTWARE_KEYS)
         name = self.name(row.get("name"), f"{field}.name", 80)
         if name is None:
             self.fail(f"{field}.name", "missing_field")
@@ -233,7 +234,18 @@ class _InputsReader:
 
 
 def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
-    data = parse_yaml(text, file_name, quoted_fields=_QUOTED_FIELDS, allow_aliases=False)
+    answers = {entry.id: entry.type for entry in catalogue.findings if entry.provided == "answer"}
+    input_keys = {
+        *_INPUT_KEYS,
+        *_CURRENT_AMOUNTS,
+        *_SCENARIOS,
+        *_SCENARIO_KEYS,
+        *_SOFTWARE_KEYS,
+        *answers,
+    }
+    data = parse_yaml(
+        text, file_name, quoted_fields=_QUOTED_FIELDS, allow_aliases=False, input_keys=input_keys
+    )
     reject_at_signs(data, file_name)
     reader = _InputsReader(file_name)
     row = reader.fields(data, "", _INPUT_KEYS)
@@ -243,20 +255,12 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
     counts = reader.fields(
         row.get("provided_counts"),
         "provided_counts",
-        {
-            entry.id
-            for entry in catalogue.findings
-            if entry.provided == "answer" and entry.type == "count"
-        },
+        {key for key, kind in answers.items() if kind == "count"},
     )
     confirmations = reader.fields(
         row.get("confirmations"),
         "confirmations",
-        {
-            entry.id
-            for entry in catalogue.findings
-            if entry.provided == "answer" and entry.type == "boolean"
-        },
+        {key for key, kind in answers.items() if kind == "boolean"},
     )
     return Inputs(
         organisation_name=reader.name(row.get("organisation_name"), "organisation_name", 120),

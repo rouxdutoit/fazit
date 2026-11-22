@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+import re
+from collections.abc import Collection
 from importlib.resources.abc import Traversable
 from math import isfinite
 from pathlib import Path
@@ -11,6 +13,12 @@ from yaml.tokens import AliasToken, AnchorToken
 from .errors import InputError
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
+_INPUT_SCALAR_SPELLINGS = {
+    "tag:yaml.org,2002:int": re.compile(r"0|[1-9][0-9]*"),
+    "tag:yaml.org,2002:bool": re.compile(r"true|false", re.IGNORECASE),
+    "tag:yaml.org,2002:null": re.compile(r"null|~|", re.IGNORECASE),
+    "tag:yaml.org,2002:timestamp": re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}"),
+}
 
 
 def read_text(path: Path | Traversable) -> str:
@@ -83,7 +91,15 @@ def parse_json(text: str, file_name: str) -> object:
         raise InputError("invalid_json", file=file_name, field="$") from None
 
 
-def _check_yaml(node: Node, file_name: str, field: str, active: set[Node], seen: set[Node]) -> None:
+def _check_yaml(
+    node: Node,
+    file_name: str,
+    field: str,
+    active: set[Node],
+    seen: set[Node],
+    input_keys: Collection[str],
+    name: str | None,
+) -> None:
     if node in seen:
         return
     if node in active:
@@ -99,10 +115,20 @@ def _check_yaml(node: Node, file_name: str, field: str, active: set[Node], seen:
             if key.value in keys:
                 raise InputError("duplicate_key", file=file_name, field=member)
             keys.add(key.value)
-            _check_yaml(item, file_name, member, active, seen)
+            child_name = (
+                f"{name}.{key.value}".lstrip(".")
+                if name is not None and key.value in input_keys
+                else None
+            )
+            _check_yaml(item, file_name, member, active, seen, input_keys, child_name)
     elif isinstance(node, SequenceNode):
         for index, item in enumerate(node.value):
-            _check_yaml(item, file_name, f"{field}[{index}]", active, seen)
+            child_name = f"{name}[{index}]" if name is not None else None
+            _check_yaml(item, file_name, f"{field}[{index}]", active, seen, input_keys, child_name)
+    elif input_keys and (pattern := _INPUT_SCALAR_SPELLINGS.get(node.tag)):
+        # Check spellings before YAML can turn octal counts or on/off into answers.
+        if not pattern.fullmatch(node.value):
+            raise InputError("invalid_field", file=file_name, field=name or field)
     elif node.tag == "tag:yaml.org,2002:float":
         _finite(yaml.safe_load(f"!!float {json.dumps(node.value)}"), file_name, field)
     active.remove(node)
@@ -130,6 +156,7 @@ def parse_yaml(
     *,
     quoted_fields: tuple[str, ...] = (),
     allow_aliases: bool = True,
+    input_keys: Collection[str] = (),
 ) -> object:
     try:
         if not allow_aliases and any(
@@ -139,7 +166,7 @@ def parse_yaml(
             raise InputError("yaml_anchors", file=file_name, field="$")
         node = yaml.compose(text, Loader=yaml.SafeLoader)
         if node is not None:
-            _check_yaml(node, file_name, "$", set(), set())
+            _check_yaml(node, file_name, "$", set(), set(), input_keys, "")
             # YAML can interpret an unquoted amount with a leading zero as text.
             for field in quoted_fields:
                 _check_quotes(node, file_name, field)

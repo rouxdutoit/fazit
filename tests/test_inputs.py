@@ -24,7 +24,7 @@ from fazit.inputs import (
 from fazit.model import Coverage, load_scan_text
 from fazit.parsing import parse_yaml, read_text
 from fazit.report import render_report
-from fazit.rules import load_risky_file_types, load_status_rules
+from fazit.rules import PROFILES, load_mapping, load_risky_file_types, load_status_rules
 
 COUNT_ID = "office_files.kind.macro"
 BOOLEAN_ID = "onedrive.external_sharing_in_use"
@@ -154,6 +154,75 @@ def test_invalid_inputs(catalogue: Catalogue, text: str, code: str, field: str) 
     sentence = error_sentence(load_locale("en"), error)
     assert "manual.yaml" in sentence and field in sentence
     assert "private@example.test" not in sentence
+
+
+@pytest.mark.parametrize("spelling", ["030", "0o30", "0x1e", "0b11110", "1_000", "1:30", "+30"])
+def test_counts_require_unpadded_decimal_digits(catalogue: Catalogue, spelling: str) -> None:
+    field = "target_costs.partial_exit.users"
+    with pytest.raises(InputError) as caught:
+        load_inputs_text(
+            f"target_costs: {{partial_exit: {{users: {spelling}}}}}", "inputs.yaml", catalogue
+        )
+    assert (caught.value.file, caught.value.field) == ("inputs.yaml", field)
+
+
+@pytest.mark.parametrize(
+    ("text", "field"),
+    [
+        (
+            "target_costs: {full_exit: {parallel_running_months: 07}}",
+            "target_costs.full_exit.parallel_running_months",
+        ),
+        (
+            "target_costs: {partial_exit: {training_days_per_person: 0x2}}",
+            "target_costs.partial_exit.training_days_per_person",
+        ),
+        (
+            "target_costs: {partial_exit: {training_days_per_person: '030'}}",
+            "target_costs.partial_exit.training_days_per_person",
+        ),
+        (
+            "target_costs: {full_exit: {training_staff: 010}}",
+            "target_costs.full_exit.training_staff",
+        ),
+        (f"provided_counts: {{{COUNT_ID}: 1_000}}", f"provided_counts.{COUNT_ID}"),
+        ("windows_only_software: [{name: Editor, users: 030}]", "windows_only_software[0].users"),
+        (
+            "windows_only_software: [{name: Editor, vendor_has_web_version: OFF}]",
+            "windows_only_software[0].vendor_has_web_version",
+        ),
+        ("amounts_are_invented: yes", "amounts_are_invented"),
+        ("answers_are_sample: NO", "answers_are_sample"),
+        (f"confirmations: {{{BOOLEAN_ID}: on}}", f"confirmations.{BOOLEAN_ID}"),
+        ("as_of: 2026-11-20T09:00:00Z", "as_of"),
+        ("target_costs: {partial_exit: {users: !!null 030}}", "target_costs.partial_exit.users"),
+        ("target_costs: {partial_exit: {users: !!int '030'}}", "target_costs.partial_exit.users"),
+    ],
+)
+def test_inputs_reject_yaml_coercions_by_field(catalogue: Catalogue, text: str, field: str) -> None:
+    with pytest.raises(InputError, match="invalid_field") as caught:
+        load_inputs_text(text, "inputs.yaml", catalogue)
+    assert (caught.value.file, caught.value.field) == ("inputs.yaml", field)
+
+
+def test_inputs_accept_nulls_iso_dates_and_canonical_booleans(catalogue: Catalogue) -> None:
+    inputs = load_inputs_text(
+        f"""
+organisation_name: "On"
+as_of: 2026-11-20
+amounts_are_invented: FALSE
+answers_are_sample: True
+target_costs:
+  partial_exit: {{users: 30, training_staff: ~, parallel_running_months: 0}}
+confirmations: {{{BOOLEAN_ID}: null}}
+""",
+        "inputs.yaml",
+        catalogue,
+    )
+    assert inputs.organisation_name == "On" and inputs.as_of == "2026-11-20"
+    assert not inputs.amounts_are_invented and inputs.answers_are_sample
+    assert inputs.partial_exit == ScenarioInputs(users=30, parallel_running_months=0)
+    assert inputs.confirmations == {BOOLEAN_ID: None}
 
 
 @pytest.mark.parametrize("name", ['""', '"   "', f'"{"x" * 81}"', '"Two\\nLines"'])
@@ -548,7 +617,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
         assert "Sie" in text
 
 
-def test_every_provided_finding_is_used_by_rules_or_headlines(catalogue: Catalogue) -> None:
+def test_every_provided_finding_is_used_by_the_report(catalogue: Catalogue) -> None:
     rule_set = load_status_rules(catalogue)
     rule_ids = {
         condition.finding
@@ -559,8 +628,16 @@ def test_every_provided_finding_is_used_by_rules_or_headlines(catalogue: Catalog
         )
     }
 
-    assert not {
+    mapping_only = {
         entry.id
         for entry in catalogue.findings
         if entry.provided != "no" and not entry.headline and entry.id not in rule_ids
     }
+    assert mapping_only == {"device_management.windows_desktops_required"}
+    for profile in PROFILES:
+        desktop = next(
+            item
+            for item in load_mapping(profile, catalogue).functions
+            if item.function == "desktop_operating_system"
+        )
+        assert {desktop.need_finding} == mapping_only

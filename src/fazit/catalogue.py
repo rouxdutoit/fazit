@@ -7,6 +7,7 @@ from importlib.resources import files
 from pathlib import Path
 
 from .errors import InputError
+from .i18n import SUPPORTED_LANGUAGES, load_locale
 from .parsing import parse_yaml, read_text
 
 VALUE_TYPES = ("count", "bytes", "boolean")
@@ -212,9 +213,30 @@ def _sku_exceptions(value: object, file_name: str) -> frozenset[tuple[str, str]]
     return frozenset(keys)
 
 
+def _require_label(labels: object, key: str, file_name: str, field: str) -> None:
+    text = labels.get(key) if isinstance(labels, dict) else None
+    if not isinstance(text, str) or not text.strip():
+        raise InputError("invalid_label", file=file_name, field=field)
+
+
 def load_catalogue(path: Path | None = None) -> Catalogue:
     source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
-    return _parse_catalogue(read_text(source), source.name)
+    file_name = source.name
+    catalogue = _parse_catalogue(read_text(source), file_name)
+    sections = (("workloads", catalogue.workloads), ("findings", catalogue.findings))
+    for lang in SUPPORTED_LANGUAGES:
+        strings = load_locale(lang)
+        for group, entries in sections:
+            for index, entry in enumerate(entries):
+                section, key = entry.label.split(".", 1)
+                _require_label(strings.get(section), key, file_name, f"{group}[{index}].label")
+        for index, entry in enumerate(catalogue.findings):
+            if entry.unit is not None:
+                for group in ("units", "unit_one"):
+                    _require_label(
+                        strings.get(group), entry.unit, file_name, f"findings[{index}].unit"
+                    )
+    return catalogue
 
 
 @lru_cache(maxsize=2)

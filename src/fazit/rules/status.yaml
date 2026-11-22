@@ -121,8 +121,8 @@ workloads:
         - {finding: office_files.kind.visio, op: '==', value: 0}
         - {finding: office_files.kind.onenote, op: '==', value: 0}
       reason:
-        en: The supplied counts show no files of the types listed for review.
-        de: Für die aufgeführten prüfbedürftigen Dateitypen wurden jeweils null Dateien gemeldet.
+        en: The counts show no files of the types listed for review.
+        de: Die Zahlen weisen für die aufgeführten Dateitypen keinen Bestand aus.
     rules:
       - id: office-macro
         when: [{finding: office_files.kind.macro, op: '>', value: 0}]
@@ -235,36 +235,28 @@ workloads:
     rules:
       - id: telephony-no-replacement
         when:
-          - {finding: telephony.licence_add_on_assigned, op: '==', value: true}
+          - {finding: telephony.in_use, op: '==', value: true}
           - {finding: telephony.replacement_available, op: '==', value: false, provenance: provided}
         status: blocker
         reason:
-          en: Teams Phone licences are assigned and the organisation has confirmed that it has no replacement.
-          de: Teams-Phone-Lizenzen sind zugewiesen, und die Organisation hat bestätigt, dass keine Alternative verfügbar ist.
-      - id: telephony-add-on
-        when:
-          - {finding: telephony.licence_add_on_assigned, op: '==', value: true}
-          - {finding: telephony.replacement_available, op: '==', value: true, provenance: provided}
-        status: needs_work
-        reason:
-          en: Teams Phone licences are assigned and the available replacement needs testing.
-          de: Teams-Phone-Lizenzen sind zugewiesen, und die verfügbare Alternative muss erprobt werden.
-      - id: telephony-in-use-no-replacement
-        when:
-          - {finding: telephony.in_use, op: '==', value: true, provenance: provided}
-          - {finding: telephony.replacement_available, op: '==', value: false, provenance: provided}
-        status: blocker
-        reason:
-          en: The organisation confirms it runs telephony through Microsoft and has no replacement.
-          de: Die Organisation bestätigt, dass sie Telefonie über Microsoft betreibt und keine Alternative verfügbar ist.
+          en: The organisation uses Microsoft telephony and has confirmed that it has no replacement.
+          de: Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
       - id: telephony-in-use
         when:
-          - {finding: telephony.in_use, op: '==', value: true, provenance: provided}
+          - {finding: telephony.in_use, op: '==', value: true}
           - {finding: telephony.replacement_available, op: '==', value: true, provenance: provided}
         status: needs_work
         reason:
           en: The organisation uses Microsoft telephony and needs to test the available replacement.
           de: Die Organisation nutzt Telefonie über Microsoft und muss die verfügbare Alternative erproben.
+      - id: telephony-unused-add-on
+        when:
+          - {finding: telephony.licence_add_on_assigned, op: '==', value: true}
+          - {finding: telephony.in_use, op: '==', value: false}
+        status: needs_work
+        reason:
+          en: Review whether the assigned Teams Phone licences are still needed because Microsoft telephony is unused.
+          de: Prüfen Sie, ob die zugewiesenen Teams-Phone-Lizenzen noch benötigt werden, da die Organisation keine Telefonie über Microsoft nutzt.
   identity_access:
     ready:
       evidence:
@@ -330,8 +322,8 @@ workloads:
     ready:
       evidence: [{finding: integrations.application_count, op: '==', value: 0}]
       reason:
-        en: The supplied count shows no applications integrated with Microsoft 365.
-        de: Laut bereitgestellter Angabe sind keine Anwendungen an Microsoft 365 angebunden.
+        en: The count shows no applications integrated with Microsoft 365.
+        de: Die Zählung weist keine an Microsoft 365 angebundenen Anwendungen aus.
     rules:
       - id: integrations-present
         when: [{finding: integrations.application_count, op: '>', value: 0}]

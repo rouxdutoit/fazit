@@ -65,7 +65,11 @@ def _coverage(draw: st.DrawFn, total: int, *, inventory: bool = False) -> Covera
         )
     if draw(st.booleans()):
         return Coverage(kind)
-    scanned = draw(st.integers(0, total))
+    if inventory:
+        scanned = total
+        total += draw(st.integers(0, 5))
+    else:
+        scanned = draw(st.integers(0, total))
     return Coverage(kind, scanned, draw(st.integers(0, total - scanned)), total)
 
 
@@ -137,12 +141,13 @@ def _licences(draw: st.DrawFn, collector: Collector | None) -> Licences | None:
     if collector is None or collector.status == "skipped" or not draw(st.booleans()):
         return None
     products = []
+    all_unassigned = draw(st.booleans())
     for roster in draw(
         st.lists(st.sampled_from(ROSTERS), unique_by=lambda plans: plans[0].sku_guid, max_size=5)
     ):
         first = roster[0]
         purchased = draw(COUNTS)
-        assigned = draw(st.integers(0, purchased))
+        assigned = 0 if all_unassigned else draw(st.integers(0, purchased))
         plans = tuple(ServicePlan(plan.name, plan.guid) for plan in roster)
         products.append(Product(first.sku_part_number, first.sku_guid, purchased, assigned, plans))
     coverage = _coverage(draw, len(products), inventory=True)
@@ -232,6 +237,19 @@ def tenants(draw: st.DrawFn) -> Tenant:
         for entry in CATALOGUE.findings
         if (finding := _finding(draw, entry, collectors, totals)) is not None
     )
+    if inputs is not None:
+        counts = inputs["provided_counts"]
+        for finding in findings:
+            entry = CATALOGUE.finding(finding.id)
+            if (
+                entry.provided == "answer"
+                and type(finding.value) is int
+                and finding.provenance == "measured"
+                and finding.coverage.kind == "complete"
+                and draw(st.booleans())
+            ):
+                conflicts = (0, finding.value + 1) if finding.value else (1,)
+                counts[finding.id] = draw(st.sampled_from(conflicts))
     scan = replace(
         EMPTY_SCAN,
         collectors=tuple(collectors.values()),

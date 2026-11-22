@@ -472,6 +472,19 @@
       "missing_reason": "not_collected_in_this_version"
     },
     {
+      "id": "device_management.windows_desktops_required",
+      "workload": "device_management",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "answer_not_provided"
+    },
+    {
       "id": "windows_software.application_count",
       "workload": "windows_software",
       "value": null,

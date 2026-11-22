@@ -105,6 +105,7 @@ Enter whole numbers under `provided_counts` and use `true` or `false` under `con
 - How many devices are in scope according to the IT lead's inventory (`device_management.device_count`)?
 - How many of those devices run Windows according to the IT lead (`device_management.windows_device_count`)?
 - Does your organisation manage any devices through Microsoft (`device_management.in_use`)?
+- Does any application, device or peripheral require Windows desktops (`device_management.windows_desktops_required`)?
 
 ### Power Platform
 

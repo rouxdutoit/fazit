@@ -76,6 +76,45 @@ OFFICE = Tenant(
 OFFICE_PARTIAL = replace(
     OFFICE, scan=replace(OFFICE.scan, findings=(replace(MACROS, coverage=Coverage("partial")),))
 )
+NONPROFIT = load_scan(_sample_scan("nonprofit"), CATALOGUE)
+LICENSED_ACCOUNTS = NONPROFIT.finding("directory.licensed_user_count")
+assert LICENSED_ACCOUNTS is not None and NONPROFIT.licences is not None
+UNASSIGNED = Tenant(
+    replace(
+        NONPROFIT,
+        collectors=tuple(
+            row for row in NONPROFIT.collectors if row.id in {"directory", "licences"}
+        ),
+        findings=(LICENSED_ACCOUNTS,),
+        licences=replace(
+            NONPROFIT.licences, products=(replace(NONPROFIT.licences.products[0], assigned=0),)
+        ),
+    ),
+    {"confirmations": {"telephony.in_use": False}},
+    "en",
+    "opendesk",
+)
+DIRECTORY_DENIED = replace(
+    UNASSIGNED,
+    scan=replace(
+        UNASSIGNED.scan,
+        collectors=tuple(
+            replace(row, status="skipped", reason="permission_denied")
+            if row.id == "directory"
+            else row
+            for row in UNASSIGNED.scan.collectors
+        ),
+        findings=(
+            replace(
+                LICENSED_ACCOUNTS,
+                value=None,
+                provenance="unknown",
+                coverage=None,
+                missing_reason="permission_denied",
+            ),
+        ),
+    ),
+)
 
 
 def _write_tenant(tenant: Tenant, directory: Path) -> tuple[Path, Path | None]:
@@ -104,6 +143,7 @@ def _statuses(html: str) -> dict[str, str]:
 
 
 @given(tenant=tenants())
+@example(tenant=OFFICE)
 def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     html = _render(tenant)
     statuses = _statuses(html)
@@ -115,6 +155,18 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     unavailable = {row.id for row in tenant.scan.collectors if row.status != "ok"}
     licences = tenant.scan.licences
     readiness = _section(html, "readiness")
+    for key, answer in supplied.items():
+        finding = recorded.get(key)
+        if (
+            finding
+            and finding.provenance == "measured"
+            and finding.coverage.kind == "complete"
+            and (answer.coverage is None or answer.coverage.kind == "complete")
+            and finding.value != answer.value
+        ):
+            row = _readiness(readiness, finding.workload)
+            assert 'data-reason="confirmation_conflict"' in row
+            assert statuses[finding.workload] != "ready"
     for workload, block in STATUS_RULES.workloads.items():
         row = _readiness(readiness, workload)
         gaps = re.findall(r'<li data-missing="([^"]+)">(.*?)</li>', row, re.S)
@@ -129,10 +181,22 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             if entry is None:
                 complete = (
                     licences is not None
-                    and bool(licences.products)
                     and licences.coverage.kind == "complete"
                     and licences.collector not in unavailable
                 )
+                if (
+                    complete
+                    and (key != "licences.product_count" or not licences.products)
+                    and not any(product.assigned for product in licences.products)
+                ):
+                    accounts = recorded.get("directory.licensed_user_count")
+                    complete = (
+                        accounts is not None
+                        and accounts.value == 0
+                        and accounts.coverage is not None
+                        and accounts.coverage.kind == "complete"
+                        and accounts.collector not in unavailable
+                    )
             else:
                 complete = not any(
                     method in unavailable for method, _ in entry.measured_by
@@ -149,6 +213,7 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
 
 @given(pair=degraded_tenants())
 @example(pair=(OFFICE, OFFICE_PARTIAL))
+@example(pair=(UNASSIGNED, DIRECTORY_DENIED))
 def test_worse_collection_never_improves_status(pair: tuple[Tenant, Tenant]) -> None:
     original, degraded = pair
     if original == degraded:

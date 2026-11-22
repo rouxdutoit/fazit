@@ -264,6 +264,13 @@ findings:
     label: finding.device_management.in_use
     provided: answer
     headline: false
+  - id: device_management.windows_desktops_required
+    workload: device_management
+    type: boolean
+    unit: null
+    label: finding.device_management.windows_desktops_required
+    provided: answer
+    headline: false
   - id: windows_software.application_count
     workload: windows_software
     type: count
@@ -380,6 +387,7 @@ codes:
     - licence_plan_list_missing
     - licence_plan_list_incomplete
     - licence_assignments_conflict
+    - licence_directory_unverified
     - coverage_partial
     - coverage_unknown
     - confirmation_conflict
