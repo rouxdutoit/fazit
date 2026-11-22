@@ -26,7 +26,7 @@ Shared brief for the agents that align RR-01 to RR-05 with `UI-SPEC.md` revision
 | Mapping review: openDesk XWiki, CryptPad, Notes; specific citations per row; "Direct transfer undocumented" where only the method is undocumented; each mapping file marked unreviewed until the named operator review (C5) | RR-07 | Facts and sources go into the plan text, checked with dates, so the executor needs no network. |
 | Scope statement data (spec 1.2 item 3): counts per coverage label for the chosen profile, needed functions outside it, the Unknown-need count; absent for a profile without dated sources | RR-07 (report context and tests) | RR-03 renders it in the summary. |
 | Area cards, evidence disclosure, filters (spec 2) | RR-02 | — |
-| Readiness bar stays in `readiness`, above the filters, as their visual; `data-segment` read from `readiness` (§9 item 4) | RR-02 | RR-03 no longer moves the bar. |
+| No readiness bar anywhere (founder, 2026-11-22, after the Apple-lens review); the `data-segment` assertion becomes a count of cards per status in `readiness` (§9 item 4) | RR-02 | — |
 | Card target line: a needed transfer gap first, before the two-function cap | RR-02 | Uses RR-07's data if present; the gap list exists today. |
 | Not-examined index: RR-02 leaves today's markup at the end of `readiness` untouched | RR-02 | RR-04 moves it. |
 | `SECTION_ORDER` = header, summary, path, readiness, costs, moves, attention, found, appendix, footer | RR-03 (Task 1) | `path` keeps today's content until RR-04. |

@@ -51,7 +51,7 @@ The summary is page one's body. In this order:
 
 Exactly one card per assessed workload, in `div.areas`, replaces the table. Licences has no status, card or category (launch critique C2); its evidence stays in `found`. `h2#readiness-title` stays. Order inside: the readiness bar, filters, status groups, empty state.
 
-**Readiness bar** (moved from the summary): the existing `.readiness-bar` and hooks, in display order, as the visual for the status filter directly above it. Height 12 px, gap 2 px, radius 999 px. It is not repeated on page one.
+**No readiness bar.** Founder's decision on 2026-11-22, after the Apple-lens review: the segmented bar is removed from the report entirely, from the summary and from above the filters. A coloured bar reads as a score or progress; the status filter's counts carry the distribution.
 
 ### 2.1 Grouping
 
@@ -332,7 +332,7 @@ Locale keys keep their names; only values change. In the cost formulas "exit sce
 1. `SECTION_ORDER` and the CLI test's hardcoded nine sections take the ten in section 1, with `path` third. When Phase 1.1 ships, the `data-subsection` order assertion gains `licence-contract`.
 2. Readiness rows: `<tr data-workload=…>…</tr>` becomes `<article data-workload=…>…</article>`; regexes change the tag only. `site/check_site.py` counts `article[id^="readiness-"]`.
 3. CLI and simulation tests that assert catalogue order of readiness rows assert instead: group order, catalogue order inside each group, exactly one card per workload.
-4. `data-segment` is read from `readiness`, in display order.
+4. The `data-segment` assertion is replaced by counting cards per status in `readiness`, in display order (the bar is removed).
 5. The directory-note test slices `readiness` in place of `found`.
 6. Conflict assertions are scoped to one evidence record, because a card shows an observation in two lists.
 7. The headline `.figure` selector becomes `.figure-num`; the qualified-zero wording assertions stay.
