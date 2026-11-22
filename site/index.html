@@ -96,7 +96,7 @@
       <h2 class="sec-label" id="privacy-title" data-scramble>Private by design</h2>
       <div class="sec-body">
         <p class="lead">Your data stays on your computer. Fazit creates the report locally, and the current version makes no network connections at all.</p>
-        <ul class="features">
+        <ul class="tiles tiles-2">
           <li>
             <span class="feature-icon icon-computer" aria-hidden="true"></span>
             <h3>Runs on your computer</h3>
@@ -172,16 +172,40 @@
       <h2 class="sec-label" id="report-title" data-scramble>What you get</h2>
       <div class="sec-body">
         <p class="sec-intro">One self-contained HTML report in English or German, ready to save, read offline or print.</p>
-        <dl class="rows">
-          <div><dt>Report details</dt><dd>Date, data source and target profile, at the top of every report.</dd></div>
-          <div><dt>What we found</dt><dd>What the available evidence shows about your use of Microsoft 365.</dd></div>
-          <div><dt>Five-year cost comparison</dt><dd>Compare staying, a partial move and a full move. The figures include retained licences, project costs, lost working time and parallel running.</dd></div>
-          <div><dt>Readiness by area</dt><dd>Ready, Needs work, Blocker or Unknown, with reasons, evidence and what was left unexamined.</dd></div>
-          <div><dt>What moves where</dt><dd>Possible replacements under the chosen target profile, with documented gaps.</dd></div>
-          <div><dt>Needs attention</dt><dd>File types to review, Windows-only applications and functions that may not carry over directly.</dd></div>
-          <div><dt>Suggested path</dt><dd>Blockers, questions to resolve and areas that may be suitable for a pilot.</dd></div>
-          <div><dt>Appendix</dt><dd>Collection methods, rules, mappings, cost calculations and run details.</dd></div>
-        </dl>
+        <ul class="tiles tiles-2">
+          <li>
+            <h3>Report details</h3>
+            <p>Date, data source and target profile, at the top of every report.</p>
+          </li>
+          <li>
+            <h3>What we found</h3>
+            <p>What the available evidence shows about your use of Microsoft 365.</p>
+          </li>
+          <li>
+            <h3>Five-year cost comparison</h3>
+            <p>Compare staying, a partial move and a full move. The figures include retained licences, project costs, lost working time and parallel running.</p>
+          </li>
+          <li>
+            <h3>Readiness by area</h3>
+            <p>Ready, Needs work, Blocker or Unknown, with reasons, evidence and what was left unexamined.</p>
+          </li>
+          <li>
+            <h3>What moves where</h3>
+            <p>Possible replacements under the chosen target profile, with documented gaps.</p>
+          </li>
+          <li>
+            <h3>Needs attention</h3>
+            <p>File types to review, Windows-only applications and functions that may not carry over directly.</p>
+          </li>
+          <li>
+            <h3>Suggested path</h3>
+            <p>Blockers, questions to resolve and areas that may be suitable for a pilot.</p>
+          </li>
+          <li>
+            <h3>Appendix</h3>
+            <p>Collection methods, rules, mappings, cost calculations and run details.</p>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -226,7 +250,7 @@
     <section class="sec grid" id="audience" aria-labelledby="audience-title">
       <h2 class="sec-label" id="audience-title" data-scramble>Who it is for</h2>
       <div class="sec-body">
-        <ul class="features features-3">
+        <ul class="tiles tiles-3">
           <li>
             <span class="feature-icon icon-handshake" aria-hidden="true"></span>
             <h3>Integrators</h3>
@@ -308,25 +332,52 @@
       <h2 class="sec-label" id="free-title" data-scramble>Free and open source</h2>
       <div class="sec-body">
         <p class="sec-intro">Fazit is free and open source under AGPL-3.0-or-later. No feature is held back for a paid edition.</p>
-        <dl class="rows">
-          <div><dt><a href="/pilots/">Founding pilots</a></dt><dd>Three free assessments, one each in Germany, Austria and Switzerland. Expressions of interest are open until 28 February 2027.</dd></div>
-          <div><dt><a href="/integrators/">For integrators</a></dt><dd>Use Fazit in your own assessments and see how the public list of firms will work.</dd></div>
-          <div><dt><a href="/security/">Security and privacy</a></dt><dd>Check the safeguards or report a vulnerability privately.</dd></div>
-        </dl>
+        <ul class="tiles tiles-3">
+          <li>
+            <h3><a href="/pilots/">Founding pilots</a></h3>
+            <p>Three free assessments, one each in Germany, Austria and Switzerland. Expressions of interest are open until 28 February 2027.</p>
+          </li>
+          <li>
+            <h3><a href="/integrators/">For integrators</a></h3>
+            <p>Use Fazit in your own assessments and see how the public list of firms will work.</p>
+          </li>
+          <li>
+            <h3><a href="/security/">Security and privacy</a></h3>
+            <p>Check the safeguards or report a vulnerability privately.</p>
+          </li>
+        </ul>
       </div>
     </section>
 
     <section class="sec grid" id="status" aria-labelledby="status-title">
       <h2 class="sec-label" id="status-title" data-scramble>Project status</h2>
       <div class="sec-body">
-        <dl class="rows stages">
-          <div><dt>Now</dt><dd>Run from source. Fazit builds reports from bundled examples or an existing scan file. It is not yet on PyPI.</dd></div>
-          <div><dt>Next</dt><dd>AI assistants such as Microsoft 365 Copilot and Copilot Studio become an assessed area. The report shows when your licences renew and by when you need to decide.</dd></div>
-          <div><dt>Then</dt><dd>An export of the findings for project plans, a check that a report has not been changed, and a link from each finding to the sovereignty criteria of ZenDiS, the federal centre behind openDesk.</dd></div>
-          <div><dt>After that</dt><dd>Import CSV exports from the Microsoft 365 admin centre on your computer, keeping only counts, and show where your tenant’s data is stored.</dd></div>
-          <div><dt>Later</dt><dd>Sign in read-only to check permissions and count licences and directory entries.</dd></div>
-          <div><dt>Languages</dt><dd>French and Italian are planned with the Swiss pilot. Fazit is built to be translated; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">the guide</a> explains how.</dd></div>
-        </dl>
+        <ul class="tiles tiles-2">
+          <li>
+            <p class="tile-label">Now</p>
+            <p>Run from source. Fazit builds reports from bundled examples or an existing scan file. It is not yet on PyPI.</p>
+          </li>
+          <li>
+            <p class="tile-label">Next</p>
+            <p>AI assistants such as Microsoft 365 Copilot and Copilot Studio become an assessed area. The report shows when your licences renew and by when you need to decide.</p>
+          </li>
+          <li>
+            <p class="tile-label">Then</p>
+            <p>An export of the findings for project plans, a check that a report has not been changed, and a link from each finding to the sovereignty criteria of ZenDiS, the federal centre behind openDesk.</p>
+          </li>
+          <li>
+            <p class="tile-label">After that</p>
+            <p>Import CSV exports from the Microsoft 365 admin centre on your computer, keeping only counts, and show where your tenant’s data is stored.</p>
+          </li>
+          <li>
+            <p class="tile-label">Later</p>
+            <p>Sign in read-only to check permissions and count licences and directory entries.</p>
+          </li>
+          <li>
+            <p class="tile-label">Languages</p>
+            <p>French and Italian are planned with the Swiss pilot. Fazit is built to be translated; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">the guide</a> explains how.</p>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -334,7 +385,7 @@
       <h2 class="sec-label" id="development-title" data-scramble>How it is made</h2>
       <div class="sec-body">
         <p class="lead">AI-assisted, human-reviewed.</p>
-        <ul class="tiles">
+        <ul class="tiles tiles-3">
           <li>
             <p class="tile-label">Written with</p>
             <p class="tile-title"><span>Codex GPT-6.2-Sol</span><span>Claude Opus 5.5</span></p>

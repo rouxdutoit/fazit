@@ -59,16 +59,40 @@
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
       <h2 class="sec-label" id="principles-title">Principles</h2>
       <div class="sec-body">
-        <dl class="rows">
-          <div><dt>Read-only</dt><dd>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</dd></div>
-          <div><dt>Local processing</dt><dd>Fazit keeps assessment data on the computer and will import usage exports offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</dd></div>
-          <div><dt>Tokens in memory</dt><dd>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</dd></div>
-          <div><dt>Metadata only</dt><dd>Collection is limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</dd></div>
-          <div><dt>Personal data</dt><dd>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</dd></div>
-          <div><dt>Offline report</dt><dd>The report is one HTML file with built-in styles and system fonts. It opens and prints without a network connection, JavaScript or external resources.</dd></div>
-          <div><dt>One command</dt><dd>After setup, one command builds a report from bundled sample data or an existing scan. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</dd></div>
-          <div><dt>Honest figures</dt><dd>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</dd></div>
-        </dl>
+        <ul class="tiles tiles-2">
+          <li>
+            <h3>Read-only</h3>
+            <p>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</p>
+          </li>
+          <li>
+            <h3>Local processing</h3>
+            <p>Fazit keeps assessment data on the computer and will import usage exports offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</p>
+          </li>
+          <li>
+            <h3>Tokens in memory</h3>
+            <p>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</p>
+          </li>
+          <li>
+            <h3>Metadata only</h3>
+            <p>Collection is limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</p>
+          </li>
+          <li>
+            <h3>Personal data</h3>
+            <p>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</p>
+          </li>
+          <li>
+            <h3>Offline report</h3>
+            <p>The report is one HTML file with built-in styles and system fonts. It opens and prints without a network connection, JavaScript or external resources.</p>
+          </li>
+          <li>
+            <h3>One command</h3>
+            <p>After setup, one command builds a report from bundled sample data or an existing scan. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</p>
+          </li>
+          <li>
+            <h3>Honest figures</h3>
+            <p>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</p>
+          </li>
+        </ul>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
       </div>
     </section>

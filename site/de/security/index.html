@@ -59,16 +59,40 @@
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
       <h2 class="sec-label" id="principles-title">Grundsätze</h2>
       <div class="sec-body">
-        <dl class="rows">
-          <div><dt>Nur Lesezugriff</dt><dd>Für die geplante Anmeldung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie <code>GET</code> verwenden.</dd></div>
-          <div><dt>Lokale Verarbeitung</dt><dd>Die Prüfdaten bleiben auf dem Rechner, und Nutzungsberichte sollen offline eingelesen werden. Die geplante Anmeldung ist auf <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> begrenzt und verzichtet auf Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe.</dd></div>
-          <div><dt>Tokens im Arbeitsspeicher</dt><dd>Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.</dd></div>
-          <div><dt>Nur Metadaten</dt><dd>Die Erhebung beschränkt sich auf Anzahlen, Größen und codierte Nachweise. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.</dd></div>
-          <div><dt>Personenbezogene Daten</dt><dd>Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in <code>inputs.yaml</code> in den Bericht übernommen werden.</dd></div>
-          <div><dt>Bericht ohne Netzwerk</dt><dd>Der Bericht ist eine einzelne HTML-Datei mit eingebetteten Formatvorlagen und Systemschriften. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.</dd></div>
-          <div><dt>Ein Befehl</dt><dd>Nach der Einrichtung erstellt ein Befehl den Bericht aus Beispieldaten oder einer vorhandenen Erhebung. Für die spätere Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</dd></div>
-          <div><dt>Nachvollziehbare Zahlen</dt><dd>Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.</dd></div>
-        </dl>
+        <ul class="tiles tiles-2">
+          <li>
+            <h3>Nur Lesezugriff</h3>
+            <p>Für die geplante Anmeldung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie <code>GET</code> verwenden.</p>
+          </li>
+          <li>
+            <h3>Lokale Verarbeitung</h3>
+            <p>Die Prüfdaten bleiben auf dem Rechner, und Nutzungsberichte sollen offline eingelesen werden. Die geplante Anmeldung ist auf <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> begrenzt und verzichtet auf Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe.</p>
+          </li>
+          <li>
+            <h3>Tokens im Arbeitsspeicher</h3>
+            <p>Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.</p>
+          </li>
+          <li>
+            <h3>Nur Metadaten</h3>
+            <p>Die Erhebung beschränkt sich auf Anzahlen, Größen und codierte Nachweise. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.</p>
+          </li>
+          <li>
+            <h3>Personenbezogene Daten</h3>
+            <p>Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in <code>inputs.yaml</code> in den Bericht übernommen werden.</p>
+          </li>
+          <li>
+            <h3>Bericht ohne Netzwerk</h3>
+            <p>Der Bericht ist eine einzelne HTML-Datei mit eingebetteten Formatvorlagen und Systemschriften. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.</p>
+          </li>
+          <li>
+            <h3>Ein Befehl</h3>
+            <p>Nach der Einrichtung erstellt ein Befehl den Bericht aus Beispieldaten oder einer vorhandenen Erhebung. Für die spätere Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</p>
+          </li>
+          <li>
+            <h3>Nachvollziehbare Zahlen</h3>
+            <p>Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.</p>
+          </li>
+        </ul>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en">Grundsätze in den Projektentscheidungen lesen</a></p>
       </div>
     </section>
