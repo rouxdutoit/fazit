@@ -59,6 +59,7 @@
   --link-glow: light-dark(transparent, rgb(48 209 88 / 55%));
   --solid-bg: light-dark(#0071e3, #30d158);
   --solid-hover: light-dark(#0077ed, #4cdb72);
+  --solid-active: light-dark(#006edb, #2bbd4f);
   --solid-fg: light-dark(#ffffff, #050906);
   --status-ready: light-dark(#34c759, #30d158);
   --status-needs-work: light-dark(#ffcc00, #ffd60a);
@@ -139,8 +140,17 @@ a:hover {
   text-shadow: 0 0 12px var(--link-glow);
 }
 
+/* Controls that are links keep their own colours: only text links brighten and glow. */
 .btn:hover, .wordmark:hover, .report-card:hover, .language:hover {
   text-shadow: none;
+}
+
+.btn-solid, .btn-solid:hover, .btn-solid:active {
+  color: var(--solid-fg);
+}
+
+.btn-secondary, .btn-secondary:hover, .btn-secondary:active, .language:hover {
+  color: var(--fg);
 }
 
 button {
@@ -466,6 +476,10 @@ code {
   background: var(--solid-hover);
 }
 
+.btn-solid:active {
+  background: var(--solid-active);
+}
+
 .btn-small {
   min-width: 23px;
   padding: 3px 10px;
@@ -481,6 +495,10 @@ code {
 
 .btn-secondary:hover {
   background: color-mix(in srgb, var(--fg) 14%, var(--bg));
+}
+
+.btn-secondary:active {
+  background: color-mix(in srgb, var(--fg) 20%, var(--bg));
 }
 
 .command {
