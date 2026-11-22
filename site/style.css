@@ -285,6 +285,7 @@ code {
       color: var(--fg-2);
       font-family: var(--mono);
       font-weight: 400;
+      line-height: normal;
       letter-spacing: 0;
       content: attr(data-g);
     }
