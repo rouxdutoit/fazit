@@ -955,6 +955,7 @@ def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
             f'"{"9" * 4400}"',
             id="huge-decimal-days",
         ),
+        pytest.param("training_days_per_person", '"0.123456"', '"0.1234567"', id="decimal-places"),
     ],
 )
 def test_report_bounds_cost_quantities(

@@ -42,7 +42,8 @@ _SCENARIOS = ("partial_exit", "full_exit")
 _SCENARIO_COUNTS = ("users", "training_staff", "parallel_running_months")
 _SCENARIO_KEYS = (*_SCENARIO_AMOUNTS, *_SCENARIO_COUNTS, "training_days_per_person")
 _SOFTWARE_KEYS = ("name", "users", "vendor_has_web_version")
-_DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
+# Bounded before Decimal(): pure-Python decimal fails on very long digit strings.
+_DECIMAL = re.compile(r"0|[1-9][0-9]{0,11}|[0-9]{1,12}\.[0-9]{1,6}")
 _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
 _CURRENCY = re.compile(r"[A-Z]{3}")
 
