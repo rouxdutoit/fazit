@@ -859,15 +859,53 @@ code {
 
 .report-preview {
   width: min(calc(100% - 2 * var(--gutter)), 62.5rem);
-  margin: 0 auto clamp(48px, 7vw, 96px);
+  margin: 0 auto clamp(64px, 8vw, 96px);
 }
 
-.report-preview img {
+/* The sample report as a window: real file name on top, fading out at the bottom, all of it a link. */
+.report-card {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent), 0 2px 4px rgb(0 0 0 / 4%), 0 24px 48px -12px rgb(0 0 0 / 18%);
+  transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease);
+}
+
+.report-card:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 8%, transparent), 0 4px 8px rgb(0 0 0 / 5%), 0 32px 64px -12px rgb(0 0 0 / 24%);
+  transform: translateY(-2px);
+}
+
+.report-card-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding-inline: 14px;
+  background: var(--fill);
+}
+
+.report-card-bar > span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--fill-2);
+}
+
+.report-card-bar code {
+  flex: 1;
+  margin-inline-end: 48px;
+  color: var(--fg-2);
+  font-size: var(--fs-footnote);
+  text-align: center;
+}
+
+.report-card img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: var(--radius-card);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 12px 32px rgb(0 0 0 / 8%);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
 }
 
 .report-preview figcaption {
@@ -891,7 +929,6 @@ code {
   .hero {
     padding-top: 48px;
   }
-
 
   .command-line {
     display: grid;
