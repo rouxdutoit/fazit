@@ -62,7 +62,7 @@
 
     <figure class="report-preview">
       <a class="report-card" href="/demo/en/">
-        <span class="report-card-bar" aria-hidden="true"><span></span><span></span><span></span><code>report-2026-11-02-en.html</code></span>
+        <span class="report-card-bar" aria-hidden="true"><span></span><span></span><span></span><code>report-2026-11-02-en.html</code><span class="tile-arrow"></span></span>
         <picture>
           <source media="(max-width: 600px) and (prefers-color-scheme: dark)" data-dark-preview="(max-width: 600px)" srcset="/images/readiness-en-mobile-dark.png" width="800" height="1440">
           <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.png" width="800" height="1440">
@@ -235,7 +235,7 @@
               <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td></tr>
               <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td></tr>
               <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate review and redevelopment of applications and flows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Flow and Nextcloud Tables</span></span></td></tr>
-              <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate telephone service</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk with a SIP gateway</span></span></td></tr>
+              <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate telephone service</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway</span></span></td></tr>
               <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Keycloak</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community app: </span></span><span>OIDC Identity Provider app for Nextcloud</span></span></td></tr>
               <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Access controls and malware scanning in openDesk</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud file protection and retention controls</span></span></td></tr>
               <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>OpenProject and OX App Suite for tasks</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Forms, Deck and Calendar</span></span></td></tr>
@@ -243,7 +243,7 @@
             </tbody>
           </table>
         </div>
-        <p class="table-note">The openDesk and Nextcloud profiles were checked against project documentation on 21 November 2026. Licences appear in the cost comparison. The generic profile covers other setups, such as desktops with Linux and LibreOffice.</p>
+        <p class="table-note">For public telephone calls with Nextcloud Talk, include the quoted recurring cost in the comparison and check call routing and queues. The openDesk and Nextcloud profiles were checked against project documentation on 21 and 22 November 2026. Licences appear in the cost comparison. The generic profile covers other setups, such as desktops with Linux and LibreOffice.</p>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings">Read the mappings and their sources</a></p>
       </div>
     </section>
@@ -253,10 +253,12 @@
       <div class="sec-body">
         <ul class="tiles tiles-3">
           <li>
-            <span class="feature-icon icon-handshake" aria-hidden="true"></span>
-            <h3>Integrators</h3>
-            <p>With local import, you will be able to run the same assessment for each client and plan work from the findings. Firms that complete an assessment will be eligible for a free listing.</p>
-            <p class="section-link"><a href="/integrators/">For integrators</a></p>
+            <a class="tile-link" href="/integrators/">
+              <span class="feature-icon icon-handshake" aria-hidden="true"></span>
+              <h3>Integrators</h3>
+              <p>With local import, you will be able to run the same assessment for each client and plan work from the findings. Firms that complete an assessment will be eligible for a free listing.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
             <span class="feature-icon icon-account-balance" aria-hidden="true"></span>
@@ -335,16 +337,25 @@
         <p class="sec-intro">Fazit is free and open source under AGPL-3.0-or-later. No feature is held back for a paid edition.</p>
         <ul class="tiles tiles-3">
           <li>
-            <h3><a href="/pilots/">Founding pilots</a></h3>
-            <p>Three free assessments, one each in Germany, Austria and Switzerland. Expressions of interest are open until 28 February 2027.</p>
+            <a class="tile-link" href="/pilots/">
+              <h3>Founding pilots</h3>
+              <p>Three free assessments, one each in Germany, Austria and Switzerland. Expressions of interest are open until 28 February 2027.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
-            <h3><a href="/integrators/">For integrators</a></h3>
-            <p>Try a sample report and see how the public list of firms will work.</p>
+            <a class="tile-link" href="/integrators/">
+              <h3>For integrators</h3>
+              <p>Try a sample report and see how the public list of firms will work.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
-            <h3><a href="/security/">Security and privacy</a></h3>
-            <p>Check the safeguards or report a vulnerability privately.</p>
+            <a class="tile-link" href="/security/">
+              <h3>Security and privacy</h3>
+              <p>Check the safeguards or report a vulnerability privately.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
         </ul>
       </div>

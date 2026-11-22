@@ -46,10 +46,10 @@
   --fill: light-dark(#f5f5f7, #111712);
   --fill-2: light-dark(#e8e8ed, #1a251c);
   --link: light-dark(#0066cc, #30d158);
-  --link-hover: light-dark(#0077ed, #4cdb72);
+  --link-hover: light-dark(#006bd1, #4cdb72);
   --link-glow: light-dark(transparent, rgb(48 209 88 / 55%));
   --solid-bg: light-dark(#0071e3, #30d158);
-  --solid-hover: light-dark(#0077ed, #4cdb72);
+  --solid-hover: light-dark(#0073e4, #4cdb72);
   --solid-active: light-dark(#006edb, #2bbd4f);
   --solid-fg: light-dark(#ffffff, #050906);
   --status-ready: light-dark(#34c759, #30d158);
@@ -866,12 +866,11 @@ code {
   border-radius: var(--radius-card);
   background: var(--bg);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent), 0 2px 4px rgb(0 0 0 / 4%), 0 24px 48px -12px rgb(0 0 0 / 18%);
-  transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease);
 }
 
 .report-card:hover {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 8%, transparent), 0 4px 8px rgb(0 0 0 / 5%), 0 32px 64px -12px rgb(0 0 0 / 24%);
-  transform: translateY(-2px);
+  transform: scale(1.008);
 }
 
 .report-card-bar {
@@ -883,7 +882,7 @@ code {
   background: var(--fill);
 }
 
-.report-card-bar > span {
+.report-card-bar > span:not(.tile-arrow) {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -892,7 +891,6 @@ code {
 
 .report-card-bar code {
   flex: 1;
-  margin-inline-end: 48px;
   color: var(--fg-2);
   font-size: var(--fs-footnote);
   text-align: center;
@@ -1220,6 +1218,73 @@ code {
   margin-top: 8px;
 }
 
+/* A tile that leads to another page is the link as a whole: black title,
+   a circled chevron in the corner, a slightly brighter fill on hover. */
+.tiles li:has(> .tile-link) {
+  display: flex;
+  padding: 0;
+}
+
+.tiles li > .tile-link {
+  flex: 1;
+}
+
+/* apple.com card hover: the card grows slightly and its shadow deepens. */
+.tiles li:has(> .tile-link), .report-card {
+  transition: transform 0.3s cubic-bezier(0, 0, 0.5, 1), box-shadow 0.3s cubic-bezier(0, 0, 0.5, 1);
+}
+
+.tiles li:has(> .tile-link:hover) {
+  transform: scale(1.015);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+}
+
+.tile-link {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  height: 100%;
+  padding: 24px 56px 24px 24px;
+  border-radius: var(--radius-card);
+  color: inherit;
+}
+
+.tile-link:hover {
+  color: inherit;
+  text-shadow: none;
+}
+
+.tile-arrow {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fill-2);
+  transition: background-color 0.3s cubic-bezier(0, 0, 0.5, 1);
+}
+
+.tile-arrow::before {
+  position: absolute;
+  inset: 4px;
+  background: var(--fg);
+  mask: url("icons/chevron-right.svg") center / contain no-repeat;
+  content: "";
+}
+
+.report-card-bar .tile-arrow {
+  position: static;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.report-card:hover .tile-arrow, .tile-link:hover .tile-arrow {
+  background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+}
+
 /* Roadmap as a timeline, after the handmark site: a rail, a dot per step,
    filled only for what exists today. */
 .timeline {
@@ -1505,6 +1570,10 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .report-card:hover, .tiles li:has(> .tile-link:hover) {
+    transform: none;
+  }
+
   *, *::before, *::after {
     scroll-behavior: auto !important;
     transition: none !important;
