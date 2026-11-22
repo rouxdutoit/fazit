@@ -49,7 +49,11 @@
   --solid-hover: light-dark(#0073e4, #4cdb72);
   --solid-active: light-dark(#006edb, #2bbd4f);
   --solid-fg: light-dark(#ffffff, #050906);
+  /* Shared status palette: the report uses all four; a test keeps both in step. */
+  --status-ready: light-dark(#34c759, #30d158);
+  --status-needs-work: light-dark(#ffcc00, #ffd60a);
   --status-blocker: light-dark(#ff9500, #ff9f0a);
+  --status-unknown: #8e8e93;
   --fs-display: clamp(2.5rem, 5vw, 3.5rem);
   --fs-title: clamp(2rem, 3.6vw, 2.5rem);
   --fs-headline: 1.5rem;
