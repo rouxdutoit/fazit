@@ -69,7 +69,7 @@ None yet.
 - [Phase 1] Carries 31 of the 58 requirements. This is deliberate (the demo needs real judgement), but if planning finds it too large, the natural cut is the cost comparison and `inputs.yaml`.
 - [Phase 1] No v1 import or collector supplies file-type or device counts (FILE-01 and SRC-02 are v2). The demo's sample data can show findings that a real v1 report shows as Unknown. Decide in the Phase 1 discussion how the demo makes that plain.
 - [Phase 1] MODL-01 calls the schema "documented", but `docs/schema.md` is DOCS-04 in Phase 4. Move DOCS-04 to Phase 1 if the document is wanted from day one.
-- [Phase 2] Needs real admin-centre export files to fix the expected columns. None are in the repository yet.
+- [Phase 2] Planned on 2026-11-22: 15 plans in `.planning/phases/02-import/`, checked by gsd-plan-checker. Microsoft does not document the licence, Exchange mailbox list and Entra download columns, so the founder records real header rows from a tenant (02-00) before 02-06 and 02-11. The maintainer downloads Microsoft's licensing CSV outside the repository before 02-04. Licence reconciliation stays Unknown with admin-centre exports (D-118) until Phase 3.
 - [Phase 3] A person cannot verify sign-in, and fixtures cannot be recorded, without a test tenant and an app registration. CI still needs neither.
 - [Phase 4] The signed Windows build needs a signing certificate or signing service; obtaining one takes time and should start before Phase 4.
 

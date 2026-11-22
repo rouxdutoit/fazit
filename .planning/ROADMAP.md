@@ -95,7 +95,25 @@ Plans, run one at a time in this order:
   4. When one CSV has unrecognised or changed columns, the user sees a message naming that file and the missing columns, the other files are still imported, and the affected workload shows Unknown.
   5. The shared-mailbox count shows Unknown with the reason until the user also imports an Exchange recipient export, after which the count appears.
   6. The report states the tenant's data location and EU Data Boundary status from an export or a provided answer, as a fact without a score.
-**Plans**: TBD
+**Context and research**: `phases/02-import/02-CONTEXT.md` (D-91 to D-130), `phases/02-import/02-RESEARCH.md`
+**Plans**: 15 plans, built on the report redesign once it is merged into main. Each code plan stops if it is not.
+
+Run order: 02-00 (founder) and 02-01 in parallel; 02-02; 02-03 and 02-04 in parallel; 02-05; 02-06 (needs 02-00) and 02-07 in parallel; then 02-08 to 02-14 one at a time. Before 02-04 the maintainer downloads Microsoft's licensing CSV outside the repository. VALD-01 stays open after 02-14 until a pilot has reported.
+- [ ] 02-00-PLAN.md — Founder records real export headers from a tenant, admin centre in English and German (human step)
+- [ ] 02-01-PLAN.md — Tracer: mailbox usage export to scan and report, with a reason on every finding
+- [ ] 02-02-PLAN.md — Export record (scan.json 1.1), appendix table, privacy and offline proofs
+- [ ] 02-03-PLAN.md — Real-world files: encodings, delimiters, limits, missing columns, duplicates, folders, empty exports
+- [ ] 02-04-PLAN.md — Product roster generated from the maintainer's copy of Microsoft's licensing CSV
+- [ ] 02-05-PLAN.md — OneDrive, SharePoint, Teams and the active users headcount; fictional 600-person set
+- [ ] 02-06-PLAN.md — Observed English and German headers applied to the usage layouts
+- [ ] 02-07-PLAN.md — Licence classification over the whole roster: one signal rule, hand entries as overrides
+- [ ] 02-08-PLAN.md — Classify unclassified roster plans, names 0–9 and A–E
+- [ ] 02-09-PLAN.md — Classify the remaining roster plans; coverage test
+- [ ] 02-10-PLAN.md — Data location and EU Data Boundary as provided facts
+- [ ] 02-11-PLAN.md — D31 amendment for snapshot stamps; Exchange mailbox list and the shared-mailbox count
+- [ ] 02-12-PLAN.md — Entra users and groups downloads: user, guest and group counts
+- [ ] 02-13-PLAN.md — Licence list from Billing > Licenses, matched through the roster
+- [ ] 02-14-PLAN.md — Pilot guide and feedback form in English and German, final proofs, founder checkpoint
 
 ### Phase 2.1: Packaging and Launch (INSERTED)
 **Goal**: Anyone can install a tagged release with one command or, on Windows without Python, run a signed program, check what it contains and who built it, and use it on their own exports; only then is Fazit announced

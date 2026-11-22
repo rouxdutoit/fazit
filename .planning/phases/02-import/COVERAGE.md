@@ -1,0 +1,1 @@
+No external API integration: Phase 2 reads CSV files that an administrator has already downloaded from Microsoft's admin centres, locally and with no network code; it calls no Microsoft API, SDK or service.
