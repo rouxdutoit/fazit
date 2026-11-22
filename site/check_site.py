@@ -31,7 +31,7 @@ PAGE_PAIRS = (
     ("/", "/de/"),
     *(
         (f"/{page}/", f"/de/{page}/")
-        for page in ("pilots", "integrators", "security", "impressum", "privacy")
+        for page in ("start", "pilots", "integrators", "security", "impressum", "privacy")
     ),
     DEMO_ROUTES,
     ERROR_ROUTES,

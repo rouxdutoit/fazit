@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Fazit in wenigen Minuten auf dem eigenen Rechner ausführen: ohne Microsoft-Konto und ohne Datenübertragung.">
+  <title>Jetzt starten · Fazit</title>
+  <link rel="canonical" href="https://fazit.dev/de/start/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/start/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Jetzt starten · Fazit">
+  <meta property="og:description" content="Fazit in wenigen Minuten auf dem eigenen Rechner ausführen: ohne Microsoft-Konto und ohne Datenübertragung.">
+  <meta property="og:url" content="https://fazit.dev/de/start/">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <header class="bar" data-bar>
+    <div class="bar-in">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
+        <div class="bar-links-in">
+          <a href="/de/pilots/">Pilotprüfungen</a>
+          <a href="/de/integrators/">IT-Dienstleister</a>
+          <a href="/de/security/">Sicherheit</a>
+          <a href="/demo/de/">Beispielbericht</a>
+          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+          <a class="nav-extra" href="/de/start/">Jetzt starten</a>
+        </div>
+      </nav>
+      <a class="btn btn-solid btn-small bar-cta" href="/de/start/">Jetzt starten</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-intro">
+      <h1>Mit Fazit starten</h1>
+      <p>Führen Sie das Beispiel in wenigen Minuten auf Ihrem eigenen Rechner aus. Sie brauchen kein Microsoft-Konto, und es werden keine Daten übertragen.</p>
+    </div>
+
+    <section class="sec grid" aria-labelledby="start-need">
+      <h2 class="sec-label" id="start-need">Was Sie brauchen</h2>
+      <div class="sec-body">
+        <ul class="tiles tiles-2">
+          <li>
+            <span class="tile-icon icon-code" aria-hidden="true"></span>
+            <h3>Git</h3>
+            <p>Lädt den Quellcode von Fazit herunter. <a href="https://git-scm.com/downloads" hreflang="en">Git herunterladen</a></p>
+          </li>
+          <li>
+            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
+            <h3>uv</h3>
+            <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein. <a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">uv installieren</a></p>
+          </li>
+        </ul>
+        <p class="note-text">Fazit läuft unter Windows, macOS und Linux.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-run">
+      <h2 class="sec-label" id="start-run">Das Beispiel ausführen</h2>
+      <div class="sec-body">
+        <div class="command" role="group" aria-labelledby="command-label">
+          <p class="command-label" id="command-label">Im Terminal ausführen</p>
+          <div class="command-line">
+            <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo --lang de</code>
+            <button class="copy" type="button" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden>Kopieren</button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
+        <p>Der Befehl erzeugt den Beispielbericht für eine fiktive Stadtverwaltung auf Deutsch. Für die englische Fassung führen Sie im selben Ordner <code>uv run fazit demo</code> aus.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-open">
+      <h2 class="sec-label" id="start-open">Den Bericht öffnen</h2>
+      <div class="sec-body">
+        <p>Die letzte Zeile der Ausgabe nennt den Pfad des Berichts. Öffnen Sie die HTML-Datei in Ihrem Browser.</p>
+        <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run --offline fazit demo --lang de</code> aus und öffnen den Bericht erneut.</p>
+        <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-own">
+      <h2 class="sec-label" id="start-own">Mit eigenen Daten</h2>
+      <div class="sec-body">
+        <p>Heute erstellt Fazit Berichte aus den Beispieldaten oder aus einer Erhebungsdatei, ergänzt um Ihre eigenen Antworten und Kosten in <code>inputs.yaml</code>. Als Nächstes kann Fazit Exporte aus dem Microsoft 365 Admin Center einlesen. Bis dahin sind die Pilotprüfungen der Weg, Ihre eigene Organisation zu bewerten.</p>
+        <p><a class="more" href="/de/pilots/">Pilotprüfungen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-next">
+      <h2 class="sec-label" id="start-next">Weiter</h2>
+      <div class="sec-body">
+        <ul class="tiles tiles-3">
+          <li>
+            <a class="tile-link" href="/demo/de/">
+              <h3>Beispielbericht</h3>
+              <p>Den fertigen Bericht ansehen, ohne etwas zu installieren.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+          <li>
+            <a class="tile-link" href="/de/integrators/">
+              <h3>Für IT-Dienstleister</h3>
+              <p>Fazit in eigenen Bestandsaufnahmen einsetzen.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+          <li>
+            <a class="tile-link" href="/de/security/">
+              <h3>Sicherheit und Datenschutz</h3>
+              <p>Die Schutzmaßnahmen im Einzelnen prüfen.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+        <nav class="foot-cols" aria-label="Fußnavigation">
+          <div>
+            <p class="foot-heading">Projekt</p>
+            <ul>
+              <li><a href="/demo/de/">Beispielbericht</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Rechtliches</p>
+            <ul>
+              <li><a href="/de/impressum/">Impressum</a></li>
+              <li><a href="/de/privacy/">Datenschutz</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Kontakt</p>
+            <ul><li><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></li></ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
+        <a class="language" href="/start/" lang="en" hreflang="en" aria-label="English">EN</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

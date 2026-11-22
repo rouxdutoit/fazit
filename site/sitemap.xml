@@ -21,6 +21,16 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/pilots/"/>
   </url>
   <url>
+    <loc>https://fazit.dev/start/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/start/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/start/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/start/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/"/>
+  </url>
+  <url>
     <loc>https://fazit.dev/integrators/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>

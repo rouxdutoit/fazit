@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Run Fazit on your own computer in a few minutes, with no Microsoft account and nothing sent anywhere.">
+  <title>Get started · Fazit</title>
+  <link rel="canonical" href="https://fazit.dev/start/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/start/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Get started · Fazit">
+  <meta property="og:description" content="Run Fazit on your own computer in a few minutes, with no Microsoft account and nothing sent anywhere.">
+  <meta property="og:url" content="https://fazit.dev/start/">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="bar" data-bar>
+    <div class="bar-in">
+      <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Main navigation">
+        <div class="bar-links-in">
+          <a href="/pilots/">Pilots</a>
+          <a href="/integrators/">Integrators</a>
+          <a href="/security/">Security</a>
+          <a href="/demo/en/">Sample report</a>
+          <a href="https://github.com/rouxdutoit/fazit">Source code</a>
+          <a class="nav-extra" href="/start/">Get started</a>
+        </div>
+      </nav>
+      <a class="btn btn-solid btn-small bar-cta" href="/start/">Get started</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-intro">
+      <h1>Get started with Fazit</h1>
+      <p>Run the demo on your own computer in a few minutes. It needs no Microsoft account and sends nothing anywhere.</p>
+    </div>
+
+    <section class="sec grid" aria-labelledby="start-need">
+      <h2 class="sec-label" id="start-need">What you need</h2>
+      <div class="sec-body">
+        <ul class="tiles tiles-2">
+          <li>
+            <span class="tile-icon icon-code" aria-hidden="true"></span>
+            <h3>Git</h3>
+            <p>Downloads Fazit's source code. <a href="https://git-scm.com/downloads">Get Git</a></p>
+          </li>
+          <li>
+            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
+            <h3>uv</h3>
+            <p>Sets up the right Python and every package on the first run. <a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a></p>
+          </li>
+        </ul>
+        <p class="note-text">Fazit runs on Windows, macOS and Linux.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-run">
+      <h2 class="sec-label" id="start-run">Run the demo</h2>
+      <div class="sec-body">
+        <div class="command" role="group" aria-labelledby="command-label">
+          <p class="command-label" id="command-label">Run in a terminal</p>
+          <div class="command-line">
+            <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
+            <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden>Copy</button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
+        <p>This builds the sample report for a fictional town administration, in English. For German, run <code>uv run fazit demo --lang de</code> in the same folder.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-open">
+      <h2 class="sec-label" id="start-open">Open the report</h2>
+      <div class="sec-body">
+        <p>The last line of the output shows where the report was saved. Open that HTML file in your browser.</p>
+        <p>To check that Fazit works without a network, disconnect, run <code>uv run --offline fazit demo</code> and open the report again.</p>
+        <p><a class="more" href="/security/#offline">How to verify offline operation</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-own">
+      <h2 class="sec-label" id="start-own">With your own data</h2>
+      <div class="sec-body">
+        <p>Today Fazit builds reports from the bundled samples, or from a scan file plus your own answers and costs in <code>inputs.yaml</code>. Importing exports from the Microsoft 365 admin centre comes next. Until then, the founding pilots are the way to assess your own organisation.</p>
+        <p><a class="more" href="/pilots/">Founding pilots</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" aria-labelledby="start-next">
+      <h2 class="sec-label" id="start-next">Next</h2>
+      <div class="sec-body">
+        <ul class="tiles tiles-3">
+          <li>
+            <a class="tile-link" href="/demo/en/">
+              <h3>Sample report</h3>
+              <p>See the finished report without installing anything.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+          <li>
+            <a class="tile-link" href="/integrators/">
+              <h3>For integrators</h3>
+              <p>Use Fazit in your own assessments.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+          <li>
+            <a class="tile-link" href="/security/">
+              <h3>Security and privacy</h3>
+              <p>Check the safeguards in detail.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
+        <nav class="foot-cols" aria-label="Footer">
+          <div>
+            <p class="foot-heading">Project</p>
+            <ul>
+              <li><a href="/demo/en/">Sample report</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Legal</p>
+            <ul>
+              <li><a href="/impressum/">Legal notice</a></li>
+              <li><a href="/privacy/">Privacy</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Contact</p>
+            <ul><li><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></li></ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · No cookies or analytics</p>
+        <a class="language" href="/de/start/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
