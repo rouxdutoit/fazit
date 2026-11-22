@@ -10,7 +10,7 @@ from .catalogue import Catalogue
 from .i18n import check_language
 from .mappings import PROFILES
 from .parsing import FieldNames, parse_yaml, read_text
-from .validation import Validator, non_negative_integer
+from .validation import MAX_COUNT, Validator, non_negative_integer
 
 _INPUT_KEYS = (
     "organisation_name",
@@ -151,12 +151,15 @@ class _InputsReader:
             self.validator.fail(f"{field}.parallel_running_months")
         days = row.get("training_days_per_person")
         days_field = f"{field}.training_days_per_person"
+        training_days = (
+            Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field)
+        )
+        if training_days is not None and training_days > MAX_COUNT:
+            self.validator.fail(days_field)
         return ScenarioInputs(
             **amounts,
             users=self.validator.optional_count(row.get("users"), f"{field}.users"),
-            training_days_per_person=(
-                Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field)
-            ),
+            training_days_per_person=training_days,
             training_staff=self.validator.optional_count(
                 row.get("training_staff"), f"{field}.training_staff"
             ),

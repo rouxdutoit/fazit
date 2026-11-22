@@ -12,6 +12,8 @@ DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 GUID = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
 IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
 RULE_ID = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+MAX_COUNT = 10**12 - 1
+MAX_STORAGE_BYTES = 2**63 - 1
 
 
 def non_negative_integer(value: object) -> TypeGuard[int]:
@@ -58,8 +60,8 @@ class Validator:
             self.fail(field, code)
         return value
 
-    def count(self, value: object, field: str) -> int:
-        if not non_negative_integer(value):
+    def count(self, value: object, field: str, *, maximum: int = MAX_COUNT) -> int:
+        if not non_negative_integer(value) or value > maximum:
             self.fail(field)
         return value
 

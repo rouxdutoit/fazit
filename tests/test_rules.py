@@ -303,11 +303,14 @@ def _product_findings(catalogue: Catalogue, *products: Product) -> dict[str, Fin
     scan = sample_scan("town", catalogue)
     assert scan.licences is not None
     coverage = Coverage("complete", len(products), 0, len(products))
+    licensed = max((product.assigned for product in products), default=0)
     scan = replace(
         scan,
         licences=replace(scan.licences, products=products, coverage=coverage),
         findings=tuple(
-            replace(finding, value=0) if finding.id == "directory.licensed_user_count" else finding
+            replace(finding, value=licensed)
+            if finding.id == "directory.licensed_user_count"
+            else finding
             for finding in scan.findings
         ),
     )

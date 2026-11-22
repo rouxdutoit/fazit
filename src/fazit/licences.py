@@ -281,27 +281,29 @@ def _inventory_evidence(
     ), coverage_gap
 
 
-def _directory_cross_check(scan: Scan, licences: Licences, assigned_seats: int) -> str | None:
-    accounts = scan.finding("directory.licensed_user_count")
-    comparable = (
-        accounts is not None
-        and accounts.provenance == "measured"
-        and type(accounts.value) is int
-        and accounts.period is None
-        and same_collection_time(accounts.collected_at, licences.collected_at)
-    )
-    if comparable and accounts.value > assigned_seats:
-        return "licence_assignments_conflict"
+def _directory_cross_check(scan: Scan, licences: Licences) -> str | None:
     directory = scan.collector("directory")
     if directory is not None and directory.reason is not None:
         return directory.reason
-    if assigned_seats:
-        return None
-    if accounts is None:
+    accounts = scan.finding("directory.licensed_user_count")
+    if directory is None or accounts is None:
         return "not_in_scan"
-    return accounts.missing_reason or (
-        _coverage_gap(accounts.coverage) if comparable else "licence_directory_unverified"
-    )
+    if accounts.missing_reason is not None:
+        return accounts.missing_reason
+    if (
+        accounts.provenance != "measured"
+        or type(accounts.value) is not int
+        or accounts.period is not None
+        or not same_collection_time(accounts.collected_at, licences.collected_at)
+    ):
+        return "licence_directory_unverified"
+    if gap := _coverage_gap(accounts.coverage):
+        return gap
+    # Only user SKUs have assigned seats.
+    seats = [product.assigned for product in licences.products]
+    if not max(seats, default=0) <= accounts.value <= sum(seats):
+        return "licence_assignments_conflict"
+    return None
 
 
 def _assignment_findings(
@@ -339,8 +341,7 @@ def licence_findings(
     absence_gap = count.missing_reason or classification_gap or coverage_gap
     absence_collector = licences.collector
     if coverage_gap is None:
-        assigned_seats = sum(product.assigned for product in licences.products)
-        directory_gap = _directory_cross_check(scan, licences, assigned_seats)
+        directory_gap = _directory_cross_check(scan, licences)
         if directory_gap == "licence_assignments_conflict":
             absence_gap = directory_gap
             count = replace(count, missing_reason=directory_gap)

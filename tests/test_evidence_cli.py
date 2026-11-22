@@ -105,6 +105,13 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
         assert 'data-status="unknown"' in row and f'data-reason="{code}"' in row
     product["assigned"] = assigned
     positive = _html(_report(tmp_path / "directory-skipped-with-assignments", scan, answers))
+    row = readiness_row(positive, "licences")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_directory_unverified"' in row
+    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+        row = readiness_row(positive, workload)
+        assert 'data-status="unknown" data-incomplete' in row
+        assert f'data-reason="{reason}"' in row
     assert re.search(
         r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
         r'<div data-provenance="measured">\s*Yes',
@@ -455,34 +462,63 @@ confirmations:
     assert pilots is None or 'data-path-workload="licences"' not in pilots[0]
 
 
-def test_fewer_assigned_seats_than_licensed_people_withholds_dependent_pilots(
-    tmp_path: Path,
+@pytest.mark.parametrize(
+    ("assigned", "account_update", "reason"),
+    [
+        (1, {}, "licence_assignments_conflict"),
+        (20, {"value": 0}, "licence_assignments_conflict"),
+        (1, {"collected_at": "2026-11-05T09:59:59Z"}, "licence_directory_unverified"),
+        (20, {"coverage": {"kind": "partial"}}, "coverage_partial"),
+        (20, {"coverage": {"kind": "unknown"}}, "coverage_unknown"),
+        (20, None, "not_in_scan"),
+    ],
+    ids=["too-few-seats", "too-many-seats", "different-instant", "partial", "unknown", "missing"],
+)
+def test_licence_pilots_require_reconciled_directory_headcount(
+    tmp_path: Path, assigned: int, account_update: dict | None, reason: str
 ) -> None:
     sample = files("fazit").joinpath("demo", "nonprofit")
     scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
     answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    answers = answers.replace(
+        "licences.contract_terms_known: false", "licences.contract_terms_known: true"
+    )
     (product,) = scan["licences"]["products"]
     accounts = _finding(scan, "directory.licensed_user_count")
-    assert accounts["value"] == 20
     accounts["collected_at"] = "2026-11-05T11:00:00+01:00"
-    product["assigned"] = 1
+    baseline = _html(_report(tmp_path / "reconciled", scan, answers))
+    baseline_pilots = re.search(r'<ul data-path-status="ready".*?</ul>', baseline, re.S)
+    assert baseline_pilots is not None
 
-    html = _html(_report(tmp_path / "underassigned", scan, answers))
+    product["assigned"] = assigned
+    if account_update is None:
+        scan["findings"].remove(accounts)
+    else:
+        accounts.update(account_update)
+    html = _html(_report(tmp_path / "unreconciled", scan, answers))
+    if reason != "licence_assignments_conflict":
+        assert 'data-reason="licence_assignments_conflict"' not in html
     pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
-    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+    for workload in (
+        "licences",
+        "power_platform",
+        "telephony",
+        "identity_access",
+        "security_compliance",
+    ):
+        assert f'data-path-workload="{workload}"' in baseline_pilots[0]
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
-        assert 'data-reason="licence_assignments_conflict"' in row
+        expected = reason
+        if workload == "licences" and reason != "licence_assignments_conflict":
+            expected = "licence_directory_unverified"
+        assert f'data-reason="{expected}"' in row
         assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
-    assert 'data-reason="licence_assignments_conflict"' in readiness_row(html, "licences")
     assert re.search(
         r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
         r'<div data-provenance="measured">\s*Yes',
         readiness_row(html, "small_apps"),
     )
-    accounts["collected_at"] = "2026-11-05T09:59:59Z"
-    different_time = _html(_report(tmp_path / "different-directory-date", scan, answers))
-    assert 'data-reason="licence_assignments_conflict"' not in different_time
 
 
 @pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])
@@ -806,6 +842,32 @@ confirmations:
         assert "1 of 85 scanned" in row
         need = "unknown" if disputed else "yes"
         assert f'data-gap="telephony" data-need="{need}"' in html
+
+
+@pytest.mark.parametrize(("replacement", "status"), [("false", "blocker"), ("true", "needs_work")])
+@pytest.mark.parametrize("confirmed_in_interview", [False, True])
+def test_partial_telephony_collection_keeps_confirmed_use(
+    tmp_path: Path, town_scan: dict, replacement: str, status: str, confirmed_in_interview: bool
+) -> None:
+    town_scan["collectors"].append(
+        {
+            "id": "telephony",
+            "status": "partial",
+            "reason": "coverage_partial",
+            "permissions_used": [],
+        }
+    )
+    finding = _measure(town_scan, "telephony.in_use", True, "telephony", kind="partial")
+    finding["coverage"].update(scanned=1, failed=0, total=85)
+    answers = f"confirmations:\n  telephony.replacement_available: {replacement}\n"
+    if confirmed_in_interview:
+        answers += "  telephony.in_use: true\n"
+
+    html = _html(_report(tmp_path / "partial-phone-use", town_scan, answers))
+    row = readiness_row(html, "telephony")
+    assert f'data-status="{status}" data-incomplete' in row
+    assert 'data-reason="coverage_partial"' in row and "1 of 85 scanned" in row
+    assert 'data-gap="telephony" data-need="yes"' in html
 
 
 @pytest.mark.parametrize(

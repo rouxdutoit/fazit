@@ -242,13 +242,20 @@ def _mapping_gaps(
     for row in statuses:
         for gap in row.missing:
             missing[gap.finding_id].append(gap.reason_code)
+    dispute_codes = ("confirmation_conflict", "provided_answers_conflict")
     gaps = []
     for item in mapping.functions:
         if item.coverage != "not_available":
             continue
         finding = by_id.get(item.need_finding) if item.need_finding else None
         need = "unknown"
-        if finding is not None and is_complete(finding):
+        complete = is_complete(finding)
+        confirmed_use = (
+            finding is not None
+            and finding.value is True
+            and (complete or finding.provenance == "measured")
+        )
+        if confirmed_use or complete:
             need = "yes" if finding.value else "no"
         reasons = tuple(
             dict.fromkeys(
@@ -257,14 +264,14 @@ def _mapping_gaps(
                 if code != "answer_not_provided" or need == "unknown"
             )
         )
+        if confirmed_use:
+            reasons = tuple(code for code in reasons if code in dispute_codes)
         if reasons:
             need = "unknown"
         if item.need_if_positive and need != "yes":
             count = by_id.get(item.need_if_positive)
             disputes = tuple(
-                code
-                for code in ("confirmation_conflict", "provided_answers_conflict")
-                if code in missing[item.need_if_positive]
+                code for code in dispute_codes if code in missing[item.need_if_positive]
             )
             if disputes:
                 finding, need, reasons = count, "unknown", disputes

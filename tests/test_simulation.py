@@ -108,6 +108,10 @@ UNDERASSIGNED = replace(
         ),
     ),
 )
+OVERASSIGNED = replace(
+    UNDERASSIGNED,
+    scan=replace(UNDERASSIGNED.scan, findings=(replace(LICENSED_ACCOUNTS, value=0),)),
+)
 DIRECTORY_DENIED = replace(
     UNASSIGNED,
     scan=replace(
@@ -161,6 +165,7 @@ def _statuses(html: str) -> dict[str, str]:
 @given(tenant=tenants())
 @example(tenant=OFFICE)
 @example(tenant=UNDERASSIGNED)
+@example(tenant=OVERASSIGNED)
 def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     html = _render(tenant)
     statuses = _statuses(html)
@@ -173,18 +178,38 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     licences = tenant.scan.licences
     readiness = report_section(html, "readiness")
     accounts = recorded.get("directory.licensed_user_count")
+    reconciled = contradiction = False
+    complete_assignments = set()
     if (
         licences is not None
         and licences.coverage.kind == "complete"
         and licences.collector not in unavailable
-        and accounts is not None
-        and accounts.provenance == "measured"
-        and accounts.period is None
-        and accounts.collected_at == licences.collected_at
-        and accounts.value > sum(product.assigned for product in licences.products)
     ):
-        row = readiness_row(readiness, "licences")
-        assert 'data-reason="licence_assignments_conflict"' in row
+        complete_assignments = {
+            f"{plan.workload}.licence_{plan.signal}_assigned"
+            for product in licences.products
+            if product.assigned
+            for plan in PLANS.rosters[product.key].plans.values()
+            if plan.workload is not None
+        }
+        if (
+            accounts is not None
+            and accounts.provenance == "measured"
+            and accounts.collector not in unavailable
+            and accounts.coverage.kind == "complete"
+            and accounts.period is None
+            and accounts.collected_at == licences.collected_at
+        ):
+            seats = [product.assigned for product in licences.products]
+            contradiction = accounts.value > sum(seats) or any(
+                seat > accounts.value for seat in seats
+            )
+            reconciled = not contradiction
+    if not reconciled:
+        if contradiction:
+            assert 'data-reason="licence_assignments_conflict"' in readiness_row(
+                readiness, "licences"
+            )
         assert statuses["licences"] != "ready"
         signals = re.findall(
             r'<li data-evidence="[^"]+\.licence_(?:add_on|bundled)_assigned">.*?</li>',
@@ -220,23 +245,7 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             key = condition.finding
             entry = CATALOGUE.finding(key)
             if entry is None:
-                complete = (
-                    licences is not None
-                    and licences.coverage.kind == "complete"
-                    and licences.collector not in unavailable
-                )
-                if (
-                    complete
-                    and (key != "licences.product_count" or not licences.products)
-                    and not any(product.assigned for product in licences.products)
-                ):
-                    complete = (
-                        accounts is not None
-                        and accounts.value == 0
-                        and accounts.coverage is not None
-                        and accounts.coverage.kind == "complete"
-                        and accounts.collector not in unavailable
-                    )
+                complete = reconciled or key in complete_assignments
             else:
                 complete = not any(
                     method in unavailable for method, _ in entry.measured_by

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import ast
 import datetime
+import json
 import os
 import re
 import shlex
@@ -937,6 +938,76 @@ def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
     assert result.returncode == 2
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=expected)]
     assert not result.stdout and not out.exists()
+
+
+@pytest.mark.parametrize(
+    ("field", "maximum", "oversized"),
+    [
+        pytest.param("users", "999999999999", "1000000000000", id="count-boundary"),
+        pytest.param("users", "999999999999", "9" * 4300, id="huge-count"),
+        pytest.param("training_days_per_person", "999999999999", "9" * 4400, id="huge-days"),
+        pytest.param(
+            "training_days_per_person", '"999999999999.0"', '"999999999999.1"', id="decimal-days"
+        ),
+        pytest.param(
+            "training_days_per_person",
+            '"999999999999.0"',
+            f'"{"9" * 4400}"',
+            id="huge-decimal-days",
+        ),
+    ],
+)
+def test_report_bounds_cost_quantities(
+    tmp_path: Path, field: str, maximum: str, oversized: str
+) -> None:
+    scan = sample_scan_path("town")
+    inputs = sample_inputs_path("town").read_text(encoding="utf-8")
+    answers = tmp_path / "answers.yaml"
+    for literal, accepted in ((maximum, True), (oversized, False)):
+        text = re.sub(rf"^    {field}: .+$", f"    {field}: {literal}", inputs, count=1, flags=re.M)
+        answers.write_text(text, encoding="utf-8")
+        out = tmp_path / ("accepted" if accepted else "rejected")
+        args = ["report", str(scan), "--inputs", str(answers), "--out", str(out)]
+        result = runner.invoke(app, args)
+        if accepted:
+            assert result.exit_code == 0 and not result.stderr, result.output
+            assert Path(result.stdout.strip()).is_file()
+        else:
+            assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
+            assert len(result.stderr.splitlines()) == 1
+            assert answers.name in result.stderr
+            assert f"target_costs.partial_exit.{field}" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("finding_id", "maximum", "oversized"),
+    [
+        pytest.param("directory.user_count", 10**12 - 1, str(10**12), id="count-boundary"),
+        pytest.param("directory.user_count", 10**12 - 1, "9" * 4400, id="huge-count"),
+        pytest.param("mail.storage_bytes", 2**63 - 1, str(2**63), id="byte-boundary"),
+    ],
+)
+def test_report_bounds_scan_integers(
+    tmp_path: Path, finding_id: str, maximum: int, oversized: str
+) -> None:
+    sample = json.loads(sample_scan_path("town").read_bytes())
+    index, row = next(
+        (i, row) for i, row in enumerate(sample["findings"]) if row["id"] == finding_id
+    )
+    row["value"] = "replace-with-integer"
+    text = json.dumps(sample)
+    scan = tmp_path / "inventory.json"
+    for literal, accepted in ((str(maximum), True), (oversized, False)):
+        scan.write_text(text.replace('"replace-with-integer"', literal), encoding="utf-8")
+        out = tmp_path / ("accepted" if accepted else "rejected")
+        result = runner.invoke(app, ["report", str(scan), "--out", str(out), "--lang", "de"])
+        if accepted:
+            assert result.exit_code == 0 and not result.stderr, result.output
+            assert Path(result.stdout.strip()).is_file()
+        else:
+            assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
+            assert len(result.stderr.splitlines()) == 1
+            assert scan.name in result.stderr and f"findings[{index}].value" in result.stderr
 
 
 @pytest.mark.parametrize(

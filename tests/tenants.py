@@ -23,6 +23,7 @@ from fazit.model import (
     ToolInfo,
 )
 from fazit.status import load_status_rules
+from fazit.validation import MAX_COUNT
 
 CATALOGUE = load_catalogue()
 PLANS = load_service_plans(CATALOGUE)
@@ -35,7 +36,7 @@ PROFILES = sorted(
 )
 DAY = "2026-11-22"
 EMPTY_SCAN = Scan("1.0", ToolInfo(PROJECT_NAME, __version__), DAY, "sample", (), (), None)
-COUNTS = st.sampled_from((0, 1, 10**15)) | st.integers(0, 3000)
+COUNTS = st.sampled_from((0, 1, MAX_COUNT)) | st.integers(0, 3000)
 INTERVIEWS = sorted(CATALOGUE.provided_sources - {"inputs_yaml", "sample.inputs_yaml"})
 
 
@@ -181,7 +182,7 @@ def _inputs(draw: st.DrawFn) -> dict | None:
     thorough = draw(st.booleans())
     quantities = {
         "users": COUNTS,
-        "training_days_per_person": st.one_of(st.integers(0, 30), AMOUNTS),
+        "training_days_per_person": COUNTS | st.integers(0, 10**9).map(_money),
         "training_staff": COUNTS,
         "parallel_running_months": st.integers(0, 60),
     }
@@ -234,9 +235,9 @@ def tenants(draw: st.DrawFn) -> Tenant:
             entry.coverage_total_from for entry in CATALOGUE.findings if entry.coverage_total_from
         )
     }
-    accounts = draw(COUNTS)
-    totals["directory.user_count"] = accounts
-    totals["directory.licensed_user_count"] = draw(st.integers(0, accounts))
+    headcount = draw(COUNTS)
+    totals["directory.user_count"] = max(headcount, draw(COUNTS))
+    totals["directory.licensed_user_count"] = headcount
     findings = tuple(
         finding
         for entry in CATALOGUE.findings
@@ -253,7 +254,11 @@ def tenants(draw: st.DrawFn) -> Tenant:
                 and finding.coverage.kind == "complete"
                 and draw(st.booleans())
             ):
-                conflicts = (0, finding.value + 1) if finding.value else (1,)
+                conflicts = [
+                    count
+                    for count in (0, finding.value + 1)
+                    if count != finding.value and count <= MAX_COUNT
+                ]
                 counts[finding.id] = draw(st.sampled_from(conflicts))
     scan = replace(
         EMPTY_SCAN,

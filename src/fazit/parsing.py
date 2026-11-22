@@ -13,9 +13,11 @@ from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 from yaml.tokens import AliasToken, AnchorToken
 
 from .errors import InputError
-from .validation import DATE
+from .validation import DATE, MAX_COUNT, MAX_STORAGE_BYTES
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
+_COUNT_DIGITS = len(str(MAX_COUNT))
+_JSON_INTEGER_LENGTH = len(str(MAX_STORAGE_BYTES)) + 1
 type _SchemaPath = tuple[str | None, ...]
 type FieldNames = Mapping[_SchemaPath, Collection[str]]
 type ScalarFields = Mapping[_SchemaPath, str]
@@ -78,6 +80,10 @@ def parse_json(text: str, file_name: str) -> object:
         data = json.loads(
             text,
             object_pairs_hook=object_pairs,
+            # Keep oversized integers invalid until validation can name their fields.
+            parse_int=lambda literal: (
+                int(literal) if len(literal) <= _JSON_INTEGER_LENGTH else object()
+            ),
             parse_float=finite_float,
             parse_constant=finite_float,
         )
@@ -152,6 +158,8 @@ def _check_yaml(
                     if node.tag == _YAML_INTEGER:
                         fail(node, "invalid_integer_field" if field else "invalid_integer", field)
                     fail(node, "invalid_scalar_field" if field else "invalid_scalar", field)
+                if node.tag == _YAML_INTEGER and len(node.value) > _COUNT_DIGITS:
+                    fail(node, "invalid_field" if field else "invalid_field_document", field)
                 if node.tag == _YAML_TIMESTAMP or (
                     expected == "date" and DATE.fullmatch(node.value)
                 ):

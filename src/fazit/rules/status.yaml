@@ -235,7 +235,7 @@ workloads:
     rules:
       - id: telephony-no-replacement
         when:
-          - {finding: telephony.in_use, op: '==', value: true}
+          - {finding: telephony.in_use, op: '==', value: true, accept_partial_true: true}
           - {finding: telephony.replacement_available, op: '==', value: false, provenance: provided}
         status: blocker
         reason:
@@ -243,7 +243,7 @@ workloads:
           de: Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
       - id: telephony-in-use
         when:
-          - {finding: telephony.in_use, op: '==', value: true}
+          - {finding: telephony.in_use, op: '==', value: true, accept_partial_true: true}
           - {finding: telephony.replacement_available, op: '==', value: true, provenance: provided}
         status: needs_work
         reason:

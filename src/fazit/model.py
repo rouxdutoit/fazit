@@ -8,7 +8,7 @@ from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .parsing import parse_json, read_text
-from .validation import DATE, IDENTIFIER, Validator
+from .validation import DATE, IDENTIFIER, MAX_COUNT, MAX_STORAGE_BYTES, Validator
 
 SUPPORTED_SCHEMA_MAJOR = 1
 SOURCE_KINDS = ("sample", "import", "live")
@@ -289,7 +289,8 @@ class _ScanReader:
             if not isinstance(value, bool):
                 self.check.fail(field)
             return value
-        return self.check.count(value, field)
+        maximum = MAX_STORAGE_BYTES if entry.unit == "bytes" else MAX_COUNT
+        return self.check.count(value, field, maximum=maximum)
 
     def finding(
         self, item: object, field: str, entry: FindingEntry, collectors: dict[str, Collector]
