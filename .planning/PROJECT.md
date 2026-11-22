@@ -21,16 +21,17 @@ An organisation gets honest, inspectable numbers about its own Microsoft depende
 
 ### Validated
 
-(None yet — ship to validate)
+Built and tested in Phase 1 (2026-11-21), reviewed in the release review (2026-11-22). Not yet validated with a real organisation.
+
+- [x] `demo` builds a complete report from bundled sample data, with no Microsoft account, in German and English
+- [x] Every finding carries its evidence: source, date, reporting period, coverage, and the reason for anything missing
+- [x] Status is given per workload (Ready, Needs work, Blocker, Unknown); there is no single weighted score
+- [x] Mappings and status rules live in data files that non-programmers can edit
+- [x] Costs come only from user input; missing inputs leave totals unknown; three scenarios (stay, partial exit, full exit)
+- [x] `report` rebuilds the HTML from an existing `scan.json` with no network access
 
 ### Active
 
-- [ ] `demo` builds a complete report from bundled sample data, with no Microsoft account, in German and English
-- [ ] Every finding carries its evidence: source, date, reporting period, coverage, and the reason for anything missing
-- [ ] Status is given per workload (Ready, Needs work, Blocker, Unknown); there is no single weighted score
-- [ ] Mappings and status rules live in data files that non-programmers can edit
-- [ ] Costs come only from user input; missing inputs leave totals unknown; three scenarios (stay, partial exit, full exit)
-- [ ] `report` rebuilds the HTML from an existing `scan.json` with no network access
 - [ ] `import` reads admin-centre CSV exports locally and keeps aggregates only
 - [ ] Live collection signs in through the browser with a customer-owned app registration, read-only, starting with licence and directory counts
 - [ ] `doctor` checks consent, roles and blocked sign-in flows and prints the fix
