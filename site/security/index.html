@@ -52,7 +52,7 @@
   <main id="main" tabindex="-1">
     <div class="page-intro">
       <h1>Security and privacy</h1>
-      <p>The current version of Fazit runs on your computer and contains no network code. Sign-in and live collection are planned.</p>
+      <p>The current version of Fazit runs on your computer and contains no network code. A read-only sign-in to Microsoft is planned.</p>
       <a class="btn btn-secondary" href="#disclosure">Report a vulnerability</a>
     </div>
 
@@ -60,14 +60,14 @@
       <h2 class="sec-label" id="principles-title">Principles</h2>
       <div class="sec-body">
         <dl class="rows">
-          <div><dt>Read-only</dt><dd>Live collection will request read permissions and use a list of approved read endpoints. Requests that can change the tenant are excluded, including requests that use <code>GET</code>.</dd></div>
-          <div><dt>Local processing</dt><dd>Fazit keeps assessment data on the computer and will import usage exports offline. Live collection will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</dd></div>
-          <div><dt>Tokens in memory</dt><dd>When sign-in is added, access and refresh tokens will stay in memory.</dd></div>
+          <div><dt>Read-only</dt><dd>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</dd></div>
+          <div><dt>Local processing</dt><dd>Fazit keeps assessment data on the computer and will import usage exports offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</dd></div>
+          <div><dt>Tokens in memory</dt><dd>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</dd></div>
           <div><dt>Metadata only</dt><dd>Collection is limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</dd></div>
           <div><dt>Personal data</dt><dd>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</dd></div>
           <div><dt>Offline report</dt><dd>The report is one HTML file with built-in styles and system fonts. It opens and prints without a network connection, JavaScript or external resources.</dd></div>
           <div><dt>One command</dt><dd>After setup, one command builds a report from bundled sample data or an existing scan. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</dd></div>
-          <div><dt>Honest figures</dt><dd>The report uses supplied costs and labels example figures. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</dd></div>
+          <div><dt>Honest figures</dt><dd>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</dd></div>
         </dl>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
       </div>
@@ -79,7 +79,7 @@
         <ol class="steps">
           <li>Set up Git and uv, clone the <a href="https://github.com/rouxdutoit/fazit">repository</a> and run <code>uv run fazit demo</code> once to install the dependencies.</li>
           <li>Disconnect the computer from the network. In the same directory, run <code>uv run --offline fazit demo</code>.</li>
-          <li>Open the HTML file named on the last line and open the print preview. Both work while disconnected.</li>
+          <li>Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.</li>
         </ol>
         <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
       </div>
@@ -104,7 +104,7 @@
       <h2 class="sec-label" id="disclosure-title">Report a vulnerability</h2>
       <div class="sec-body">
         <p>Use <a href="https://github.com/rouxdutoit/fazit/security/advisories/new">GitHub’s private vulnerability form</a>. If the form is unavailable, email <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>.</p>
-        <p>Keep the report private and use fictional examples in place of real scans or reports.</p>
+        <p>Do not disclose the vulnerability publicly. Use fictional examples, not real scans or reports.</p>
       </div>
     </section>
   </main>
@@ -137,8 +137,8 @@
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-actions">
-          <a class="language" href="/de/security/" lang="de" hreflang="de">Deutsch</a>
-          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+          <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden><span class="sr-only">Dark mode</span></button>
         </div>
       </div>
     </div>
