@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -73,7 +73,7 @@
           <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-de-mobile-dark.webp" width="800" height="1440">
           <source media="(max-width: 600px)" srcset="/images/readiness-de-mobile-light.webp" width="800" height="1440">
           <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-de-dark.webp" width="2016" height="1120">
-          <img src="/images/readiness-de-light.webp" width="2016" height="1120" alt="Überblick aus dem Beispielbericht. Die Statusliste für 14 Bereiche zeigt „Hindernis“ (1), „Handlungsbedarf“ (9), „Unbekannt“ (1) und „Bereit“ (3) mit jeweils einer Erläuterung. Darunter steht der Befund, der dem Umstieg entgegensteht." decoding="async" fetchpriority="high">
+          <img src="/images/readiness-de-light.webp" width="2016" height="1120" alt="Zusammenfassung des Beispielberichts. Die Statusliste für 14 Bereiche zeigt „Hindernis“ (1), „Handlungsbedarf“ (9), „Unbekannt“ (1) und „Bereit“ (3) mit jeweils einer Erläuterung. Als Hindernis nennt der Bericht die Telefonie." decoding="async" fetchpriority="high">
         </picture>
       </div>
       <figcaption>
@@ -103,11 +103,12 @@
       <h2 class="sec-label" id="example-title">Nachweise und nächster Schritt für jeden Bereich</h2>
       <div class="sec-body">
         <p class="sec-intro">Für jeden Bereich nennt der Bericht den Status, die Nachweise und die noch offenen Angaben. Das Beispiel zeigt den Bereich E-Mail im Bericht für eine fiktive Stadtverwaltung. Die Messwerte sind simuliert.</p>
-        <!-- mail-card: copied from site/demo/de/index.html -->
         <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
           <h3 class="finding-area" id="area-mail">E-Mail · <span class="finding-category">Kommunikation</span></h3>
-          <p class="finding-status"><span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-            <small class="note-text">Datengrundlage unvollständig</small></p>
+          <p class="finding-status">
+            <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+            <small class="note-text">Datengrundlage unvollständig</small>
+          </p>
           <div class="finding-reason">
             Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
           </div>
@@ -244,8 +245,8 @@
         <ul class="tiles tiles-2">
           <li>
             <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
-            <h3>Übersicht für den Gemeinderat</h3>
-            <p>Eine Zusammenfassung für die erste Druckseite mit bestätigten Hindernissen, offenen Fragen und den Gesamtkosten über fünf Jahre.</p>
+            <h3>Wo die Organisation steht</h3>
+            <p>Auf der ersten Druckseite findet der Gemeinderat bestätigte Hindernisse, offene Fragen und die Gesamtkosten über fünf Jahre.</p>
           </li>
           <li>
             <span class="tile-icon icon-route" aria-hidden="true"></span>
@@ -259,7 +260,7 @@
           </li>
           <li>
             <span class="tile-icon icon-euro" aria-hidden="true"></span>
-            <h3>Kosten über fünf Jahre</h3>
+            <h3>Was Verbleib und Umstieg in fünf Jahren kosten</h3>
             <p>Der Vergleich stellt die Kosten für Verbleib, teilweisen und vollständigen Umstieg anhand Ihrer Angaben gegenüber.</p>
           </li>
           <li>

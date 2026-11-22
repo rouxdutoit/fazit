@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta property="og:image:alt" content="Fazit wordmark and an excerpt from the English sample report. The summary shows the number of areas in each status and identifies telephony as the blocker.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -73,7 +73,7 @@
           <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1440">
           <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1440">
           <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1120">
-          <img src="/images/readiness-en-light.webp" width="2016" height="1120" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The finding that blocks this move follows." decoding="async" fetchpriority="high">
+          <img src="/images/readiness-en-light.webp" width="2016" height="1120" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The report identifies telephony as the blocker." decoding="async" fetchpriority="high">
         </picture>
       </div>
       <figcaption>
@@ -103,11 +103,12 @@
       <h2 class="sec-label" id="example-title">Evidence and a next step for every area</h2>
       <div class="sec-body">
         <p class="sec-intro">Each area shows its status, the evidence behind it and what is still missing. This example covers Mail in the report for a fictional town. Its measurements are simulated.</p>
-        <!-- mail-card: copied from site/demo/en/index.html -->
         <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
           <h3 class="finding-area" id="area-mail">Mail · <span class="finding-category">Communication</span></h3>
-          <p class="finding-status"><span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-            <small class="note-text">Evidence incomplete</small></p>
+          <p class="finding-status">
+            <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
+            <small class="note-text">Evidence incomplete</small>
+          </p>
           <div class="finding-reason">
             Other systems send mail through Microsoft and will need another way to send it.
           </div>
@@ -244,8 +245,8 @@
         <ul class="tiles tiles-2">
           <li>
             <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
-            <h3>Summary for the council</h3>
-            <p>A summary for the first printed page, with confirmed obstacles, open questions and five-year totals.</p>
+            <h3>Where the organisation stands</h3>
+            <p>The first printed page gives the council confirmed blockers, open questions and five-year cost totals.</p>
           </li>
           <li>
             <span class="tile-icon icon-route" aria-hidden="true"></span>
@@ -259,7 +260,7 @@
           </li>
           <li>
             <span class="tile-icon icon-euro" aria-hidden="true"></span>
-            <h3>Costs over five years</h3>
+            <h3>What staying and moving cost over five years</h3>
             <p>Compare staying, a partial move and a full move using the costs you supply.</p>
           </li>
           <li>
@@ -274,7 +275,7 @@
           </li>
           <li>
             <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
-            <h3>How the report was made</h3>
+            <h3>How this report was made</h3>
             <p>Collection methods, assessment rules, cost calculations and run details.</p>
           </li>
         </ul>

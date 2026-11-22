@@ -1637,7 +1637,7 @@ code {
 
 #example .workload-evidence summary {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 4px;
   min-height: var(--hit);
   padding-block: 12px;
@@ -1651,6 +1651,7 @@ code {
 }
 
 #example summary .icon {
+  margin-block-start: calc((1lh - 1.2em) / 2);
   transition: transform 0.3s var(--ease);
 }
 
@@ -1692,6 +1693,11 @@ code {
 }
 
 @media (max-width: 600px) {
+  #example .finding-status .icon {
+    width: 0.875em;
+    height: 0.875em;
+  }
+
   #example .coverage td {
     grid-column: 1 / -1;
   }
@@ -1714,12 +1720,6 @@ code {
 /* Coverage page (RR-08) */
 #coverage .legend {
   margin-top: 0;
-}
-
-/* Use a neutral circle here until RR-04 supplies the shared coverage symbol. */
-#coverage .cov-full::before {
-  mask: none;
-  clip-path: circle(41.667%);
 }
 
 /* Security page (RR-08) */

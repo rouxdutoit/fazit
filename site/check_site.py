@@ -20,6 +20,7 @@ from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
 from fazit.mappings import load_mapping
+from fazit.status import STATUSES
 
 ROOT = Path(__file__).resolve().parent
 ORIGIN = "https://fazit.dev"
@@ -569,6 +570,8 @@ def check_assets() -> list[str]:
         image = ROOT / filename
         if not image.is_file() or png_dimensions(image) != dimensions:
             errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
+        elif filename == "og.png" and image.stat().st_size >= 150_000:
+            errors.append(f"{filename}: Must be under 150 KB.")
     for preview in (ROOT / "images").glob("readiness-*"):
         if preview.suffix in {".png", ".webp"} and preview.stat().st_size >= 150_000:
             errors.append(f"{preview.relative_to(ROOT)}: Must be under 150 KB.")

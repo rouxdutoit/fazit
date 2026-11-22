@@ -158,3 +158,36 @@ The table covers new and revised German copy. The shared navigation and footer o
 | Items label and value | Elemente in den Postfächern · 504.210 Elemente |
 | Target coverage and date | Open-Xchange (OX App Suite) · In der Suite · 22. November 2026 |
 | Replacements link | Alle Ersatzlösungen |
+
+## Part 2
+
+The English and German home pages use the Mail cards from their final demos. The status stays the visual anchor. The area name uses an `h3` under the home section, and the replacements link goes to the matching demo. At 360 px the status fits within the card padding, and the evidence chevron aligns with the first line. The note about supplied inventories sits above the sample tally and the link to all areas.
+
+Both demos assess 14 areas. The tallies read Blocker 1, Needs work 9, Unknown 1 and Ready 3 in English, and Hindernis 1, Handlungsbedarf 9, Unbekannt 1 and Bereit 3 in German. The home and pilot counts and the two descriptions in `publiccode.yml` agree with the demos. The seven “What you get” tiles use the report's section headings in order. The integrator pages describe the grouped evidence requests and responsible roles as available, and `publiccode.yml` lists local import as the next step and uses the report's wording for the cost scenarios.
+
+`site/og.png` uses the English report's first-page title, note on simulated measurements, status definitions and telephony blocker. The light background, wordmark and framed excerpt follow the previous preview's layout. The PNG is 1200 × 630 and 65,963 bytes. Both home pages name the telephony blocker in their screenshot alternative text. Each site page describes the shared social image in its own language.
+
+The comparison table uses RR-04's shared circle symbol. `site/check_site.py` restores the status import required by the coverage-symbol check after the merge and enforces the 150 KB limit for `og.png`. Temporary inputs confirmed that the checker rejects a preview at the limit and a coverage symbol that reuses a status symbol.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `uv run pytest -q` | 949 passed. |
+| `uv run ruff check .` and `uv run ruff format --check .` | Passed. Ruff confirmed formatting for 170 files. |
+| `uv run python site/check_site.py` | Checked 22 pages and 887 references. No errors. |
+| `uv run fazit demo --lang de` and `uv run fazit demo --lang en` | Both generated reports matched their published demos byte for byte. |
+| Chromium at 360 px and 1280 px, light and dark | All 80 site views and all eight demo views fit without horizontal scroll. The Mail evidence opens and closes by keyboard, its table fits, and each home page loads the matching screenshot. Both reports opened offline with zero external requests. |
+
+### German copy review
+
+The Mail wording comes directly from the final German demo. The following strings were revised for the site and its listing.
+
+| Location | German |
+| --- | --- |
+| Home screenshot alternative | Zusammenfassung des Beispielberichts. Die Statusliste für 14 Bereiche zeigt „Hindernis“ (1), „Handlungsbedarf“ (9), „Unbekannt“ (1) und „Bereit“ (3) mit jeweils einer Erläuterung. Als Hindernis nennt der Bericht die Telefonie. |
+| Home summary tile | Wo die Organisation steht. Auf der ersten Druckseite findet der Gemeinderat bestätigte Hindernisse, offene Fragen und die Gesamtkosten über fünf Jahre. |
+| Home costs tile heading | Was Verbleib und Umstieg in fünf Jahren kosten |
+| Social image alternative | Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis. |
+| Integrators introduction | Nutzen Sie die Befunde, um mit Ihren Kunden zu klären, welche Exporte und Antworten noch fehlen. Der Bericht bündelt offene Punkte nach den noch benötigten Nachweisen und nennt die jeweils zuständige Rolle. So genügt eine Anfrage, auch wenn mehrere Bereiche betroffen sind. |
+| `publiccode.yml` | Als Nächstes verarbeitet Fazit die aus dem Admin Center exportierten Daten lokal (2). |

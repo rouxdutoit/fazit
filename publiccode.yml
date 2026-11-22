@@ -21,16 +21,16 @@ description:
       samples or a compatible scan file with answers and costs in inputs.yaml.
       Measured figures currently come from the samples. The offline HTML report
       gives a readiness status and supporting evidence for 14 areas and compares
-      five-year costs. Next, Fazit will revise the report, then add local import
-      of admin-centre exports (2). Installation packages and the public launch
-      follow (2.1). Then come AI assistant coverage and renewal deadlines (1.1),
-      CSV export and report integrity checks (1.2), and links to sovereignty
-      criteria (1.3). Read-only sign-in and live counts follow in phase 3, with
-      guides for live scans in phase 4.
+      five-year costs. Next comes local import of admin-centre exports (2).
+      Installation packages and the public launch follow (2.1). Then come AI
+      assistant coverage and renewal deadlines (1.1), CSV export and report
+      integrity checks (1.2), and links to sovereignty criteria (1.3). Read-only
+      sign-in and live counts follow in phase 3, with guides for live scans in
+      phase 4.
     features:
       - Readiness and supporting evidence by area
       - Function mappings for openDesk, Nextcloud and a generic open source setup
-      - Five-year cost comparison for staying, partial exit and full exit
+      - Five-year cost comparison for staying, a partial move and a full move
       - Offline HTML reports in English and German
   de:
     shortDescription: Lokale Berichte zur Prüfung eines Umstiegs von Microsoft 365 auf Open-Source-Software.
@@ -41,11 +41,11 @@ description:
       mit Antworten und Kosten aus inputs.yaml. Messwerte stammen aus den
       Beispielen. Der offline lesbare HTML-Bericht bewertet 14 Bereiche, nennt
       die Nachweise und vergleicht die Kosten über fünf Jahre. Als Nächstes
-      wird der Bericht überarbeitet. Danach verarbeitet Fazit lokal die aus dem
-      Admin Center exportierten Daten (2). In Phase 2.1 sind Installationspakete
-      und der öffentliche Start vorgesehen. Anschließend folgen die Prüfung von
-      KI-Assistenten und Fristen für die Lizenzverlängerung (1.1), der CSV-Export
-      und eine Prüfung auf Berichtsänderungen (1.2) sowie Verweise auf
+      verarbeitet Fazit die aus dem Admin Center exportierten Daten lokal (2).
+      In Phase 2.1 sind Installationspakete und der öffentliche Start vorgesehen.
+      Anschließend folgen die Prüfung von KI-Assistenten und Fristen für die
+      Lizenzverlängerung (1.1), der CSV-Export und eine Prüfung auf
+      Berichtsänderungen (1.2) sowie Verweise auf
       Souveränitätskriterien (1.3). Die direkte Erhebung mit reinem Lesezugriff
       folgt in Phase 3. Anleitungen dazu sind für Phase 4 vorgesehen.
     features:
