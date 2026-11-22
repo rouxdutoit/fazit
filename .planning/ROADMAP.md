@@ -2,7 +2,7 @@
 
 ## Overview
 
-The tool is built judgement first. Phase 1 delivers the whole decision document from bundled sample data: evidence on every finding, per-workload status with honest unknowns, three cost scenarios, in German and English, with no Microsoft code in the repository. That phase is shareable by itself. Phase 2 lets a real organisation feed in its own admin-centre CSV exports, still with no sign-in and no network. Phase 3 adds the only code that talks to Microsoft: `doctor`, browser sign-in, and live licence and directory counts behind host and endpoint allowlists, with tests that prove each trust promise. Phase 4 documents, packages and releases it for `uvx` and as a signed Windows build.
+The tool is built judgement first. Phase 1 delivers the whole decision document from bundled sample data: evidence on every finding, per-workload status with honest unknowns, three cost scenarios, in German and English, with no Microsoft code in the repository. That phase is shareable by itself. Phase 2 lets a real organisation feed in its own admin-centre CSV exports, still with no sign-in and no network. Phase 2.1 packages it for `uvx` and as a signed Windows build, and the public launch follows. Phases 1.1 to 1.3 then extend the report. Phase 3 adds the only code that talks to Microsoft: `doctor`, browser sign-in, and live licence and directory counts behind host and endpoint allowlists, with tests that prove each trust promise. Phase 4 documents live scans.
 
 The four phases follow the milestone order M0 to M3 agreed in `DECISIONS.md`.
 
@@ -142,7 +142,8 @@ Plans, run one at a time in this order:
 - **Standing rules after Phase 1.** CLI-06, REPT-06, SAFE-05, SAFE-07, I18N-01, I18N-02 and DOCS-01 are delivered in Phase 1 and bind every later phase: each new command prints its report path and accepts `--out`; each new data path is private by default and joins the privacy test; each new string goes into both locales; no test needs a tenant; the README and `SECURITY.md` are kept in step as commands and network code arrive.
 - **MODL-01 and DOCS-04.** MODL-01 calls the schema "documented". Phase 1 delivers the versioned schema and the rule that collectors write it while rules and report only read it. The published `docs/schema.md` is DOCS-04 in Phase 4, written once import and live collection have settled the format.
 - **File types and devices have no v1 source.** RULE-05 ships in Phase 1 and is exercised by sample data. No v1 import or collector supplies file-type or device counts (FILE-01 and SRC-02 are v2), so a real v1 report shows those workloads as Unknown unless the user supplies counts through `inputs.yaml`, in which case they are shown as provided by the user (COST-06). The demo report must state plainly that it is built from sample data.
-- **Final review after all planned work.** Once phases 1.1 to 1.3 are built, Claude Fable 5.2 and Codex GPT-6.2-Astra, both at max, review everything changed since the release review, including security, and check the project against the resolutions of the No AI Slop manifesto (https://www.slopmanifesto.com/). This happens before the PyPI release and the announcement.
+- **Import before extensions.** Founder's decision on 2026-11-22, following two independent critic reviews (`.planning/research/launch-critique/`): the core must work on an organisation's own exports before the report grows. After the report redesign, phase 2 (import) and phase 2.1 (packaging and launch) come first; phases 1.1 to 1.3 (Copilot and decision window, outputs for integrators, sovereignty criteria) follow, shaped by what the first operators report.
+- **Final review after all planned work before the launch.** Once phase 2.1 is built, Claude Fable 5.2 and Codex GPT-6.2-Astra, both at max, review everything changed since the release review, including security, and check the project against the resolutions of the No AI Slop manifesto (https://www.slopmanifesto.com/). This happens before the PyPI release and the announcement.
 - **Launch gate.** Fazit is announced (Show HN, the German-speaking press, public-sector channels) only after phase 2.1 and the final review: people must be able to run it on their own exports and install it with one command or a signed program. A launch on sample data alone would be read as a demo.
 - **Packaging before live scans.** DIST-01, DIST-02 and DIST-04 moved from phase 4 into phase 2.1 so the launch does not wait for sign-in and live counts.
 - **Download button with the first release.** When phase 2.1 publishes the PyPI package and the signed Windows build, the main button changes from "Get started" / "Jetzt starten" (pointing to "How it works" until then) to "Install" / "Installieren" and leads to a short page with the install command and the Windows file, each with version and size.
@@ -151,7 +152,7 @@ Plans, run one at a time in this order:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 2.1 → 3 → 4
+1 → report redesign → 2 → 2.1 (launch) → 1.1 → 1.2 → 1.3 → 3 → 4. Phases 1.1 to 1.3 keep their numbers but run after the launch (see Notes).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|

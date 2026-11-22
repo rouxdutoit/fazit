@@ -16,7 +16,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-22)
 
 **Core value:** An organisation gets honest, inspectable numbers about its own Microsoft dependency, including "unknown" and "not yet", without any of its data leaving the machine.
-**Current focus:** Release review of Phase 1, then Phase 1.1
+**Current focus:** Release review of Phase 1, then the report redesign, Phase 2 (import) and Phase 2.1 (packaging and launch); Phases 1.1 to 1.3 follow the launch
 
 ## Current Position
 
@@ -56,6 +56,7 @@ Recent decisions affecting current work:
 - [Roadmap]: DIST-03 (licence, SPDX headers, `CONTRIBUTING.md`, `SECURITY.md`) and DOCS-01 (README in English and German) were pulled forward from M3 into Phase 1 so the first phase is shareable.
 - [Roadmap]: Safeguard tests sit with the code they guard: SAFE-04, SAFE-05, SAFE-07 in Phase 1; SAFE-01, SAFE-02, SAFE-03, SAFE-06 in Phase 3.
 - [Roadmap]: Rules delivered in Phase 1 bind later phases: report path and `--out` on every command, privacy by default on every data path, both locales for every string, no test needs a tenant.
+- [Roadmap, 2026-11-22]: Import and packaging come before Phases 1.1 to 1.3, and the launch waits for Phase 2.1 and the final review (`.planning/research/launch-critique/`).
 - [Phase 1]: No Microsoft code. No MSAL, no Graph client, no network code of any kind until Phase 3.
 
 ### Pending Todos
