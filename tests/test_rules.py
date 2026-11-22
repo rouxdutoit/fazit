@@ -196,10 +196,17 @@ def test_shipped_service_plans_cite_the_reference(catalogue: Catalogue) -> None:
 
     assert plans
     assert all(
-        re.fullmatch(r"[A-Za-z0-9_]{1,64}", plan.name)
+        catalogue.accepts_plan_name(plan.name, plan.guid)
         and catalogue.accepts_sku_part_number(plan.sku_part_number, plan.sku_guid)
         for plan in plans
     )
+    assert {
+        (plan.name, plan.guid)
+        for plan in plans
+        if not re.fullmatch(r"[A-Za-z0-9_]{1,64}", plan.name)
+    } == {
+        ("Skype for Business PSTN Calling Domestic Small", "9a0125a5-c8f8-4526-b231-49e2abe0ebce")
+    }
     assert {plan.workload for plan in plans} <= {None, *catalogue.workload_ids}
     assert {plan.signal for plan in plans} == {"add_on", "bundled", "no_workload"}
     assert all((plan.workload is None) == (plan.signal == "no_workload") for plan in plans)

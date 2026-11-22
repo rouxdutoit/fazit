@@ -35,6 +35,7 @@ licences:
   product_count: 'Erfasste Lizenzprodukte: {count}'
   purchased: Erworben
   assigned: Zugewiesen
+  assigned_exceeds_purchased: Es sind {count} Lizenzplätze mehr zugewiesen als erworben. Das kann vorkommen, wenn bei der Vertragsverlängerung weniger Plätze erworben werden.
   plans: Einordnung der Dienstpläne
   bundled: Im Produkt enthalten
   add_on: Separat lizenziert
@@ -468,16 +469,18 @@ errors:
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
   invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
   licence_products_exceed_coverage: Der Erhebungsumfang unter {field} in der Datei {file} reicht für die aufgeführten Lizenzprodukte nicht aus.
-  assigned_exceeds_purchased: Die Zahl der zugewiesenen Lizenzplätze unter {field} in der Datei {file} übersteigt die Zahl der erworbenen Lizenzplätze.
   invalid_collector: Für {field} in der Datei {file} ist ein durchgeführtes Erhebungsverfahren erforderlich.
   invalid_evidence_source: Das Erhebungsverfahren oder die Quelle unter {field} in der Datei {file} ist für {finding} ungültig.
   inputs_source_in_scan: Die Quelle im Feld {field} der Datei {file} ist Angaben aus der Eingabedatei vorbehalten.
   sample_source_conflict: Für eine Erhebung mit Beispieldaten muss im Feld {field} der Datei {file} der Wert sample stehen.
   collector_reason_mismatch: Das Feld {field} in der Datei {file} muss beim Status partial oder skipped einen Grund enthalten und beim Status ok leer bleiben.
   period_after_collection: Der Zeitraum im Feld {field} der Datei {file} endet nach dem Erhebungsdatum.
-  collection_after_scan: Das Erhebungsdatum im Feld {field} der Datei {file} liegt nach dem Datum der Erhebungsdatei.
+  period_after_scan: Der Zeitraum im Feld {field} der Datei {file} endet nach dem Datum der Erhebungsdatei.
+  collection_after_scan: Die Zeitangabe im Feld {field} der Datei {file} liegt nach der Erstellung der Erhebungsdatei.
   observation_time_required: Geben Sie in {field} der Datei {file} auch die Uhrzeit der Erhebung an.
+  observation_offset_required: Geben Sie den UTC-Versatz oder Z in der Zeitangabe im Feld {field} der Datei {file} an.
   measurement_without_observations: Der Wert in {field} der Datei {file} ist durch keine erfolgreiche Prüfung belegt.
+  content_without_population: Der Wert im Feld {field} der Datei {file} ist größer als null, obwohl der zugehörige Bestand im selben Export leer ist.
   sku_identity_mismatch: Produktcode und GUID unter {field} in der Datei {file} müssen demselben Katalogeintrag entsprechen.
   coverage_total_conflict: Die Gesamtzahl in {field} der Datei {file} widerspricht der Angabe für {related} in derselben Erhebung.
   subset_count_exceeds_population: Die Angabe in {field} in der Datei {file} überschreitet die Zahl der erfassten Elemente.

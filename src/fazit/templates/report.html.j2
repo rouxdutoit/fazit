@@ -511,9 +511,11 @@
                 {% for product in licences %}
                   {% set matches = product.plans %}
                   <tr data-product="{{ product.id }}" data-provenance="measured" role="row">
-                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ strings.provenance.measured }}</small></th>
+                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ strings.provenance.measured }}</small>{% if product.sku_guid %}<small><code>{{ product.sku_guid }}</code></small>{% endif %}</th>
                     <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
-                    <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}</td>
+                    <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}{% if product.assigned > product.purchased %}
+                      <small data-reason="assigned_exceeds_purchased">{{ strings.licences.assigned_exceeds_purchased.format(count=format.integer(product.assigned - product.purchased)) }}</small>
+                    {% endif %}</td>
                     <td role="cell" data-label="{{ strings.licences.plans }}">
                       {% set classified = matches|reject('none')|list %}
                       {% for workload, entries in classified|rejectattr('workload', 'none')|groupby('workload') %}

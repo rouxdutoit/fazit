@@ -17,7 +17,7 @@ _CODE_PATH = r"[a-z0-9_]+(?:\.[a-z0-9_]+)*"
 _CODE = re.compile(_CODE_LENGTH + _CODE_PATH)
 _PERMISSION = re.compile(r"[A-Za-z0-9.]{1,64}")
 _LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}")
-_SKU_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
+_IDENTIFIER_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
 
 
 def sku_key(part_number: str, guid: str) -> tuple[str, str]:
@@ -43,6 +43,7 @@ class FindingEntry:
     coverage_total_from: str | None = None
     subset_of: frozenset[str] = frozenset()
     aggregate: bool = False
+    requires_population: str | None = None
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,7 @@ class Catalogue:
     provided_sources: frozenset[str] = frozenset()
     sku_exceptions: frozenset[tuple[str, str]] = frozenset()
     licence_sources: frozenset[str] = frozenset()
+    plan_exceptions: frozenset[tuple[str, str]] = frozenset()
 
     @property
     def workload_ids(self) -> tuple[str, ...]:
@@ -70,6 +72,11 @@ class Catalogue:
         return isinstance(part_number, str) and (
             bool(IDENTIFIER.fullmatch(part_number))
             or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)
+        )
+
+    def accepts_plan_name(self, name: object, guid: str | None) -> bool:
+        return isinstance(name, str) and (
+            bool(IDENTIFIER.fullmatch(name)) or (name.casefold(), guid) in self.plan_exceptions
         )
 
 
@@ -143,6 +150,11 @@ def _finding(
     aggregate = row.get("aggregate", False)
     if type(aggregate) is not bool or (aggregate and value_type != "count"):
         reader.fail(f"{field}.aggregate")
+    population = row.get("requires_population")
+    if population is not None:
+        if not aggregate and value_type != "bytes":
+            reader.fail(f"{field}.requires_population")
+        population = reader.matches(population, f"{field}.requires_population", _CODE)
     return FindingEntry(
         finding_id,
         workload,
@@ -161,6 +173,7 @@ def _finding(
         total,
         subset_of,
         aggregate,
+        population,
     )
 
 
@@ -178,7 +191,13 @@ def _findings(
         reader,
         "findings",
         keys,
-        optional=("measured_by", "coverage_total_from", "subset_of", "aggregate"),
+        optional=(
+            "measured_by",
+            "coverage_total_from",
+            "subset_of",
+            "aggregate",
+            "requires_population",
+        ),
     ):
         finding_id = reader.matches(row["id"], f"{field}.id", _CODE)
         if "." not in finding_id:
@@ -190,9 +209,11 @@ def _findings(
         )
     for index, entry in enumerate(findings.values()):
         coverage_total = (entry.coverage_total_from,) if entry.coverage_total_from else ()
+        required = (entry.requires_population,) if entry.requires_population else ()
         for field, references in (
             ("coverage_total_from", coverage_total),
             ("subset_of", sorted(entry.subset_of)),
+            ("requires_population", required),
         ):
             for reference in references:
                 population = findings.get(reference)
@@ -219,14 +240,15 @@ def _code_set(
     return frozenset(codes)
 
 
-def _sku_exceptions(value: object, reader: Validator) -> frozenset[tuple[str, str]]:
-    field = "codes.sku_exceptions"
+def _identifier_exceptions(
+    value: object, reader: Validator, field: str
+) -> frozenset[tuple[str, str]]:
     rows = reader.fields(value, field, (), optional=None)
     keys = set()
     for index, (raw_guid, part) in enumerate(rows.items()):
         member = f"{field}[{index}]"
         guid = reader.guid(raw_guid, member)
-        keys.add(sku_key(reader.matches(part, member, _SKU_EXCEPTION), guid))
+        keys.add((reader.matches(part, member, _IDENTIFIER_EXCEPTION).casefold(), guid))
     return frozenset(keys)
 
 
@@ -266,7 +288,7 @@ def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
         reader.fail("", "invalid_field_document")
     workloads = _workloads(data["workloads"], reader)
     codes = data["codes"]
-    if not isinstance(codes, dict) or codes.keys() != {
+    if not isinstance(codes, dict) or codes.keys() - {"plan_exceptions"} != {
         "collectors",
         "sources",
         "licence_sources",
@@ -302,6 +324,11 @@ def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
         file_name=reader.file_name,
         checksum=sha256(text.encode("utf-8")).hexdigest(),
         provided_sources=provided_sources,
-        sku_exceptions=_sku_exceptions(codes["sku_exceptions"], reader),
+        sku_exceptions=_identifier_exceptions(
+            codes["sku_exceptions"], reader, "codes.sku_exceptions"
+        ),
         licence_sources=licence_sources,
+        plan_exceptions=_identifier_exceptions(
+            codes.get("plan_exceptions", {}), reader, "codes.plan_exceptions"
+        ),
     )

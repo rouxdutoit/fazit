@@ -167,15 +167,18 @@ class _LicenceRow:
     purchased: int
     assigned: int
     plans: tuple[RegisteredPlan | None, ...]
+    sku_guid: str | None
 
 
 def _licence_rows(
     products: tuple[Product, ...], plans: ServicePlans, formatter: Formatter
 ) -> tuple[_LicenceRow, ...]:
+    rosters = tuple(plans.rosters.get(product.key) for product in products)
+    part_counts = Counter(roster.part_number.casefold() for roster in rosters if roster is not None)
     unregistered = 0
     rows = []
-    for product in products:
-        roster = plans.rosters.get(product.key)
+    for product, roster in zip(products, rosters, strict=True):
+        guid = None
         if roster is None:
             unregistered += 1
             code = f"unregistered-{unregistered}"
@@ -184,9 +187,16 @@ def _licence_rows(
             )
         else:
             label = code = roster.part_number
+            if part_counts[code.casefold()] > 1:
+                guid = roster.sku_guid
         rows.append(
             _LicenceRow(
-                code, label, product.purchased, product.assigned, classify_product(product, plans)
+                code,
+                label,
+                product.purchased,
+                product.assigned,
+                classify_product(product, plans),
+                guid,
             )
         )
     return tuple(rows)

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
-from collections.abc import Collection, Iterator, Mapping, MutableMapping
+from collections.abc import Iterator, Mapping, MutableMapping
 from dataclasses import asdict, dataclass, replace
 from datetime import date
 from functools import lru_cache
@@ -23,7 +23,7 @@ from .model import (
 )
 from .parsing import parse_yaml
 from .rules import read_rule_text
-from .validation import IDENTIFIER, Validator
+from .validation import Validator
 
 _REFERENCE = re.compile(r"https://learn\.microsoft\.com/[^\s]+")
 _SIGNALS = ("add_on", "bundled")
@@ -76,21 +76,23 @@ type _PlanDetail = tuple[str, str | None, Mapping[str, str] | None]
 
 
 def _plan_definitions(
-    items: object, reader: Validator, workload_ids: Collection[str]
+    items: object, reader: Validator, catalogue: Catalogue
 ) -> dict[str, _PlanDetail]:
     plans: dict[str, _PlanDetail] = {}
     names: set[str] = set()
     for index, item in enumerate(reader.rows(items, "plans")):
         field = f"plans[{index}]"
         row = reader.fields(item, field, ("name", "guid", "workload"), ("note",))
-        name = reader.matches(row["name"], f"{field}.name", IDENTIFIER)
+        guid = reader.guid(row["guid"], f"{field}.guid")
+        name = row["name"]
+        if not catalogue.accepts_plan_name(name, guid):
+            reader.fail(f"{field}.name")
         if name.casefold() in names:
             reader.fail(f"{field}.name", "duplicate_id")
         names.add(name.casefold())
         workload = row["workload"]
         if workload is not None:
-            workload = reader.choice(workload, f"{field}.workload", workload_ids)
-        guid = reader.guid(row["guid"], f"{field}.guid")
+            workload = reader.choice(workload, f"{field}.workload", catalogue.workload_ids)
         note = reader.bilingual(row["note"], f"{field}.note") if "note" in row else None
         plans[name] = (guid, workload, note)
     return plans
@@ -146,7 +148,7 @@ def _parse_service_plans(text: str, reader: Validator, catalogue: Catalogue) -> 
     root = reader.fields(data, "", ("reference_url", "checked_on", "plans", "products"))
     reference = reader.matches(root["reference_url"], "reference_url", _REFERENCE)
     checked_on = reader.calendar_date(root["checked_on"], "checked_on")
-    definitions = _plan_definitions(root["plans"], reader, catalogue.workload_ids)
+    definitions = _plan_definitions(root["plans"], reader, catalogue)
     rosters = {}
     sku_guids: set[str] = set()
     for index, item in enumerate(reader.rows(root["products"], "products")):

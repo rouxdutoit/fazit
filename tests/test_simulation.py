@@ -50,7 +50,15 @@ from fazit.evidence import provided_findings
 from fazit.i18n import error_sentence, load_locale
 from fazit.inputs import load_inputs_text
 from fazit.licences import scan_to_json
-from fazit.model import Collector, Coverage, Finding, load_scan, load_scan_text
+from fazit.model import (
+    Collector,
+    Coverage,
+    Finding,
+    Product,
+    ServicePlan,
+    load_scan,
+    load_scan_text,
+)
 from fazit.status import STATUSES
 
 CSP = (
@@ -135,6 +143,12 @@ DIRECTORY_DENIED = replace(
         ),
     ),
 )
+EMPTY_EXPORTS = {
+    "mail.storage_bytes": "mail.mailbox_count",
+    "mail.item_count": "mail.mailbox_count",
+    "onedrive.storage_bytes": "onedrive.account_count",
+    "teams.channel_count": "teams.team_count",
+}
 
 
 def _write_tenant(tenant: Tenant, directory: Path) -> tuple[Path, Path | None]:
@@ -170,13 +184,19 @@ def _statuses(html: str) -> dict[str, str]:
         "coverage",
         "count",
         "accounts",
+        "account-upper-bound",
         "teams",
         "team-total",
         "team-checks",
         "unobserved",
-        "seats",
         "rows",
         "time",
+        "snapshot-offset",
+        "inventory-offset",
+        "scan-offset",
+        "future-interview-date",
+        "future-interview-period",
+        *EMPTY_EXPORTS,
     ],
 )
 @given(size=st.integers(2, 10**6), phone_in_use=st.booleans())
@@ -188,9 +208,14 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
         value=size,
         coverage={"kind": "partial", "scanned": size + 1, "failed": 1, "total": size + 2},
     )
-    findings["directory.user_count"][1]["value"] = 1
+    internal = findings["directory.user_count"][1]
+    internal["value"] = 1
     guests = findings["directory.guest_count"][1]
     guests["value"] = size + 1
+    if violation == "account-upper-bound":
+        internal.update(value=0, coverage={"kind": "partial", "scanned": size, "total": size + 1})
+        guests["value"] = size
+        accounts.update(value=size + 1, coverage={"kind": "complete"})
     findings["teams.team_count"][1].update(
         value=size, coverage={"kind": "partial", "scanned": size, "total": size + 1}
     )
@@ -213,6 +238,8 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
         collected_at=scan["generated_at"],
         coverage={"kind": "partial", "scanned": 1, "failed": size - 1, "total": size},
     )
+    interview_index, interview = findings["device_management.device_count"]
+    interview.update(collected_at=None, period="2026-10-01/2026-11-05")
     inventory = scan["licences"]
     inventory["coverage"] = {"kind": "partial", "failed": size - 1, "total": size}
     (product,) = inventory["products"]
@@ -220,15 +247,15 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
 
     account_field = f"findings[{accounts_index}]"
     team_field = f"findings[{teams_index}]"
-    node, key, value, field = {
+    mutations = {
         "coverage": (accounts["coverage"], "failed", 2, f"{account_field}.coverage"),
         "count": (accounts, "value", size + 2, f"{account_field}.value"),
         "accounts": (guests, "value", 0, f"{account_field}.value"),
+        "account-upper-bound": (accounts, "value", size + 2, f"{account_field}.value"),
         "teams": (teams, "value", size + 2, f"{team_field}.value"),
         "team-total": (teams["coverage"], "total", size + 2, f"{team_field}.coverage.total"),
         "team-checks": (teams["coverage"], "failed", size + 1, f"{team_field}.value"),
         "unobserved": (phone["coverage"], "scanned", 0, f"findings[{phone_index}].value"),
-        "seats": (product, "assigned", size + 1, "licences.products[0].assigned"),
         "rows": (inventory["coverage"], "failed", size, "licences.coverage.total"),
         "time": (
             accounts,
@@ -236,7 +263,47 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
             accounts["collected_at"][:10],
             f"{account_field}.collected_at",
         ),
-    }[violation]
+        "snapshot-offset": (
+            accounts,
+            "collected_at",
+            accounts["collected_at"].removesuffix("Z"),
+            f"{account_field}.collected_at",
+        ),
+        "inventory-offset": (
+            inventory,
+            "collected_at",
+            inventory["collected_at"].removesuffix("Z"),
+            "licences.collected_at",
+        ),
+        "scan-offset": (
+            scan,
+            "generated_at",
+            scan["generated_at"].removesuffix("Z"),
+            "generated_at",
+        ),
+        "future-interview-date": (
+            interview,
+            "collected_at",
+            "2026-11-06",
+            f"findings[{interview_index}].collected_at",
+        ),
+        "future-interview-period": (
+            interview,
+            "period",
+            "2026-10-01/2026-11-06",
+            f"findings[{interview_index}].period",
+        ),
+    }
+    if population := EMPTY_EXPORTS.get(violation):
+        findings[population][1].update(value=0, coverage={"kind": "complete"})
+        for finding_id, parent in EMPTY_EXPORTS.items():
+            if parent == population:
+                findings[finding_id][1]["value"] = 0
+        if population == "teams.team_count":
+            teams.update(value=0, coverage={"kind": "complete"})
+        index, content = findings[violation]
+        mutations[violation] = (content, "value", size, f"findings[{index}].value")
+    node, key, value, field = mutations[violation]
     file = "inventory.json"
     load_scan_text(json.dumps(scan), file, CATALOGUE)
     node[key] = value
@@ -246,6 +313,32 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
     for lang in ("en", "de"):
         sentence = error_sentence(load_locale(lang), caught.value)
         assert file in sentence and field in sentence and len(sentence.splitlines()) == 1
+
+
+@given(purchased=st.integers(0, 10**6), excess=st.integers(1, 10**6), reverse=st.booleans())
+def test_truthful_inventory_loads_with_excess_assignments_and_shared_part_number(
+    purchased: int, excess: int, reverse: bool
+) -> None:
+    products = tuple(
+        Product(
+            roster.part_number,
+            roster.sku_guid,
+            purchased,
+            purchased + excess,
+            tuple(ServicePlan(plan.name, plan.guid) for plan in roster.plans.values()),
+        )
+        for roster in PLANS.rosters.values()
+        if roster.part_number == "MCOPSTN5"
+    )
+    assert len(products) == 2
+    inventory = replace(
+        NONPROFIT.licences,
+        coverage=Coverage("complete", 2, 0, 2),
+        products=products[::-1] if reverse else products,
+    )
+    scan = replace(NONPROFIT, findings=(), licences=inventory)
+    loaded = load_scan_text(scan_to_json(scan, plans=PLANS), "inventory.json", CATALOGUE)
+    assert loaded.licences == inventory
 
 
 @given(tenant=tenants())

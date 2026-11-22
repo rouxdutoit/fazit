@@ -8,7 +8,7 @@ from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .parsing import parse_json, read_text
-from .validation import DATE, IDENTIFIER, MAX_COUNT, MAX_STORAGE_BYTES, Validator
+from .validation import DATE, MAX_COUNT, MAX_STORAGE_BYTES, Validator
 
 SUPPORTED_SCHEMA_MAJOR = 1
 SOURCE_KINDS = ("sample", "import", "live")
@@ -57,22 +57,16 @@ type FindingValue = int | bool
 
 
 def _timestamp_after(stamp: str, reference: str) -> bool:
-    time, limit = datetime.fromisoformat(stamp), datetime.fromisoformat(reference)
     if len(stamp) == 10 or len(reference) == 10:
-        return time.date() > limit.date()
-    if time.tzinfo is None or limit.tzinfo is None:
-        time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None)
-    return time > limit
+        return stamp[:10] > reference[:10]
+    return datetime.fromisoformat(stamp) > datetime.fromisoformat(reference)
 
 
 def same_collection_time(first: str | None, second: str | None) -> bool:
-    return (
-        first is not None
-        and second is not None
-        and len(first) > 10
-        and len(second) > 10
-        and datetime.fromisoformat(first) == datetime.fromisoformat(second)
-    )
+    if first is None or second is None:
+        return False
+    timestamp = datetime.fromisoformat(first)
+    return timestamp.tzinfo is not None and timestamp == datetime.fromisoformat(second)
 
 
 @dataclass(frozen=True)
@@ -127,7 +121,7 @@ class Finding:
 
 
 def _population_bounds(
-    subset: Finding, population: Finding | None
+    subset: Finding, population: Finding | None, *, use_coverage_total: bool = False
 ) -> tuple[int | None, int | None]:
     if (
         population is None
@@ -143,7 +137,16 @@ def _population_bounds(
     coverage = population.coverage
     if coverage is None or (value is not None and coverage.kind == "complete"):
         return value, value
-    return value, coverage.total
+    total = coverage.total
+    if (
+        not use_coverage_total
+        and value is not None
+        and coverage.scanned is not None
+        and total is not None
+    ):
+        # Only unchecked rows can add to the observed count.
+        total = value + total - coverage.scanned
+    return value, total
 
 
 @dataclass(frozen=True)
@@ -241,11 +244,13 @@ class _ScanReader:
     def timestamp(self, value: object, field: str, *, require_time: bool = False) -> str:
         stamp = self.check.matches(value, field, _TIMESTAMP)
         try:
-            datetime.fromisoformat(stamp)
+            timestamp = datetime.fromisoformat(stamp)
         except ValueError:
             self.check.fail(field)
         if require_time and len(stamp) == 10:
             self.check.fail(field, "observation_time_required")
+        if len(stamp) > 10 and timestamp.tzinfo is None:
+            self.check.fail(field, "observation_offset_required")
         return stamp
 
     def period(self, value: object, field: str) -> str:
@@ -415,18 +420,21 @@ class _ScanReader:
                 self.check.fail(f"{field}.{name}")
 
     def check_finding_dates(self, finding: Finding, field: str, generated_at: str) -> None:
-        if (collected_at := finding.collected_at) is None:
-            return
-        if finding.period is not None and finding.period[-10:] > collected_at[:10]:
-            self.check.fail(f"{field}.period", "period_after_collection")
-        if _timestamp_after(collected_at, generated_at):
+        collected_at = finding.collected_at
+        if (
+            finding.period is not None
+            and finding.period[-10:] > (collected_at or generated_at)[:10]
+        ):
+            code = "period_after_scan" if collected_at is None else "period_after_collection"
+            self.check.fail(f"{field}.period", code)
+        if collected_at is not None and _timestamp_after(collected_at, generated_at):
             self.check.fail(f"{field}.collected_at", "collection_after_scan")
 
     def findings(
         self, value: object, collectors: dict[str, Collector], generated_at: str
     ) -> tuple[Finding, ...]:
         findings: dict[str, Finding] = {}
-        subsets: list[tuple[FindingEntry, Finding, str]] = []
+        related: list[tuple[FindingEntry, Finding, str]] = []
         seen: set[str] = set()
         for index, item in enumerate(self.check.rows(value, "findings", allow_empty=True)):
             field = f"findings[{index}]"
@@ -443,18 +451,22 @@ class _ScanReader:
                 finding = self.finding(item, field, entry, collectors)
                 self.check_finding_dates(finding, field, generated_at)
                 findings[finding_id] = finding
-                if entry.coverage_total_from or entry.subset_of:
-                    subsets.append((entry, finding, field))
-        self.check_subsets(findings, subsets)
+                if entry.coverage_total_from or entry.subset_of or entry.requires_population:
+                    related.append((entry, finding, field))
+        self.check_populations(findings, related)
         return tuple(findings.values())
 
-    def check_subsets(
-        self, findings: dict[str, Finding], subsets: list[tuple[FindingEntry, Finding, str]]
+    def check_populations(
+        self,
+        findings: dict[str, Finding],
+        related_findings: list[tuple[FindingEntry, Finding, str]],
     ) -> None:
-        for entry, subset, field in subsets:
+        for entry, subset, field in related_findings:
             bounds = []
             if related := entry.coverage_total_from:
-                lower, upper = _population_bounds(subset, findings.get(related))
+                lower, upper = _population_bounds(
+                    subset, findings.get(related), use_coverage_total=True
+                )
                 coverage = subset.coverage
                 if coverage is not None:
                     total = coverage.total
@@ -487,14 +499,18 @@ class _ScanReader:
                 bound is not None and subset.value > bound for bound in bounds
             ):
                 self.check.fail(f"{field}.value", "subset_count_exceeds_population")
+            if entry.requires_population and subset.value:
+                _, upper = _population_bounds(subset, findings.get(entry.requires_population))
+                if upper == 0:
+                    self.check.fail(f"{field}.value", "content_without_population")
 
     def service_plan(self, value: object, field: str) -> ServicePlan:
         row = self.fields(value, field, _SERVICE_PLAN_FIELDS)
-        name, guid = row["name"], row["guid"]
-        return ServicePlan(
-            None if name is None else self.check.matches(name, f"{field}.name", IDENTIFIER),
-            None if guid is None else self.check.guid(guid, f"{field}.guid"),
-        )
+        name, raw_guid = row["name"], row["guid"]
+        guid = None if raw_guid is None else self.check.guid(raw_guid, f"{field}.guid")
+        if name is not None and not self.catalogue.accepts_plan_name(name, guid):
+            self.check.fail(f"{field}.name")
+        return ServicePlan(name, guid)
 
     def product(self, value: object, field: str) -> Product:
         row = self.fields(value, field, _PRODUCT_REQUIRED, _PRODUCT_OPTIONAL)
@@ -511,15 +527,11 @@ class _ScanReader:
             if plan_list is None
             else self.check.rows(plan_list, f"{field}.service_plans", allow_empty=True)
         )
-        purchased = self.check.count(row["purchased"], f"{field}.purchased")
-        assigned = self.check.count(row["assigned"], f"{field}.assigned")
-        if assigned > purchased:
-            self.check.fail(f"{field}.assigned", "assigned_exceeds_purchased")
         return Product(
             sku_part_number=sku_part_number,
             sku_guid=sku_guid,
-            purchased=purchased,
-            assigned=assigned,
+            purchased=self.check.count(row["purchased"], f"{field}.purchased"),
+            assigned=self.check.count(row["assigned"], f"{field}.assigned"),
             service_plans=tuple(
                 self.service_plan(item, f"{field}.service_plans[{i}]")
                 for i, item in enumerate(plans)
@@ -535,21 +547,16 @@ class _ScanReader:
             self.check.fail("licences.collector", "invalid_collector")
         source = self.check.choice(row["source"], "licences.source", self.catalogue.licence_sources)
         products = []
-        parts: set[str] = set()
         guids: set[str] = set()
         for index, item in enumerate(
             self.check.rows(row["products"], "licences.products", allow_empty=True)
         ):
             field = f"licences.products[{index}]"
             product = self.product(item, field)
-            part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
-            for name, identity, seen in (
-                ("sku_part_number", part_number, parts),
-                ("sku_guid", guid, guids),
-            ):
-                if identity and identity in seen:
-                    self.check.fail(f"{field}.{name}", "duplicate_id")
-                seen.add(identity)
+            if product.sku_guid is not None:
+                if product.sku_guid in guids:
+                    self.check.fail(f"{field}.sku_guid", "duplicate_id")
+                guids.add(product.sku_guid)
             products.append(product)
         licences = Licences(
             collector=collector,

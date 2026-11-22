@@ -42,7 +42,9 @@ def _measure(
     return finding
 
 
-def _report(tmp_path: Path, scan: dict, answers: str | None = None) -> Result:
+def _report(
+    tmp_path: Path, scan: dict, answers: str | None = None, *, lang: str | None = None
+) -> Result:
     tmp_path.mkdir()
     source = tmp_path / "inventory.json"
     source.write_text(json.dumps(scan), encoding="utf-8")
@@ -51,6 +53,8 @@ def _report(tmp_path: Path, scan: dict, answers: str | None = None) -> Result:
         inputs = tmp_path / "answers.yaml"
         inputs.write_text(answers, encoding="utf-8")
         options = ["--inputs", str(inputs)]
+    if lang is not None:
+        options.extend(("--lang", lang))
     command = ["report", str(source), "--out", str(tmp_path / "out"), *options]
     return runner.invoke(app, command)
 
@@ -162,6 +166,32 @@ def test_report_rejects_impossible_finding_dates(
     index = town_scan["findings"].index(finding)
 
     _reject_scan(tmp_path / "impossible-date", town_scan, f"findings[{index}].{field}")
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("period", "2026-11-02/2026-11-03"),
+        ("collected_at", "2026-11-03"),
+        ("collected_at", "2026-11-02T08:30:00-01:00"),
+    ],
+)
+def test_report_rejects_future_interview_evidence(
+    tmp_path: Path, town_scan: dict, field: str, value: str
+) -> None:
+    interview = _finding(town_scan, "telephony.in_use")
+    interview.update(
+        value=True,
+        provenance="provided",
+        source="interview",
+        period="2026-10-20/2026-11-02",
+        missing_reason=None,
+    )
+    _html(_report(tmp_path / "on-scan-date", town_scan))
+
+    interview[field] = value
+    index = town_scan["findings"].index(interview)
+    _reject_scan(tmp_path / "future-interview", town_scan, f"findings[{index}].{field}")
 
 
 @pytest.mark.parametrize("stamp", ["2026-11-02", "2026-11-02T10:00:00+01:00"])
@@ -372,6 +402,69 @@ def test_complete_licence_inventory_rejects_a_missing_product(
     assert not (incomplete / "out").exists()
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_report_shows_excess_assignments_as_assigned_use(
+    tmp_path: Path, town_scan: dict, lang: str
+) -> None:
+    phone = next(p for p in town_scan["licences"]["products"] if p["sku_part_number"] == "MCOEV")
+    phone.update(purchased=0, assigned=12)
+
+    html = _html(_report(tmp_path / "excess-assignments", town_scan, NO_TELEPHONY, lang=lang))
+    strings = load_locale(lang)
+    note = strings["licences"]["assigned_exceeds_purchased"].format(count=12)
+    assert f'data-reason="assigned_exceeds_purchased">{note}' in html
+    row = readiness_row(html, "telephony")
+    assert 'data-status="needs_work"' in row
+    assert re.search(
+        r'<li data-evidence="telephony\.licence_add_on_assigned">\s*<strong>[^<]+</strong>\s*'
+        rf'<div data-provenance="measured">\s*{strings["common"]["yes"]}',
+        row,
+    )
+
+
+def test_report_distinguishes_registered_skus_with_the_same_part_number(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    products = [
+        {
+            "sku_part_number": "MCOPSTN5",
+            "sku_guid": "54a152dc-90de-4996-93d2-bc47e670fc06",
+            "purchased": 3,
+            "assigned": 1,
+            "service_plans": [{"name": "MCOPSTN5", "guid": "54a152dc-90de-4996-93d2-bc47e670fc06"}],
+        },
+        {
+            "sku_part_number": "MCOPSTN5",
+            "sku_guid": "d43177b5-475b-4880-92d4-d54c27b5efbd",
+            "purchased": 3,
+            "assigned": 2,
+            "service_plans": [
+                {
+                    "name": "Skype for Business PSTN Calling Domestic Small",
+                    "guid": "9a0125a5-c8f8-4526-b231-49e2abe0ebce",
+                }
+            ],
+        },
+    ]
+    town_scan["licences"].update(
+        products=products, coverage={"kind": "complete", "scanned": 2, "failed": 0, "total": 2}
+    )
+    _finding(town_scan, "directory.licensed_user_count")["value"] = 3
+
+    html = _html(_report(tmp_path / "same-part-number", town_scan, NO_TELEPHONY))
+    assert 'data-status="needs_work"' in readiness_row(html, "telephony")
+    assert html.count('data-product="MCOPSTN5"') == 2
+    assert "Unclassified service plans" not in html
+    for product in products:
+        assert f"<code>{product['sku_guid']}</code>" in html
+        assert f"<code>{product['service_plans'][0]['name']}</code>" in html
+
+    products[1]["service_plans"][0]["guid"] = products[0]["sku_guid"]
+    _reject_scan(
+        tmp_path / "unregistered-plan-pair", town_scan, "licences.products[1].service_plans[0].name"
+    )
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
@@ -536,6 +629,22 @@ def test_report_rejects_impossible_licensed_headcounts(tmp_path: Path, violation
     _reject_scan(tmp_path / violation, scan, f"findings[{index}].value")
 
 
+def test_report_bounds_unchecked_internal_accounts(tmp_path: Path) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
+    scan = json.loads(sample.read_text(encoding="utf-8"))
+    _finding(scan, "directory.user_count").update(
+        value=0, coverage={"kind": "partial", "scanned": 19, "failed": 1, "total": 20}
+    )
+    _finding(scan, "directory.guest_count")["value"] = 19
+    _html(_report(tmp_path / "twenty-accounts", scan))
+
+    accounts = _finding(scan, "directory.licensed_user_count")
+    accounts["value"] = 21
+    scan["licences"]["products"][0]["assigned"] = 21
+    index = scan["findings"].index(accounts)
+    _reject_scan(tmp_path / "too-many-accounts", scan, f"findings[{index}].value")
+
+
 @pytest.mark.parametrize("date_only", ["both", "directory", "licences"])
 def test_report_rejects_date_only_snapshots_that_could_restore_licence_pilots(
     tmp_path: Path, date_only: str
@@ -556,6 +665,45 @@ def test_report_rejects_date_only_snapshots_that_could_restore_licence_pilots(
     else:
         field = "licences.collected_at"
     _reject_scan(tmp_path / date_only, scan, field)
+
+
+@pytest.mark.parametrize("offsetless", ["directory", "licences"])
+def test_report_requires_snapshot_offsets_during_the_repeated_hour(
+    tmp_path: Path, town_scan: dict, offsetless: str
+) -> None:
+    accounts = _finding(town_scan, "directory.licensed_user_count")
+    licences = town_scan["licences"]
+    accounts["collected_at"] = "2026-10-25T02:30:00+02:00"
+    licences["collected_at"] = "2026-10-25T02:30:00+01:00"
+    html = _html(_report(tmp_path / "different-offsets", town_scan))
+    assert 'data-reason="licence_directory_unverified"' in readiness_row(html, "licences")
+
+    if offsetless == "licences":
+        licences["collected_at"] = "2026-10-25T02:30:00"
+        field = "licences.collected_at"
+    else:
+        accounts["collected_at"] = "2026-10-25T02:30:00"
+        field = f"findings[{town_scan['findings'].index(accounts)}].collected_at"
+    _reject_scan(tmp_path / offsetless, town_scan, field)
+
+
+def test_report_rejects_positive_storage_for_a_known_empty_export(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    accounts = _measure(town_scan, "onedrive.account_count", 0, "onedrive_usage")
+    storage = _finding(town_scan, "onedrive.storage_bytes")
+    accounts["period"] = storage["period"]
+    assert storage["value"] > 0
+
+    index = town_scan["findings"].index(storage)
+    _reject_scan(tmp_path / "empty-export", town_scan, f"findings[{index}].value")
+
+    accounts["coverage"].update(kind="partial", scanned=19, total=20)
+    _html(_report(tmp_path / "incomplete-export", town_scan))
+
+    accounts["coverage"] = {"kind": "complete"}
+    accounts["period"] = "2026-10-01/2026-10-15"
+    _html(_report(tmp_path / "different-export-period", town_scan))
 
 
 @pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])

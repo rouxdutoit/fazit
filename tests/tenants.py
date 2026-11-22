@@ -126,6 +126,8 @@ def _finding(
             bounds.append(related)
         if entry.subset_of:
             bounds.append(sum(totals[parent] for parent in entry.subset_of))
+        if entry.requires_population and totals[entry.requires_population] == 0:
+            bounds.append(0)
         if scanned is not None and (
             scanned == 0 or (entry.type == "count" and not entry.aggregate)
         ):
@@ -238,6 +240,9 @@ def tenants(draw: st.DrawFn) -> Tenant:
     populations = {parent for entry in CATALOGUE.findings for parent in entry.subset_of}
     populations.update(
         entry.coverage_total_from for entry in CATALOGUE.findings if entry.coverage_total_from
+    )
+    populations.update(
+        entry.requires_population for entry in CATALOGUE.findings if entry.requires_population
     )
     totals = {reference: draw(COUNTS) for reference in sorted(populations)}
     findings = tuple(

@@ -101,6 +101,7 @@ findings:
     unit: bytes
     label: finding.mail.storage_bytes
     measured_by: {mailbox_usage: [sample.mailbox_usage]}
+    requires_population: mail.mailbox_count
     provided: "no"
     headline: true
   - id: mail.item_count
@@ -110,6 +111,7 @@ findings:
     label: finding.mail.item_count
     measured_by: {mailbox_usage: [sample.mailbox_usage]}
     aggregate: true
+    requires_population: mail.mailbox_count
     provided: "no"
     headline: false
   - id: mail.other_systems_send_mail
@@ -133,6 +135,7 @@ findings:
     unit: bytes
     label: finding.onedrive.storage_bytes
     measured_by: {onedrive_usage: [sample.onedrive_usage]}
+    requires_population: onedrive.account_count
     provided: "no"
     headline: true
   - id: onedrive.external_sharing_in_use
@@ -189,6 +192,7 @@ findings:
     label: finding.teams.channel_count
     measured_by: {teams_usage: [sample.teams_usage]}
     aggregate: true
+    requires_population: teams.team_count
     provided: "no"
     headline: false
   - id: teams.teams_with_guests_count
@@ -429,3 +433,5 @@ codes:
     c1f79c29-5d7a-4bec-a2c1-1a76774864c0: "Office_365_w/o_Teams_Bundle_Business_Standard"
     b57282e3-65bd-4252-9502-c0eae1e5ab7f: "Office_365_w/o_Teams_Bundle_E1"
     cf50bae9-29e8-4775-b07c-56ee10e3776d: "Office_365_w/o_Teams_Bundle_E5"
+  plan_exceptions:
+    9a0125a5-c8f8-4526-b231-49e2abe0ebce: "Skype for Business PSTN Calling Domestic Small"

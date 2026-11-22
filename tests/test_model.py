@@ -474,7 +474,7 @@ def test_licences_require_the_licences_collector_to_have_run(
 
 
 @pytest.mark.parametrize("reverse", [False, True])
-@pytest.mark.parametrize("group", ["collectors", "findings", "sku_part_number", "sku_guid"])
+@pytest.mark.parametrize("group", ["collectors", "findings", "sku_guid"])
 def test_duplicate_ids_fail_regardless_of_order(
     scan_data: dict, catalogue: Catalogue, reverse: bool, group: str
 ) -> None:
@@ -491,18 +491,11 @@ def test_duplicate_ids_fail_regardless_of_order(
     else:
         rows = scan_data["licences"]["products"]
         original = rows[0]
-        if group == "sku_part_number":
-            duplicate = {
-                **original,
-                "sku_part_number": original["sku_part_number"].upper(),
-                "sku_guid": "00000000-0000-4000-8000-000000000003",
-            }
-        else:
-            duplicate = {
-                **original,
-                "sku_part_number": "OTHER",
-                "sku_guid": original["sku_guid"].lower(),
-            }
+        duplicate = {
+            **original,
+            "sku_part_number": "OTHER",
+            "sku_guid": original["sku_guid"].lower(),
+        }
         scope = f"licences.products[1].{group}"
     rows[:1] = [duplicate, original] if reverse else [original, duplicate]
 

@@ -27,14 +27,16 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 - A count of scanned items fits within the stated successful count and within the total less known failures. Mail items, SharePoint files, Teams channels and bytes can accumulate multiple units per checked row.
 - A measured value requires at least one possible successful check. Complete coverage of an empty population can establish zero or No.
 - A subset fits within the upper bounds of its population when the catalogue links their counts and the observations share a source and reporting period or, without a period, a collection instant. A linked coverage total also limits successful checks after deducting known failures.
-- Licensed accounts fit within the sum of internal and guest accounts. Guests fit within their stated coverage. Internal accounts exclude guests.
+- Licensed accounts fit within the sum of internal and guest accounts. Guests fit within their stated coverage. Internal accounts exclude guests. For an incomplete count with known numbers of successful checks and total rows, its upper bound is the observed count plus the unverified rows, including failed checks.
 - Teams with guests fit within the team count. Their stated coverage total equals the known team population and is at least the observed team count when the population is incomplete.
 - Windows devices fit within all devices, and Windows-only applications without a web version fit within all Windows-only applications, when the observations are comparable.
 - The mailbox usage and Exchange recipient exports have independent coverage. Shared mailboxes fit within the stated coverage of the recipient export.
-- Assigned seats fit within purchased seats for each product. Product part numbers and GUIDs each appear at most once after normalisation.
+- Within the same export and reporting period, an empty mailbox population rules out positive storage and item counts. An empty OneDrive account population rules out positive storage, and an empty team population rules out positive channel counts.
+- Assigned seats may exceed purchased seats. The excess appears in the licence evidence and the assigned seats still count towards use. [Microsoft 365 subscription guidance](https://learn.microsoft.com/en-us/microsoft-365/commerce/subscriptions/what-if-my-subscription-expires?view=o365-worldwide)
+- Product GUIDs appear at most once after normalisation. Registered products may share a part number, as the two products with part number `MCOPSTN5` do. [Microsoft licence reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
 - Licence rows fit within successful checks and the total less known failures. Complete licence coverage records one row per product, including the empty inventory.
-- A reporting period ends by the collection date, and evidence is collected by the time the scan was generated. Date-only stamps give the calendar day for this ordering check.
-- Measured snapshots and the licence inventory carry a clock time. Date-only collection stamps are accepted for period-based measurements and for provided or unknown evidence. A date alone never establishes a shared instant.
+- A reporting period ends by the collection date, or by the scan date when the evidence is undated. Evidence is collected by the time the scan was generated. Date-only stamps give the calendar day for these ordering checks.
+- Measured snapshots and the licence inventory carry a clock time. Every clock time includes a UTC offset or `Z`. Date-only collection stamps are accepted for period-based measurements and for provided or unknown evidence. A date alone never establishes a shared instant.
 - Licence reconciliation still requires a complete inventory and a complete measured licensed headcount from the same instant. The headcount must be at least the largest user-SKU assignment count and at most the sum of assigned user seats. A missing, mistimed, incomplete or conflicting headcount leaves inferred licence absences unknown and preserves positive assignments.
 
 ## 2026-11-21 — M0 complete (demo and report)

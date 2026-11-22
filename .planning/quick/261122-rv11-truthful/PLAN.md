@@ -2,7 +2,7 @@
 quick_id: 261122-rv11
 slug: truthful
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: accept every truthful tenant, reject the remaining impossible ones
