@@ -46,13 +46,22 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer
 - [ ] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
 - [ ] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
-- [ ] **REPT-05**: Status is never conveyed by colour alone: each status has a text label, and status colours differ in lightness
+- [ ] **REPT-05**: Status is never conveyed by colour alone: each status has a text label and its own symbol (D-80)
 - [ ] **REPT-06**: Person names and email addresses are absent from the report, `scan.json`, the filename and printed output, because schema 1.x has no field that can hold them and unknown fields are dropped
 
 ### Languages
 
 - [ ] **I18N-01**: All user-facing report strings come from `locales/de.yaml` and `locales/en.yaml`, with none hardcoded in templates
 - [ ] **I18N-02**: A test fails if a key exists in one locale and not the other
+
+### Decision support (added 2026-11-22)
+
+- [ ] **AIAS-01**: The report assesses AI assistants (Microsoft 365 Copilot, Copilot Studio) as the second area, after licences: paid add-on licences count as measured evidence, interview answers cover agents built, data sources connected and processes that depend on them, and each target profile maps the area
+- [ ] **DECI-01**: User can give the licence contract's end date and notice period in `inputs.yaml`; the report shows the next renewal and the date by which a decision is needed to avoid another term, marked as provided
+- [ ] **SOVC-01**: Each finding links to the criterion it informs in ZenDiS's sovereignty criteria catalogue (version 1.0) and, where they apply, the Austrian and Swiss equivalents; the appendix lists the mapping with its source and date
+- [ ] **OUTP-01**: User can export findings, open questions and effort drivers as CSV for project plans, under the same privacy rules as `scan.json`
+- [ ] **OUTP-02**: `fazit verify REPORT` checks offline whether a report was changed after it was written, using its embedded checksums; it detects changes, it does not prove who ran Fazit
+- [ ] **DATA-01**: The report states where the tenant's data is stored (data location and EU Data Boundary status), from an admin-centre export or a provided answer, as a fact without a score
 
 ### Import
 
@@ -174,6 +183,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPT-06 | Phase 1 | Pending |
 | I18N-01 | Phase 1 | Pending |
 | I18N-02 | Phase 1 | Pending |
+| AIAS-01 | Phase 1.1 | Pending |
+| DECI-01 | Phase 1.1 | Pending |
+| OUTP-01 | Phase 1.2 | Pending |
+| OUTP-02 | Phase 1.2 | Pending |
+| SOVC-01 | Phase 1.3 | Pending |
+| DATA-01 | Phase 2 | Pending |
 | IMPT-01 | Phase 2 | Pending |
 | IMPT-02 | Phase 2 | Pending |
 | IMPT-03 | Phase 2 | Pending |
@@ -205,14 +220,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-04 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 58 total
-- Mapped to phases: 58
+- v1 requirements: 64 total
+- Mapped to phases: 64
 - Unmapped: 0 ✓
 - Phase 1 (Demo and Report): 31
-- Phase 2 (Import): 6
+- Phase 1.1 (AI Assistants and Decision Window): 2
+- Phase 1.2 (Outputs for Integrators): 2
+- Phase 1.3 (Sovereignty Criteria): 1
+- Phase 2 (Import): 7
 - Phase 3 (Doctor, Sign-in and Live Counts): 16
 - Phase 4 (Documentation, Packaging and Release): 5
 
 ---
 *Requirements defined: 2026-11-21*
-*Last updated: 2026-11-21 after roadmap creation*
+*Last updated: 2026-11-22 after adding decision support (phases 1.1 to 1.3, DATA-01 in phase 2)*

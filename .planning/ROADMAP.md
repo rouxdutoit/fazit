@@ -15,6 +15,9 @@ The four phases follow the milestone order M0 to M3 agreed in `DECISIONS.md`.
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Demo and Report** - `demo` and `report` produce the full German or English report from sample data, with rules, evidence and costs, and no Microsoft code
+- [ ] **Phase 1.1: AI Assistants and Decision Window** (INSERTED) - Copilot and Copilot Studio as the second assessed area, and the renewal date by which a decision is needed
+- [ ] **Phase 1.2: Outputs for Integrators** (INSERTED) - CSV export for project plans and `fazit verify` to detect changes to a report
+- [ ] **Phase 1.3: Sovereignty Criteria** (INSERTED) - every finding linked to ZenDiS's sovereignty criteria catalogue and the Austrian and Swiss equivalents
 - [ ] **Phase 2: Import** - `import` turns admin-centre CSV exports into a real report locally, keeping aggregates only
 - [ ] **Phase 3: Doctor, Sign-in and Live Counts** - `doctor` and `scan` with browser sign-in, live licence and directory counts, and enforced host and endpoint allowlists
 - [ ] **Phase 4: Documentation, Packaging and Release** - bilingual guides, `uvx` from PyPI, signed Windows build, first tagged release
@@ -44,17 +47,49 @@ Plans, run one at a time in this order:
 - [ ] 01-07-PLAN.md — Repository basics and final proof: licence, CONTRIBUTING, SECURITY, README in two languages, CI, installed package offline, M0 note
 **UI hint**: yes
 
+### Phase 1.1: AI Assistants and Decision Window (INSERTED)
+**Goal**: The report shows an organisation's dependency on Microsoft's AI assistants and tells it when it has to decide before its licences renew
+**Depends on**: Phase 1
+**Requirements**: AIAS-01, DECI-01
+**Research**: `.planning/research/copilot-area.md` (licence and plan IDs checked against Microsoft's licensing reference, measurable evidence, open alternatives)
+**Success Criteria** (what must be TRUE):
+  1. "AI assistants (Copilot)" appears as the second area in the report, the site's area list and the coverage table, in both languages.
+  2. A paid Copilot or Copilot Studio licence in the licence block is measured evidence; Copilot plans bundled in suites prove nothing on their own; agents and connected data sources come from provided answers; incomplete evidence is never Ready.
+  3. Each target profile maps the area with a dated source, and no profile claims more than its documentation says.
+  4. With a contract end date and notice period in `inputs.yaml`, the report shows the next renewal and the decision date, marked as provided; without them it says what to supply.
+**Plans**: TBD
+
+### Phase 1.2: Outputs for Integrators (INSERTED)
+**Goal**: Integrators can move a report's findings into their own project plans, and anyone can check that a report has not been changed since it was written
+**Depends on**: Phase 1
+**Requirements**: OUTP-01, OUTP-02
+**Success Criteria** (what must be TRUE):
+  1. `--csv` (or an equivalent output) writes findings, open questions and effort drivers next to the report, with no field that can hold person data, covered by the privacy test.
+  2. `fazit verify REPORT` passes on an unchanged report and fails, naming the section, after any edit; it works offline and its help text says it detects changes, not authorship.
+**Plans**: TBD
+
+### Phase 1.3: Sovereignty Criteria (INSERTED)
+**Goal**: A public body can use the report directly in its sovereignty assessment
+**Depends on**: Phase 1.1
+**Requirements**: SOVC-01
+**Success Criteria** (what must be TRUE):
+  1. Each finding names the criterion it informs in ZenDiS's catalogue (version 1.0), with the catalogue's own identifiers, and the appendix lists the mapping with source and date.
+  2. Austrian and Swiss criteria are mapped where an official equivalent exists, or the appendix says none was found.
+  3. A finding with no matching criterion says so rather than forcing a match.
+**Plans**: TBD
+
 ### Phase 2: Import
 **Goal**: A real organisation's admin-centre CSV exports become a `scan.json` and a report on the user's own machine, with no sign-in, no consent and no network access, and with nothing kept but aggregates
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05
+**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05, DATA-01
 **Success Criteria** (what must be TRUE):
   1. With the network switched off and without signing in, a user points `import` at admin-centre exports (mailbox, OneDrive, SharePoint site and Teams usage, and licences) and gets a `scan.json` and a report in German or English, with the report path printed.
   2. The `scan.json` written by `import` holds aggregates only, with no per-user rows, person names or email addresses by default, and each imported figure shows its source file, reporting period and coverage in the report.
   3. When an export uses concealed (anonymised) identifiers, the import still succeeds and the report says the identifiers were concealed.
   4. When one CSV has unrecognised or changed columns, the user sees a message naming that file and the missing columns, the other files are still imported, and the affected workload shows Unknown.
   5. The shared-mailbox count shows Unknown with the reason until the user also imports an Exchange recipient export, after which the count appears.
+  6. The report states the tenant's data location and EU Data Boundary status from an export or a provided answer, as a fact without a score.
 **Plans**: TBD
 
 ### Phase 3: Doctor, Sign-in and Live Counts
@@ -95,11 +130,14 @@ Plans, run one at a time in this order:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Demo and Report | 11/11 | Complete | 2026-11-21 |
+| 1.1. AI Assistants and Decision Window | 0/TBD | Not started | - |
+| 1.2. Outputs for Integrators | 0/TBD | Not started | - |
+| 1.3. Sovereignty Criteria | 0/TBD | Not started | - |
 | 2. Import | 0/TBD | Not started | - |
 | 3. Doctor, Sign-in and Live Counts | 0/TBD | Not started | - |
 | 4. Documentation, Packaging and Release | 0/TBD | Not started | - |
