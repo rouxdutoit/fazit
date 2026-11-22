@@ -19,8 +19,7 @@
       font-weight: 100 900;
       font-display: swap;
     }
-    /* Same tokens as the website. Light: apple.com neutrals and link blue. Dark: Fazit's green
-       on black. Status: iOS system colours. A test keeps both in step. */
+
     :root {
       color-scheme: light;
       --bg: #ffffff;
@@ -30,6 +29,7 @@
       --muted: #6e6e73;
       --line: #d2d2d7;
       --accent: #0066cc;
+      --accent-hover: #006bd1;
       --status-ready: #34c759;
       --status-needs-work: #ffcc00;
       --status-blocker: #ff9500;
@@ -53,6 +53,7 @@
         --muted: #7b9d83;
         --line: #1e2820;
         --accent: #30d158;
+        --accent-hover: #4cdb72;
         --status-ready: #30d158;
         --status-needs-work: #ffd60a;
         --status-blocker: #ff9f0a;
@@ -77,8 +78,8 @@
     h2 { font-size: var(--fs-headline); line-height: 1.2; }
     h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 8px; }
     p { margin-block: 0 12px; }
-    a { color: var(--accent); text-decoration: none; transition: filter .2s ease, text-shadow .2s ease; }
-    a:hover { filter: brightness(1.15); }
+    a { color: var(--accent); text-decoration: none; transition: color .2s ease, text-shadow .2s ease; }
+    a:hover { color: var(--accent-hover); }
     @media screen and (prefers-color-scheme: dark) {
       a:hover { text-shadow: 0 0 12px rgb(48 209 88 / 55%); }
     }
@@ -2273,7 +2274,7 @@
     Bisherige Microsoft-Lizenzen
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2299,7 +2300,7 @@
     Sonstige bisherige IT-Kosten
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2325,7 +2326,7 @@
     Beibehaltene Microsoft-Lizenzen
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2351,7 +2352,7 @@
     Hosting
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2377,7 +2378,7 @@
     Betrieb des Zielsystems
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2403,7 +2404,7 @@
     Sonstige laufende Kosten des Zielsystems
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2429,7 +2430,7 @@
     Zwischensumme
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2452,7 +2453,7 @@
     Einmalige Migration
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2478,7 +2479,7 @@
     Anpassung von Anwendungen
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2504,7 +2505,7 @@
     Externe Beratung
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2530,7 +2531,7 @@
     Schulung
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2556,7 +2557,7 @@
     Zwischensumme
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2579,7 +2580,7 @@
     Kosten durch Produktivitätsverluste
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2605,7 +2606,7 @@
     Zwischensumme
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2628,7 +2629,7 @@
     Bisherige Microsoft-Lizenzen im Parallelbetrieb
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2654,7 +2655,7 @@
     Zwischensumme
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2673,7 +2674,7 @@
     Gesamtkosten für fünf Jahre
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -2689,7 +2690,7 @@
     Unterschied zum Verbleib
 
 
-      <small data-cost-origin="calculated_with_examples">Aus Beispieldaten berechnet</small>
+      <small data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</small>
 
   </th>
 
@@ -3221,7 +3222,7 @@
                         </li>
 
                         <li data-evidence="teams.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Teams</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Teams</strong>
                           <div data-provenance="measured">
     Nein
     <span class="prov">Erhoben</span>
@@ -3465,7 +3466,7 @@
                         </li>
 
                         <li data-evidence="device_management.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Geräteverwaltung</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Geräteverwaltung</strong>
                           <div data-provenance="measured">
     Nein
     <span class="prov">Erhoben</span>
@@ -3614,7 +3615,7 @@
                         </li>
 
                         <li data-evidence="power_platform.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Power Platform</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Power Platform</strong>
                           <div data-provenance="measured">
     Ja
     <span class="prov">Erhoben</span>
@@ -3675,7 +3676,7 @@
                     <ul>
 
                         <li data-evidence="telephony.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Telefonie</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Telefonie</strong>
                           <div data-provenance="measured">
     Ja
     <span class="prov">Erhoben</span>
@@ -3797,7 +3798,7 @@
                         </li>
 
                         <li data-evidence="identity_access.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Identitäten und Zugriff</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Identitäten und Zugriff</strong>
                           <div data-provenance="measured">
     Nein
     <span class="prov">Erhoben</span>
@@ -3883,7 +3884,7 @@
                         </li>
 
                         <li data-evidence="security_compliance.licence_add_on_assigned">
-                          <strong>Separat zugewiesene Lizenz für Sicherheit und Regelkonformität</strong>
+                          <strong>Zugewiesene Zusatzlizenz für Sicherheit und Regelkonformität</strong>
                           <div data-provenance="measured">
     Nein
     <span class="prov">Erhoben</span>
@@ -4529,7 +4530,7 @@
               <tr data-kind="macro" role="row">
                 <th scope="row" role="rowheader" data-label="Dateityp">Kann Makros enthalten</th>
                 <td role="cell" data-label="Dateiendungen">
-                  <code>.xlsm</code>, <code>.xltm</code>, <code>.xlam</code>, <code>.docm</code>, <code>.dotm</code>, <code>.pptm</code>, <code>.potm</code>
+                  <code>.xlsm</code>, <code>.xltm</code>, <code>.xlam</code>, <code>.xlsb</code>, <code>.docm</code>, <code>.dotm</code>, <code>.pptm</code>, <code>.potm</code>, <code>.ppam</code>, <code>.ppsm</code>, <code>.sldm</code>
                 </td>
                 <td role="cell" data-label="Gemeldete Anzahl">
 
@@ -4774,7 +4775,7 @@
         </div>
 
       <div data-subsection="cannot-be-moved">
-        <h3>Nicht direkt übertragbar</h3>
+        <h3>Direkte Übernahme nicht belegt</h3>
 
           <p>Für diese Funktionen ist im gewählten Profil keine direkte Übernahme belegt.</p>
           <ul class="mapping-gaps">
@@ -4963,7 +4964,7 @@
           </ul>
 
 
-        <h3>Bereiche, in denen die Bestandsaufnahme kein Hindernis zeigt</h3>
+        <h3>Bereiche mit dem Status „Bereit“</h3>
 
 
           <ul data-path-status="ready" class="path-workloads">
@@ -5406,7 +5407,7 @@
       </li>
 
       <li>
-        Separat zugewiesene Lizenz für Geräteverwaltung
+        Zugewiesene Zusatzlizenz für Geräteverwaltung
         == Nein
 
       </li>
@@ -5500,7 +5501,7 @@
       </li>
 
       <li>
-        Separat zugewiesene Lizenz für Power Platform
+        Zugewiesene Zusatzlizenz für Power Platform
         == Nein
 
       </li>
@@ -5512,7 +5513,7 @@
                 <ul>
 
       <li>
-        Separat zugewiesene Lizenz für Power Platform
+        Zugewiesene Zusatzlizenz für Power Platform
         == Ja
 
       </li>
@@ -5541,7 +5542,7 @@
             <ul>
 
       <li>
-        Separat zugewiesene Lizenz für Telefonie
+        Zugewiesene Zusatzlizenz für Telefonie
         == Nein
 
       </li>
@@ -5634,7 +5635,7 @@
       </li>
 
       <li>
-        Separat zugewiesene Lizenz für Sicherheit und Regelkonformität
+        Zugewiesene Zusatzlizenz für Sicherheit und Regelkonformität
         == Nein
 
       </li>
@@ -5946,7 +5947,7 @@
 
             <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">90b60e105a80482e31e71610ec5660690ce3f23838e6edf1133ccada3c6167c1</code></li>
 
-            <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">51361b45b91e0d372ca414c2b68737c3ccb3206ea1570fd3002980d463dff244</code></li>
+            <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">aaa6e9d687a1eba8d109c429be77cebddcf85a19e38919ce540671569f81ac4c</code></li>
 
             <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">92d5d995207717d719b0569f4b0842f204d48722e5d17a961a493e90cedc698c</code></li>
 

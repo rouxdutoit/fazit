@@ -61,34 +61,42 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
+            <span class="feature-icon icon-lock" aria-hidden="true"></span>
             <h3>Nur Lesezugriff</h3>
             <p>Für die geplante Anmeldung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie <code>GET</code> verwenden.</p>
           </li>
           <li>
+            <span class="feature-icon icon-computer" aria-hidden="true"></span>
             <h3>Lokale Verarbeitung</h3>
             <p>Die Prüfdaten bleiben auf dem Rechner, sofern Erhebungsdatei, Eingabedatei und das Verzeichnis für <code>--out</code> auf lokalen Datenträgern liegen; über eine Netzwerkfreigabe werden diese Dateien übertragen. Nutzungsberichte sollen offline eingelesen werden. Die geplante Anmeldung ist auf <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> begrenzt und verzichtet auf Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe.</p>
           </li>
           <li>
+            <span class="feature-icon icon-memory" aria-hidden="true"></span>
             <h3>Tokens im Arbeitsspeicher</h3>
             <p>Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.</p>
           </li>
           <li>
+            <span class="feature-icon icon-database" aria-hidden="true"></span>
             <h3>Nur Metadaten</h3>
             <p>Für die geplante Erhebung sind nur Anzahlen, Größen und codierte Nachweise vorgesehen. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.</p>
           </li>
           <li>
+            <span class="feature-icon icon-visibility-off" aria-hidden="true"></span>
             <h3>Personenbezogene Daten</h3>
             <p>Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in <code>inputs.yaml</code> in den Bericht übernommen werden.</p>
           </li>
           <li>
+            <span class="feature-icon icon-description" aria-hidden="true"></span>
             <h3>Bericht ohne Netzwerk</h3>
             <p>Der Bericht enthält die Formatvorlagen und die Schriften Figtree und Geist Mono direkt in der HTML-Datei. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.</p>
           </li>
           <li>
+            <span class="feature-icon icon-terminal" aria-hidden="true"></span>
             <h3>Ein Befehl</h3>
             <p>Nach der Einrichtung erstellt ein Befehl den Bericht aus Beispieldaten oder einer kompatiblen Erhebungsdatei mit eigenen Antworten und Kosten. Messwerte stammen aus den Beispielen. Für die spätere Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</p>
           </li>
           <li>
+            <span class="feature-icon icon-fact-check" aria-hidden="true"></span>
             <h3>Nachvollziehbare Zahlen</h3>
             <p>Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.</p>
           </li>
@@ -162,7 +170,6 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-actions">
           <a class="language" href="/security/" lang="en" hreflang="en" aria-label="English">EN</a>
-          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden><span class="sr-only">Dunkle Ansicht</span></button>
         </div>
       </div>
     </div>

@@ -1,17 +1,9 @@
 (() => {
   const root = document.documentElement;
-  const systemTheme = matchMedia("(prefers-color-scheme: dark)");
-  const storageKey = "fazit-theme";
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const animate = !matchMedia("(prefers-reduced-motion: reduce)").matches
+    && "IntersectionObserver" in window;
   root.classList.add("has-js");
-  const animate = !reducedMotion.matches && "IntersectionObserver" in window;
-
-  try {
-    const saved = localStorage.getItem(storageKey);
-    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
-  } catch {
-    // The system preference also works when browser storage is unavailable.
-  }
+  if (animate) root.classList.add("motion");
 
   // Headings resolve from random glyphs into their text, like evidence into a conclusion.
   // Screen readers get the plain text throughout; reduced motion skips the effect.
@@ -65,35 +57,6 @@
   };
 
   document.addEventListener("DOMContentLoaded", () => {
-    const theme = document.querySelector("[data-theme-toggle]");
-    const isDark = () => root.dataset.theme
-      ? root.dataset.theme === "dark"
-      : systemTheme.matches;
-
-    if (theme) {
-      const darkPreviews = document.querySelectorAll("[data-dark-preview]");
-      const showTheme = () => {
-        const dark = isDark();
-        theme.setAttribute("aria-pressed", String(dark));
-        if (!root.dataset.theme) return;
-        for (const source of darkPreviews) {
-          source.media = dark ? (source.dataset.darkPreview || "all") : "not all";
-        }
-      };
-      showTheme();
-      theme.hidden = false;
-      systemTheme.addEventListener("change", showTheme);
-      theme.addEventListener("click", () => {
-        root.dataset.theme = isDark() ? "light" : "dark";
-        try {
-          localStorage.setItem(storageKey, root.dataset.theme);
-        } catch {
-          // The choice still applies until the page is left.
-        }
-        showTheme();
-      });
-    }
-
     const bar = document.querySelector("[data-bar]");
     const menuButton = bar?.querySelector(".menu-button");
     if (menuButton) {
@@ -127,6 +90,20 @@
         if (element.closest(".hero")) setTimeout(() => decode(element), 150);
         else observer.observe(element);
       }
+
+      // Content rises into place as it enters, a beat apart within a row.
+      const reveal = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          reveal.unobserve(entry.target);
+          entry.target.classList.add("in");
+        }
+      }, { rootMargin: "0px 0px -6% 0px" });
+      for (const element of document.querySelectorAll(".tiles > li, .figures > li, .finding, .table-wrap, .timeline-step")) {
+        element.classList.add("reveal");
+        element.style.setProperty("--i", [...element.parentElement.children].indexOf(element) % 3);
+        reveal.observe(element);
+      }
     }
 
     const copy = document.querySelector("[data-copy]");
@@ -141,6 +118,7 @@
         try {
           await navigator.clipboard.writeText(command.textContent);
           copy.textContent = copy.dataset.copied;
+          copy.classList.add("done");
           message.textContent = copy.dataset.copied;
           message.classList.add("sr-only");
         } catch {
@@ -154,6 +132,7 @@
         }
         reset = setTimeout(() => {
           copy.textContent = label;
+          copy.classList.remove("done");
           message.textContent = "";
         }, 3000);
       });

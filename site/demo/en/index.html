@@ -19,8 +19,7 @@
       font-weight: 100 900;
       font-display: swap;
     }
-    /* Same tokens as the website. Light: apple.com neutrals and link blue. Dark: Fazit's green
-       on black. Status: iOS system colours. A test keeps both in step. */
+
     :root {
       color-scheme: light;
       --bg: #ffffff;
@@ -30,6 +29,7 @@
       --muted: #6e6e73;
       --line: #d2d2d7;
       --accent: #0066cc;
+      --accent-hover: #006bd1;
       --status-ready: #34c759;
       --status-needs-work: #ffcc00;
       --status-blocker: #ff9500;
@@ -53,6 +53,7 @@
         --muted: #7b9d83;
         --line: #1e2820;
         --accent: #30d158;
+        --accent-hover: #4cdb72;
         --status-ready: #30d158;
         --status-needs-work: #ffd60a;
         --status-blocker: #ff9f0a;
@@ -77,8 +78,8 @@
     h2 { font-size: var(--fs-headline); line-height: 1.2; }
     h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 8px; }
     p { margin-block: 0 12px; }
-    a { color: var(--accent); text-decoration: none; transition: filter .2s ease, text-shadow .2s ease; }
-    a:hover { filter: brightness(1.15); }
+    a { color: var(--accent); text-decoration: none; transition: color .2s ease, text-shadow .2s ease; }
+    a:hover { color: var(--accent-hover); }
     @media screen and (prefers-color-scheme: dark) {
       a:hover { text-shadow: 0 0 12px rgb(48 209 88 / 55%); }
     }
@@ -4529,7 +4530,7 @@
               <tr data-kind="macro" role="row">
                 <th scope="row" role="rowheader" data-label="File type">May contain macros</th>
                 <td role="cell" data-label="Extensions">
-                  <code>.xlsm</code>, <code>.xltm</code>, <code>.xlam</code>, <code>.docm</code>, <code>.dotm</code>, <code>.pptm</code>, <code>.potm</code>
+                  <code>.xlsm</code>, <code>.xltm</code>, <code>.xlam</code>, <code>.xlsb</code>, <code>.docm</code>, <code>.dotm</code>, <code>.pptm</code>, <code>.potm</code>, <code>.ppam</code>, <code>.ppsm</code>, <code>.sldm</code>
                 </td>
                 <td role="cell" data-label="Reported count">
 
@@ -4963,7 +4964,7 @@
           </ul>
 
 
-        <h3>Areas where the evidence shows no obstacle</h3>
+        <h3>Areas with Ready status</h3>
 
 
           <ul data-path-status="ready" class="path-workloads">
@@ -5946,7 +5947,7 @@
 
             <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">90b60e105a80482e31e71610ec5660690ce3f23838e6edf1133ccada3c6167c1</code></li>
 
-            <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">51361b45b91e0d372ca414c2b68737c3ccb3206ea1570fd3002980d463dff244</code></li>
+            <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">aaa6e9d687a1eba8d109c429be77cebddcf85a19e38919ce540671569f81ac4c</code></li>
 
             <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">92d5d995207717d719b0569f4b0842f204d48722e5d17a961a493e90cedc698c</code></li>
 

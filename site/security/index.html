@@ -61,34 +61,42 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
+            <span class="feature-icon icon-lock" aria-hidden="true"></span>
             <h3>Read-only</h3>
             <p>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</p>
           </li>
           <li>
+            <span class="feature-icon icon-computer" aria-hidden="true"></span>
             <h3>Local processing</h3>
             <p>Fazit keeps assessment data on the computer, as long as the scan, inputs and <code>--out</code> directory are on local storage: a network share sends those files over the network. Usage exports will be imported offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</p>
           </li>
           <li>
+            <span class="feature-icon icon-memory" aria-hidden="true"></span>
             <h3>Tokens in memory</h3>
             <p>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</p>
           </li>
           <li>
+            <span class="feature-icon icon-database" aria-hidden="true"></span>
             <h3>Metadata only</h3>
             <p>Planned collection will be limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</p>
           </li>
           <li>
+            <span class="feature-icon icon-visibility-off" aria-hidden="true"></span>
             <h3>Personal data</h3>
             <p>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</p>
           </li>
           <li>
+            <span class="feature-icon icon-description" aria-hidden="true"></span>
             <h3>Offline report</h3>
             <p>The report is one HTML file with inline CSS and embedded Figtree and Geist Mono fonts. It opens and prints without a network connection, JavaScript or external resources.</p>
           </li>
           <li>
+            <span class="feature-icon icon-terminal" aria-hidden="true"></span>
             <h3>One command</h3>
             <p>After setup, one command builds a report from bundled samples or a compatible scan with your own answers and costs. Measured figures come from the samples. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</p>
           </li>
           <li>
+            <span class="feature-icon icon-fact-check" aria-hidden="true"></span>
             <h3>Honest figures</h3>
             <p>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</p>
           </li>
@@ -162,7 +170,6 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-actions">
           <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
-          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden><span class="sr-only">Dark mode</span></button>
         </div>
       </div>
     </div>
