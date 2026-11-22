@@ -23,7 +23,7 @@ Each of these has a test. A change that weakens one of those tests is rejected.
 - Small modules with one job. Functions that fit on a screen. No inheritance trees, no metaprogramming, no plugin systems, no abstraction added for a future that has not arrived.
 - No dead code, no commented-out code, no `TODO` left behind. If something is deferred, it goes in `DECISIONS.md`.
 - Comments say why, never what. Names carry the what.
-- Dependencies: `typer`, `jinja2`, `pyyaml`; dev: `pytest`, `ruff`. Adding one needs a new entry in `DECISIONS.md` first.
+- Dependencies: `typer`, `jinja2`, `pyyaml`; dev: `pytest`, `ruff`, `hypothesis`. Adding one needs a new entry in `DECISIONS.md` first.
 - Data, not code, holds judgement: mappings, status rules, risky file types and all user-facing text live in YAML inside the package.
 - `yaml.safe_load` only. Jinja2 with autoescape on. No `eval`, no `exec`, no shell calls, no pickle.
 - Files are written only inside the directory the user named with `--out`.
