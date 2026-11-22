@@ -2,6 +2,8 @@
 
 Design contract, revision 4, with both reviews, the filter request, the launch critique decisions and the usefulness review applied. One design, no options.
 
+**Revision 4.1** (2026-11-22) adds the Apple-lens review (`.planning/research/apple-lens/REVIEW.md`, section 4 and copy bugs): one status list with counts and definitions; scope statement after the open questions; the blocker count line only when rows are cut off; the area name as every card's anchor; next steps before open points in "Worth doing even if you stay"; shorter search hint and Stay note; German provenance words.
+
 **Revision 4** (2026-11-22) applies the founder's decisions on the usefulness review (`.planning/research/report-usefulness/SYNTHESIS.md`, sections A and C): findings, not a verdict; page one written for the council, on screen and in print; no readiness bar in the summary; three cost totals with the Stay assumption and a break-even line; one open-points list straight after the summary, split into what is worth doing even if the organisation stays and what only a move needs; scoped blocker wording; a coverage symbol that no status uses; a scope statement once RR-06 and RR-07 have landed. It also takes in the launch-critique changes already in RR-01: Licences has no status, card or category, and the area count comes from the catalogue. German copy marked *draft* needs the native review before merge.
 
 Scope: the report template, both locales, `rules/findings.yaml`, `rules/status.yaml`, `catalogue.py`, the rule loaders, `report.py`, `icons/`, `site/icons/circle.svg`, and the tests and `site/check_site.py` only where section 9 permits.
@@ -30,19 +32,18 @@ A cold reader asks: what would a move take, what stops it, what is still open, w
 
 The summary is page one's body. In this order:
 
-1. **Count line.** `.status-legend` at `--fs-lead`, introduced by "Of {n} areas:" in `--fg-2`, where n is the number of assessed areas in the catalogue (never a literal; 14 before Phase 1.1): symbol, status name, count; zero counts stay. This is the only count line in the summary. No sentence, score, percentage, bar, pie or other part-of-whole picture: a share of areas reads as "how ready are we".
-2. **Status definitions** (`dl.status-definitions`, `--fs-footnote`, `--fg-2`): one row per status in display order, `dt` symbol and status name, `dd` the definition from section 8. Always shown, so a printed page one explains its own words (launch critique B7).
-3. **What the target covers** (ships with RR-07, after RR-06 removes the desktop inference; absent before, and absent for a profile without dated project sources, such as `generic`). `div.subsection` > `h3` "What {profile} covers". One line: "Of the {n} functions Fazit checks for {profile}:" then each coverage label present in the profile's mapping with its count, as text in `--fg` (the profile's own categories, never merged into three). Then `dl.rows` "Outside {profile} and needed here": each function whose transfer gap has the organisation's need Yes, linking to its gap; then "{n} more are outside {profile} and still Unknown here." Counts and names only: never a fraction, percentage or bar. The counts equal the replacements table.
-4. **What blocks this move** (`div.subsection` > `h3` + `dl.rows`; `h3 + .rows { margin-top: 12px }`). Under the heading: "Confirmed blockers: {shown} of {total}" and, only when total is at least 1, a link "All blockers" to `#status-blocker`. At most **3** rows, catalogue order. `dt`: area name linking to its card, plus "Evidence incomplete" when the row is incomplete. `dd`: the deciding rule's reason, unshortened. With no blocker: `path.empty.blocker`, and whenever any area is Unknown or incomplete: "{n} areas are Unknown or have incomplete evidence, so a Blocker cannot be ruled out."
-5. **What is still unknown** (same structure as 4): at most **4** rows. Areas that are Unknown or incomplete, deduplicated, in catalogue order. `dd`: for an Unknown area, the fix for `row.reason_code`; for an incomplete decided area, the fix of its first missing item. Then two links: "All open points" to `#not-examined`, and "{n} inputs are missing" to `#costs-missing` with `costs.missing_fix`. Never omitted; with nothing unknown it shows `path.empty.unknown`. It comes before the costs because an unknown changes how far the totals can be trusted.
-6. **Cost tiles** (`ul.tiles.tiles-3`), one per scenario in the order Stay, Partial move, Full move:
+1. **Statuses: count and meaning in one list** (`dl.status-summary`), introduced by "Of {n} areas:" in `--fg-2`, where n is the number of assessed areas in the catalogue (never a literal; 14 before Phase 1.1). Four rows in display order, zero counts kept. Each row: `dt` with symbol, status name and count at `--fs-lead`; `dd` with the definition from section 8 at `--fs-footnote` in `--fg-2`, on the same row from 640 px and wrapping under it below. Each status appears once, with its count and its meaning, so a printed page one explains its own words (launch critique B7). This is the only count in the summary. No sentence, score, percentage, bar, pie or other part-of-whole picture: a share of areas reads as "how ready are we".
+2. **What blocks this move** (`div.subsection` > `h3` + `dl.rows`; `h3 + .rows { margin-top: 12px }`). Under the heading, only when the cap cuts rows off (total greater than shown): "Confirmed blockers: {shown} of {total}". Only when total is at least 1: a link "All blockers" to `#status-blocker`. At most **3** rows, catalogue order. `dt`: area name linking to its card, plus "Evidence incomplete" when the row is incomplete. `dd`: the deciding rule's reason, unshortened. With no blocker: `path.empty.blocker`, and whenever any area is Unknown or incomplete: "{n} areas are Unknown or have incomplete evidence, so a Blocker cannot be ruled out."
+3. **What is still unknown** (same structure as 2): at most **4** rows. Areas that are Unknown or incomplete, deduplicated, in catalogue order. `dd`: for an Unknown area, the fix for `row.reason_code`; for an incomplete decided area, the fix of its first missing item. Then two links: "All open points" to `#not-examined`, and "{n} inputs are missing" to `#costs-missing` with `costs.missing_fix`. Never omitted; with nothing unknown it shows `path.empty.unknown`. It comes before the costs because an unknown changes how far the totals can be trusted.
+4. **What the target covers** (ships with RR-07, after RR-06 removes the desktop inference; absent before, and absent for a profile without dated project sources, such as `generic`). `div.subsection` > `h3` "What {profile} covers". One line: "Of the {n} functions Fazit checks for {profile}:" then each coverage label present in the profile's mapping with its count, as text in `--fg` (the profile's own categories, never merged into three). Then `dl.rows` "Outside {profile} and needed here": each function whose transfer gap has the organisation's need Yes, linking to its gap; then "{n} more are outside {profile} and still Unknown here." Counts and names only: never a fraction, percentage or bar. The counts equal the replacements table. While the profile's mapping has no operator review date, the statement ends with the same unreviewed-mapping sentence the replacements section shows. It sits after the open questions and before the costs, matching the council's order: what stops it, what is open, what a move would take, what it costs.
+5. **Cost tiles** (`ul.tiles.tiles-3`), one per scenario in the order Stay, Partial move, Full move:
    - `.tile-label`: "{scenario} · five-year total".
    - Anchor (`.figure-num` at `--fs-headline`, `white-space: nowrap`): the scenario total, formatted by `Formatter.money` in the input currency and **rounded to whole currency units**; the table keeps cents.
    - Main line (`.tile-title` style): for Stay, "Today's yearly costs for five years"; for a move, the absolute difference, also whole units, with "less than staying", "more than staying", "the same as staying" (difference exactly zero) or "differs by less than one cent".
    - Detail `p`: the cost origin (`data-cost-origin`: calculated, or calculated from sample or invented inputs). With invented prices the detail says so in words, not only in a caption.
    - **Unknown total**: the anchor is the Unknown status label, never a number or dash; the main line shows "Total of known blocks {amount}" when any block is known; the detail reads "{n} inputs are missing", counting distinct missing input paths of that scenario, linking to `#costs-missing`. **Unknown comparison** (a move total known, Stay unknown): the move tile shows its total and the main line reads "Comparison unknown" with the missing-input count.
    - Under the tiles, `p.note-text`: `costs.stay_assumption`, then one break-even line per move scenario whose comparison is known (section 3.3).
-7. **Decision window** (ships with Phase 1.1, D-90; absent before): two tiles, "Next renewal" and "Latest notice date", each with `data-decision` and `data-provenance`. They reuse Phase 1.1's date calculation, source and `as_of` fallback. An end date without a notice period gives a Provided renewal and an Unknown notice date; each tile names only the input it lacks. The planned `licence-contract` detail stays in `found`.
+6. **Decision window** (ships with Phase 1.1, D-90; absent before): two tiles, "Next renewal" and "Latest notice date", each with `data-decision` and `data-provenance`. They reuse Phase 1.1's date calculation, source and `as_of` fallback. An end date without a notice period gives a Provided renewal and an Unknown notice date; each tile names only the input it lacks. The planned `licence-contract` detail stays in `found`.
 
 **Page one.** Header and summary fill the first A4 page in both languages for both samples and for a report with every area Unknown; the next section starts a new page (section 7). Page one carries the organisation, evidence and answer dates, the sample or invented-price note, the definitions, blockers or the zero-blocker sentence, the open questions and the three totals with their origin. It never carries a proposed resolution.
 
@@ -56,7 +57,7 @@ Exactly one card per assessed workload, in `div.areas`, replaces the table. Lice
 
 Four `div.status-group[data-status-group]` in display order, each with `h3#status-{status}` showing symbol and status name. Empty groups are omitted. **Inside a group, catalogue order.** Licences has no card, so Copilot is the first card of whichever group it is in (D-81 as amended, section 9).
 
-Ready cards are **compact**, not hidden: no next step, no missing list, `padding: 16px 24px`, and the status at `--fs-body` on the line under the area name. Nothing is collapsed, so links, search and the keyboard always reach every card.
+Every card in `.areas` takes the area name as its anchor and the status (symbol and word) at `--fs-body` on the line under it, because the group heading already states the status. Ready cards are also **compact**, not hidden: no next step, no missing list, `padding: 16px 24px`. Nothing is collapsed, so links, search and the keyboard always reach every card.
 
 ### 2.2 Filters (no script)
 
@@ -122,7 +123,7 @@ There is no `contracts_costs` category: Licences is not assessed (C2). The catal
 
 The first three attributes keep this order. `status_label` and `workload_status` are unchanged; the "Evidence incomplete" marker is restyled as `.note-text`.
 
-- **Status is the anchor.** Site rules, with `.finding-status` at `--fs-headline` inside `.areas` (one per assessed area, not one per page).
+- **The area name is the anchor** inside `.areas` (`.finding-area` at `--fs-headline`); `.finding-status` at `--fs-body` under it, so the Needs work group does not repeat one large label nine times. A card shown alone, such as the site's example, keeps the site rule with the status as anchor. The status stays on every card, so a linked or printed card still states it.
 - **Category**: `.finding-category`, weight 400, `--fg-2`, after a middle dot.
 - **Reason**: exactly what `status_reason` gives today, unshortened. A rule with two sentences keeps both (the Windows-software rule distinguishes the desktop dependency from the Microsoft 365 move). A reason of a Needs work rule never says the area "blocks" anything; only a Blocker rule may (RR-06 rewords the Windows-software rule). Notes from other fired rules follow as a list.
 - **Next step** (`.finding-next`: `max-width: 36em; margin-top: 12px`). `StatusRule` (frozen) gains `next_step`; `rules.py` accepts and requires it in both languages for every problem rule, and `status.yaml` supplies it for all 31. Each is one sentence: an action and who typically owns it, as a role from RR-01's fixed set, no supplier or product. Each also carries `kind`: `clarify` (find out, count, review), `decide` (the organisation must choose) or `replace` (work that only makes sense for a move), set per sentence from the action it names, not per rule type, and reviewed with the sentences. `rules.py` requires `kind` beside `next_step`. The card shows the deciding rule's action. For an Unknown area the reason is the label of `row.reason_code` and the next step is its fix, rendered separately. Ready cards have none.
@@ -157,8 +158,8 @@ Three rows: Stay, Partial move, Full move. Each has a heading line (scenario lef
 
 ### 3.3 Stay assumption and break-even
 
-- `costs.stay_assumption` states that staying is today's yearly costs times five, with no price change. It appears under the summary tiles and under the chart.
-- **Break-even**, one line per move scenario whose comparison is known: the yearly target operations cost (`annual_operations` of that scenario) at which the scenario's five-year total equals staying, all other inputs fixed, with the entered value beside it. The varied input is always this one and the sentence names it. Computed from the existing cost model, never added to it; exact Decimal, displayed in whole currency units. If even zero operations would leave the move dearer, `costs.break_even_none`. Absent when the operations input is unknown. Town example: full move breaks even at EUR 39,130 a year, entered EUR 12,000.
+- `costs.stay_assumption` states that staying assumes no price change; the Stay tile's main line already says it is today's yearly costs for five years. It appears under the summary tiles and under the chart.
+- **Break-even**, one line per move scenario whose comparison is known: the yearly target operations cost (`operations_per_year` of that scenario in `inputs.yaml`) at which the scenario's five-year total equals staying, all other inputs fixed, with the entered value beside it. The varied input is always this one and the sentence names it. Computed from the existing cost model, never added to it; exact Decimal, displayed in whole currency units. If even zero operations would leave the move dearer, `costs.break_even_none`. Absent when the operations input is unknown. Town example: full move breaks even at EUR 39,130 a year, entered EUR 12,000.
 
 ### 3.2 The table
 
@@ -186,7 +187,7 @@ Each `<section data-section="…">` tag stays literal, with no added class or id
 
 The IT lead's and the integrator's working list, built only from findings. Two groups, each an `h3` with `dl.rows`:
 
-1. **Worth doing even if you stay** (`path.even_if_staying`). First the open points (`div[data-subsection="not-examined"]#not-examined`): every Unknown area, every `row.missing` gap including gaps inside decided areas (`data-unexamined-gap`), unknown findings and skipped collectors, **grouped by the evidence requested**, so one missing export or answer is one row (`dt[data-open-point]`). Each row: what is open; the affected areas as links to their cards; the owner role; what closes it, as the `inputs.yaml` key in `code` or, where this version has no manual route, the fix that says the figure stays Unknown (C7). Then the next steps of kind `clarify` and `decide` from Blocker and Needs work areas (`dd[data-step-kind]`), in display order, each linked to its card.
+1. **Worth doing even if you stay** (`path.even_if_staying`). First the next steps of kind `clarify` and `decide` from Blocker and Needs work areas (`dd[data-step-kind]`), in display order, each linked to its card. Then, under the subheading "Evidence still needed" (`readiness.missing`, the card's own label), the open points (`div[data-subsection="not-examined"]` with `id="not-examined"` on that subheading, so the summary's link lands on it): every Unknown area, every `row.missing` gap including gaps inside decided areas (`data-unexamined-gap`), unknown findings and skipped collectors, **grouped by the evidence requested**, so one missing export or answer is one row (`dt[data-open-point]`). Each row: what is open; the affected areas as links to their cards; the owner role; what closes it, as the `inputs.yaml` key in `code` or, where this version has no manual route, the fix that says the figure stays Unknown (C7).
 2. **Needed for a move** (`path.for_move`): next steps of kind `replace`, in display order, each linked to its card.
 
 With nothing open and no step, `path.empty.unknown` and `path.empty.blocker` as today. No timeline, no pilot sentences, no stock steps, no proposed decision.
@@ -201,7 +202,7 @@ With nothing open and no step, `path.empty.unknown` and `path.empty.blocker` as 
 
 - The report's `:root` and dark `@media` block keep their names and mechanism (a test parses them). A second rule adds the site's names so site CSS pastes in: `--fg`, `--fg-2`, `--rule`, `--fill`, `--link`, `--link-hover` as aliases; `--solid-bg`, `--solid-fg`, `--link-glow` with the site's values per palette; `--sans`, `--mono`, `--ease`, `--gutter`, `--max: 1120px`, `--bar-h: 52px`, `--hit: 44px`, `--radius: 8px`, `--radius-pill: 999px`.
 - Margin reset: `h1, h2, h3, h4, p { margin: 0 }`.
-- Type: `--fs-display` h1; `--fs-title` inventory figures; `--fs-headline` section labels, card status, money in tiles; `--fs-lead` count line; `--fs-subhead` tables, tile detail, filters; `--fs-footnote` provenance and meta. Weights 400 and 600.
+- Type: `--fs-display` h1; `--fs-title` inventory figures; `--fs-headline` section labels, card area names, money in tiles; `--fs-lead` status list counts; `--fs-subhead` tables, tile detail, filters; `--fs-footnote` provenance and meta. Weights 400 and 600.
 - Spacing: 4, 8, 12, 16, 24, 32, 48, 64, 96 px and the site's clamps; exceptions are the 20 px gutter and the 2 px bar and track gaps.
 
 ### 6.2 Components
@@ -227,7 +228,7 @@ Exceptions to copying, and no others:
 3. **Bar.** `div.bar`, not `header.bar` (tests split on the report's one `header`). Below 820 px there is no menu: `.bar-in { display: flex }`; `.bar-links { min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 4px; mask-image: linear-gradient(to left, transparent, #000 32px) }` so the row visibly continues and focus rings are not clipped; links `inline-flex`, `min-height: var(--hit)`.
 4. **Hover** stays `a:hover { color: var(--accent-hover); }` (a test matches the text).
 5. **Coverage label is visible**, because a printed report has no legend nearby.
-6. **Cards** in `.areas`: status size, compact Ready cards, and evidence kept as today's list markup in place of the site's `dl.evidence` (2.1, 2.3).
+6. **Cards** in `.areas`: area name as anchor and status at body size on every card, compact Ready cards, and evidence kept as today's list markup in place of the site's `dl.evidence` (2.1, 2.3).
 
 Coverage symbols are drawn in `--fg`, cancel in `--fg-2`, never a status colour, and never a status symbol (`DESIGN.md`, "Symbols"): `in_suite` circle (Material Symbols Rounded, filled, added to `site/icons/` and `icons/` with the existing licence), so a full circle and the half-filled contrast read as a pair; `in_suite_with_limits` contrast; `open_source_community`, `open_source_third_party` code; `announced`, `component_vendor_solution`, `proprietary_third_party`, `not_available` cancel.
 
@@ -236,14 +237,14 @@ New, in the same visual language:
 | Component | States |
 |---|---|
 | `.cost-bars`, `.cost-bar`, `.cost-segment` | known; zero; total unknown (marker only, no bar); all unknown; chart omitted |
-| `dl.status-definitions` | four rows, display order; print |
+| `dl.status-summary` | four rows, display order, count and definition per row; definition wrapped below 640 px; print |
 | `.filters`, `.segmented` | segment: default, hover, selected, focus-visible, disabled; track: inline, wrapped; hidden (print, no `:has()`) |
 | `details` | closed, open, focus-visible, print. Summary in `--link`, chevron rotates 90° with `--ease` (not under reduced motion), min-height 44 px |
 | Card | four statuses, with or without `data-incomplete`; compact (Ready); filtered out; link target. Same surface in all: only symbol colour and words differ, no coloured borders or tints |
 
 ## 7. Phone and print
 
-**Phone (360 px).** One column, 16 px gutter. The count line, definitions and blockers come before any secondary figure. Meta row, legends and filter tracks wrap; cost heading wraps, block values one per line, cost table rows stack (3.2). No horizontal page scroll.
+**Phone (360 px).** One column, 16 px gutter. The status list and blockers come before any secondary figure. Meta row, legends and filter tracks wrap; cost heading wraps, block values one per line, cost table rows stack (3.2). No horizontal page scroll.
 
 **Print.**
 
@@ -278,19 +279,19 @@ Status names are used exactly and capitalised: Ready, Needs work, Blocker, Unkno
 | `summary.scope_unknown` | {n} more are outside {profile} and still Unknown here. | Weitere {n} sind nicht in {profile} enthalten; ob sie hier benötigt werden, ist unbekannt. (*draft*) |
 | `readiness.title` | Where each area stands | Wo jeder Bereich steht |
 | `readiness.next_step` | Next step | Nächster Schritt |
-| `readiness.evidence_summary` | Evidence · {measured} measured, {provided} provided, {unknown} unknown | Nachweise · {measured} gemessen, {provided} angegeben, {unknown} unbekannt |
+| `readiness.evidence_summary` | Evidence · {measured} measured, {provided} provided, {unknown} unknown | Nachweise · {measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt (the report's provenance words) |
 | `readiness.all_replacements` | All replacements | Alle Ersatzlösungen |
 | `filter.status_legend` | Show areas by status | Bereiche nach Status anzeigen |
 | `filter.category_legend` | Show areas by category | Bereiche nach Kategorie anzeigen |
 | `filter.all` / `all_categories` | All / All categories | Alle / Alle Kategorien |
 | `filter.empty` | No area matches this selection. Choose "All" to see every area. | Kein Bereich entspricht dieser Auswahl. Wählen Sie „Alle“, um alle Bereiche anzuzeigen. |
-| `filter.search_hint` | Ctrl+F or Cmd+F searches the report. Filtered-out areas and, in some browsers, closed sections are not searched. | Mit Strg+F oder Cmd+F durchsuchen Sie den Bericht. Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht. |
+| `filter.search_hint` | Filtered-out areas and, in some browsers, closed sections are not searched. | Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht. |
 | `costs.title` | What staying and moving cost over five years | Was Verbleib und Umstieg in fünf Jahren kosten |
 | `costs.partial_exit` / `full_exit` | Partial move / Full move | Teilweiser Umstieg / Vollständiger Umstieg |
 | `costs.total_label` | {scenario} · five-year total | {scenario} · Summe über fünf Jahre (*draft*) |
 | `costs.stay_basis` | Today's yearly costs for five years | Heutige Jahreskosten über fünf Jahre (*draft*) |
 | `costs.comparison_unknown` | Comparison unknown | Vergleich unbekannt (*draft*) |
-| `costs.stay_assumption` | Staying assumes today's yearly costs for five years, with no price change. | Für den Verbleib gelten die heutigen Jahreskosten über fünf Jahre, ohne Preisänderung. (*draft*) |
+| `costs.stay_assumption` | Staying assumes no price change. | Für den Verbleib ist keine Preisänderung angenommen. (*draft*) |
 | `costs.break_even` | {scenario} costs the same as staying if target operations cost {amount} a year (entered: {entered}). | {scenario} kostet gleich viel wie der Verbleib, wenn der Betrieb des Zielsystems {amount} pro Jahr kostet (angegeben: {entered}). (*draft*) |
 | `costs.break_even_none` | {scenario} costs more than staying even with no operations cost. | {scenario} kostet auch ohne Betriebskosten mehr als der Verbleib. (*draft*) |
 | `costs.vat_note` | Amounts are as entered. The inputs file does not say whether they include VAT. | Beträge wie angegeben. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten. (*draft*) |
@@ -309,7 +310,7 @@ Status names are used exactly and capitalised: Ready, Needs work, Blocker, Unkno
 | `path.for_move` | Needed for a move | Für einen Umstieg nötig (*draft*) |
 | `appendix.not_looked` | What Fazit does not look at | Was Fazit nicht betrachtet (*draft*) |
 | `appendix.not_looked_text` | File contents, mail, data about individual people, departments, and the settings of the target system. | Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Abteilungen und die Einstellungen des Zielsystems. (*draft*) |
-| `found.title` | Recorded inventory | Erfasster Bestand |
+| `found.title` | What Fazit recorded | Was Fazit erfasst hat (*draft*) |
 | `appendix.title` | How this report was made | Wie dieser Bericht entstanden ist |
 | `nav.*` | Summary, Next steps, Areas, Costs, Replacements, Closer look, Appendix | Überblick, Nächste Schritte, Bereiche, Kosten, Ersatz, Prüfbedarf, Anhang |
 | `mapping_coverage.*` (German only) | unchanged | In der Suite; In der Suite mit Einschränkungen; Open-Source-Lösung der Community |
@@ -343,7 +344,7 @@ Locale keys keep their names; only values change. In the cost formulas "exit sce
 
 ## 10. Wireframes
 
-Desktop, 1280 px (content 1120 px; label 4/12, body 8/12). Town sample, openDesk, before RR-07 (no scope statement yet):
+Desktop, 1280 px (content 1120 px; label 4/12, body 8/12). Town sample, openDesk; the scope statement appears after RR-07:
 
 ```
 [fazit            Summary  Next steps  Areas  Costs  Replacements  Closer look  Appendix]
@@ -351,23 +352,26 @@ Stadtverwaltung Musterstadt
 What leaving Microsoft 365 would take
 meta row (dates, profile)                                      [ sample note ]
 -----------------------------------------------------------------------------------------
-Where the         Of 14 areas:  (!) Blocker 1   /!\ Needs work 9   (?) Unknown 1   (v) Ready 3
-organisation      (!) Blocker     A confirmed obstacle that must be resolved before this move.
-stands            /!\ Needs work  …   (?) Unknown  …   (v) Ready  …
-                  What blocks this move     Confirmed blockers: 1 of 1 · All blockers
+Where the         Of 14 areas:
+organisation      (!) Blocker 1       A confirmed obstacle that must be resolved before this move.
+stands            /!\ Needs work 9    The checks found work to do before a move.
+                  (?) Unknown 1       Evidence is missing, so this version cannot assess the area.
+                  (v) Ready 3         The current checks found no blocker and no missing evidence.
+                  What blocks this move                                        All blockers
                   [ Telephony · reason ]
                   What is still unknown
                   [ Security and compliance · fix ]   [ Mail · shared mailboxes · fix ]
                   All open points · {n} inputs are missing
+                  ( What openDesk covers: after RR-07 )
                   [ Stay · five-year total ] [ Partial move · …       ] [ Full move · …       ]
                   [ EUR 600,000            ] [ EUR 527,800            ] [ EUR 464,350         ]
                   [ today's yearly costs   ] [ EUR 72,200 less than … ] [ EUR 135,650 less …  ]
-                  Staying assumes today's yearly costs for five years, with no price change.
+                  Staying assumes no price change.
                   Full move costs the same as staying if target operations cost EUR 39,130 a year (entered: EUR 12,000).
                   [ Next renewal (1.1) ]                  [ Latest notice date (1.1)   ]
 =================================== page break in print ==================================
 What to do        Worth doing even if you stay
-next              [ open point · areas · role · inputs key ] …  [ clarify / decide steps ] …
+next              [ clarify / decide steps ] …   Evidence still needed: [ open point · areas · role · inputs key ] …
                   Needed for a move
                   [ replace steps ] …
 -----------------------------------------------------------------------------------------
@@ -389,15 +393,15 @@ over five years   (#############################################|222|3|44)
 replacements / closer look / recorded inventory / appendix (with "What Fazit does not look at") / footer
 ```
 
-The unfavourable case gets the same attention. Non-profit sample: no blocker, so "What blocks this move" shows the zero-blocker sentence and its caveat; the full move's productivity-loss input is missing, so its tile shows Unknown, the known blocks and "1 input is missing", there is no break-even line for it, and its chart row shows the Unknown marker without a bar. A report with every area Unknown shows the count line, definitions, the caveat, four unknown rows with "All open points", and three Unknown tiles. Each of the three must fit page one.
+The unfavourable case gets the same attention. Non-profit sample: no blocker, so "What blocks this move" shows the zero-blocker sentence and its caveat; the full move's productivity-loss input is missing, so its tile shows Unknown, the known blocks and "1 input is missing", there is no break-even line for it, and its chart row shows the Unknown marker without a bar. A report with every area Unknown shows the status list, the caveat, four unknown rows with "All open points", and three Unknown tiles. Each of the three must fit page one.
 
 Phone, 375 px: bar scrolls sideways with an edge fade; h1 on three lines; legend on two lines; blockers; tiles one per row; filter pills wrap; cards full width; cost heading stacked, block values one per line; cost table rows stacked.
 
 ## 11. Acceptance criteria
 
 1. One HTML file; the CSP is byte-identical to today's; no `script`, `img`, `form`, SVG `use`, event-handler attribute or external reference; every `href` starts with `#`. The report works identically with scripting disabled.
-2. At 1280 × 800 the first screen shows the title, the count line, the status definitions and the first blocker row (or the zero-blocker sentence with its caveat), in both languages and both samples. The summary contains no readiness bar or other part-of-whole picture.
-3. Counts appear once in the summary; "Of {n} areas" takes n from the catalogue. At most 3 blockers, labelled "{shown} of {total}", "All blockers" only when total is at least 1, and at most 4 deduplicated unknown rows, placed before the cost tiles. No score, percentage, verdict, proposed resolution or recommendation.
+2. At 1280 × 800 the first screen shows the title, the status list (counts with definitions) and the first blocker row (or the zero-blocker sentence with its caveat), in both languages and both samples. The summary contains no readiness bar or other part-of-whole picture.
+3. Counts appear once in the summary, in the status list with the definitions; "Of {n} areas" takes n from the catalogue. At most 3 blockers, "{shown} of {total}" only when rows are cut off, "All blockers" only when total is at least 1, and at most 4 deduplicated unknown rows, placed before the cost tiles. No score, percentage, verdict, proposed resolution or recommendation.
 4. Default view: one `article.finding` per workload, grouped Blocker, Needs work, Unknown, Ready, catalogue order inside each group; every non-ready card has a reason and a next step; every card shows its category; evidence disclosures start closed. `STATUSES` is unchanged.
 5. A status filter shows only that group; a category filter shows only that category's cards and drops groups left empty; both combine; the two "All" options restore the default.
 6. A combination with no match shows the empty state and no group heading; a status with count 0 is disabled.
@@ -415,7 +419,7 @@ Phone, 375 px: bar scrolls sideways with an edge fade; h1 on three lines; legend
 18. Reused components match `site/style.css` declaration for declaration, apart from the six exceptions in 6.2; no spacing value outside the scale and its exceptions.
 19. A side-by-side of site and report at 1280 and 375 px, light and dark, looks like one product; both reviewers sign this off.
 20. Changing an area's `category` in the catalogue changes its card and filter result with no template edit.
-22. "What to do next" follows the summary: every open point, including gaps inside decided areas, appears once, grouped by the evidence requested, with its areas, owner role and the key or fix that closes it; the "Worth doing even if you stay" group holds only open points and `clarify` or `decide` steps; no status timeline, pilot sentence or stock step remains.
+22. "What to do next" follows the summary: every open point, including gaps inside decided areas, appears once, grouped by the evidence requested, with its areas, owner role and the key or fix that closes it; the "Worth doing even if you stay" group holds `clarify` or `decide` steps first, then the open points under "Evidence still needed"; no status timeline, pilot sentence or stock step remains.
 23. A card's target line shows a needed transfer gap before the two-function cap.
 24. With RR-07: the scope statement's counts equal the replacements table, keep the profile's own coverage labels, name every needed function outside the profile, and are absent for a profile without dated sources.
 21. Existing tests pass with edits only as section 9 permits; the new tests exist; all six "Done means" commands in `AGENTS.md` succeed; both demo reports are regenerated; the decisions in section 9 are recorded.
