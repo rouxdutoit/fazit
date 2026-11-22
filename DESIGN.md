@@ -32,7 +32,6 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 - Google Material Symbols, rounded, from `site/icons/` (the report inlines the same paths). Apache-2.0; keep the licence file.
 - A symbol sits on the first line of its text, sized in `em`, with wrapped lines aligned after it.
-- The one exception is LinkedIn's [in] mark in the footer, in the text colour, which links only to the maintainer's profile.
 - Never reuse a status symbol (check, warning triangle, stop octagon, question mark) for anything but status.
 
 ## Links and buttons
@@ -40,6 +39,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Text links:** the text colour; on hover they lighten, and in dark mode they also glow. A link inside running text carries a thin static underline in the secondary text colour and no chevron; a standalone link ends in a chevron, has no underline and sits a step back in dark grey (`--link-quiet`), coming forward to the text colour on hover. Footer and bar links have neither.
 - **A card that leads to another page is one link as a whole:** black title, a circled neutral chevron in the corner, and on hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com:** pill shape, regular weight (500 in Figtree), 15 px text with 7 × 15 px padding in content, 12 px with 3 × 10 px in the bar. The primary button lightens on hover and darkens when pressed; the text never changes colour.
+- Every button leads with a symbol that says what happens (Material Symbols, in the button's text colour, sized in `em`); a button whose action no symbol can name gets none, and then no button in its group has one.
 - One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".
 
 ## Motion

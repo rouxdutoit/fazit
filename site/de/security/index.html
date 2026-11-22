@@ -42,7 +42,7 @@
           <a class="nav-extra" href="/de/start/">Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/">Jetzt starten</a>
+      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
@@ -51,7 +51,7 @@
     <div class="page-intro">
       <h1>Sicherheit und Datenschutz</h1>
       <p>Die aktuelle Version von Fazit läuft auf Ihrem Rechner und enthält keinen Code für Netzwerkzugriffe. Geplant ist eine Anmeldung bei Microsoft mit reinem Lesezugriff.</p>
-      <a class="btn btn-secondary" href="#disclosure">Schwachstelle melden</a>
+      <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Schwachstelle melden</a>
     </div>
 
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
@@ -118,7 +118,7 @@
     <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
       <h2 class="sec-label" id="evidence-title">Grenzen der Aussagekraft</h2>
       <div class="sec-body">
-        <p>Fazit prüft die Erhebung und die Eingaben auf Widersprüche und kennzeichnet die Herkunft jeder Zahl. Auch in sich schlüssige, erfundene Angaben können zu einem Bericht führen. Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.</p>
+        <p>Fazit weist eine Erhebung zurück, deren Zahlen nicht alle zugleich stimmen können, etwa eine Teilmenge, die größer ist als ihre Gesamtmenge, oder einen Messwert ohne eine einzige erfolgreiche Prüfung (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md" hreflang="en">D31 in den Entscheidungen</a> listet alle Prüfungen). Abweichungen zwischen Erhebung und den Antworten in <code>inputs.yaml</code> zeigt es an, und es kennzeichnet die Herkunft jeder Zahl. Erfundene Angaben, die zueinander passen, können trotzdem zu einem Bericht führen: Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.</p>
         <p>Der Anhang dokumentiert die angegebene Herkunft der Erhebung sowie das Programm und die Version, mit denen sie laut Erhebungsdatei erstellt wurde.</p>
       </div>
     </section>
@@ -147,6 +147,7 @@
           <div>
             <p class="foot-heading">Projekt</p>
             <ul>
+              <li><a href="/de/about/">Über Fazit</a></li>
               <li><a href="/demo/de/">Beispielbericht</a></li>
               <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
             </ul>
@@ -158,18 +159,15 @@
               <li><a href="/de/privacy/">Datenschutz</a></li>
             </ul>
           </div>
-          <div>
-            <p class="foot-heading">Kontakt</p>
-            <ul class="foot-icons">
-              <li><a href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a></li>
-              <li><a href="https://www.linkedin.com/in/rouxdutoit" aria-label="LinkedIn" title="LinkedIn"><span class="icon-linkedin" aria-hidden="true"></span></a></li>
-            </ul>
-          </div>
         </nav>
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <a class="language" href="/security/" lang="en" hreflang="en" aria-label="English">EN</a>
+        <div class="foot-end">
+          <a href="https://rouxdutoit.com">rouxdutoit.com</a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="language" href="/security/" lang="en" hreflang="en" aria-label="English">EN</a>
+        </div>
       </div>
     </div>
   </footer>

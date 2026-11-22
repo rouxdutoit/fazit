@@ -39,10 +39,10 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra" href="/de/start/">Jetzt starten</a>
+          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/">Jetzt starten</a>
+      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
@@ -53,15 +53,22 @@
       <h1 id="hero-title">Wissen, was ein Umstieg von Microsoft 365 erfordert</h1>
       <p class="hero-sub">Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, in einem Bericht, den Fazit auf Ihrem eigenen Rechner erstellt.</p>
       <div class="hero-actions">
-        <a class="btn btn-solid" href="/de/start/">Jetzt starten</a>
-        <a class="btn btn-secondary" href="/demo/de/">Beispielbericht ansehen</a>
+        <a class="btn btn-solid" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+        <a class="btn btn-secondary" href="/demo/de/"><span class="btn-icon icon-description" aria-hidden="true"></span>Beispielbericht ansehen</a>
       </div>
       <p class="hero-status">Derzeit mit Beispieldaten. Als Nächstes kommt der Import Ihrer eigenen Microsoft-365-Exporte.</p>
     </section>
 
     <figure class="report-preview">
       <div class="report-card">
-        <span class="report-card-bar" aria-hidden="true"><span></span><span></span><span></span><code>report-2026-11-02-de.html</code></span>
+        <span class="report-card-bar" aria-hidden="true">
+          <code>report-2026-11-02-de.html</code>
+          <span class="report-card-controls">
+            <span class="report-card-control icon-minimize"></span>
+            <span class="report-card-control icon-crop-square"></span>
+            <span class="report-card-control icon-close"></span>
+          </span>
+        </span>
         <picture>
           <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-de-mobile-dark.webp" width="800" height="1440">
           <source media="(max-width: 600px)" srcset="/images/readiness-de-mobile-light.webp" width="800" height="1440">
@@ -73,7 +80,7 @@
         <span>Echte Ausgabe von Fazit, erstellt aus den Beispieldaten einer fiktiven Stadtverwaltung.</span>
         <span class="caption-links">
           <a class="more" href="/demo/de/">Beispielbericht öffnen</a>
-          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html">HTML herunterladen, 300 KB</a>
+          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html"><span class="btn-icon icon-download" aria-hidden="true"></span>HTML herunterladen, 300 KB</a>
         </span>
       </figcaption>
     </figure>
@@ -141,7 +148,7 @@
     <section class="sec grid" id="example" aria-labelledby="example-title">
       <h2 class="sec-label" id="example-title">Ein Befund im Detail</h2>
       <div class="sec-body">
-        <p class="sec-intro">Kann die Stadt auf Teams Phone verzichten? Dieser Befund stammt aus dem Beispielbericht für eine fiktive Stadtverwaltung. Ihre Messwerte sind simuliert.</p>
+        <p class="sec-intro">Kann die Stadt auf Teams Phone verzichten? Dieser Befund stammt aus dem Beispielbericht für eine fiktive Stadtverwaltung. Die Messwerte des Beispiels sind simuliert.</p>
         <article class="finding" aria-labelledby="finding-title">
           <p class="finding-area" id="finding-title">Telefonie</p>
           <p class="finding-status"><span class="status-shape blocker" aria-hidden="true"></span>Hindernis</p>
@@ -401,6 +408,7 @@
           <div>
             <p class="foot-heading">Projekt</p>
             <ul>
+              <li><a href="/de/about/">Über Fazit</a></li>
               <li><a href="/demo/de/">Beispielbericht</a></li>
               <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
             </ul>
@@ -412,18 +420,15 @@
               <li><a href="/de/privacy/">Datenschutz</a></li>
             </ul>
           </div>
-          <div>
-            <p class="foot-heading">Kontakt</p>
-            <ul class="foot-icons">
-              <li><a href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a></li>
-              <li><a href="https://www.linkedin.com/in/rouxdutoit" aria-label="LinkedIn" title="LinkedIn"><span class="icon-linkedin" aria-hidden="true"></span></a></li>
-            </ul>
-          </div>
         </nav>
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <a class="language" href="/" lang="en" hreflang="en" aria-label="English">EN</a>
+        <div class="foot-end">
+          <a href="https://rouxdutoit.com">rouxdutoit.com</a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="language" href="/" lang="en" hreflang="en" aria-label="English">EN</a>
+        </div>
       </div>
     </div>
   </footer>
