@@ -7,14 +7,14 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 ## Tokens
 
 - Use the tokens in `site/style.css` `:root`. No colour, font or radius values anywhere else. The report defines the same tokens, and a test keeps both in step.
-- **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`) and link blue `#0066cc`. **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Status colours are iOS system colours in both modes.
+- **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
 - **Type:** Figtree for all text, Geist Mono only for code. Seven sizes only: display, title, headline, lead, body, subhead, footnote. Three weights: 400, 600 for labels and buttons, 700 never in body copy.
 - **Spacing:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px. The gutter is 20 px (16 px on phones).
 
 ## Colour
 
-- Colour carries meaning, nothing else. Blue means "this is a link or the main action". Status colours mean status. Everything else is neutral.
+- Colour carries meaning, nothing else. Status colours mean status; everything else, buttons and links included, is monochrome.
 - Never colour a heading, a tile or a background to decorate it.
 - Status is never colour alone: every status shows its symbol and its word.
 
@@ -35,7 +35,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 ## Links and buttons
 
-- **Text links:** link colour, no underline; on hover they brighten, and in dark mode they also glow. A standalone link ends in a chevron in the link colour; a link inside a sentence does not.
+- **Text links:** the text colour; on hover they lighten, and in dark mode they also glow. A link inside running text carries a thin static underline in the secondary text colour and no chevron; a standalone link ends in a chevron and has no underline. Footer and bar links have neither.
 - **A card that leads to another page is one link as a whole:** black title, a circled neutral chevron in the corner, and on hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com:** pill shape, regular weight (500 in Figtree), 15 px text with 7 × 15 px padding in content, 12 px with 3 × 10 px in the bar. The primary button lightens on hover and darkens when pressed; the text never changes colour.
 - One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".

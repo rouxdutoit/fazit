@@ -42,12 +42,12 @@
   --rule: light-dark(#d2d2d7, #1e2820);
   --fill: light-dark(#f5f5f7, #111712);
   --fill-2: light-dark(#e8e8ed, #1a251c);
-  --link: light-dark(#0066cc, #30d158);
-  --link-hover: light-dark(#006bd1, #4cdb72);
-  --link-glow: light-dark(transparent, rgb(48 209 88 / 55%));
-  --solid-bg: light-dark(#0071e3, #30d158);
-  --solid-hover: light-dark(#0073e4, #4cdb72);
-  --solid-active: light-dark(#006edb, #2bbd4f);
+  --link: light-dark(#1d1d1f, #c4f7d0);
+  --link-hover: light-dark(#424245, #e1fbe7);
+  --link-glow: light-dark(transparent, rgb(196 247 208 / 45%));
+  --solid-bg: light-dark(#1d1d1f, #c4f7d0);
+  --solid-hover: light-dark(#424245, #e1fbe7);
+  --solid-active: light-dark(#000000, #a9e6b8);
   --solid-fg: light-dark(#ffffff, #050906);
   /* Shared status palette: the report uses all four; a test keeps both in step. */
   --status-ready: light-dark(#34c759, #30d158);
@@ -120,7 +120,7 @@ h3 {
   font-weight: 600;
 }
 
-/* Links never underline. On hover they brighten; in dark mode they also glow. */
+/* Links take the text colour. On hover they lighten; in dark mode they also glow. */
 a {
   color: var(--link);
   text-decoration: none;
@@ -130,6 +130,12 @@ a {
 a:hover {
   color: var(--link-hover);
   text-shadow: 0 0 12px var(--link-glow);
+}
+
+/* Links in running text match the text colour, so a quiet line marks them. */
+main :where(p, li, dd, td) > a:not([class]) {
+  text-decoration: underline 1px var(--fg-2);
+  text-underline-offset: 0.2em;
 }
 
 /* Controls that are links keep their own colours: only text links brighten and glow. */

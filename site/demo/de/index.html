@@ -28,8 +28,8 @@
       --text: #1d1d1f;
       --muted: #6e6e73;
       --line: #d2d2d7;
-      --accent: #0066cc;
-      --accent-hover: #006bd1;
+      --accent: #1d1d1f;
+      --accent-hover: #424245;
       --status-ready: #34c759;
       --status-needs-work: #ffcc00;
       --status-blocker: #ff9500;
@@ -52,8 +52,8 @@
         --text: #c4f7d0;
         --muted: #7b9d83;
         --line: #1e2820;
-        --accent: #30d158;
-        --accent-hover: #4cdb72;
+        --accent: #c4f7d0;
+        --accent-hover: #e1fbe7;
         --status-ready: #30d158;
         --status-needs-work: #ffd60a;
         --status-blocker: #ff9f0a;
@@ -80,8 +80,9 @@
     p { margin-block: 0 12px; }
     a { color: var(--accent); text-decoration: none; transition: color .2s ease, text-shadow .2s ease; }
     a:hover { color: var(--accent-hover); }
+    :where(p, li, dd, td) > a:not([class]) { text-decoration: underline 1px var(--muted); text-underline-offset: .2em; }
     @media screen and (prefers-color-scheme: dark) {
-      a:hover { text-shadow: 0 0 12px rgb(48 209 88 / 55%); }
+      a:hover { text-shadow: 0 0 12px rgb(196 247 208 / 45%); }
     }
     section { padding-block: 48px 8px; border-block-end: 1px solid var(--line); }
     section:last-of-type { border-block-end: 0; }
