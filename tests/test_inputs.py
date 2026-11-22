@@ -79,7 +79,7 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
         ("language: fr", "unsupported_language", "language"),
         ("target_profile: other", "unsupported_profile", "target_profile"),
         ("as_of: yesterday", "invalid_field", "as_of"),
-        ('as_of: "2026-02-30"', "invalid_field", "as_of"),
+        ('as_of: "2026-02-30"', "invalid_scalar", "as_of"),
         ('as_of: "20261121"', "invalid_field", "as_of"),
         ('current_costs: {other_it_per_year: "0"}', "missing_field", "currency"),
         (

@@ -284,7 +284,10 @@ def _mapping_gaps(
             if disputes:
                 finding, need, reasons = count, "unknown", disputes
             elif count is not None and type(count.value) is int and count.value > 0:
-                finding, need, reasons = count, "yes", ()
+                if need == "no":
+                    need, reasons = "unknown", ("desktop_requirements_conflict",)
+                elif finding is None or finding.value is None:
+                    finding, need, reasons = count, "yes", ()
         if need == "unknown" and not reasons:
             default = "answer_not_provided" if item.need_if_positive else "not_established"
             reasons = ((finding.missing_reason if finding else None) or default,)

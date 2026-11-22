@@ -133,7 +133,7 @@ def _finding(
         collector,
         source,
         DAY,
-        "2026-10-01/2026-10-31" if collector else None,
+        "2026-10-01/2026-10-31" if collector and entry.workload != "directory" else None,
         coverage,
         None,
     )
@@ -234,6 +234,9 @@ def tenants(draw: st.DrawFn) -> Tenant:
             entry.coverage_total_from for entry in CATALOGUE.findings if entry.coverage_total_from
         )
     }
+    accounts = draw(COUNTS)
+    totals["directory.user_count"] = accounts
+    totals["directory.licensed_user_count"] = draw(st.integers(0, accounts))
     findings = tuple(
         finding
         for entry in CATALOGUE.findings

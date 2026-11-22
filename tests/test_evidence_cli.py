@@ -70,15 +70,19 @@ def _reject_scan(tmp_path: Path, scan: dict, field: str, answers: str | None = N
 
 
 @pytest.mark.parametrize("reason", ["collector_skipped", "permission_denied"])
+@pytest.mark.parametrize("initial_assignments", [0, 1])
 def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
-    tmp_path: Path, reason: str
+    tmp_path: Path, reason: str, initial_assignments: int
 ) -> None:
     sample = files("fazit").joinpath("demo", "nonprofit")
     scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
     answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    answers = answers.replace(
+        "licences.contract_terms_known: false", "licences.contract_terms_known: true"
+    )
     (product,) = scan["licences"]["products"]
     assigned = product["assigned"]
-    product["assigned"] = 0
+    product["assigned"] = initial_assignments
     before = _html(_report(tmp_path / "directory-present", scan, answers))
 
     directory = next(row for row in scan["collectors"] if row["id"] == "directory")
@@ -93,6 +97,12 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
         row = readiness_row(after, workload)
         assert 'data-status="unknown"' in row, workload
         assert f'data-reason="{reason}"' in row
+    for html, code in (
+        (before, "licence_assignments_conflict"),
+        (after, "licence_directory_unverified"),
+    ):
+        row = readiness_row(html, "licences")
+        assert 'data-status="unknown"' in row and f'data-reason="{code}"' in row
     product["assigned"] = assigned
     positive = _html(_report(tmp_path / "directory-skipped-with-assignments", scan, answers))
     assert re.search(
@@ -425,18 +435,54 @@ def test_licensed_accounts_make_zero_assignments_inconclusive(
             products=[], coverage={"kind": "complete", "scanned": 0, "failed": 0, "total": 0}
         )
 
-    html = _html(_report(tmp_path / "contradictory-assignments", town_scan, NO_TELEPHONY))
+    answers = """
+confirmations:
+  licences.contract_terms_known: true
+  telephony.in_use: false
+"""
+    html = _html(_report(tmp_path / "contradictory-assignments", town_scan, answers))
     row = readiness_row(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_assignments_conflict"' in row
     assert "Licence assignments contradict licensed accounts." in row
     for workload in load_catalogue().workload_ids:
         assert f'data-unexamined-finding="{workload}.licence_add_on_assigned"' in html
-    if empty_inventory:
-        assert "Licence products found: 0" in html
-        row = readiness_row(html, "licences")
+    assert f"Licence products found: {len(licences['products'])}" in html
+    row = readiness_row(html, "licences")
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_assignments_conflict"' in row
+    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+    assert pilots is None or 'data-path-workload="licences"' not in pilots[0]
+
+
+def test_fewer_assigned_seats_than_licensed_people_withholds_dependent_pilots(
+    tmp_path: Path,
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit")
+    scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
+    answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    (product,) = scan["licences"]["products"]
+    accounts = _finding(scan, "directory.licensed_user_count")
+    assert accounts["value"] == 20
+    accounts["collected_at"] = "2026-11-05T11:00:00+01:00"
+    product["assigned"] = 1
+
+    html = _html(_report(tmp_path / "underassigned", scan, answers))
+    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+        row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
         assert 'data-reason="licence_assignments_conflict"' in row
+        assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
+    assert 'data-reason="licence_assignments_conflict"' in readiness_row(html, "licences")
+    assert re.search(
+        r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
+        r'<div data-provenance="measured">\s*Yes',
+        readiness_row(html, "small_apps"),
+    )
+    accounts["collected_at"] = "2026-11-05T09:59:59Z"
+    different_time = _html(_report(tmp_path / "different-directory-date", scan, answers))
+    assert 'data-reason="licence_assignments_conflict"' not in different_time
 
 
 @pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])
@@ -471,6 +517,27 @@ def test_report_rejects_a_subset_above_its_population_for_the_same_period(
     _html(_report(tmp_path / "different-period", town_scan))
     guests["coverage"] = {"kind": "partial", "scanned": 31, "total": 50}
     _reject_scan(tmp_path / "outside-own-scope", town_scan, f"findings[{index}].value")
+
+
+@pytest.mark.parametrize(
+    ("parent_stamp", "subset_stamp"),
+    [
+        ("2026-11-02T09:00Z", "2026-11-02T10:00+01:00"),
+        ("2026-11-02T08:59:59.9999999Z", "2026-11-02T09:59:59.99999990+01:00"),
+    ],
+)
+def test_report_rejects_a_subset_above_its_population_at_the_same_instant(
+    tmp_path: Path, town_scan: dict, parent_stamp: str, subset_stamp: str
+) -> None:
+    _finding(town_scan, "teams.team_count").update(period=None, collected_at=parent_stamp)
+    guests = _finding(town_scan, "teams.teams_with_guests_count")
+    guests.update(value=40, period=None, collected_at=subset_stamp)
+    index = town_scan["findings"].index(guests)
+
+    _reject_scan(tmp_path / "same-instant", town_scan, f"findings[{index}].value")
+
+    guests["collected_at"] = "2026-11-02T08:59:59.9999998Z"
+    _html(_report(tmp_path / "different-instant", town_scan))
 
 
 @pytest.mark.parametrize(
@@ -511,8 +578,7 @@ def test_missing_roster_plan_leaves_add_on_absence_unknown(
     town_scan["licences"].update(
         products=[product], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
     )
-    if not assigned:
-        _finding(town_scan, "directory.licensed_user_count")["value"] = 0
+    _finding(town_scan, "directory.licensed_user_count")["value"] = assigned
     baseline = _html(_report(tmp_path / "complete-roster", town_scan, NO_TELEPHONY))
     assert f'data-status="{baseline_status}"' in readiness_row(baseline, "telephony")
 
@@ -564,6 +630,7 @@ def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
     town_scan["licences"].update(
         products=[phone], coverage={"kind": "complete", "scanned": 1, "failed": 0, "total": 1}
     )
+    _finding(town_scan, "directory.licensed_user_count")["value"] = 12
     baseline = _html(_report(tmp_path / "classified-phone", town_scan, NO_TELEPHONY))
     assert 'data-status="needs_work"' in readiness_row(baseline, "telephony")
 
@@ -613,6 +680,7 @@ confirmations:
     assert 'data-status="needs_work"' in readiness_row(html, "telephony")
 
     suite["assigned"] = 0
+    _finding(town_scan, "directory.licensed_user_count")["value"] = 12
     html = _html(_report(tmp_path / "unassigned-plan", town_scan, answers))
     assert "Unclassified service plans in this product: 1." in html
     assert 'data-status="ready"' in readiness_row(html, "teams")
@@ -690,10 +758,11 @@ def test_eea_suite_with_published_punctuation_is_classified(
         (False, False, "complete", "ready"),
         (False, True, "complete", "unknown"),
         (True, False, "complete", "unknown"),
+        (False, True, "partial", "blocker"),
         (True, False, "partial", "unknown"),
     ],
 )
-def test_disputed_telephony_evidence_cannot_decide_whether_it_is_in_use(
+def test_telephony_distinguishes_partial_absence_from_conflicting_evidence(
     tmp_path: Path, town_scan: dict, measured: bool, provided: bool, coverage: str, status: str
 ) -> None:
     town_scan["licences"]["products"] = [
@@ -712,7 +781,9 @@ confirmations:
     town_scan["collectors"].append(
         {"id": "telephony", "status": "ok", "reason": None, "permissions_used": []}
     )
-    _measure(town_scan, "telephony.in_use", measured, "telephony", kind=coverage)
+    finding = _measure(town_scan, "telephony.in_use", measured, "telephony", kind=coverage)
+    if coverage == "partial":
+        finding["coverage"].update(scanned=1, failed=0, total=85)
     html = _html(_report(tmp_path / "both-observations", town_scan, answers))
     row = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in row
@@ -728,8 +799,13 @@ confirmations:
         re.findall(r'data-provenance="(measured|provided)">\s*(Yes|No)', evidence[0])
         == observations
     )
-    assert ('data-reason="confirmation_conflict"' in row) is (measured != provided)
-    assert ("data-incomplete" in row) is (measured != provided)
+    disputed = measured != provided and (coverage == "complete" or measured)
+    assert ('data-reason="confirmation_conflict"' in row) is disputed
+    assert ("data-incomplete" in row) is disputed
+    if coverage == "partial":
+        assert "1 of 85 scanned" in row
+        need = "unknown" if disputed else "yes"
+        assert f'data-gap="telephony" data-need="{need}"' in html
 
 
 @pytest.mark.parametrize(
@@ -1072,6 +1148,37 @@ confirmations:
         r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S
     )
     assert gap is not None and 'data-reason="provided_answers_conflict"' in gap[0]
+
+
+@pytest.mark.parametrize("profile", ["opendesk", "nextcloud"])
+def test_desktop_gap_shows_disagreement_between_confirmation_and_software_list(
+    tmp_path: Path, town_scan: dict, profile: str
+) -> None:
+    answers = f"""
+target_profile: {profile}
+as_of: 2026-11-02
+windows_only_software:
+  - {{name: Records, vendor_has_web_version: false}}
+  - {{name: Permits, vendor_has_web_version: false}}
+confirmations:
+  device_management.windows_desktops_required: false
+"""
+    html = _html(_report(tmp_path / "desktop-disagreement", town_scan, answers))
+
+    gap = re.search(
+        r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S
+    )
+    assert gap is not None and 'data-reason="desktop_requirements_conflict"' in gap[0]
+    assert "Windows desktops are unnecessary" in gap[0]
+    assert "Windows-only applications without a web version" in gap[0]
+    assert "2 applications" in readiness_row(html, "windows_software")
+    desktop_evidence = re.search(
+        r'<tr data-finding="device_management\.windows_desktops_required"'
+        r' data-provenance="provided".*?</tr>',
+        html,
+        re.S,
+    )
+    assert desktop_evidence is not None and re.search(r"\bNo\b", desktop_evidence[0])
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 quick_id: 261122-rv7
 slug: round2
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review round 2, fixes

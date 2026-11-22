@@ -823,6 +823,58 @@ def test_complete_counts_must_agree_but_a_partial_count_can_be_consistent(
         assert "shows no applications integrated" not in row
 
 
+@pytest.mark.parametrize("check_ready", [True, False], ids=["ready", "problem"])
+def test_disputed_count_blocks_every_workload_that_uses_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, catalogue: Catalogue, check_ready: bool
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules_dir())), copied)
+    path = copied / "status.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    finding_id = "integrations.application_count"
+    block = data["workloads"]["small_apps"]
+    if check_ready:
+        block["ready"]["evidence"].append({"finding": finding_id, "op": "==", "value": 0})
+    else:
+        block["rules"].append(
+            {
+                "id": "small-apps-integrations",
+                "when": [{"finding": finding_id, "op": ">", "value": 0, "provenance": "provided"}],
+                "status": "needs_work",
+                "reason": {"en": "Review integrations.", "de": "Prüfen Sie die Schnittstellen."},
+            }
+        )
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    scan = sample_scan("town", catalogue)
+    recorded = replace(
+        scan.finding(finding_id),
+        value=0,
+        provenance="measured",
+        collector="directory",
+        source="sample.directory",
+        collected_at=scan.generated_at,
+        coverage=Coverage("complete"),
+        missing_reason=None,
+    )
+    scan = replace(
+        scan, findings=tuple(recorded if item.id == finding_id else item for item in scan.findings)
+    )
+    answers = Inputs(
+        provided_counts={finding_id: 3},
+        confirmations={"small_apps.in_use": False},
+    )
+
+    html = render_report(scan, lang="en", inputs=answers)
+    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+    for workload in ("small_apps", "integrations"):
+        row = readiness_row(html, workload)
+        assert 'data-status="unknown" data-incomplete' in row
+        assert 'data-reason="confirmation_conflict"' in row
+        assert "0 applications" in row and "3 applications" in row
+        assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
+
+
 def test_when_ready_evidence_is_false_and_no_problem_fires(
     complete_evidence: dict[str, Finding], status_rules: StatusRuleSet, catalogue: Catalogue
 ) -> None:
@@ -972,21 +1024,34 @@ def test_bad_catalogue_label_exits_with_a_localised_sentence(
     assert result.exit_code == 2 and not result.stdout and not out.exists()
 
 
+@pytest.mark.parametrize(
+    ("lang", "prefix", "file", "field"),
+    [
+        ("de", "  licences: Lizenzen", "findings.yaml", "workloads[0].label"),
+        ("en", "  sample.directory:", "en.yaml", "source.sample.directory"),
+        ("de", "  sample.licences:", "de.yaml", "source.sample.licences"),
+        ("en", "  sample.interview:", "en.yaml", "source.sample.interview"),
+    ],
+)
 def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, lang: str, prefix: str, file: str, field: str
 ) -> None:
     locales = tmp_path / "locales"
     copytree(Path(str(files("fazit").joinpath("locales"))), locales)
-    path = locales / "de.yaml"
+    path = locales / f"{lang}.yaml"
     source = path.read_text(encoding="utf-8")
-    path.write_text(source.replace("  licences: Lizenzen\n", "", 1), encoding="utf-8")
+    line = next(line for line in source.splitlines(keepends=True) if line.startswith(prefix))
+    path.write_text(source.replace(line, "", 1), encoding="utf-8")
     monkeypatch.setattr("fazit.i18n.files", lambda _: tmp_path)
+    other = "en" if lang == "de" else "de"
+    out = tmp_path / "out"
 
-    result = runner.invoke(app, ["demo", "--lang", "en", "--out", str(tmp_path / "out")])
+    result = runner.invoke(app, ["demo", "--lang", other, "--out", str(out)])
 
-    assert result.exit_code == 2 and not result.stdout
-    assert len(result.stderr.splitlines()) == 1
-    assert "workloads[0].label" in result.stderr and "findings.yaml" in result.stderr
+    strings = load_locale(other)
+    message = strings["errors"]["invalid_label"].format(file=file, field=field)
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
 
 
 def test_shipped_risky_extensions(catalogue: Catalogue) -> None:

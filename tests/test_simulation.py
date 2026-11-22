@@ -99,6 +99,15 @@ UNASSIGNED = Tenant(
     "en",
     "opendesk",
 )
+UNDERASSIGNED = replace(
+    UNASSIGNED,
+    scan=replace(
+        UNASSIGNED.scan,
+        licences=replace(
+            NONPROFIT.licences, products=(replace(NONPROFIT.licences.products[0], assigned=1),)
+        ),
+    ),
+)
 DIRECTORY_DENIED = replace(
     UNASSIGNED,
     scan=replace(
@@ -151,6 +160,7 @@ def _statuses(html: str) -> dict[str, str]:
 
 @given(tenant=tenants())
 @example(tenant=OFFICE)
+@example(tenant=UNDERASSIGNED)
 def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     html = _render(tenant)
     statuses = _statuses(html)
@@ -162,6 +172,30 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     unavailable = {row.id for row in tenant.scan.collectors if row.status != "ok"}
     licences = tenant.scan.licences
     readiness = report_section(html, "readiness")
+    accounts = recorded.get("directory.licensed_user_count")
+    if (
+        licences is not None
+        and licences.coverage.kind == "complete"
+        and licences.collector not in unavailable
+        and accounts is not None
+        and accounts.provenance == "measured"
+        and accounts.period is None
+        and accounts.collected_at == licences.collected_at
+        and accounts.value > sum(product.assigned for product in licences.products)
+    ):
+        row = readiness_row(readiness, "licences")
+        assert 'data-reason="licence_assignments_conflict"' in row
+        assert statuses["licences"] != "ready"
+        signals = re.findall(
+            r'<li data-evidence="[^"]+\.licence_(?:add_on|bundled)_assigned">.*?</li>',
+            readiness,
+            re.S,
+        )
+        no = re.escape(load_locale(tenant.lang)["common"]["no"])
+        assert all(
+            not re.search(rf'<div data-provenance="measured">\s*{no}\b', signal)
+            for signal in signals
+        )
     for key, answer in supplied.items():
         finding = recorded.get(key)
         if (
@@ -196,7 +230,6 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
                     and (key != "licences.product_count" or not licences.products)
                     and not any(product.assigned for product in licences.products)
                 ):
-                    accounts = recorded.get("directory.licensed_user_count")
                     complete = (
                         accounts is not None
                         and accounts.value == 0

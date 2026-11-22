@@ -40,3 +40,12 @@ jobs:
       - run: uv run fazit demo --lang de
       - run: uv run fazit demo --lang en
       - run: uv run python site/check_site.py
+      - name: Test unpacked source distribution
+        if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: |
+          fazit_archive_dir=$(mktemp -d)
+          uv build --sdist --out-dir "$fazit_archive_dir"
+          tar -xzf "$fazit_archive_dir"/*.tar.gz -C "$fazit_archive_dir"
+          cd "$fazit_archive_dir"/fazit-*/
+          uv sync --locked --python "${{ steps.python.outputs.python-path }}"
+          uv run pytest -q -rs

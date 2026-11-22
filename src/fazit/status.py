@@ -162,25 +162,20 @@ def _skipped_gap(
     return None
 
 
-def _observation_gaps(
-    workload: str,
-    required: Collection[str],
+def _observation_disputes(
     findings: Mapping[str, Finding],
     alternatives: Mapping[str, Finding],
-    collectors: Mapping[str, Collector],
-) -> Iterator[MissingEvidence]:
+) -> dict[str, MissingEvidence]:
+    disputes = {}
     for finding_id, alternative in alternatives.items():
-        if alternative.workload != workload:
-            continue
-        if finding_id in required and (skipped := _skipped_gap(alternative, collectors)):
-            yield skipped
         primary = findings.get(finding_id)
         if primary is None:
             continue
         if provided_answers_conflict(primary, alternative):
-            yield MissingEvidence(finding_id, "provided_answers_conflict", None)
+            disputes[finding_id] = MissingEvidence(finding_id, "provided_answers_conflict", None)
         elif evidence_conflicts(primary, alternative):
-            yield MissingEvidence(finding_id, "confirmation_conflict", None)
+            disputes[finding_id] = MissingEvidence(finding_id, "confirmation_conflict", None)
+    return disputes
 
 
 def _collector_gaps(
@@ -255,16 +250,17 @@ def _problem_result(
         return None
     if gap is None:
         return _matches_condition(condition, finding)
+    if condition.provenance not in (None, finding.provenance):
+        return None
     if (
         gap.reason_code in ("coverage_partial", "coverage_unknown")
         and finding.id.endswith(".licence_add_on_assigned")
         and finding.value is True
-        and condition.provenance in (None, finding.provenance)
     ):
         return _matches_condition(condition, finding)
     if (
-        gap.reason_code in ("coverage_partial", "coverage_unknown", "answer_not_provided")
-        and (condition.provenance is None or condition.provenance == finding.provenance)
+        gap.reason_code
+        in ("coverage_partial", "coverage_unknown", "answer_not_provided", "confirmation_conflict")
         and condition.op != "=="
         and finding.is_lower_bound
         and _matches_condition(condition, finding)
@@ -299,23 +295,14 @@ def _condition_results(
     alternatives: Mapping[str, Finding],
     provided_ids: Collection[str],
     collectors: Mapping[str, Collector],
-    observation_gaps: tuple[MissingEvidence, ...],
+    disputes: Mapping[str, MissingEvidence],
 ) -> dict[Condition, _ConditionResult]:
-    disputed = {
-        gap.finding_id: gap
-        for gap in observation_gaps
-        if gap.reason_code == "provided_answers_conflict"
-        or (
-            gap.reason_code == "confirmation_conflict"
-            and not findings[gap.finding_id].is_lower_bound
-        )
-    }
     results = {}
     for condition in conditions:
         evidence = alternatives.get(condition.finding)
         if evidence is None or evidence.provenance != condition.provenance:
             evidence = findings.get(condition.finding)
-        gap = disputed.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)
+        gap = disputes.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)
         results[condition] = _problem_result(condition, evidence, gap), gap
     return results
 
@@ -344,21 +331,30 @@ def _evaluate_workload(
     entries: Mapping[str, FindingEntry],
     collectors: Mapping[str, Collector],
     alternatives: Mapping[str, Finding],
+    disputes: Mapping[str, MissingEvidence],
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
         (*block.ready, *(item for rule in block.rules for item in rule.when))
     )
     ids = dict.fromkeys(condition.finding for condition in conditions)
     provided_ids = {item for item in ids if item in entries and entries[item].provided != "no"}
-    observation_gaps = tuple(_observation_gaps(workload, ids, findings, alternatives, collectors))
     results = _condition_results(
-        conditions, findings, alternatives, provided_ids, collectors, observation_gaps
+        conditions, findings, alternatives, provided_ids, collectors, disputes
     )
     fired, missing = _matching_rules(block, results)
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
     bundled_id = f"{workload}.licence_bundled_assigned"
     bundled = findings.get(bundled_id)
-    missing.update(dict.fromkeys(observation_gaps))
+    for finding_id in ids:
+        if skipped := _skipped_gap(alternatives.get(finding_id), collectors):
+            missing[skipped] = None
+    missing.update(
+        dict.fromkeys(
+            gap
+            for finding_id, gap in disputes.items()
+            if finding_id in ids or findings[finding_id].workload == workload
+        )
+    )
     missing.update(dict.fromkeys(_collector_gaps(ids, entries, collectors, missing)))
     ids.update(dict.fromkeys(gap.finding_id for gap in missing))
     if bundled is not None and bundled.value is True:
@@ -385,6 +381,8 @@ def evaluate(
     alternatives: Mapping[str, Finding] | None = None,
 ) -> tuple[WorkloadStatus, ...]:
     entries = {entry.id: entry for entry in catalogue.findings}
+    alternatives = {} if alternatives is None else alternatives
+    disputes = _observation_disputes(findings, alternatives)
     return tuple(
         _evaluate_workload(
             workload,
@@ -392,7 +390,8 @@ def evaluate(
             findings,
             entries,
             collectors or {},
-            alternatives or {},
+            alternatives,
+            disputes,
         )
         for workload in catalogue.workload_ids
     )

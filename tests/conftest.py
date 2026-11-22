@@ -23,6 +23,23 @@ def pytest_configure(config: pytest.Config) -> None:
     config.add_cleanup(cache.cleanup)
 
 
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    if (config.rootpath / ".git").exists() or not (config.rootpath / "PKG-INFO").is_file():
+        return
+    repo_test = "test_repo_basics.py"
+    workflow = ".github/workflows/ci.yml"
+    checkout_files = {
+        (repo_test, "test_dependency_cutoff_is_fourteen_days_before_head"): ".git",
+        (repo_test, "test_ci_runs_the_required_checks_on_supported_python_versions"): workflow,
+        (repo_test, "test_ci_uses_read_only_permissions_and_sha_pinned_actions"): workflow,
+        ("test_report.py", "test_report_and_website_share_colour_tokens"): "site/style.css",
+    }
+    for item in items:
+        path = checkout_files.get((item.path.name, item.name))
+        if path is not None and not (config.rootpath / path).exists():
+            item.add_marker(pytest.mark.skip(reason=f"The source distribution omits {path}."))
+
+
 def _record_socket_event(event: str, args: tuple[object, ...]) -> None:
     if _socket_events is not None and event.startswith("socket."):
         _socket_events.append(event)

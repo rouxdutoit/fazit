@@ -23,8 +23,10 @@ def evidence_conflicts(first: Finding, second: Finding) -> bool:
         and is_complete(provided)
     ):
         return False
-    if is_complete(measured) or type(measured.value) is bool:
+    if is_complete(measured):
         return measured.value != provided.value
+    if type(measured.value) is bool:
+        return measured.value and provided.value is False
     return measured.is_lower_bound and measured.value > provided.value
 
 

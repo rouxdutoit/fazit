@@ -217,14 +217,15 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
         quoted_fields=_QUOTED_FIELDS,
         allow_aliases=False,
         fields=fields,
-        integer_fields={
-            *(
-                ("target_costs", scenario, key)
+        scalar_fields={
+            **{
+                ("target_costs", scenario, key): "integer"
                 for scenario in _SCENARIOS
                 for key in _SCENARIO_COUNTS
-            ),
-            ("windows_only_software", None, "users"),
-            *(("provided_counts", key) for key in count_ids),
+            },
+            ("windows_only_software", None, "users"): "integer",
+            **{("provided_counts", key): "integer" for key in count_ids},
+            ("as_of",): "date",
         },
     )
     reject_at_signs(data, file_name)

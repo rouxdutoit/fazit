@@ -69,6 +69,12 @@ _SCAN_FIELD_NAMES: FieldNames = {
 type FindingValue = int | bool
 
 
+def _fractional_seconds(stamp: str) -> str:
+    # datetime truncates fractional seconds to microseconds.
+    match = _FRACTIONAL_SECONDS.search(stamp)
+    return match[1].rstrip("0") if match else ""
+
+
 def _timestamp_after(stamp: str, reference: str) -> bool:
     time, limit = datetime.fromisoformat(stamp), datetime.fromisoformat(reference)
     if len(stamp) == 10 or len(reference) == 10:
@@ -77,12 +83,18 @@ def _timestamp_after(stamp: str, reference: str) -> bool:
         time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None)
     if time != limit:
         return time > limit
-    # datetime truncates fractional seconds to microseconds.
-    fraction, cutoff = (
-        match[1].rstrip("0") if (match := _FRACTIONAL_SECONDS.search(value)) else ""
-        for value in (stamp, reference)
+    return _fractional_seconds(stamp) > _fractional_seconds(reference)
+
+
+def same_collection_time(first: str | None, second: str | None) -> bool:
+    if first is None or second is None:
+        return False
+    return first == second or (
+        len(first) > 10
+        and len(second) > 10
+        and datetime.fromisoformat(first) == datetime.fromisoformat(second)
+        and _fractional_seconds(first) == _fractional_seconds(second)
     )
-    return fraction > cutoff
 
 
 @dataclass(frozen=True)
@@ -421,8 +433,11 @@ class _ScanReader:
                 population is not None
                 and type(population.value) is int
                 and subset.source == population.source
-                and (subset.period or subset.collected_at)
-                == (population.period or population.collected_at)
+                and subset.period == population.period
+                and (
+                    subset.period is not None
+                    or same_collection_time(subset.collected_at, population.collected_at)
+                )
             ):
                 exact = population.coverage is None or population.coverage.kind == "complete"
                 if total is not None and (

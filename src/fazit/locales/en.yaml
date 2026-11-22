@@ -295,7 +295,7 @@ reason:
     label: Licence assignments contradict licensed accounts.
     fix: Check the directory count and licence inventory for the same organisation and collect the figures again.
   licence_directory_unverified:
-    label: The directory does not confirm the empty licence inventory.
+    label: The directory does not confirm the licence assignments.
     fix: Check the count of licensed accounts against the licence inventory.
   coverage_partial:
     label: The measurement covers only part of the scope.
@@ -309,6 +309,11 @@ reason:
   provided_answers_conflict:
     label: The supplied answers disagree.
     fix: Check both answers with the service owner and correct the source files.
+  desktop_requirements_conflict:
+    label: >-
+      The supplied answer says Windows desktops are unnecessary.
+      The software list identifies Windows-only applications without a web version.
+    fix: Confirm with the service owner whether these applications still require Windows desktops.
   not_established:
     label: The available evidence leaves the answer open.
     fix: Review the finding with the person responsible for the service.
@@ -422,6 +427,16 @@ cli:
   version: '{version}'
   sample_scan: Sample scan saved to {path}.
   sample_inputs: Sample inputs saved to {path}.
+  private_input_file:
+    scan: the scan file
+    inputs: the inputs file
+  private_input_errors:
+    file_not_found: Could not find {file}.
+    is_directory: The path to {file} points to a directory.
+    not_readable: Could not read {file}.
+    file_too_large: The size of {file} exceeds 2 MiB.
+    unsupported_language: Choose en or de for {field} in {file}.
+    unsupported_profile: Choose opendesk, nextcloud or generic for {field} in {file}.
 errors:
   invalid_json: Check the JSON syntax on line {line} of {file}.
   invalid_json_field: Check the JSON syntax for `{field}` on line {line} of {file}.

@@ -295,7 +295,7 @@ reason:
     label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
     fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
   licence_directory_unverified:
-    label: Der leere Lizenzbestand ist durch das Verzeichnis nicht bestätigt.
+    label: Die Lizenzzuweisungen sind durch das Verzeichnis nicht bestätigt.
     fix: Gleichen Sie die Zahl der lizenzierten Konten mit dem Lizenzbestand ab.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
@@ -309,6 +309,11 @@ reason:
   provided_answers_conflict:
     label: Die eingetragenen Antworten widersprechen einander.
     fix: Klären Sie beide Antworten mit der zuständigen Stelle und korrigieren Sie die Angaben in den Dateien.
+  desktop_requirements_conflict:
+    label: >-
+      Laut Ihrer Angabe sind keine Windows-Arbeitsplätze erforderlich.
+      Die Anwendungsliste enthält Programme, die nur unter Windows laufen und für die keine Webversion verfügbar ist.
+    fix: Klären Sie mit der zuständigen Stelle, ob für diese Programme weiterhin Windows-Arbeitsplätze benötigt werden.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
@@ -422,6 +427,16 @@ cli:
   version: '{version}'
   sample_scan: Die Beispielerhebung wurde unter {path} gespeichert.
   sample_inputs: Die Beispieleingaben wurden unter {path} gespeichert.
+  private_input_file:
+    scan: mit den Erhebungsdaten
+    inputs: mit den Eingaben
+  private_input_errors:
+    file_not_found: Die Datei {file} wurde nicht gefunden.
+    is_directory: Der Pfad zur Datei {file} verweist auf ein Verzeichnis.
+    not_readable: Die Datei {file} konnte nicht gelesen werden.
+    file_too_large: Die Datei {file} ist größer als 2 MiB.
+    unsupported_language: Geben Sie für {field} in der Datei {file} den Wert en oder de an.
+    unsupported_profile: Geben Sie für {field} in der Datei {file} den Wert opendesk, nextcloud oder generic an.
 errors:
   invalid_json: Prüfen Sie die JSON-Syntax in Zeile {line} der Datei {file}.
   invalid_json_field: Prüfen Sie die JSON-Syntax für `{field}` in Zeile {line} der Datei {file}.

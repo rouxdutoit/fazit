@@ -152,7 +152,7 @@ def test_cli_errors_only_name_the_supplied_input_or_generated_file(
     scan = Path("Jo Reader@example.invalid.json")
     missing = runner.invoke(app, ["report", str(Path("local") / scan)])
     assert missing.exit_code == 2 and not missing.stdout
-    assert missing.stderr.splitlines() == [f"Error: The file {scan} could not be found."]
+    assert missing.stderr.splitlines() == ["Error: Could not find the scan file."]
 
     report = "report-2026-11-02-en.html"
     (private / report).mkdir()
@@ -162,6 +162,30 @@ def test_cli_errors_only_name_the_supplied_input_or_generated_file(
     assert blocked.stderr.splitlines() == [
         f"Error: The output location {label} for --out is not a regular file."
     ]
+
+
+@pytest.mark.parametrize(
+    ("lang", "role"), [("en", "the inputs file"), ("de", "Datei mit den Eingaben")]
+)
+@pytest.mark.parametrize("contents", [None, "currency: [}\n"])
+def test_input_error_uses_the_role_for_an_identifying_filename(
+    tmp_path: Path, lang: str, role: str, contents: str | None
+) -> None:
+    scan = sample_scan_path("town")
+    inputs = tmp_path / "Pat Analyst@example.invalid.yaml"
+    if contents is not None:
+        inputs.write_text(contents, encoding="utf-8")
+    out = tmp_path / "out"
+
+    result = runner.invoke(
+        app, ["report", str(scan), "--inputs", str(inputs), "--lang", lang, "--out", str(out)]
+    )
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert role in result.stderr and "@" not in result.stderr
+    if contents is not None:
+        assert "currency" in result.stderr
 
 
 @pytest.mark.parametrize("profile", PROFILES)
@@ -683,6 +707,34 @@ def test_report_rejects_missing_or_directory_inputs(tmp_path: Path, kind: str) -
 
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert len(result.stderr.splitlines()) == 1 and answers.name in result.stderr
+
+
+@pytest.mark.parametrize(("lang", "line_label"), [("en", "line"), ("de", "Zeile")])
+@pytest.mark.parametrize("date_text", ["2026-02-30", '"2026-02-30"'])
+def test_invalid_input_date_names_its_field_and_line(
+    tmp_path: Path, lang: str, line_label: str, date_text: str
+) -> None:
+    answers = tmp_path / "inputs.yaml"
+    answers.write_text(f"# Interview date\ncurrency: EUR\n\nas_of: {date_text}\n", encoding="utf-8")
+    out = tmp_path / "out"
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            str(sample_scan_path("town")),
+            "--inputs",
+            str(answers),
+            "--out",
+            str(out),
+            "--lang",
+            lang,
+        ],
+    )
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert "inputs.yaml" in result.stderr and "as_of" in result.stderr
+    assert f"{line_label} 4" in result.stderr
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])

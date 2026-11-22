@@ -33,7 +33,7 @@ def _parse_locale(text: str, file_name: str) -> dict:
     return strings
 
 
-def error_sentence(strings: dict, error: InputError) -> str:
+def error_sentence(strings: dict, error: InputError, *, input_role: str | None = None) -> str:
     code = error.code
     if error.file is None:
         code += "_option"
@@ -41,8 +41,14 @@ def error_sentence(strings: dict, error: InputError) -> str:
         code += "_field"
     elif error.field == "$" and code in ("invalid_field", "contains_at"):
         code += "_document"
-    return strings["errors"][code].format(
-        file=escape_controls(error.file or ""),
+    template = strings["errors"][code]
+    file_name = error.file or ""
+    if input_role is not None and "@" in file_name:
+        cli = strings["cli"]
+        file_name = cli["private_input_file"][input_role]
+        template = cli["private_input_errors"].get(code, template)
+    return template.format(
+        file=escape_controls(file_name),
         field=escape_controls(error.field or ""),
         line=error.line,
         **error.details,

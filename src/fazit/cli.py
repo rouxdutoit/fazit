@@ -72,13 +72,15 @@ def _printed_path(path: Path, out: str) -> str:
     return escape_controls(join(out, path.name))
 
 
-def _exit_with_error(ctx: typer.Context, lang: str, error: InputError) -> Never:
+def _exit_with_error(
+    ctx: typer.Context, lang: str, error: InputError, *, input_role: str | None = None
+) -> Never:
     if ctx.obj:
         raise error
     if error.code == "unsupported_language" and error.file is None:
         lang = DEFAULT_LANGUAGE
     strings = load_locale(lang)
-    message = error_sentence(strings, error)
+    message = error_sentence(strings, error, input_role=input_role)
     typer.echo(strings["cli"]["error_prefix"].format(message=message), err=True)
     raise typer.Exit(2) from None
 
@@ -142,13 +144,17 @@ def report(
 ) -> None:
     """Build a report from an existing scan file."""
     message_lang = lang if lang is not None else DEFAULT_LANGUAGE
+    input_role = None
     try:
         check_language(message_lang)
         catalogue = load_catalogue()
+        input_role = "scan"
         scan = load_scan(scan_json, catalogue)
+        input_role = "inputs"
         answers = load_inputs(inputs, catalogue) if inputs is not None else Inputs()
         report_lang = lang if lang is not None else answers.language or DEFAULT_LANGUAGE
         target = profile if profile is not None else answers.target_profile or "opendesk"
+        input_role = "scan"
         html = render_report(
             scan,
             lang=report_lang,
@@ -157,9 +163,10 @@ def report(
             inputs=answers if inputs is not None else None,
             scan_file_name=scan_json.name,
         )
+        input_role = None
         path = write_inside(out, report_file_name(scan.generated_at, lang=report_lang), html)
     except InputError as error:
-        _exit_with_error(ctx, message_lang, error)
+        _exit_with_error(ctx, message_lang, error, input_role=input_role)
     typer.echo(_printed_path(path, out))
 
 

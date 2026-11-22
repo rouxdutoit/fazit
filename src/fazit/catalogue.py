@@ -229,6 +229,9 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
                     _require_label(
                         strings.get(group), entry.unit, reader, f"findings[{index}].unit"
                     )
+        locale_reader = Validator(f"{lang}.yaml")
+        for code in sorted(catalogue.source_codes):
+            _require_label(strings.get("source"), code, locale_reader, f"source.{code}")
     return catalogue
 
 

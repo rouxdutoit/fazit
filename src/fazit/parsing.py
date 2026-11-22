@@ -2,6 +2,7 @@
 import json
 import re
 from collections.abc import Collection, Mapping
+from datetime import date
 from importlib.resources.abc import Traversable
 from math import isfinite
 from pathlib import Path
@@ -25,17 +26,19 @@ from .validation import DATE
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 type FieldNames = Mapping[tuple[str | None, ...], Collection[str]]
+type ScalarFields = Mapping[tuple[str | None, ...], str]
 type _FieldPath = tuple[str | int | None, ...]
 
 _JSON_TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|[^\s"{}\[\]:,]+|[{}\[\]:,]')
 _YAML_TEXT = "tag:yaml.org,2002:str"
 _YAML_INTEGER = "tag:yaml.org,2002:int"
 _YAML_FLOAT = "tag:yaml.org,2002:float"
+_YAML_TIMESTAMP = "tag:yaml.org,2002:timestamp"
 _INPUT_SCALAR_SPELLINGS = {
     _YAML_INTEGER: re.compile(r"0|[1-9][0-9]*"),
     "tag:yaml.org,2002:bool": re.compile(r"true|false", re.IGNORECASE),
     "tag:yaml.org,2002:null": re.compile(r"null|~|", re.IGNORECASE),
-    "tag:yaml.org,2002:timestamp": DATE,
+    _YAML_TIMESTAMP: DATE,
 }
 
 
@@ -165,7 +168,7 @@ def _check_yaml(
     path: _FieldPath,
     checked: dict[Node, bool],
     fields: FieldNames,
-    integer_fields: Collection[tuple[str | None, ...]],
+    scalar_fields: ScalarFields,
 ) -> None:
     if node in checked:
         if not checked[node]:
@@ -182,19 +185,27 @@ def _check_yaml(
             if key.value in keys:
                 _yaml_error("duplicate_key", file_name, key, child_path, fields)
             keys.add(key.value)
-            _check_yaml(item, file_name, child_path, checked, fields, integer_fields)
+            _check_yaml(item, file_name, child_path, checked, fields, scalar_fields)
     elif isinstance(node, SequenceNode):
         for index, item in enumerate(node.value):
-            _check_yaml(item, file_name, (*path, index), checked, fields, integer_fields)
-    elif integer_fields and (pattern := _INPUT_SCALAR_SPELLINGS.get(node.tag)):
+            _check_yaml(item, file_name, (*path, index), checked, fields, scalar_fields)
+    elif node.tag == _YAML_FLOAT:
+        if not _finite_yaml_float(node.value):
+            _yaml_error("non_finite_number", file_name, node, path, fields)
+    elif scalar_fields:
         # Check spellings before YAML can turn octal counts or on/off into answers.
-        if not pattern.fullmatch(node.value):
+        pattern = _INPUT_SCALAR_SPELLINGS.get(node.tag)
+        if pattern is not None and not pattern.fullmatch(node.value):
             code = "invalid_integer" if node.tag == _YAML_INTEGER else "invalid_scalar"
             _yaml_error(code, file_name, node, path, fields)
-    elif node.tag == _YAML_TEXT and integer_fields and _schema_path(path) in integer_fields:
-        _yaml_error("invalid_integer", file_name, node, path, fields)
-    elif node.tag == _YAML_FLOAT and not _finite_yaml_float(node.value):
-        _yaml_error("non_finite_number", file_name, node, path, fields)
+        expected = scalar_fields.get(_schema_path(path)) if node.tag == _YAML_TEXT else None
+        if expected == "integer":
+            _yaml_error("invalid_integer", file_name, node, path, fields)
+        if node.tag == _YAML_TIMESTAMP or (expected == "date" and DATE.fullmatch(node.value)):
+            try:
+                date.fromisoformat(node.value)
+            except ValueError:
+                _yaml_error("invalid_scalar", file_name, node, path, fields)
     checked[node] = True
 
 
@@ -270,7 +281,7 @@ def parse_yaml(
     quoted_fields: tuple[str, ...] = (),
     allow_aliases: bool = True,
     fields: FieldNames | None = None,
-    integer_fields: Collection[tuple[str | None, ...]] = (),
+    scalar_fields: ScalarFields | None = None,
 ) -> object:
     names = fields or {}
     try:
@@ -280,7 +291,7 @@ def parse_yaml(
                     raise InputError("yaml_anchors", file=file_name, line=token.start_mark.line + 1)
         node = yaml.compose(text, Loader=yaml.SafeLoader)
         if node is not None:
-            _check_yaml(node, file_name, (), {}, names, integer_fields)
+            _check_yaml(node, file_name, (), {}, names, scalar_fields or {})
             # YAML can interpret an unquoted amount with a leading zero as text.
             for field in quoted_fields:
                 _check_quotes(node, file_name, field)

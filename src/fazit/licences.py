@@ -11,7 +11,16 @@ from types import MappingProxyType
 
 from .catalogue import Catalogue, sku_key
 from .errors import InputError
-from .model import Collector, Coverage, Finding, Licences, Product, Scan, ServicePlan
+from .model import (
+    Collector,
+    Coverage,
+    Finding,
+    Licences,
+    Product,
+    Scan,
+    ServicePlan,
+    same_collection_time,
+)
 from .parsing import parse_yaml
 from .rules import read_rule_text
 from .validation import IDENTIFIER, Validator
@@ -272,15 +281,27 @@ def _inventory_evidence(
     ), coverage_gap
 
 
-def _directory_cross_check(scan: Scan, licence_collector: str) -> tuple[str | None, str]:
+def _directory_cross_check(scan: Scan, licences: Licences, assigned_seats: int) -> str | None:
     accounts = scan.finding("directory.licensed_user_count")
-    if accounts is not None and type(accounts.value) is int and accounts.value > 0:
-        return "licence_assignments_conflict", licence_collector
-    directory = scan.collector("directory")
-    gap = (directory.reason if directory else None) or (
-        accounts.missing_reason or _coverage_gap(accounts.coverage) if accounts else "not_in_scan"
+    comparable = (
+        accounts is not None
+        and accounts.provenance == "measured"
+        and type(accounts.value) is int
+        and accounts.period is None
+        and same_collection_time(accounts.collected_at, licences.collected_at)
     )
-    return gap, "directory"
+    if comparable and accounts.value > assigned_seats:
+        return "licence_assignments_conflict"
+    directory = scan.collector("directory")
+    if directory is not None and directory.reason is not None:
+        return directory.reason
+    if assigned_seats:
+        return None
+    if accounts is None:
+        return "not_in_scan"
+    return accounts.missing_reason or (
+        _coverage_gap(accounts.coverage) if comparable else "licence_directory_unverified"
+    )
 
 
 def _assignment_findings(
@@ -317,15 +338,16 @@ def licence_findings(
     assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
     absence_gap = count.missing_reason or classification_gap or coverage_gap
     absence_collector = licences.collector
-    if absence_gap is None and not any(product.assigned for product in licences.products):
-        absence_gap, absence_collector = _directory_cross_check(scan, licences.collector)
-        if count.value == 0 and absence_gap:
-            reason = (
-                absence_gap
-                if absence_gap == "licence_assignments_conflict"
-                else "licence_directory_unverified"
-            )
-            count = replace(count, missing_reason=reason)
+    if coverage_gap is None:
+        assigned_seats = sum(product.assigned for product in licences.products)
+        directory_gap = _directory_cross_check(scan, licences, assigned_seats)
+        if directory_gap == "licence_assignments_conflict":
+            absence_gap = directory_gap
+            count = replace(count, missing_reason=directory_gap)
+        elif directory_gap is not None:
+            if absence_gap is None:
+                absence_gap, absence_collector = directory_gap, "directory"
+            count = replace(count, missing_reason="licence_directory_unverified")
     return (
         count,
         *_assignment_findings(count, catalogue, assigned, absence_gap, absence_collector),
