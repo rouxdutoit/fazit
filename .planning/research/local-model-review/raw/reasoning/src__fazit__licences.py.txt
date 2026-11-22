@@ -1,0 +1,195 @@
+We need answer user's request: review code find concrete faults in given Python file. Need produce exact format findings. Need analyze thoroughly. Need identify bugs, unhandled input, contradicts comment/principle. We only see this file. Need quote exact lines. Need avoid guessing. Let's analyze code.
+
+File src/fazit/licences.py.
+
+Principles: read-only, local, tokens memory, metadata only, privacy, offline report, one command, honest figures. Special: writes/sends off computer, missing treated zero/good, skipped/unknown making status better, invented figures.
+
+Let's inspect code.
+
+Imports. _REFERENCE regex. _SIGNALS = ("add_on", "bundled"), _PLAN_CLASSES = (*_SIGNALS, "no_workload")
+PLAN_GAP_REASONS tuple.
+
+RegisteredPlan dataclass frozen.
+ProductRoster.
+ServicePlans with iter, bool.
+_PlanDetail type.
+
+_plan_definitions(items, reader, workload_ids): iterate rows. row fields required ("name","guid","workload") optional ("note"). name matches IDENTIFIER. duplicate casefold. workload if not None choice. guid. note bilingual if present. plans[name]=... Return dict keyed by original name. Potential issue: duplicate names casefold fail. OK.
+
+_product_roster(product, part_number, sku_guid, field, reader, definitions, reference, checked_on): plan_guids set. plans dict. For signal in _PLAN_CLASSES: members = reader.rows(product.get(signal, []), f"{field}.{signal}", allow_empty=True). For each member: name = reader.choice(member, path, definitions); guid, workload, note = definitions[name]; if guid in plan_guids fail; if (signal == "no_workload") != (workload is None): fail; plan_guids.add; plans[name.casefold(), guid] = RegisteredPlan(...). If not plan_guids fail. Return.
+
+Potential bug: plans dict keyed by (name.casefold(), guid). Later classify_product uses matched.get((plan.name.casefold(), plan.guid)). OK. _public_product uses plans.plan_names.get(plan.name.casefold()) where plan_names mapping from name? In _parse_service_plans: names = {name: plan.name for roster in rosters.values() for (name, _), plan in roster.plans.items()}. Here name is casefolded key. So plan_names maps casefolded name to original plan.name. OK.
+
+But potential issue: if same plan name appears in different products? names dict overwritten? Not necessarily bug. If same casefolded name with different original names? _plan_definitions disallows duplicate casefold across all definitions, so no.
+
+load_service_plans: read_rule_text, parse, checksums.
+
+_parse_service_plans lru_cache maxsize=2. Potential issue: lru_cache on function with args text, reader, catalogue. reader Validator and catalogue may be unhashable? If unhashable, crash. Need know. Validator maybe dataclass? Catalogue? Could be hashable? We can't see. But lru_cache requires hashable args. If reader or catalogue unhashable, TypeError. Is that a concrete fault? Maybe code intends cache by text? But if catalogue or reader not hashable, crash. But we don't know. Could be a bug if they are mutable mapping? Need avoid guessing. Maybe Catalogue is frozen dataclass? Not visible. But lru_cache maxsize=2 with reader and catalogue could cache different readers? It might be intentional. But if catalogue contains MappingProxyType? Hashable? Not sure. Could report low? Need concrete. The file itself uses @lru_cache on function with Validator and Catalogue. If those are not hashable, unhandled-input? But depends on unseen classes. We can say confidence low? User says if fault depends on code cannot see, say confidence. But maybe not report if need guess. We can mention low? Need concrete. Let's hold.
+
+data = parse_yaml(text, reader.file_name). root = reader.fields(data, "", ("reference_url","checked_on","plans","products")). reference matches. checked_on calendar_date. definitions. rosters. sku_guids set. For products rows. product fields required sku_part_number, sku_guid, _PLAN_CLASSES optional. sku_guid guid. duplicate. part_number = product["sku_part_number"] (not validated as string? fields likely returns value but no matches? Could be non-string? reader.fields maybe enforces? Not visible. catalogue.accepts_sku_part_number(part_number, sku_guid). If part_number not string maybe crash in accepts? Unhandled input? Maybe fields validates type? unknown.
+
+rosters[sku_key(part_number, sku_guid)] = _product_roster(...). Potential issue: sku_key could normalize part_number? If duplicate part_number+guid with different case? sku_guids checks sku_guid only. If two products same sku_guid fail. If same part_number different sku_guid ok. If sku_key normalizes part_number casefold, two different part numbers differing case map same roster key, silently overwrites? But sku_guids would differ, no duplicate fail. Could be bug if part_number case insensitive? Need see sku_key. Unknown.
+
+names = {name: plan.name for roster in rosters.values() for (name, _), plan in roster.plans.items()}
+Return ServicePlans(MappingProxyType(rosters), frozenset(part for part, _ in rosters), frozenset(sku_guids), MappingProxyType(names), frozenset().union(*(roster.plan_guids for roster in rosters.values())))
+
+Potential bug: frozenset().union(*...) if rosters empty? _parse_service_plans root fields requires products maybe rows allow empty? reader.rows(root["products"], "products") default allow_empty? Unknown. If no products, rosters empty. frozenset().union(*()) returns frozenset(). OK.
+
+classify_product(product, plans): roster = plans.rosters.get(product.key). matched = roster.plans if roster else {}. Return tuple(matched.get((plan.name.casefold(), plan.guid)) if plan.name is not None else None for plan in product.service_plans)
+Potential: product.key property? not visible. If product.key returns tuple maybe. If plan.guid None? ServicePlan guid maybe str|None. If plan.name not None but plan.guid None, tuple (name.casefold(), None) maybe matched.get returns None. OK. But if plan.name is None and plan.guid not None, returns None. OK.
+
+_public_product(product, plans): roster = plans.rosters.get(product.key). If roster None: return replace(product, sku_part_number=None, sku_guid=None, service_plans=(ServicePlan(None, None),) * len(product.service_plans)). Else: replace product with roster.part_number, roster.sku_guid, service_plans=tuple(ServicePlan(plans.plan_names.get(plan.name.casefold()) if plan.name is not None else None, plan.guid if plan.guid in plans.plan_guids else None) for plan in product.service_plans).
+
+Potential bug: If product.key matches roster but product's sku_part_number/sku_guid mismatch? _licence_signals catches some mismatches and raises InputError if guid in plans.sku_guids or part in plans.part_numbers. But _public_product just replaces with roster's part_number/sku_guid, possibly hiding mismatch? But comment says registered half of mismatched pair can still identify affected workload. It uses roster.part_number/sku_guid. If product.key matches roster, then product.key likely (part_number, sku_guid) normalized? If mismatch not caught? Let's inspect _licence_signals: for product in products: roster = plans.rosters.get(product.key). If roster is None: part, guid = sku_key(product.sku_part_number or "", product.sku_guid or ""); if guid in plans.sku_guids or part in plans.part_numbers: raise InputError sku_identity_mismatch field = "sku_part_number" if guid in plans.sku_guids else "sku_guid". This only raises when roster is None but one component known. If roster not None, no mismatch check. But if product.key somehow matches roster even though part_number or sku_guid differ? product.key likely derived from product.sku_part_number and product.sku_guid via sku_key. If sku_key normalizes, maybe product.key matches roster if normalized equal. Then replacing with roster's canonical values is OK. If product.key is not normalized? Unknown.
+
+scan_to_json(scan, *, plans): if scan.licences is not None: products = tuple(_public_product(...) for product in scan.licences.products); scan = replace(scan, licences=replace(scan.licences, products=products)); data = asdict(scan); del data["dropped_count"]; return json.dumps(...). Potential: asdict(scan) may include non-serializable? scan maybe dataclass. del data["dropped_count"] assumes key exists. If Scan dataclass doesn't have dropped_count? It likely does. If not, KeyError. But code intends. Not report.
+
+Potential privacy: _public_product exposes plan names? Reports may show organisation name and Windows-only application names entered in inputs.yaml. Licence plan names? Are they person names/email? No. But maybe plan names from service_plans.yaml are Microsoft service plan names, OK. It removes sku part/guid for unregistered products. For registered, it reveals plan names and guids. Metadata only? OK.
+
+_inventory_evidence(licences, collector): coverage = licences.coverage; coverage_gap = _coverage_gap(coverage). if collector and collector.status == "partial": if coverage.kind == "complete": coverage = replace(coverage, kind="partial"); coverage_gap = collector.reason or "coverage_partial". count = len(licences.products). known_count = count > 0 or (coverage.kind == "complete" and collector is not None and collector.status == "ok"). Return Finding(value=count if known_count else None, provenance="measured" if known_count else "unknown", missing_reason=None if known_count else "licence_products_missing"), coverage_gap.
+
+Potential bug: If collector status partial and coverage was complete, coverage changed to partial. But known_count condition uses coverage.kind == "complete" and collector.status == "ok". OK. If count=0, coverage complete, collector ok => known_count True, value=0 measured. Honest? If collector ok and complete, zero products is measured. If collector skipped/denied? collector.status maybe not ok. known_count false if count=0. Good.
+
+But if collector status partial and coverage kind unknown? _coverage_gap returns coverage_unknown. Then if collector partial, coverage_gap = collector.reason or coverage_partial. It overrides coverage_unknown with collector.reason? If collector reason maybe something. If collector status partial but coverage unknown, maybe should remain coverage_unknown? But code says if collector partial, coverage_gap = collector.reason or "coverage_partial". Could make status look better/worse? If coverage unknown and collector partial, gap becomes collector.reason (maybe partial) not unknown. But collector partial means skipped? Principle: skipped or denied collector never improves readiness. If coverage unknown but collector partial, coverage_gap from collector reason might be less severe? Need know reasons. Could be bug? Let's analyze.
+
+_coverage_gap: if coverage None or kind unknown => coverage_unknown; if partial => coverage_partial; else None.
+In _inventory_evidence: coverage_gap = _coverage_gap(coverage). If collector and collector.status == "partial": if coverage.kind == "complete": coverage = replace(coverage, kind="partial"); coverage_gap = collector.reason or "coverage_partial".
+If coverage.kind == "unknown", coverage_gap initially coverage_unknown. Then collector partial sets coverage_gap = collector.reason or coverage_partial. If collector.reason is maybe "licence_collector_partial" or something. This loses coverage_unknown. Is that wrong? If collector partial, coverage may be partial; unknown coverage maybe due to no data? But if collector partial, it's not unknown? Maybe collector status partial means it ran partially, so coverage should be partial. But if coverage.kind unknown, maybe we don't know coverage, but collector partial gives reason. Could be intended.
+
+known_count: count > 0 or (coverage.kind == "complete" and collector is not None and collector.status == "ok"). If collector partial and count=0, known_count false. Good. If coverage complete but collector status partial, coverage changed to partial, so false. Good.
+
+But if collector is None and coverage.kind complete and count=0, known_count false. If no collector info but coverage complete? Maybe scan says complete but no collector? Then zero products not known. Honest.
+
+Directory cross check:
+def _directory_cross_check(scan, licences, assigned_seats): accounts = scan.finding("directory.licensed_user_count"); comparable = accounts is not None and accounts.provenance == "measured" and type(accounts.value) is int and accounts.period is None and same_collection_time(accounts.collected_at, licences.collected_at). if comparable and accounts.value > assigned_seats: return "licence_assignments_conflict". directory = scan.collector("directory"); if directory is not None and directory.reason is not None: return directory.reason. if assigned_seats: return None. if accounts is None: return "not_in_scan". return accounts.missing_reason or (_coverage_gap(accounts.coverage) if comparable else "licence_directory_unverified")
+
+Potential bug: If accounts exists, provenance measured, int, period none, same time, but accounts.value <= assigned_seats, then no conflict. Then directory collector reason checked. If directory reason not None, returns reason even if directory collector status ok? Collector reason might be set for ok? Maybe reason only for issues. If directory collector reason is None, and assigned_seats >0 return None. If assigned_seats=0, if accounts None return not_in_scan. Else return accounts.missing_reason or (coverage gap if comparable else unverified). If accounts value 0 measured, comparable true, assigned_seats=0, accounts.missing_reason None, coverage gap maybe None if complete, returns None. OK.
+
+Potential principle: missing value treated as zero? assigned_seats sum product.assigned. If products missing? _licence_signals continues if not product.assigned. If no products, assigned_seats=0. In licence_findings: if coverage_gap is None: assigned_seats = sum(...); directory_gap = _directory_cross_check(...). If no products and coverage complete ok, coverage_gap None. assigned_seats=0. Directory cross check if accounts measured 0 returns None. absence_gap = count.missing_reason or classification_gap or coverage_gap. count.missing_reason None (known_count true if count>0? Wait count=0, coverage complete, collector ok => known_count true, missing_reason None). classification_gap? _licence_signals: products empty, assigned empty, gaps empty => None. coverage_gap None. absence_gap None. Then _assignment_findings yields value True? For each workload/signal, value = (workload, signal) in assigned (False). missing = None if value else absence_gap (None). value=None if missing else value => value=False? Wait line 322: value=None if missing else value. If missing None, value = value (False). provenance measured. So findings say false measured for all licence assigned. That means no add_on/bundled assigned. Is that honest if coverage complete and zero products? If zero products measured, yes no assignments. But if directory has licensed users? cross check would conflict if accounts.value > 0. If accounts missing, directory_gap maybe not_in_scan etc. But if accounts measured 0, ok. If directory collector not in scan and assigned_seats=0, directory_gap not_in_scan, then absence_gap = not_in_scan? Wait coverage_gap None, directory_gap not_in_scan, not conflict, elif directory_gap is not None: if absence_gap is None: absence_gap, absence_collector = directory_gap, "directory"; count = replace(count, missing_reason="licence_directory_unverified"). So absence_gap not_in_scan. Then assignment findings missing_reason not_in_scan, value None unknown. Good.
+
+Potential issue: In licence_findings, if coverage_gap is None but directory_gap is not None and not conflict, it sets count.missing_reason="licence_directory_unverified" regardless of directory_gap. If directory_gap is "not_in_scan", count missing reason unverified. OK. But if directory_gap is a collector reason like "directory_collector_skipped", count missing_reason unverified. Could be OK.
+
+But if directory_gap is None and absence_gap was classification_gap, assignment findings use absence_collector licences.collector. OK.
+
+Potential bug: absence_gap = count.missing_reason or classification_gap or coverage_gap. If count.missing_reason is None but classification_gap is None and coverage_gap is None, absence_gap None. If directory cross check only runs when coverage_gap is None. If coverage_gap is not None, directory_gap not considered. But if coverage unknown/partial, absence_gap already coverage_gap. OK.
+
+Potential bug: count = replace(count, missing_reason="licence_directory_unverified") when directory_gap is not None, even if absence_gap already had a reason. This changes count missing_reason to unverified, possibly overwriting count.missing_reason? It always sets to unverified if directory_gap not None. But if count.missing_reason was e.g. licence_products_missing? But coverage_gap None means coverage complete and collector not partial? count.missing_reason could be None if known_count true, or licence_products_missing if known_count false. But if coverage_gap None, coverage complete. known_count false only if count=0 and collector not ok? But coverage complete and collector not ok? _inventory_evidence: coverage_gap None if coverage complete and collector not partial. known_count = count >0 or (coverage complete and collector ok). If count=0 and collector status not ok (e.g. skipped/denied) but coverage complete? known_count false, count.missing_reason licence_products_missing, coverage_gap None. Then directory cross check runs. assigned_seats=0. If directory reason None and accounts measured 0? comparable and accounts.value >0 false; directory reason None; assigned_seats false; accounts not None; return accounts.missing_reason or coverage gap if comparable else unverified. If accounts measured 0 complete, returns None. So directory_gap None. absence_gap = count.missing_reason (licence_products_missing). OK. If directory_gap not None, count missing_reason overwritten to unverified, losing licence_products_missing. Could be wrong? If products missing but directory unverified, which reason? Maybe directory unverified more important? But code sets count missing_reason unverified even if products missing. Could make status? Not sure.
+
+Need find concrete faults. Let's scan for line-specific bugs.
+
+Line 119: if (signal == "no_workload") != (workload is None): reader.fail(path). This enforces no_workload plans have workload None, add_on/bundled have workload not None. OK.
+
+Line 122: plans[name.casefold(), guid] = RegisteredPlan(part_number, sku_guid, name, guid, workload, signal, reference, checked_on, note). RegisteredPlan field order: sku_part_number, sku_guid, name, guid, workload, signal, reference_url, checked_on, note. OK.
+
+Line 165-167: names = {name: plan.name for roster in rosters.values() for (name, _), plan in roster.plans.items()}. If same name casefold appears in multiple rosters, last wins. But plan definitions unique names across all plans, so no issue. However plan name may appear in multiple rosters? _plan_definitions global definitions, a plan can be listed in multiple products? Yes same plan name/guid could be in multiple rosters? _product_roster has plan_guids per roster, but same guid can appear in different products? It doesn't check global duplicate. If same plan name in multiple rosters, names mapping same name to same plan.name. OK.
+
+Line 173: frozenset().union(*(roster.plan_guids for roster in rosters.values())). If rosters contains many, OK. If empty, returns frozenset. But if rosters is empty, ServicePlans bool false. OK.
+
+Line 178: roster = plans.rosters.get(product.key). product.key maybe property. If product.key not tuple? OK.
+
+Line 181: matched.get((plan.name.casefold(), plan.guid)) if plan.name is not None else None. If plan.name is not None but plan.guid is None, key (str, None). matched keys have guid str. returns None. OK. If plan.name is None but plan.guid matches a registered plan? It returns None, so unclassified. Comment? _public_product says registered half of mismatched pair can still identify affected workload. But classify_product requires name not None. If name None, cannot classify. But _public_product may still expose guid if in plan_guids. For signals, if name missing but guid known, cannot know workload/signal. So gap licence_not_classified? In _licence_signals, classify_product returns None for plan.name None, gaps.add licence_not_classified. OK.
+
+Line 193: service_plans=(ServicePlan(None, None),) * len(product.service_plans). If len 0, empty tuple. OK.
+
+Line 202: plans.plan_names.get(plan.name.casefold()) if plan.name is not None else None. If plan.name not in plan_names, returns None. OK.
+
+Line 203: plan.guid if plan.guid in plans.plan_guids else None. If plan.guid None, None in frozenset? False. OK.
+
+Line 214: data = asdict(scan). del data["dropped_count"]. If scan has no dropped_count, KeyError. But likely.
+
+Line 216: json.dumps(... allow_nan=False). If data contains NaN, ValueError. Could be unhandled input? scan values maybe floats? If scan.json has NaN? JSON standard doesn't allow NaN, but Python json can parse NaN if input has NaN? parse_yaml? scan.json maybe parsed elsewhere. If scan contains float NaN, allow_nan=False crashes. But is that input accepted? scan.json may contain NaN? JSON spec no, but Python json accepts NaN by default. If scan.json has NaN, code crashes. But maybe scan model validation rejects. Unknown. Could report? Need concrete from this code: allow_nan=False means if any float nan in scan data, crash. But scan data from scan.json maybe validated elsewhere. We only see this part. Could be unhandled-input if scan.json accepted with NaN. But not sure.
+
+Line 227: part, guid = sku_key(product.sku_part_number or "", product.sku_guid or "") . If product.sku_part_number is not string but e.g. int, or ""? sku_key expects str? Unknown. If product.sku_part_number is None, uses "". If product.sku_guid None, uses "". OK. But if product.sku_part_number is e.g. 123, sku_key maybe expects str, could crash or return non-str. Unhandled? Unknown.
+
+Line 228: if guid in plans.sku_guids or part in plans.part_numbers: field = "sku_part_number" if guid in plans.sku_guids else "sku_guid". Logic: If guid known but part unknown, field sku_part_number. If part known but guid unknown, field sku_guid. If both known, field sku_part_number. OK. But if roster is None and both part and guid unknown, no error. OK.
+
+Potential bug: If product.sku_part_number or sku_guid are empty strings, sku_key may produce key matching? If part="" in plans.part_numbers? part_numbers are from rosters, likely non-empty. OK.
+
+Line 235: elif not roster.plan_guids.issubset(plan.guid for plan in product.service_plans): gaps.add("licence_plan_list_incomplete"). This checks all registered plan guids for product are present in product.service_plans. If product has no service_plans but roster has plans, adds incomplete. Then line 238 if not product.assigned: continue. So for unassigned known product with missing plans, gap recorded. Comment line 236: Missing plans still matter for known products with no assignments. OK. But if product assigned and missing plans, also gap. OK.
+
+Potential bug: plan.guid generator includes None? issubset with generator of None? set.issubset accepts iterable; if any None, OK. If roster.plan_guids contains guids, and product.service_plans has None guids, false. OK.
+
+Line 240: if not product.service_plans: gaps.add("licence_plan_list_missing"). This only if product.assigned true (because continue if not assigned). So assigned product with empty service plans => missing. OK.
+
+Line 242: for match in classify_product(product, plans): if match is None: gaps.add("licence_not_classified") elif match.workload is not None: assigned.add((match.workload, match.signal)). For no_workload signal, workload None, so not added. assigned set only for add_on/bundled. OK.
+
+Line 247: return assigned, next((code for code in PLAN_GAP_REASONS if code in gaps), None). PLAN_GAP_REASONS order: incomplete, missing, not_classified. If multiple gaps, returns first in that order. OK.
+
+Line 251: if coverage is None or coverage.kind == "unknown": return "coverage_unknown". If coverage None, OK. If coverage.kind partial => partial else None. If coverage.kind other? maybe complete. OK.
+
+Line 261: if collector and collector.status == "partial": if coverage.kind == "complete": coverage = replace(coverage, kind="partial"). If coverage is None, coverage.kind would AttributeError. But _coverage_gap handled None, but here if coverage None and collector partial, line 262 coverage.kind crashes. Is coverage ever None? _coverage_gap accepts coverage None. licences.coverage could be None? Model maybe Coverage | None. If coverage None and collector status partial, crash. Is that unhandled-input? Let's inspect line 259-263:
+coverage = licences.coverage
+coverage_gap = _coverage_gap(coverage)
+if collector and collector.status == "partial":
+    if coverage.kind == "complete":
+        coverage = replace(coverage, kind="partial")
+    coverage_gap = collector.reason or "coverage_partial"
+If coverage is None, coverage_gap = coverage_unknown, then if collector partial, coverage.kind AttributeError. Is collector partial possible with coverage None? Collector status partial likely implies coverage should not be None? But input scan could have licences.coverage null and collector status partial. licences.check_coverage(file_name) at line 336 maybe validates coverage not None if collector? Could be. We don't see. If check_coverage ensures coverage not None, then no crash. But _coverage_gap explicitly handles None, suggesting coverage can be None. Then line 262 is a bug/unhandled-input. Need decide. The code plainly intends to handle coverage None in _coverage_gap, but _inventory_evidence doesn't. If scan.json has licences.coverage null and collector status partial, crash. Is collector argument from scan.collector(licences.collector). If licences.collector maybe None or string. If collector status partial. Could happen. This is concrete: line 262 accesses coverage.kind without None check. Kind: bug or unhandled-input? It's input from scan.json leading to crash. Could report unhandled-input. But if check_coverage prevents, depends unseen. Confidence medium? The fact _coverage_gap handles None but this doesn't is strong.
+
+Line 266: known_count = count > 0 or (coverage.kind == "complete" and collector is not None and collector.status == "ok"). If coverage None, also crash. But if coverage None and collector not partial? line 262 skipped, line 266 coverage.kind crash. So any coverage None leads crash at line 266 if not partial? Actually if collector partial, crash earlier. Thus if licences.coverage None, _inventory_evidence always crashes. But _coverage_gap handles None, so why? Maybe Coverage is required not None. But type says coverage: Coverage | None? In _coverage_gap signature coverage: Coverage | None. In model maybe Coverage optional. If scan.licences.coverage can be None, this is bug. Need report. Could be high if model allows None. The signature itself indicates it can be None. So line 262/266 unhandled-input/bug. We can report line 262 and 266 maybe one finding. Exact quote lines 261-266? Need one block. Claim: _inventory_evidence crashes when licences.coverage is None despite _coverage_gap accepting None. Evidence lines 259-266? Quote exact. Kind unhandled-input. Confidence high? It depends on whether scan can have coverage None. The signature says Coverage | None, and check_coverage maybe? But still code in this function accepts None per type. I'd say high/medium. Since we only see this part, but type annotation in same code says Coverage | None. That's concrete. So report.
+
+Line 284-304: _directory_cross_check. Potential bug with type(accounts.value) is int. If accounts.value is bool? bool is subclass int but type(True) is bool, not int, so comparable false. OK. If value is int subclass? type is int false for bool only. OK.
+
+Line 293: if comparable and accounts.value > assigned_seats: return conflict. If accounts.value negative? Could be unhandled. Negative licensed user count? If negative, no conflict. Could be wrong? Input negative maybe invalid. Not report.
+
+Line 296: if directory is not None and directory.reason is not None: return directory.reason. This returns directory collector reason even if directory collector status is "ok"? Collector reason likely only if not ok. If directory collector status denied/skipped, reason. Then if assigned_seats >0, returns reason, causing absence_gap from directory. Good. But if directory collector reason is not None and assigned_seats >0, it returns reason before checking assigned_seats. If directory collector status partial but reason None? Then if assigned_seats return None, hiding partial directory? But if directory collector status partial and reason None, maybe no gap? Could be. Not concrete.
+
+Line 298: if assigned_seats: return None. If assigned_seats >0 and no directory reason, no directory gap. OK.
+
+Line 302: return accounts.missing_reason or (_coverage_gap(accounts.coverage) if comparable else "licence_directory_unverified"). If accounts exists but not comparable (e.g. period not None, provenance not measured, different time), and missing_reason None, returns unverified. OK. If accounts missing_reason is None but coverage gap? If comparable false, doesn't use coverage gap. OK.
+
+Potential principle: skipped or denied collector never improves readiness. In _directory_cross_check, if directory collector reason is not None, returns reason. In licence_findings, if directory_gap not None and not conflict, absence_gap set to directory_gap if absence_gap None, and count missing_reason unverified. That makes status worse. OK.
+
+But if directory collector status is "partial" with reason None, and assigned_seats >0, returns None. A skipped/denied collector? If status partial but no reason, maybe not worse. But reason likely required. Not concrete.
+
+Line 337: count, coverage_gap = _inventory_evidence(licences, scan.collector(licences.collector)). If licences.collector is None, scan.collector(None) maybe returns None? Unknown.
+
+Line 339: absence_gap = count.missing_reason or classification_gap or coverage_gap. If count.missing_reason None, classification_gap maybe None, coverage_gap maybe None. OK.
+
+Line 341: if coverage_gap is None: assigned_seats = sum(product.assigned for product in licences.products). If product.assigned maybe None? Model likely int. If None, TypeError. Unhandled? scan input could have assigned null. But model validation? Unknown.
+
+Line 343: directory_gap = _directory_cross_check(scan, licences, assigned_seats)
+Line 344: if directory_gap == "licence_assignments_conflict": absence_gap = directory_gap; count = replace(count, missing_reason=directory_gap)
+Line 347: elif directory_gap is not None: if absence_gap is None: absence_gap, absence_collector = directory_gap, "directory"; count = replace(count, missing_reason="licence_directory_unverified")
+
+Potential bug: If directory_gap is "not_in_scan", absence_gap becomes "not_in_scan", but count.missing_reason becomes "licence_directory_unverified". Is that inconsistent? Maybe count missing reason should be not_in_scan? But code intentionally? Not sure.
+
+Potential bug: If directory_gap is a collector reason e.g. "directory_collector_denied", absence_gap becomes that, count missing_reason unverified. OK.
+
+Potential bug: If directory_gap == conflict, count missing_reason conflict. But count value may be 0 measured? If conflict, count missing_reason set but value remains count. In Finding, missing_reason with value? Maybe OK. But if count was known_count true value 0, missing_reason conflict. It indicates issue. OK.
+
+Potential bug: If coverage_gap is None but count.missing_reason is not None (products missing) and directory_gap conflict, absence_gap = conflict, overwriting count.missing_reason? Actually absence_gap = count.missing_reason or ... then if conflict absence_gap = directory_gap. So products missing reason lost. But conflict more severe? Maybe.
+
+Need find more obvious bugs.
+
+Look at lru_cache. @lru_cache(maxsize=2) on _parse_service_plans(text, reader, catalogue). Since text is str, reader Validator, catalogue Catalogue. If catalogue or reader are not hashable, crash. Also caching by reader and catalogue may be wrong if reader has state? But read_rule_text returns reader, text. Maybe reader is a Validator instance that has file_name, and methods. If not hashable, TypeError. Could be a concrete bug if Validator is a dataclass? We don't see. But maybe all rule readers are simple objects with __hash__? Could be. However lru_cache with mutable reader could cache results across different readers with same text? If reader equality not defined, identity hash. OK. But maxsize=2 maybe intentional for two rule sets? Not a fault.
+
+Potential bug: checksums[reader.file_name] = sha256(text.encode("utf-8")).hexdigest(). If checksums is MutableMapping, OK. If text contains non-utf8? It's str. OK.
+
+Potential bug: _REFERENCE regex requires https://learn.microsoft.com/... no scheme? OK.
+
+Potential bug: _plan_definitions: row = reader.fields(item, field, ("name", "guid", "workload"), ("note",)). It requires workload key present, but workload can be None. If workload is not None choice. OK. But if workload is empty string? choice maybe fails? Unknown.
+
+Potential bug: duplicate plan names casefold, but definitions keyed by original name. In _product_roster, name = reader.choice(member, path, definitions). If member is "Name" and definitions has "name"? choice probably exact, not casefold. But duplicate check casefold. If rule file uses different case for same plan name, duplicate_id. If product references different case than definition, choice fails. OK.
+
+Potential bug: In _product_roster, plans dict key uses name.casefold(), guid. But if two different plan names casefold same? _plan_definitions disallows. OK.
+
+Potential bug: In _parse_service_plans, product = reader.fields(item, field, ("sku_part_number", "sku_guid"), _PLAN_CLASSES). This makes plan class keys optional. If product has extra keys? fields maybe ignores? Unknown.
+
+Potential bug: part_number = product["sku_part_number"] not validated as string or identifier. If it's e.g. list, sku_key may crash. But reader.fields maybe only checks presence, not type. Could be unhandled-input. But other code likely validates. Need concrete? The line doesn't call reader.matches or str. sku_part_number could be any YAML scalar. catalogue.accepts_sku_part_number(part_number, sku_guid) may expect string. If part_number is int, maybe accepts? Unknown. Not strong.
+
+Potential bug: sku_key(part_number, sku_guid) used for rosters key. Later product.key likely uses sku_key(product.sku_part_number, product.sku_guid). If part_number in rule file has leading/trailing whitespace, sku_key may normalize? Unknown.
+
+Potential bug: ServicePlans.part_numbers = frozenset(part for part, _ in rosters). If rosters keys are sku_key normalized part, maybe part is normalized. OK.
+
+Potential bug: _public_product for roster None replaces service_plans with all None. But if product.service_plans length 0, OK. It also sets sku_part_number=None, sku_guid=None. This may remove identity for unregistered products. Privacy? OK.
+
+Potential bug: scan_to_json uses asdict(scan) after replacing products. If scan.licences is None, no change. del data["dropped_count"]. If scan is a dataclass with nested dataclasses, asdict deep copies. If scan contains MappingProxyType? asdict handles? It recursively converts dataclasses, tuples, lists, dicts. MappingProxyType? If scan fields include MappingProxyType, asdict may not convert? Actually asdict only transforms dataclasses, lists, tuples, dicts; other objects left as is. If scan contains MappingProxyType, json.dumps may fail. But scan model likely plain.
+
+Potential bug: json.dumps(sort_keys=True) with data containing tuple? asdict converts tuples to lists? Yes asdict recursively converts tuple to list? Let's recall dataclasses.asdict: recursively converts dataclass to dict, tuples to lists, lists to lists, dicts to dicts. So OK.
+
+Potential bug: allow_nan=False and sort_keys. OK.
+
+Potential principle: offline report, no external resources. This file no network.
+
+Potential principle: metadata only. scan_to_json exposes plan names? Service plan names are metadata. OK. It removes sku part/guid for unregistered. For registered, exposes sku part/guid? _public_product sets sku_part_number=roster.part_number, sku_guid=roster.sku_guid. That's

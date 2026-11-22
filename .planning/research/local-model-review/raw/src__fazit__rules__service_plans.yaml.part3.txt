@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 522
+kind: bug
+claim: The E5 “with Calling Minutes” SKU bundles the wrong Power Automate service-plan tier.
+evidence: "        - FLOW_O365_P1"
+why: The sibling E5 entries in the same file use FLOW_O365_P3, so this E5 entry will map an E5 licence to the lower P1 Power Automate service plan and produce an incorrect capability mapping.
+confidence: medium

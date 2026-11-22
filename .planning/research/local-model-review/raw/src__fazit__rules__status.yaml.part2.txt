@@ -1,0 +1,9 @@
+FINDING
+file: src/fazit/rules/status.yaml
+line: 261-282
+kind: bug
+claim: The identity_access ready evidence can match while an identity add-on licence is assigned, allowing the ready status to shadow the identity-add-on needs_work rule.
+evidence: "          - {finding: identity_access.sso_application_count, op: '==', value: 0}\n          - {finding: identity_access.conditional_access_in_use, op: '==', value: false}"
+          when: [{finding: identity_access.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
+why: If sso_application_count is 0 and conditional_access_in_use is false, the ready evidence is satisfied even when licence_add_on_assigned is true. If ready evidence is evaluated before rules, the assigned add-on does not produce the intended needs_work status.
+confidence: medium

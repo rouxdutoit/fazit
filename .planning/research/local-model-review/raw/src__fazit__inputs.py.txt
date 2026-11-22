@@ -1,0 +1,13 @@
+FINDING
+file: src/fazit/inputs.py
+line: 87, 94, 253-256
+kind: contradicts-principle
+claim: Missing sample/invented flags are treated as false, so supplied sample or invented figures can be presented as real.
+evidence: "    amounts_are_invented: bool = False"
+"    answers_are_sample: bool = False"
+"          answers_are_sample=reader.boolean(row.get(\"answers_are_sample\"), \"answers_are_sample\")"
+"          is True,"
+"          amounts_are_invented=reader.boolean(row.get(\"amounts_are_invented\"), \"amounts_are_invented\")"
+"          is True,"
+why: If `answers_are_sample` or `amounts_are_invented` is omitted, `reader.boolean` returns `None`, and `None is True` makes the flag `False`. That turns missing evidence about the provenance of answers or costs into a positive assertion, contrary to showing missing evidence as unknown and labelling example amounts clearly.
+confidence: medium

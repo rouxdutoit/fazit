@@ -1,0 +1,165 @@
+We need answer user's request. Need review code part: src/fazit/rules/service_plans.yaml lines 965-1422. Need find concrete faults among bug, unhandled-input, contradicts-comment, contradicts-principle. This is a YAML rule file. We only see part 4 of 5. Need report only faults in this code. Need likely identify if YAML has issues? Let's inspect carefully.
+
+File is service_plans.yaml. It lists SKUs with sku_part_number, sku_guid, bundled, no_workload, add_on. Principles: read-only, local, tokens, metadata, privacy, offline, one command, honest figures. Rule files hold judgement: licence service plans. Need find concrete faults. Could be data errors: duplicate SKU part number? inconsistent? missing fields? invalid GUID? Maybe comment says something not matching. Need only faults in this part. We don't see schema/validation code. Need not guess about external code. But YAML data itself may have bugs if e.g. sku_part_number mismatched with comment? Or duplicate keys? Let's analyze.
+
+Line 965 comment: # Microsoft 365 E5 EEA (no Teams). SKU part number "O365_w/o_Teams_Bundle_M5". That seems plausible? Microsoft 365 E5 EEA no Teams part number maybe O365_w/o_Teams_Bundle_M5. GUID 3271cf8e... maybe? Need not know.
+
+Line 1049 comment: # Microsoft 365 E5 EEA (no Teams) (500 seats min)_HUB. SKU "O365_w/o_Teams_Bundle_M5_(500_seats_min)_HUB". plausible.
+
+Line 1135 comment: # Office 365 E5 EEA (no Teams) without Audio Conferencing. SKU "Office_365_E5_EEA_(no_Teams)_without_Audio_Conferencing". plausible.
+
+Line 1197 comment: # Microsoft 365 Business Premium EEA (no Teams). SKU "Office_365_w/o_Teams_Bundle_Business_Premium". plausible.
+
+Line 1252 comment: # Microsoft 365 Business Standard EEA (no Teams). SKU "Office_365_w/o_Teams_Bundle_Business_Standard". plausible.
+
+Line 1290 comment: # Office 365 E1 EEA (no Teams). SKU "Office_365_w/o_Teams_Bundle_E1". plausible.
+
+Line 1324 comment: # Office 365 E5 EEA (no Teams). SKU "Office_365_w/o_Teams_Bundle_E5". plausible.
+
+Power BI entries.
+
+Need check YAML syntax: indentation consistent? All top-level list items start with "    - sku_part_number:" (4 spaces then -). Keys 6 spaces? Lines: 966 "    - sku_part_number: ..." 4 spaces. 967 "      sku_guid:" 6 spaces. 968 "      bundled:" 6 spaces. Items "        - AAD_PREMIUM" 8 spaces. Good.
+
+Potential issue: duplicate entries? In this part, no duplicate sku_part_number? Let's list: O365_w/o_Teams_Bundle_M5, O365_w/o_Teams_Bundle_M5_(500_seats_min)_HUB, Office_365_E5_EEA_(no_Teams)_without_Audio_Conferencing, Office_365_w/o_Teams_Bundle_Business_Premium, Office_365_w/o_Teams_Bundle_Business_Standard, Office_365_w/o_Teams_Bundle_E1, Office_365_w/o_Teams_Bundle_E5, PBI_PREMIUM_PER_USER, PBI_PREMIUM_PER_USER_ADDON, PBI_PREMIUM_PER_USER_DEPT, POWER_BI_PRO, POWER_BI_PRO_CE. No duplicates within part. Across parts unknown.
+
+Potential issue: sku_guid format: all GUIDs lowercase? yes. One line 1051: 1e988bf3-8b7c-4731-bec0-4e2a2946600c. Valid. 1137 71772aeb... valid. 1199 a3f586b6... valid. 1254 c1f79c29... valid. 1293 b57282e3... valid. 1326 cf50bae9... valid. 1389 c1d032e0... valid. 1397 de376a03... valid. 1402 f168a3fb... valid. 1411 f8a1db68... valid. 1418 420af87e... valid. All 36 chars? check maybe.
+
+Potential issue: For PBI_PREMIUM_PER_USER_ADDON (line 1396) only add_on: - BI_AZURE_P3, no no_workload. Maybe intended? It's add-on SKU, no no_workload? Could be okay. But maybe all SKUs should have no_workload? Not a bug unless schema requires. We can't know.
+
+Potential issue: PBI_PREMIUM_PER_USER_DEPT has add_on: BI_AZURE_P2, bundled: BI_AZURE_P3, no_workload EXCHANGE_S_FOUNDATION. Is that plausible? Maybe Power BI Premium Per User Dept includes P3? Could be.
+
+Potential issue: "bundled" vs "add_on" semantics. In Power BI Pro, add_on: BI_AZURE_P2. In PBI_PREMIUM_PER_USER, add_on: BI_AZURE_P2 and BI_AZURE_P3. In PBI_PREMIUM_PER_USER_ADDON, add_on: BI_AZURE_P3. In PBI_PREMIUM_PER_USER_DEPT, add_on BI_AZURE_P2, bundled BI_AZURE_P3. Could be data.
+
+Need identify concrete faults likely planted. This is a code review challenge; there may be subtle planted bug in YAML. Need look for contradictions with comments or principles. Since it's rule file, faults could be:
+- A missing value treated as zero? Not here.
+- A skipped/unknown input making status look better? Maybe no_workload lists workloads not included? If missing no_workload for add-on SKU could cause unknown? But not necessarily.
+- Invented figure? No numbers except GUIDs.
+- Data off computer? no.
+- Privacy? no.
+- Offline? no.
+
+Maybe there is a YAML anchor or special char? The SKU part numbers contain slashes and parentheses, quoted. Good.
+
+Maybe a comment says "Microsoft 365 Business Premium EEA (no Teams)" but SKU part number is "Office_365_w/o_Teams_Bundle_Business_Premium" (Office 365, not Microsoft 365). Is that a contradiction? Microsoft 365 Business Premium part number historically "Office_365_w/o_Teams_Bundle_Business_Premium"? Maybe yes, part number uses Office_365. Comment Microsoft 365 could be display name. Not necessarily.
+
+Could be a missing `no_workload` for PBI_PREMIUM_PER_USER_ADDON causing it to be considered a workload? But we don't see code.
+
+Maybe there is a duplicate service plan within bundled list? Check each SKU for duplicate entries. Let's inspect:
+968-1037: AAD_PREMIUM, AAD_PREMIUM_P2, ADALLOM_S_O365, ADALLOM_S_STANDALONE, ATA, ATP_ENTERPRISE, BI_AZURE_P2, BPOS_S_TODO_3, CDS_O365_P3, CLIPCHAMP, COMMUNICATIONS_DLP, Content_Explorer, ContentExplorer_Standard, CUSTOMER_KEY, CustomerLockboxA_Enterprise, DATA_INVESTIGATIONS, DYN365_CDS_O365_P3, EQUIVIO_ANALYTICS, EXCEL_PREMIUM, EXCHANGE_S_ENTERPRISE, FLOW_O365_P3, FORMS_PLAN_E5, GRAPH_CONNECTORS_SEARCH_INDEX, INFO_GOVERNANCE, INFORMATION_BARRIERS, INSIDER_RISK, INTUNE_A, INTUNE_O365, LOCKBOX_ENTERPRISE, M365_ADVANCED_AUDITING, M365_AUDIT_PLATFORM, MCOEV, MCOMEETADV, MCOSTANDARD, MFA_PREMIUM, MICROSOFT_COMMUNICATION_COMPLIANCE, MICROSOFTBOOKINGS, MICROSOFTENDPOINTDLP, MIP_S_CLP1, MIP_S_CLP2, MIP_S_Exchange, ML_CLASSIFICATION, MTP, OFFICESUBSCRIPTION, PAM_ENTERPRISE, POWER_VIRTUAL_AGENTS_O365_P3, POWERAPPS_O365_P3, PREMIUM_ENCRYPTION, PROJECT_O365_P3, PROJECTWORKMANAGEMENT, RECORDS_MANAGEMENT, RMS_S_ENTERPRISE, RMS_S_PREMIUM, RMS_S_PREMIUM2, SAFEDOCS, SHAREPOINTENTERPRISE, SHAREPOINTWAC, STREAM_O365_E5, SWAY, THREAT_INTELLIGENCE, UNIVERSAL_PRINT_01, VIVA_LEARNING_SEEDED, VIVAENGAGE_CORE, WHITEBOARD_PLAN3, WIN10_PRO_ENT_SUB, WINDEFATP, Windows_Autopatch, WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE, YAMMER_ENTERPRISE. No duplicates.
+
+1052-1123: similar plus MICROSOFT_LOOP, PURVIEW_DISCOVERY. No duplicates? It lacks M365_AUDIT_PLATFORM? Wait 1083 M365_AUDIT_PLATFORM present. It lacks? Compare to first: first has MFA_PREMIUM at 1003, second has MFA_PREMIUM at 1087. first has MICROSOFTENDPOINTDLP 1006, second 1091. first has ML_CLASSIFICATION 1010, second 1095. first has MTP 1011, second 1096. first has PAM_ENTERPRISE 1013, second 1098. first has POWER... yes. first has PREMIUM_ENCRYPTION 1016, second 1101. first has PROJECT... yes. first has RECORDS_MANAGEMENT 1019, second 1105. first has RMS... yes. first has SAFEDOCS 1023, second 1109. first has SHAREPOINT... yes. first has STREAM... 1026, second 1112. first has SWAY 1027, second 1113. first has THREAT... 1028, second 1114. first has UNIVERSAL... 1029, second 1115. first has VIVA... 1030, second 1116. first has VIVAENGAGE 1031, second 1117. first has WHITEBOARD 1032, second 1118. first has WIN10... 1033, second 1119. first has WINDEFATP 1034, second 1120. first has Windows_Autopatch 1035, second 1121. first has WINDOWSUPDATE... 1036, second 1122. first has YAMMER 1037, second 1123. second adds MICROSOFT_LOOP 1089 and PURVIEW_DISCOVERY 1104. Good.
+
+1138-1187 (Office 365 E5 EEA no Teams without Audio Conferencing): It lacks many: AAD_PREMIUM? It has ADALLOM_S_O365, ATP, BI, BPOS, CDS, COMM DLP, Content Explorer, Customer Key, CustomerLockbox, DATA_INVESTIGATIONS, DYN365, EQUIVIO, EXCEL_PREMIUM, EXCHANGE_S_ENTERPRISE, FLOW, FORMS, GRAPH, INFO, INFORMATION_BARRIERS, INTUNE_O365, LOCKBOX, M365_ADVANCED_AUDITING, MCOEV, MCOSTANDARD, MICROSOFT_COMMUNICATION_COMPLIANCE, MICROSOFTBOOKINGS, MIP, MTP, OFFICESUBSCRIPTION, PAM, POWER, PREMIUM_ENCRYPTION, PROJECT, RECORDS, RMS_S_ENTERPRISE, SHAREPOINTENTERPRISE, SHAREPOINTWAC, STREAM, SWAY, THREAT, VIVA, VIVAENGAGE, WHITEBOARD, YAMMER. It lacks MCOMEETADV? Yes, no Teams and without Audio Conferencing, so no MCOMEETADV, maybe no MCOEV? Wait MCOEV is Teams? MCOEV = Microsoft Teams? Actually MCOEV is Teams? MCOMEETADV is Teams audio? MCOSTANDARD is Skype Standard? For no Teams without Audio Conferencing, maybe MCOSTANDARD should be absent? It has MCOSTANDARD line 1163. Hmm.
+
+Need know service plan codes:
+- MCOEV: Microsoft Teams? Maybe "Microsoft Teams" (Skype for Business Online? Actually MCOEV is "Microsoft Teams"? MCOMEETADV is "Microsoft Teams Audio Conferencing"? MCOSTANDARD is "Skype for Business Online Standard"? In Office 365 E5, includes MCOSTANDARD (Skype for Business) and MCOEV (Microsoft Teams) and MCOMEETADV (Teams Audio Conferencing). For no Teams, should not include MCOEV or MCOMEETADV, but may include MCOSTANDARD? The comment says without Audio Conferencing, so MCOMEETADV absent, but MCOEV present? It has MCOEV line 1162. If no Teams, should MCOEV be absent? Let's examine other no Teams SKUs:
+Line 966 Microsoft 365 E5 EEA (no Teams): bundled includes MCOEV 1000, MCOMEETADV 1001, MCOSTANDARD 1002. Wait it's no Teams but includes MCOEV and MCOMEETADV? That seems suspicious. Maybe MCOEV is not Teams? Let's recall Microsoft service plan codes:
+- MCOSTANDARD: Skype for Business Online Standard
+- MCOEV: Microsoft Teams? I think MCOEV is "Microsoft Teams" (formerly Skype for Business Online? Actually Microsoft Teams service plan is MCOEV? MCOMEETADV is "Microsoft Teams Audio Conferencing"? Let's verify from memory: Office 365 E5 includes: EXCHANGE_S_ENTERPRISE, SHAREPOINTENTERPRISE, OFFICESUBSCRIPTION, MCOSTANDARD, MCOEV, MCOMEETADV, YAMMER_ENTERPRISE, etc. MCOEV likely "Microsoft Teams" (E5?). MCOMEETADV is "Microsoft Teams Audio Conferencing". So a no Teams SKU should not include MCOEV or MCOMEETADV. But line 965 says no Teams yet includes MCOEV and MCOMEETADV. Could be a planted bug. However, the part number "O365_w/o_Teams_Bundle_M5" maybe Microsoft 365 E5 no Teams, but Microsoft's actual no Teams SKU may still include Skype for Business (MCOSTANDARD) and maybe Teams? No, no Teams should exclude Teams service plans. Let's check known: Microsoft 365 E5 (no Teams) part number O365_w/o_Teams_Bundle_M5. It includes Skype for Business Online but not Microsoft Teams. Service plans likely: EXCHANGE_S_ENTERPRISE, SHAREPOINTENTERPRISE, OFFICESUBSCRIPTION, MCOSTANDARD, YAMMER_ENTERPRISE, etc. It should NOT include MCOEV or MCOMEETADV. Here it includes both. Could be wrong. But is that a concrete fault? It would make report think no-Teams SKU includes Teams, affecting migration assessment. It's a data error: bundled list contains Teams service plans in no-Teams SKU. But we need be certain MCOEV/MCOMEETADV are Teams. Let's see other SKUs:
+- Office 365 E5 EEA (no Teams) line 1324: bundled includes MCOEV 1351, MCOMEETADV 1352, MCOSTANDARD 1353. Again no Teams but includes MCOEV and MCOMEETADV. That seems likely wrong.
+- Office 365 E5 EEA (no Teams) without Audio Conferencing line 1135: includes MCOEV 1162, MCOSTANDARD 1163, but not MCOMEETADV. If MCOEV is Teams, still wrong; if MCOEV is Skype? Maybe MCOEV is "Skype for Business Online"? Let's recall exact: Microsoft service plan codes:
+  - MCOSTANDARD: Skype for Business Online Standard
+  - MCOEV: Microsoft Teams? I found memory: In Azure AD license, service plan "MCOEV" is "Microsoft Teams" (E5). "MCOMEETADV" is "Microsoft Teams Audio Conferencing". "MCOSTANDARD" is "Skype for Business Online Standard". There is also "MCOMEETADV" for Teams audio conferencing. So no Teams should not include MCOEV. But maybe "w/o Teams" means no Microsoft Teams app, but still includes Skype for Business (MCOSTANDARD) and MCOEV? No, MCOEV is Teams.
+
+But line 965 comment says no Teams, but bundled includes MCOEV and MCOMEETADV. That is a contradicts-comment? The comment says no Teams, code includes Teams service plans. Could be bug. Need decide if report. But maybe the rule file's `bundled` means service plans that are included in the SKU; if it includes MCOEV, that's contrary to comment. It's a concrete data fault if MCOEV is Teams. But user says do not report something you need to guess about. We need confidence. We can say high? Need be careful: MCOEV may not be Teams? Let's investigate from known Microsoft licensing:
+Service plan codes:
+- EXCHANGE_S_ENTERPRISE: Exchange Online Plan 2
+- SHAREPOINTENTERPRISE: SharePoint Online Plan 2
+- OFFICESUBSCRIPTION: Office Professional Plus
+- MCOSTANDARD: Skype for Business Online Standard
+- MCOEV: Microsoft Teams? I recall "MCOEV" = Microsoft Teams (E5). "MCOMEETADV" = Microsoft Teams Audio Conferencing. "MCOMEETADV" definitely Teams audio conferencing.
+- YAMMER_ENTERPRISE: Yammer Enterprise
+- STREAM_O365_E5: Microsoft Stream
+- WHITEBOARD_PLAN3: Whiteboard
+- SWAY: Sway
+- MICROSOFTBOOKINGS: Bookings
+- VIVAENGAGE_CORE: Viva Engage
+- VIVA_LEARNING_SEEDED: Viva Learning
+- BPOS_S_TODO_3: OneDrive for Business
+- CDS_O365_P3: Dynamics 365 Customer Service? etc.
+So yes.
+
+But maybe the no Teams SKU still includes MCOEV because MCOEV is "Skype for Business Online"? Let's verify: Skype for Business Online Standard is MCOSTANDARD. MCOEV maybe "Microsoft Teams Online"? There is "MCOMEETADV" for Teams audio conferencing. I think MCOEV is Microsoft Teams. If no Teams, should exclude MCOEV and MCOMEETADV. But why would no Teams SKU include MCOMEETADV? That is explicit audio conferencing for Teams. Definitely wrong if no Teams. So line 1001 MCOMEETADV in no Teams SKU is a strong bug. It contradicts comment "no Teams". Even if MCOEV uncertain, MCOMEETADV is Teams audio conferencing. The comment says no Teams; including MCOMEETADV is inconsistent. Could report line 1001 and maybe 1352. But maybe MCOMEETADV is "Skype for Business Online Audio Conferencing"? Let's recall: Skype for Business Online audio conferencing service plan might be "MCOMEETADV"? Actually "MCOMEETADV" sounds "Microsoft Cloud Online Enterprise ... Audio Conferencing"? It might be "Skype for Business Online Audio Conferencing"? Let's search memory: In Microsoft 365 E5, service plans include:
+- MCOMEETADV: Microsoft Teams Audio Conferencing
+- MCOEV: Microsoft Teams
+- MCOSTANDARD: Skype for Business Online Standard
+Yes.
+
+But the SKU "without Audio Conferencing" line 1135 excludes MCOMEETADV but includes MCOEV. If MCOMEETADV is audio conferencing, that matches. It still includes MCOEV (Teams) though no Teams. Could MCOEV be "Skype for Business Online"? If MCOEV were Skype, then no Teams without Audio Conferencing including MCOEV and MCOSTANDARD? Hmm.
+
+Let's look at Business Premium no Teams line 1197: bundled includes MCOSTANDARD 1217, but no MCOEV/MCOMEETADV. Business Standard no Teams line 1252: includes MCOSTANDARD 1264, no MCOEV. E1 no Teams line 1290: includes MCOSTANDARD 1301, no MCOEV. So for no Teams SKUs, only MCOSTANDARD is present, except the E5 no Teams SKUs include MCOEV and MCOMEETADV (or MCOEV only for without audio). That inconsistency suggests MCOEV/MCOMEETADV are Teams-related and should be absent in no Teams. The E5 no Teams entries likely erroneously include them. This is likely planted. Need report? There are multiple lines. Could report each SKU? The task: one block per finding. We can report the first or all? Need concrete faults. If multiple similar, maybe report each distinct line? We should report all clear faults. But avoid overreporting if uncertain.
+
+Let's inspect all no Teams SKUs:
+- 965 Microsoft 365 E5 EEA (no Teams): includes MCOEV 1000, MCOMEETADV 1001, MCOSTANDARD 1002.
+- 1049 Microsoft 365 E5 EEA (no Teams) (500 seats min)_HUB: includes MCOEV 1084, MCOMEETADV 1085, MCOSTANDARD 1086.
+- 1135 Office 365 E5 EEA (no Teams) without Audio Conferencing: includes MCOEV 1162, MCOSTANDARD 1163; no MCOMEETADV.
+- 1197 Microsoft 365 Business Premium EEA (no Teams): includes MCOSTANDARD 1217 only.
+- 1252 Microsoft 365 Business Standard EEA (no Teams): includes MCOSTANDARD 1264 only.
+- 1290 Office 365 E1 EEA (no Teams): includes MCOSTANDARD 1301 only.
+- 1324 Office 365 E5 EEA (no Teams): includes MCOEV 1351, MCOMEETADV 1352, MCOSTANDARD 1353.
+
+So E5 no Teams entries include MCOEV/MCOMEETADV. Is MCOMEETADV definitely Teams? The name "MEETADV" maybe "Microsoft Meet Advanced"? Could be "Skype for Business Online Audio Conferencing"? Let's check memory of service plan codes from Microsoft: 
+- MCOMEETADV: "Microsoft Teams Audio Conferencing" (I have seen in license details: "Microsoft Teams Audio Conferencing" plan ID MCOMEETADV). 
+- MCOEV: "Microsoft Teams" (plan ID MCOEV). 
+- MCOSTANDARD: "Skype for Business Online Standard".
+Thus no Teams should exclude MCOEV and MCOMEETADV. The presence of MCOMEETADV in no Teams is a clear contradiction. But if the comment says "no Teams" and includes "MCOMEETADV" (Teams Audio Conferencing), that's a bug. The line 1135 comment says without Audio Conferencing, so excluding MCOMEETADV is consistent, but including MCOEV is still contradictory if MCOEV is Teams. However, maybe the "without Audio Conferencing" SKU is no Teams but includes Skype? It includes MCOEV, which if Teams, wrong. But maybe MCOEV is "Skype for Business Online Audio Conferencing"? Let's not rely on uncertain MCOEV. MCOMEETADV is more explicit.
+
+Could there be other planted faults: missing `no_workload` for PBI_PREMIUM_PER_USER_ADDON? Let's think about schema. The rule file likely maps SKU GUIDs to service plans. `bundled` are service plans included, `add_on` are service plans that can be added, `no_workload` are service plans not included? The code may use these to determine if a workload is covered by a license. If an SKU lacks `no_workload`, maybe it's treated as no exclusions, not a bug. PBI_PREMIUM_PER_USER_ADDON only add_on BI_AZURE_P3. It may not need no_workload.
+
+Potential issue: PBI_PREMIUM_PER_USER has add_on: BI_AZURE_P2 and BI_AZURE_P3. If add_on means additional service plans available as add-on, Power BI Premium Per User includes Power BI Premium Per User (BI_AZURE_P3?) and add-on P2? Hmm.
+
+Potential issue: POWER_BI_PRO has add_on: BI_AZURE_P2. But Power BI Pro is itself BI_AZURE_P2? Why add_on? Maybe `add_on` means service plans that can be added to this SKU? For Power BI Pro, add_on BI_AZURE_P2 doesn't make sense? But maybe `add_on` field indicates this SKU is an add-on for a service plan? Let's infer from examples:
+- PBI_PREMIUM_PER_USER: add_on: BI_AZURE_P2, BI_AZURE_P3. It is an add-on SKU providing Power BI Premium Per User (P3) and maybe P2? 
+- PBI_PREMIUM_PER_USER_ADDON: add_on: BI_AZURE_P3.
+- PBI_PREMIUM_PER_USER_DEPT: add_on: BI_AZURE_P2, bundled: BI_AZURE_P3.
+- POWER_BI_PRO: add_on: BI_AZURE_P2.
+- POWER_BI_PRO_CE: add_on: BI_AZURE_P2.
+So `add_on` likely lists service plans that this SKU unlocks/adds, not add-ons to it. Then POWER_BI_PRO add_on BI_AZURE_P2 is correct. PBI_PREMIUM_PER_USER add_on P2 and P3 maybe correct.
+
+Potential issue: PBI_PREMIUM_PER_USER_DEPT has both add_on BI_AZURE_P2 and bundled BI_AZURE_P3. If add_on and bundled both list service plans, maybe duplicate semantics? But not necessarily.
+
+Potential issue: no_workload for Power BI SKUs: EXCHANGE_S_FOUNDATION. Why would Power BI SKUs have no_workload EXCHANGE_S_FOUNDATION? Maybe all SKUs list workloads not included? For add-on SKUs, no_workload might list service plans that are not included? EXCHANGE_S_FOUNDATION is Exchange Online Plan 1? Power BI add-on doesn't include Exchange. Maybe no_workload means "service plans that are not workloads"? Hmm.
+
+Let's understand likely code: service_plans.yaml holds licence service plans. It might map SKU GUID to `bundled` service plans (included), `add_on` (add-on service plans), and `no_workload` (service plans that are present in license but not considered a workload? or not to count as workload?). The names: `no_workload` maybe service plans that should not be treated as a workload (e.g., Bing_Chat_Enterprise, Deskless, EXCHANGE_ANALYTICS, KAIZALA_STANDALONE, M365_LIGHTHOUSE_CUSTOMER_PLAN1, MICROSOFT_SEARCH, MYANALYTICS_P2, Nucleus). These are not user workloads? For Power BI add-ons, no_workload EXCHANGE_S_FOUNDATION? That seems odd: EXCHANGE_S_FOUNDATION is a workload (Exchange Online Plan 1). Why no_workload? Maybe for add-on SKUs, `no_workload` means service plans that are not included? Wait for bundle SKUs, no_workload includes things like Bing_Chat_Enterprise, Deskless, EXCHANGE_ANALYTICS, KAIZALA_STANDALONE, M365_LIGHTHOUSE_CUSTOMER_PLAN1, MICROSOFT_SEARCH, MYANALYTICS_P2, Nucleus. These are service plans that may appear in license but are not workloads to assess? For Power BI add-on, no_workload EXCHANGE_S_FOUNDATION maybe because if a user has Power BI add-on, Exchange Foundation is not a workload? Not sure.
+
+Maybe the rule file is used to map service plan codes to human names? `no_workload` could mean service plans that are not workloads (ignore). EXCHANGE_S_FOUNDATION should be a workload, so listing it as no_workload for Power BI SKUs might be wrong? But maybe because Power BI SKU does not include Exchange, so no workload? The field name `no_workload` could mean "service plans that are not workloads" globally, not per SKU? But it's per SKU. For bundle SKUs, no_workload includes service plans that are not workloads, not service plans absent. For Power BI add-on, EXCHANGE_S_FOUNDATION is a workload but not included; maybe `no_workload` means "service plans that are not included in this SKU"? Let's test: For Microsoft 365 E5 no Teams, no_workload includes Bing_Chat_Enterprise, COMMUNICATIONS_COMPLIANCE, Deskless, EXCHANGE_ANALYTICS, INSIDER_RISK_MANAGEMENT, KAIZALA_STANDALONE, M365_LIGHTHOUSE_CUSTOMER_PLAN1, MICROSOFT_SEARCH, MYANALYTICS_P2, Nucleus. Are these absent from bundled? Yes. But many other absent service plans not listed. So not simply absent.
+
+Maybe `no_workload` lists service plans that are included in the license but should not be counted as a workload? For E5, bundled includes many; no_workload includes not bundled? Actually no_workload entries are not in bundled (except maybe? Check: INSIDER_RISK is bundled line 994; INSIDER_RISK_MANAGEMENT no_workload, different. COMMUNICATIONS_COMPLIANCE no_workload, MICROSOFT_COMMUNICATION_COMPLIANCE bundled. EXCHANGE_ANALYTICS no_workload, not bundled. KAIZALA_STANDALONE no_workload, not bundled. Nucleus not bundled. So no_workload are service plans that are not workloads? They may be present in license? If not bundled, maybe they are not included. Hmm.
+
+Could be `no_workload` means "service plans that are not workloads" to ignore if seen in scan. For Power BI add-on, EXCHANGE_S_FOUNDATION is a workload, so listing it as no_workload would be wrong? But maybe it's a placeholder for "no workload" because add-on SKU doesn't provide a workload, so if user has only add-on, Exchange Foundation is not a workload? Not likely.
+
+Let's not overfit.
+
+Need focus on concrete faults in this YAML. The most obvious is no Teams SKUs include Teams service plans. But is that within this part? Yes. Need maybe report lines 1000-1001, 1084-1085, 1162, 1351-1352. But we need be precise: claim: no-Teams SKU lists Teams service plans in bundled. Evidence exact lines. Why: comment says no Teams; including MCOEV/MCOMEETADV makes report treat no-Teams license as including Teams, wrong. Confidence? High for MCOMEETADV, medium for MCOEV? Could report MCOMEETADV only to be safe. But if MCOMEETADV is Teams audio conferencing, high. The line 1135 without Audio Conferencing excludes MCOMEETADV, supports. But line 965 no Teams includes MCOMEETADV, clearly contradictory. Report line 1001 and 1085 and 1352. Maybe also line 1000,1084,1162,1351 if MCOEV is Teams. Need decide.
+
+Could there be a planted bug: duplicate SKU part number? Not in part. Maybe a GUID duplicated? Check GUIDs: 3271..., 1e98..., 7177..., a3f5..., c1f7..., b572..., cf50..., c1d0..., de37..., f168..., f8a1..., 420a... all unique. Across parts unknown.
+
+Maybe a YAML issue: unquoted sku_part_number containing slash? It is quoted. Good.
+
+Maybe a missing blank line? no.
+
+Maybe a comment says "Power BI Premium Per User Add-On" but sku_part_number PBI_PREMIUM_PER_USER_ADDON, add_on BI_AZURE_P3. Fine.
+
+Maybe a comment says "Power BI Premium Per User Dept" but add_on BI_AZURE_P2 and bundled BI_AZURE_P3. Could be wrong: Dept should include BI_AZURE_P3? It has. Fine.
+
+Maybe a principle: "Metadata only" no issue. "Honest figures" no issue.
+
+Need consider if rule file is YAML; a fault could be that `sku_guid` values are not quoted. YAML may interpret as string because contains hyphens? It's a string. Fine.
+
+Maybe line 966: sku_part_number "O365_w/o_Teams_Bundle_M5" but comment says Microsoft 365 E5 EEA (no Teams). The part number uses O365 not Microsoft 365. Not a fault.
+
+Maybe line 1197 comment says Microsoft 365 Business Premium EEA (no Teams) but sku_part_number "Office_365_w/o_Teams_Bundle_Business_Premium". Microsoft 365 Business Premium part number is indeed "Office_365_w/o_Teams_Bundle_Business_Premium"? I think yes.
+
+Maybe line 1252 comment says Microsoft 365 Business Standard EEA (no Teams) but part number Office_365... okay.
+
+Maybe line 1290 comment Office 365 E1 EEA (no Teams) part number Office_365_w/o_Teams_Bundle_E1. okay.
+
+Potential bug: In line 1388 PBI_PREMIUM_PER_USER, add_on includes BI_AZURE_P2 and BI_AZURE_P3. If `add_on` is a list, okay. But maybe `add_on` should be singular? no.
+
+Potential bug: PBI_PREMIUM_PER_USER_DEPT has both `add_on` and `bundled`; if a SKU is an add-on, it shouldn't have bundled? But maybe department SKU is a bundle? Not know.
+
+Potential bug: PBI_PREMIUM_PER_USER_ADDON lacks `no_workload`, while other Power BI SKUs have no_workload EXCHANGE_S_FOUNDATION. Could be inconsistent. If code expects no_workload key for all SKUs and uses `.get` maybe okay. If not, crash? We don't see code. Can't report.
+
+Potential bug: `no_workload` for PBI_PREMIUM_PER_USER includes EXCHANGE_S_FOUNDATION. If EXCHANGE_S_FOUNDATION is a workload, marking it no_workload could hide it. But maybe for add-on SKUs, no_workload means "service plans not included"? Let's analyze semantics more.
+
+The project: Fazit reads M365 evidence scan.json and inputs.yaml, writes report. Rule files hold judgement: status rules, mappings, findings, risky file types and licence service plans. service_plans.yaml likely maps service plan codes to names? The fields `bundled`, `add_on`, `no_workload` maybe used to determine which service plans are included in a SKU and which are not workloads. The report likely assesses workloads in use. It may use SKU entitlements to know if a user has a license for a service plan. `bundled` = service plans included in SKU. `add_on` = service plans that are add-on? `no_workload` = service plans that are not workloads (ignore). For a SKU, if a service plan is in `no_workload`, it is not counted as a workload even if present. For Power BI add-on SKU, why no_workload EXCHANGE_S_FOUNDATION? Maybe because EXCHANGE_S_FOUNDATION is a service plan

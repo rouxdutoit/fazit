@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/risky_file_types.yaml
+line: 34
+kind: unhandled-input
+claim: The Visio rule only matches the modern .vsdx extension, so legacy Microsoft Visio .vsd files are silently not reported as Visio evidence.
+evidence: "      extensions: [vsdx]"
+why: A scan.json can contain files with the .vsd extension, which is a Microsoft Visio drawing format, but this rule does not list it, so such files are missed rather than shown as unknown or counted.
+confidence: medium

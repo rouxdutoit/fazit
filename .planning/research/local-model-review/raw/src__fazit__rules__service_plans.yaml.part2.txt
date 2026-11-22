@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 204-224
+kind: contradicts-comment
+claim: The comment describes the SKU as a Business Voice product, but the entry only adds a calling plan and does not include the Teams Phone/MCOEV service plan.
+evidence: "    # Microsoft 365 Business Voice (US)\n    - sku_part_number: \"BUSINESS_VOICE_MED2_TELCO\"\n      sku_guid: 08d7bce8-6e16-490e-89db-1d508e5e9609\n      add_on:\n        - MCOPSTN1\n      bundled:\n        - MCOMEETADV"
+why: A reader relying on the comment would expect this Business Voice SKU to provide the phone service, but the data omits MCOEV, so the represented entitlements do not match the described product.
+confidence: medium

@@ -1,0 +1,217 @@
+We need answer user's request: review code part 1 of 2 lines 1-342, find concrete faults. Need output exactly findings format or NO FINDINGS. Need analyze deeply. Need identify bugs, unhandled-input, contradicts-comment, contradicts-principle.
+
+We need inspect code. It's Python model.py part 1. Need consider visible code only. Let's parse.
+
+Project principles: read-only, local, tokens memory, metadata, privacy, offline, one command, honest figures. Need report only concrete faults in code below.
+
+Let's examine each function.
+
+Line 19-24 regexes. _TIMESTAMP uses DATE.pattern from validation unknown. But likely regex for date. It allows optional time and timezone. Then timestamp method line 210-216: check.matches value with _TIMESTAMP, then datetime.fromisoformat(stamp). except ValueError fail. Python fromisoformat in 3.11 supports Z? In 3.10? If tool targets maybe 3.10? Need not guess? Could be a bug if regex allows Z but fromisoformat before 3.11 fails. But we don't know Python version. Could be unhandled? If regex allows fractional seconds with comma? It allows [.,] but fromisoformat only accepts dot? Actually Python fromisoformat accepts comma? In 3.11? It accepts fractional with . or ,? I think fromisoformat accepts comma? Let's recall: datetime.fromisoformat in 3.11 accepts most ISO 8601, including comma? It supports 'YYYY-MM-DD[*HH[...]]', separator can be any char? In 3.7 only fixed. In 3.11 more. But likely okay.
+
+Line 59 _timestamp_after: compares timestamps. It does datetime.fromisoformat(stamp), datetime.fromisoformat(reference). If len(stamp)==10 or len(reference)==10: date compare. But if one has timezone and one no? It strips tzinfo if either None. But if one has date only and other full, date compare. Potential bug: if stamp is date-only and reference full, uses date > date. But if stamp is full with tz and reference date-only? len(reference)==10 triggers date compare. That may ignore time. But maybe intended? Not necessarily fault.
+
+Line 68 same_collection_time: if first None or second None or (len(first)==10) != (len(second)==10): return False. Then fromisoformat equality. If one has timezone and other naive, fromisoformat equality? datetime comparison with naive and aware raises TypeError? Actually datetime == compares? In Python, aware and naive datetime comparison raises TypeError? Let's check: datetime.__eq__ with aware/naive? I think comparison operators raise TypeError if one aware and other naive. Equality? I think == returns NotImplemented? Let's recall: datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1) -> False? Actually I think datetime.__eq__ returns NotImplemented for mixed? Let's verify mentally: In Python, comparison between aware and naive datetimes raises TypeError for < >, but ==? I think == returns False? Hmm. Python docs: If one is aware and other naive, comparison raises TypeError. For equality? I think it also raises TypeError? Let's test from memory: datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1) -> False? I recall: `datetime.now() == datetime.utcnow()` maybe False? Actually aware vs naive: `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)` returns False? Let's think CPython: datetime.__eq__ calls _cmp, if both have tzinfo and one None returns NotImplemented? It might return False? I need know. In Python, `datetime(2020,1,1, tzinfo=timezone.utc) < datetime(2020,1,1)` raises TypeError. `==` maybe returns False? I have used: `datetime.utcnow() == datetime.now()`? It might be False? Let's check memory: In Python 3, `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)` returns False? I think equality is allowed and returns False if offsets differ? Wait docs: "If one is aware and other naive, aware is assumed to be UTC and compared"? No. Let's recall code: `datetime.__eq__` in datetime.py: if self.tzinfo is None: if other.tzinfo is not None: return NotImplemented? Actually comparisons: `def __eq__(self, other): if isinstance(other, datetime): return self._cmp(other) == 0; return NotImplemented`. `_cmp` handles tzinfo: if self.tzinfo is None: if other.tzinfo is not None: return -1? Or maybe returns NotImplemented? For ordering, `_cmp` returns None for mixed? Let's not rely. But same_collection_time might be used to compare collected_at. If one tz aware and other naive, fromisoformat equality could raise TypeError (unhandled input) if scan has mixed. But perhaps validation elsewhere prevents? We only see this part. The code doesn't normalize tz. Could be fault. But need concrete: input accepted? _TIMESTAMP allows optional timezone. So scan.json can have one timestamp with Z and one without. same_collection_time will call fromisoformat equality. If Python raises TypeError for aware/naive equality, crash. If returns False, not bug. Need confidence? Could be high if known. Let's verify. Python 3.10: `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)`? I can recall from experience: It returns False? I once did `datetime.now(timezone.utc) == datetime.utcnow()` and got False? Actually maybe it raised TypeError? Let's search memory: In Python, `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)` -> False? I think equality is defined as False when tzinfo differ? Let's check CPython source: In datetime.c, `datetime_eq` maybe if both have tzinfo, compare; if one has tzinfo and other not, return 0? Hmm. For ordering, `datetime_lt` if one aware and other naive raises TypeError. For eq, I think it returns 0 if tzinfo differ? Let's recall using pandas? Not.
+
+Let's reason: In Python, `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)` likely False, no exception. Because equality can be safely false. The docs say comparisons between aware and naive datetimes raise TypeError, but equality? It says "If one is aware and the other naive, aware is assumed to be UTC and compared"? No. Let's not report uncertain.
+
+Line 111 is_lower_bound: if value int >0 and coverage not None. If provenance measured: return coverage.kind != complete. If provenance provided: return coverage.kind == partial. If provenance unknown? returns False. OK.
+
+Line 148 check_coverage: count = len(products). If coverage.kind == complete and coverage != Coverage("complete", scanned=count, failed=0, total=count): raise. Then for field, bound in (("scanned", coverage.scanned), ("total", coverage.total)): if bound is not None and count > bound: raise.
+
+Potential bug: For complete coverage, if coverage has scanned=None failed=None total=None, then coverage != Coverage(complete, count,0,count) true, raises. Good. For partial/unknown, if scanned or total bound less than count raise. But what about failed? Not checked against count? If failed > count? Could be invalid but not necessarily? If scanned+failed > total? Not checked here. But coverage() validates scanned+failed <= total if total not None. OK.
+
+Line 174 is_sample: source_kind sample or any finding.source startswith sample. or licences source startswith sample. But finding.source could be None; uses finding.source and. OK.
+
+Line 199 fields: row = self.check.fields(value, field, required, optional=None). Then dropped_count += len(row.keys() - {*required, *optional}). But if optional is empty tuple, row.keys() - required. But check.fields called with optional=None. What does check.fields do? Not visible. It likely returns dict of provided fields? If optional=None maybe means no optional allowed? But here they pass optional=None always, then compute dropped using required and optional. If check.fields with optional=None rejects unknown fields? Then dropped_count never increments? Or maybe optional=None means no restriction? Need guess. Could be bug? Let's inspect: `self.check.fields(value, field, required, optional=None)` likely Validator.fields signature maybe (value, field, required, optional=())? If optional=None means no optional allowed, then any optional fields cause error, contradicting intended dropping? But maybe Validator.fields has optional=None to mean allow any? We can't see. The line 206 passes optional=None explicitly. Then line 207 calculates dropped_count based on required and optional. If check.fields would fail on unknown fields, then dropped_count is never used for unknown. But maybe check.fields with optional=None returns all keys and doesn't fail? Need not guess? Could be a concrete bug if optional parameter expected tuple but None passed. But without validation code can't know. The task says if fault depends on code you cannot see, say confidence. We can report low? But need concrete. Let's hold.
+
+Line 210 timestamp: uses check.matches(value, field, _TIMESTAMP) then fromisoformat. If regex allows date-time without time but with timezone? Pattern: DATE.pattern(?:T...)?(?:Z|...)? Actually regex line 21-24:
+rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]{{1,6}})?)?"
+r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"
+There is an extra closing paren? Let's count:
+rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]{{1,6}})?)?"
+r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"
+Let's reconstruct: DATE.pattern + (?:T HH:MM (?:SS (?:frac)?)? (?:Z|offset)?)? maybe. But string has after seconds group: `(?::[0-9]{2}(?:[.,][0-9]{1,6})?)?` then newline `(?:Z|...)?` then `)?`? Actually line 22 ends with `?` after seconds optional group. Line 23: `r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"` There is a `?` after timezone group and another `?` after outer T group? Let's count parentheses:
+- outer T group starts at `(?:T`
+- seconds group starts `(?::`
+- frac group starts `(?:`
+- after frac close `)` then seconds close `)` then `?` for seconds optional.
+- timezone group starts `(?:Z|...`
+- offset group `(?:`
+- after offset close `)` then `?` for offset optional? Actually `[+-][0-9]{2}(?::?[0-5][0-9])?` offset group optional.
+- timezone group close `)` then `?` for timezone optional.
+- outer T group close `)` then `?` for T optional.
+Line 23 string: `(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?`
+Break: `(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?` then `)?`? There is one `?` after timezone group? Let's write: `(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?`
+Chars: ( ? : Z | ... ( ? : ? [0-5] [0-9] ) ? ) ? ) ?
+Maybe: timezone group: `(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?` includes final `?` before outer close. Then outer close `)` and `?`. The line has `?)?)?`: first `?` for timezone group, second `)` closes timezone? Hmm.
+Let's count: `(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?`
+- open outer T? no this line only continuation.
+- open timezone: `(?:`
+- alternative Z or offset
+- offset: `[+-][0-9]{2}(?::?[0-5][0-9])?`
+- close timezone `)`
+- `?` makes timezone optional
+- close outer T `)`
+- `?` makes T optional.
+So pattern valid. It allows date only, date T HH:MM, optional seconds, optional timezone. It does not allow `+00:00`? offset `[+-][0-9]{2}(?::?[0-5][0-9])?` allows +00 or +00:00. Good.
+
+But line 210 timestamp: if regex matches `2020-01-01T00:00` (no seconds) fromisoformat ok. If matches `2020-01-01T00:00,5`? It allows comma fractional? fromisoformat maybe ok in 3.11? If not, ValueError caught. If matches `2020-01-01T00:00+00` fromisoformat? In 3.11 ok? In 3.10 maybe not? Could fail. But not concrete.
+
+Line 218 period: interval = check.matches(value, field, _PERIOD); start, end = interval.split("/"); if calendar_date(start) > calendar_date(end): fail. _PERIOD = DATE.pattern/DATE.pattern. It allows any slash? If DATE.pattern maybe includes hyphens. split("/") yields two. OK.
+
+Line 225 schema_version: matches regex [0-9]{1,8}\.[0-9]{1,8}; int(version.split(".",1)[0]) != SUPPORTED_SCHEMA_MAJOR. If version like 00000001.1, int ok. If major 1. OK.
+
+Line 237 tool: fields with _TOOL_FIELDS required, optional none. name choice PROJECT_NAME. version matches.
+
+Line 244 collectors: rows allow_empty. For each item fields required id status permissions_used optional reason. `self.check.rows(value, "collectors", allow_empty=True)` likely returns list. `row.get("reason")`. If status ok != reason None fail. If reason not None choose from catalogue.reason_codes. permissions rows allow_empty; each code choice from catalogue.permissions. OK.
+
+Potential issue: reason can be empty string? choice maybe validates. Not.
+
+Line 274 coverage: fields value field ("kind",) _COVERAGE_COUNTS. optional_count for each. If total not None and (scanned or 0)+(failed or 0)>total fail. If kind complete and any count not None: if failed !=0 or scanned is None or total is None or scanned != total fail. But if kind complete and all counts None, passes. But then Coverage(kind, None,None,None). Later check_coverage for licences complete will fail because coverage != complete with counts. For findings complete with no counts, is_lower_bound returns False? coverage.kind != complete false. That's maybe OK? But coverage complete with no counts is accepted by coverage() for findings. Is that a bug? It says complete coverage without counts maybe should be invalid? The code line 282 only validates if any count is not None. So complete with no counts passes. Could be intended? Not sure. For licences check_coverage enforces counts for complete. For findings, maybe complete no counts allowed? Could be unhandled? Not clear.
+
+Line 287 finding_value: if entry.type boolean: if not isinstance(value,bool) fail; return value. Else return self.check.count(value, field). `count` likely validates non-negative int? Not visible.
+
+Line 294 finding: row fields _FINDING_FIELDS all required? It calls self.fields(item, field, _FINDING_FIELDS) with no optional. That means all fields in _FINDING_FIELDS required. But many are optional in dataclass (unit, collector, source, collected_at, period, coverage, missing_reason, value can be None). If Validator.fields requires presence of all keys, then optional fields must be present (maybe null). Is that intended? The tuple named _FINDING_FIELDS includes all fields, not required/optional split. In other methods, they pass required and optional. Here all fields required. Could be intended schema requires all keys but values can be null. If scan.json omits e.g. source, it would fail. But maybe scan format requires all fields. Not a bug.
+
+Line 298 row["workload"] != entry.workload fail. row["unit"] != entry.unit fail. But unit can be None? entry.unit maybe None. OK.
+
+Line 302 provenance choice. collector = row["collector"]; if not None choice from collectors dict (keys). Then check_evidence(row, field, provenance, collectors.get(collector)). Note: if collector is None, collectors.get(None) returns None. OK. But if collector is not None and not in collectors, choice fails. Good.
+
+Line 307 value, source, reason = row["value"], row["source"], row["missing_reason"]. If source not None choice from catalogue.source_codes. check_finding_source(entry, field, collector, source).
+
+Line 311 collected_at, period, coverage = row... Then Finding with value None if value None else finding_value. collected_at timestamp if not None. period if not None. coverage if not None. missing_reason choice if not None.
+
+Potential bug: `collector` variable may be None, then `collectors.get(collector)` in line 306 before source choice. Fine. But line 305 `collector = self.check.choice(collector, f"{field}.collector", collectors)` passes dict as choices. Does check.choice accept dict? Probably choices can be iterable; dict iterates keys. OK.
+
+Line 330 check_finding_source: if source in ("inputs_yaml", "sample.inputs_yaml"): fail. if collector is not None: allowed = {code for method, code in entry.measured_by if method == collector}; if not allowed fail invalid_evidence_source. else: allowed = self.catalogue.provided_sources if entry.provided != "no" else frozenset(). if source is not None and source not in allowed: fail.
+
+Potential logic issue: If collector is not None and source is None, allowed may be nonempty, no fail. OK. If collector None and entry.provided != no, allowed provided_sources. If source None no fail. If source not in allowed fail. OK.
+
+But line 336: `entry.measured_by` maybe tuple of (method, code). If collector not None but not in measured_by, fail. Good.
+
+Potential contradicts-principle: missing value treated as zero? In coverage line 280 `(scanned or 0) + (failed or 0) > total` treats None as 0. But if total provided and scanned/failed missing, it assumes 0. Could allow invalid? If total=5, scanned=None, failed=None passes. Not necessarily wrong. But principle: missing evidence as unknown, not zero. However coverage counts optional; missing maybe unknown, not zero. Using `or 0` for validation only, not output. Could be not fault.
+
+Line 154 check_coverage: for field, bound in (("scanned", self.coverage.scanned), ("total", self.coverage.total)): if bound is not None and count > bound: raise. It doesn't check failed. If coverage.kind partial and failed=100, count=1, total=100, passes? scanned+failed <= total? coverage() would fail if total not None and scanned+failed > total. If total None, failed can be > count? Maybe invalid but not checked. Could be unhandled input leading wrong? Not clear.
+
+Need find concrete faults likely planted. Let's look for subtle bugs.
+
+Line 193 _ScanReader.fields: `row = self.check.fields(value, field, required, optional=None)`. If `optional` default empty tuple, but they pass None. Could be bug because `optional=None` may be interpreted as no optional fields, causing required optional fields to be rejected? But maybe Validator.fields signature: `fields(self, value, field, required, optional=None)` where optional None means no optional? The call passes optional=None explicitly, so no optional allowed. But then line 207 uses optional parameter (which may be empty tuple) to compute dropped. For collectors, optional reason is passed to _ScanReader.fields, but then passed to check.fields as None, so reason would be considered unknown and maybe fail? But if check.fields optional=None means no optional allowed, then any reason field would cause error. That would be a major bug. But maybe check.fields has optional parameter default None meaning "do not check unknown"? Need inspect likely design. The method `_ScanReader.fields` likely wraps `Validator.fields`, which probably returns a dict of known fields and raises on unknown unless optional provided. The wrapper's `optional` parameter should be forwarded to check.fields. But line 206 passes `optional=None`, not `optional=optional`. That looks like a concrete bug: optional fields are not allowed by Validator, and dropped_count computed using wrapper optional but not forwarded. However maybe `Validator.fields(value, field, required, optional=None)` signature has optional=None meaning allow all? Let's infer from name: `self.check.fields(value, field, required, optional=None)`. If optional is a tuple of allowed optional field names, passing None could mean no optional fields. But then why wrapper has optional parameter? It should forward. The line `row = self.check.fields(value, field, required, optional=None)` ignoring `optional` is suspicious. Could be planted bug. But need be careful: maybe `Validator.fields` expects `optional` as a set of fields that are optional but present? Actually required fields are those that must be present; optional fields are allowed but not required. If optional=None, perhaps it means "no optional fields are allowed", so any extra fields fail. Then `_ScanReader.fields` with optional=("reason",) would still fail if reason present. That would make collectors with reason invalid. But the code later uses row.get("reason"), so it expects reason can be present. Thus likely bug. But is it a fault? If check.fields with optional=None actually means "allow any extra fields" (None sentinel), then not bug. Need infer from line 207: `self.dropped_count += len(row.keys() - {*required, *optional})`. If check.fields already filters unknown fields? It returns row with keys maybe only required+optional? If optional=None means no filtering? Hmm.
+
+Let's examine likely `Validator.fields` from similar code. It might be:
+```
+def fields(self, value, field, required, optional=()):
+    if not isinstance(value, dict): fail
+    missing = set(required) - value.keys()
+    if missing: fail
+    unknown = set(value.keys()) - set(required) - set(optional)
+    if unknown: fail
+    return value
+```
+If so, passing optional=None would break because set(optional) error? None not iterable. But line would crash if any call. But maybe optional=None is accepted as "no optional". But then unknown fields fail. The wrapper's optional not forwarded. This seems like a bug. But if check.fields accepts optional=None as no optional, then optional fields in _COLLECTOR_OPTIONAL would be disallowed. That is a clear bug. But we can't see check.fields. The task says if fault depends on code you cannot see, say confidence. We can report medium/low. But maybe there is a more certain bug.
+
+Line 207: `len(row.keys() - {*required, *optional})`. If `row` is a dict from check.fields, and check.fields may have already removed unknown fields? If it returns original dict, unknown keys included. But if check.fields fails on unknown, dropped_count never increments. The purpose of dropped_count likely to count unknown fields dropped, not fail. So check.fields probably does not fail on unknown; it returns all keys. Then optional=None may mean no validation of optional? Hard.
+
+Let's look at `Validator` imported from .validation. It has methods: fields, matches, choice, rows, optional_count, count, calendar_date, fail. The wrapper `_ScanReader.fields` likely intended to call `self.check.fields(value, field, required, optional)` and count dropped unknown fields. The line passing optional=None is likely a planted bug. But we need exact claim: optional fields are not passed to Validator.fields, so fields listed as optional are treated as unknown/dropped or rejected. Evidence line 206. Why: e.g. collector row with reason triggers dropped count or error despite optional. Confidence medium because depends on Validator.fields semantics. But maybe high if obvious from parameter ignored.
+
+However user wants concrete faults. We can report if code ignores its own `optional` parameter. That's a bug independent? It does something other than plainly intends: method accepts optional but does not use it. Line 206 uses optional only for dropped count, not for validation. If check.fields needs optional to allow fields, then wrong. But if check.fields doesn't need optional, then no. The method's plain intent? It has parameter optional, and computes dropped using it. It likely intends to allow optional. The call to check.fields with optional=None contradicts. Could be contradicts-comment? No comment.
+
+Let's search other planted bugs.
+
+Line 254: `if (status == "ok") != (reason is None): fail`. This enforces reason present iff status not ok. For status partial/skipped, reason required. OK. But reason could be empty string? reason is None check; if empty string, not None, choice may fail if empty not in reason_codes. OK.
+
+Line 257: if reason is not None: reason = self.check.choice(reason, ...). But if reason is None and status not ok, previous fail. OK.
+
+Line 258 permissions = self.check.rows(row["permissions_used"], ...). If row["permissions_used"] missing? required. OK.
+
+Line 277: `scanned, failed, total = (self.check.optional_count(row.get(name), f"{field}.{name}") for name in _COVERAGE_COUNTS)`. Generator unpacks. OK.
+
+Line 280: if total is not None and (scanned or 0) + (failed or 0) > total: fail. If scanned is bool? optional_count likely int. OK.
+
+Line 282: if kind == "complete" and any(count is not None for count in (scanned, failed, total)):
+   if failed != 0 or scanned is None or total is None or scanned != total: fail.
+If kind complete and counts all None, passes. Is that a bug? Complete coverage with no counts maybe should be invalid? But maybe counts optional. For licences, check_coverage will fail if complete and counts not matching. For findings, a complete coverage with no counts is accepted. Could be intended: complete can be asserted without counts. Not a fault.
+
+Line 287 finding_value: if entry.type == "boolean": if not isinstance(value, bool): fail. return value. Else return self.check.count(value, field). But FindingValue = int | bool. If entry.type not boolean, count. OK.
+
+Line 297: row = self.fields(item, field, _FINDING_FIELDS). All required. But _FINDING_FIELDS includes value, unit, etc. If value is null, key present. OK.
+
+Line 298: if row["workload"] != entry.workload: fail. But entry.workload could be None? OK.
+
+Line 300: if row["unit"] != entry.unit: fail. But unit may be optional? If entry.unit None and row unit None ok. If entry.unit e.g. "count" and row unit missing? required key present maybe null. fail. OK.
+
+Line 302 provenance choice. PROVENANCES includes unknown. Good.
+
+Line 303 collector = row["collector"]; if collector is not None choice from collectors. But if collector key present with value None, ok. If collector is empty string? choice fails if not in collectors.
+
+Line 306 self.check_evidence(row, field, provenance, collectors.get(collector)). We don't see check_evidence. Could be bug? Not visible.
+
+Line 307 value, source, reason = row["value"], row["source"], row["missing_reason"]. If value is None, ok. If value is bool for count? finding_value handles.
+
+Line 317: value=None if value is None else self.finding_value(value, f"{field}.value", entry). If value is False, not None, finding_value returns False. OK.
+
+Line 320 collected_at timestamp. If collected_at is None ok. If string date-only length 10 ok.
+
+Line 323 period.
+
+Line 324 coverage.
+
+Line 325 missing_reason choice.
+
+Line 333 check_finding_source: if source in ("inputs_yaml", "sample.inputs_yaml"): fail. This prevents inputs.yaml sources in scan. Principle? inputs.yaml costs are supplied, but scan should not have inputs source? OK.
+
+Line 335 if collector is not None: allowed = {code for method, code in entry.measured_by if method == collector}; if not allowed: fail. else: allowed = self.catalogue.provided_sources if entry.provided != "no" else frozenset(). if source is not None and source not in allowed: fail.
+
+Potential bug: If collector is not None and source is None, but entry.measured_by has no code for collector, fail. Good. If collector is not None and source is not None but source not in allowed fail. If collector is None and source is not None but entry.provided == "no", allowed frozenset, fail. Good.
+
+But what if collector is None and source is None and entry.provided == "no"? No fail. That means a finding with no collector, no source, provenance maybe provided? But check_evidence may enforce. Not visible. Could be missing evidence? Not.
+
+Line 16 PROVENANCES = ("measured", "provided", "unknown").
+
+Principle 8: missing evidence unknown, skipped/denied collector never improves readiness. This model may have is_lower_bound. Not.
+
+Look at `same_collection_time`: line 69: if first is None or second is None or (len(first) == 10) != (len(second) == 10): return False. This treats date-only vs full as not same. But if first="2020-01-01" and second="2020-01-01T00:00:00Z", are they same collection time? Maybe no because precision differs. OK.
+
+But if first and second both length >10 but one aware one naive, fromisoformat equality maybe issue. Could be unhandled-input. Let's verify Python equality. I can recall: `datetime(2020,1,1, tzinfo=timezone.utc) == datetime(2020,1,1)` returns False? Let's search memory: I have used `datetime.now(timezone.utc) == datetime.utcnow()`? It might raise TypeError? Actually `datetime.utcnow()` is naive. I think comparing aware and naive with `==` returns False? Let's check CPython: In `datetime.py`, `datetime.__eq__` calls `self._cmp(other)`, if result is None returns NotImplemented? For mixed tz, `_cmp` returns None? Then `==` maybe False? Let's recall exact: 
+```
+def __eq__(self, other):
+    if isinstance(other, datetime):
+        return self._cmp(other) == 0
+    return NotImplemented
+```
+`_cmp`:
+```
+if self.tzinfo is None:
+    if other.tzinfo is not None:
+        return -1
+elif other.tzinfo is None:
+    return 1
+else:
+    ...
+```
+Maybe it returns -1/1 for ordering, so eq false. I think equality is allowed and false. So no crash.
+
+Line 59 _timestamp_after: line 63 if time.tzinfo is None or limit.tzinfo is None: time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None). If one aware one naive, strips both. This may compare as if same timezone, possibly wrong. Example stamp="2020-01-01T00:00:00+02:00" (UTC 22:00 previous day) and reference="2020-01-01T00:00:00" naive. It strips +02, compares 00:00 > 00:00 false, but actual UTC stamp is before reference if reference assumed local? But if reference naive unknown. Could be wrong. But maybe intended to treat naive as local? Not. Could be bug: mixing aware/naive should be invalid or compare aware properly. But is it a concrete fault? Input allowed: _TIMESTAMP allows optional timezone. So scan can have one timestamp with offset and one without. _timestamp_after will silently drop timezone, potentially wrong ordering. This is a bug/unhandled-input. But maybe reference is always naive? We don't see. Could be used to check collected_at after generated_at? If one has Z and other not, wrong. Principle honest? Maybe.
+
+Line 61: if len(stamp)==10 or len(reference)==10: return time.date() > limit.date(). If one date-only, one full with timezone, date compare ignores time and tz. Example stamp="2020-01-01T23:00:00Z", reference="2020-01-01" date-only. It returns date > date false, but stamp is after reference if reference is start of day? But if reference date-only means whole day? Not clear. Could be intended date precision.
+
+Line 69 same_collection_time: if lengths differ 10 vs not, false. If both full but one aware one naive, equality false maybe. OK.
+
+Potential regex bug: _TIMESTAMP allows date with time but no timezone, and date with timezone but no time? Pattern: DATE.pattern(?:T...)?(?:Z|...)? Actually timezone group is inside T group? Let's verify line 22-23: `rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]{{1,6}})?)?" r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"` The timezone group is inside the T group, so date-only with Z not allowed. Good.
+
+But line 22: after seconds optional group, there is a `?` then line 23 starts `(?:Z...` then `)?`? It might allow T HH:MM with no seconds and timezone. OK.
+
+Potential bug in _TIMESTAMP: It allows fractional seconds with comma or dot, but fromisoformat in Python <3.11 may not accept comma. But ValueError caught and fail. Not a fault, just stricter.
+
+Line 19 _SCHEMA_VERSION allows up to 8 digits each. Line 227 int(version.split(".",1)[0]) != 1. If version "1.00000000" ok. If major "00000001" int 1. OK.
+
+Line 20 _TOOL_VERSION allows 1-3 dot-separated parts, each up to 8 digits. OK.
+
+Line 25 _PERIOD = DATE.pattern/DATE.pattern. If DATE.pattern includes alternation with slashes? no.
+
+Line 26 _SCAN_FIELDS includes schema_version, tool, generated_at, source_kind, collectors, findings, licences. But part 2 likely uses. Not.
+
+Line 52 _LICENCE_FIELDS = ("collector", "source", "collected_at", "coverage", "products"). All required. OK.
+
+Line 53 _PRODUCT_REQUIRED = ("purchased", "assigned"); optional sku_part_number, sku_guid, service_plans. OK.
+
+Line 56 FindingValue = int | bool. In Python bool is subclass of int. is_lower_bound checks type(self.value) is not

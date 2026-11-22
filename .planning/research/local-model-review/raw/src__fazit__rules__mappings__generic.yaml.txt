@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/mappings/generic.yaml
+line: 87
+kind: bug
+claim: The windows_applications mapping uses need_finding for a count key instead of the metric-style condition used elsewhere.
+evidence: "      need_finding: windows_software.application_count"
+why: The other need_finding values are boolean finding keys, while line 78 uses need_if_positive for a count; this entry therefore does not clearly express "needed when the application count is positive" and can make the function never required or cause a lookup of a non-finding key.
+confidence: medium

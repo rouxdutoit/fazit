@@ -1,0 +1,17 @@
+FINDING
+file: src/fazit/evidence.py
+line: 93-94
+kind: bug
+claim: The software-list lower bound is not marked as a lower bound, so later conflict handling can treat it as an exact supplied value.
+evidence: "            lower_bound, coverage = _without_web_version(software)\n            findings.append(_provided(entry, lower_bound, inputs, coverage))"
+why: `_without_web_version` explicitly returns a lower bound, and `_provided` is the only place where this provided finding is created. Because the constructed `Finding` is not given `is_lower_bound=True`, a partial lower bound can later be compared as if it were an exact value.
+confidence: medium
+
+FINDING
+file: src/fazit/evidence.py
+line: 45-48
+kind: bug
+claim: Conflicting incomplete measured boolean evidence is ignored because `select_evidence` only consults `evidence_conflicts` when the recorded finding is a lower bound.
+evidence: "        if recorded.is_lower_bound and (\n            not is_complete(supplied) or evidence_conflicts(recorded, supplied)\n        ):\n            return recorded"
+why: `evidence_conflicts` explicitly handles boolean measured values, but `select_evidence` calls it only for `recorded.is_lower_bound`. A measured boolean finding that is incomplete and conflicts with a supplied answer therefore falls through to `return supplied`, discarding the measured evidence without recording a conflict.
+confidence: medium

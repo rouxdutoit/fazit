@@ -1,0 +1,14 @@
+FINDING
+file: src/fazit/rules/status.yaml
+line: 89-92, 110
+kind: contradicts-principle
+claim: Teams can be reported ready when the Teams licence add-on evidence is missing, because the ready evidence does not require `teams.licence_add_on_assigned` to be false.
+evidence:
+        evidence:
+          - {finding: teams.team_count, op: exists}
+          - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+          - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+...
+          when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
+why: If `teams.licence_add_on_assigned` is absent or its collector was skipped, the only add-on rule does not match, while the three ready evidence conditions can still be satisfied, so unknown add-on status makes Teams look ready. This breaks the principle that missing evidence should be unknown and a skipped collector must not improve readiness.
+confidence: high

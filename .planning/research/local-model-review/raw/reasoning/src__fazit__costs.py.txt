@@ -1,0 +1,275 @@
+We need answer user's request: review code, find concrete faults. Need produce findings in exact format or NO FINDINGS. Need analyze carefully.
+
+We have file src/fazit/costs.py. Need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. Only this part. Need not guess. Let's inspect code.
+
+Principles: honest figures: supplied costs, missing evidence unknown, skipped/denied never improves readiness. Missing value treated as zero or good news? Here _line: if any factor value == 0 returns zero. If value None missing. So missing not zero. Good. But potential issue: if factor value is 0, missing? It returns 0 ignoring other missing factors. That's okay? If one factor zero, line is zero regardless of missing other factors. Could be a missing value not shown? If one factor is zero and another missing, returns missing=(). That might be okay because zero times unknown = zero? In cost calculation, if count is zero, cost zero. But if rate missing and count zero, amount zero, no missing. Is that honest? It's mathematically zero if count supplied zero. But if factor zero is not known? It's supplied zero. Fine.
+
+Potential bug: _line uses any(value == 0 for _, value in factors). If value is None, value == 0 false. If Decimal('NaN')? Decimal NaN == 0 false. If value is Fraction? factors can be Decimal|int|None. If value is bool? Not likely. If value is negative? no.
+
+Potential bug: _line amount = prod((Fraction(value) for _, value in factors if value is not None), start=Fraction(multiplier)). It filters None, but missing already handled if any None. So all non-None. But if any factor is 0, returned earlier. If multiplier is 0? multiplier int|Fraction default 1. If multiplier 0, amount 0. If factor None and multiplier 0? missing still returns None, because checks missing before amount. Is that okay? If multiplier zero, line should be zero even if inputs missing? For example _line with multiplier=0 and missing factor would be unknown? But no multiplier=0 used. Not issue.
+
+Potential bug: _sum: if any amount None return None. Good. But if no amounts, returns 0. _group with no lines returns total 0. In _result for stay: tuple(_group(id) for id in BLOCKS) creates empty groups total 0. So stay blocks zero. Fine.
+
+Potential bug: _exit_running: months = target.parallel_running_months; months_left = MONTHS - months if months is not None else None. Then line retained_licences uses retained_microsoft_licences_per_year and months_left with multiplier _MONTHLY. If months is 0? months_left = 60. If months > 60? months_left negative. Could produce negative cost. Unhandled input? inputs.yaml may allow parallel_running_months > 60? It's an input. Could lead to negative retained licences cost, maybe wrong. But is it plainly intended? Parallel running months should be 0..60? If not validated elsewhere, unhandled input leads wrong result (negative cost). Need consider if this part should validate? The code accepts any int. Could be fault. But maybe inputs validation elsewhere. We only see this part. If fault depends on unseen code, say confidence. But unhandled input from inputs.yaml: parallel_running_months > 60 or negative. Negative months: months_left = 60 - (-5)=65, retained licence cost positive for 65 months, while parallel_running block uses negative months * current licences /12 -> negative. Could offset? If months negative, parallel_running block negative, retained licences increased. Total? retained licences line: retained per year * (60 - months)/12. parallel_running: current licences per year * months/12. If months negative, parallel_running negative, retained positive extra. Total could be weird. If months > 60, retained negative, parallel positive. Could make total lower. This is a missing range validation. Is it concrete? Yes, input accepted leads wrong result. But maybe scenario costs should only handle 0-60. The code plainly intends months_left = MONTHS - months, assumes months within 0..60. Could report unhandled-input. Confidence medium because validation may be elsewhere. But task says only see this part; if fault depends on code cannot see, say confidence. We can say medium.
+
+Potential bug: _exit_running uses target.users for hosting with multiplier MONTHS. If target.users None, missing. Good.
+
+Potential bug: _exit_blocks: parallel_running line uses current_licences factor and target.parallel_running_months. current_licences is inputs.current_costs.microsoft_licences_per_year. If current_licences is None and months is 0, _line returns zero due to months == 0, missing ignored. That's okay: no parallel running cost if months zero even if current licences unknown. If months missing None and current licences 0? any value==0 true returns 0, missing months ignored. If current licences supplied 0, parallel cost zero regardless of months missing. Okay.
+
+Potential contradicts-principle: "A skipped or denied collector never improves readiness." Not about costs. Missing value treated as zero? _line returns zero if any factor == 0. If a factor is zero because missing? No, missing is None, not 0. But if inputs.yaml omits a cost, maybe default 0 in Inputs dataclass? We don't see. If omitted defaults to 0, then missing evidence becomes zero. But this code cannot see. The code treats None as missing. If Inputs defaults missing to 0, that would be upstream. Not here.
+
+Potential bug: SCENARIOS = ("stay", "partial_exit", "full_exit"), BLOCKS. In compute_scenarios: results = [_result("stay", running, tuple(_group(id) for id in BLOCKS), running.total)]. For stay, blocks are empty groups with total 0, missing empty. difference_to_stay = total - stay_total = 0 if total not None. If running.total None, total None, difference None. Good.
+
+Potential bug: For exit scenarios, _result receives stay_total = running.total (stay running total) not full stay total? But stay total equals running.total because blocks empty zero. If running.total None, stay_total None. Good.
+
+Potential bug: _exit_running includes other_it line from current_costs.other_it_per_year with multiplier YEARS. This is current other IT recurring in exit scenarios. It is included in running group. For stay, running includes microsoft_licences and other_it. For exit, running includes retained Microsoft licences, hosting, operations, other_recurring, other_it. Blocks include one-time, training, productivity, parallel running. Seems intended.
+
+Potential bug: retained_licences line uses prefix.retained_microsoft_licences_per_year and months_left. If months is None, months_left None, missing includes parallel_running_months. But if retained licences is 0, returns zero and missing months ignored. If months is 60, months_left=0, returns zero, missing retained licences ignored. If parallel_running_months=60 (full 5 years retained), retained cost zero. Good. If months=0, months_left=60, retained cost full 5 years. Good.
+
+Potential bug: _line zero check: any(value == 0 for _, value in factors). If factor value is Decimal('0.00') okay. If value is Fraction(0)? factors type Decimal|int|None, current_licences maybe int? target fields maybe Decimal. If value is 0.0 float? not type but could from YAML? inputs may parse to Decimal? If float 0.0 ==0 true. Fine. If value is Decimal('NaN'), ==0 false, then Fraction(Decimal('NaN'))? Let's check: Fraction(Decimal('NaN')) raises ValueError? Actually Fraction(Decimal('NaN')) returns nan? In Python, Fraction(Decimal('NaN')) returns nan? Let's recall: Fraction(Decimal('NaN')) returns nan? Fraction constructor from Decimal: if decimal is NaN, returns Fraction('nan')? I think Fraction(Decimal('NaN')) returns nan? Let's verify mentally: fractions.Fraction(Decimal('NaN')) may raise ValueError? In Python 3.11, Fraction(Decimal('NaN')) returns nan? Actually Fraction(Decimal('Infinity')) raises OverflowError? Decimal Infinity cannot be represented. Fraction(Decimal('NaN')) returns nan? Need know. If inputs.yaml contains .nan or .inf, unhandled input could crash or wrong. But likely inputs validation. Not focus.
+
+Potential bug: prod from math with Fraction generator. If no factors? _line called with at least one factor except maybe? _line("one_time_migration", (path, value)) one. If no factors and multiplier? Not used. If factors all None? missing returns None. Good.
+
+Potential bug: _line filters value is not None in prod, but if missing empty all values not None. If value is 0 returned earlier. If value is False? bool is int subclass, False ==0 returns zero. If YAML bool false for cost? Inputs maybe Decimal; if false parsed as bool? Could be unhandled input. But not likely.
+
+Potential contradicts-comment? There are no comments/docstrings except SPDX. No docstrings. So none.
+
+Potential contradicts-principle: offline report? This module pure computation, no network. No issue.
+
+Potential bug: _exit_running: months_left = MONTHS - months if months is not None else None. If months is Decimal? target.parallel_running_months maybe int? If Decimal, MONTHS - Decimal works? int - Decimal returns Decimal? Actually int - Decimal returns Decimal? Yes. Then _line factor value type Decimal|int|None. Fraction(Decimal) okay. If months is float? int - float = float, Fraction(float) works but may imprecise. Not big.
+
+Potential bug: In _line, zero check before missing. If a factor is zero and another factor is None, missing tuple empty. This can hide missing inputs in group missing. Is that a principle issue? Suppose retained_microsoft_licences_per_year is 0, parallel_running_months missing. Then retained_licences line zero, missing not reported. But if licences per year is zero, the cost is zero regardless of months; missing months not needed for this line. However parallel_running block may report missing months if current licences not zero. If current licences also zero, all missing months hidden. Is that okay? If all costs zero due to supplied zeros, missing months not material. Honest figures? Maybe okay.
+
+But what if a factor value is zero because it is a missing value defaulting to 0 upstream? Not here.
+
+Potential bug: _sum returns None if any amount None. But group missing includes all missing paths. If a line amount None due to missing, total None. Good. But if line amount zero due to zero factor, and another line missing, total None due to missing line. Good.
+
+Potential bug: difference_to_stay = total - stay_total if both not None else None. If stay_total is None but total is 0, difference None. Good.
+
+Potential bug: In compute_scenarios, current_licences factor is used in _exit_blocks parallel_running. For partial_exit and full_exit, current_licences is current Microsoft licences per year. But for full_exit, if full exit, parallel running months maybe 0? If not, cost. Fine.
+
+Potential bug: _exit_running retained_licences uses target.retained_microsoft_licences_per_year. For full_exit, retained should be 0 maybe. If missing, unknown. Good.
+
+Potential bug: hosting line uses target.hosting_per_user_per_month * target.users * MONTHS. If users is per current? Fine.
+
+Potential bug: operations and other_recurring per year * YEARS. Fine.
+
+Potential bug: other_it line in exit running uses current_costs.other_it_per_year * YEARS. If current other IT is not relevant after exit? But maybe other IT remains. Intended.
+
+Potential bug: _line multiplier default int|Fraction =1. In amount = prod(..., start=Fraction(multiplier)). If multiplier is int large, ok. If multiplier is Fraction, ok. If multiplier is 0 and factors missing? missing returned None. Not used.
+
+Potential unhandled-input: scan.json? Not here. inputs.yaml values can be negative costs. _line accepts negative values, computes negative costs. Could lead to wrong result. Is negative cost an invalid input? Costs should be non-negative. The code does not reject negative. Could a negative value make status look better? If user supplies negative cost, total lower. But supplied costs can be negative? Principle: use supplied costs. If supplied negative, maybe honest? But costs cannot be negative; unhandled input leads silently wrong result. Should we report? It's an input the code accepts that leads to wrong result. But is it plainly intended to reject negative? No comment. Could be considered unhandled-input. However many cost calculators accept negative adjustments? Here costs are costs, not adjustments. But no explicit validation. The task says find concrete faults; negative costs likely not intended. But might be too speculative? It says do not report something you would need to guess about. Is negative cost a fault? If inputs.yaml has negative hosting_per_user_per_month, amount negative. That's a wrong result if costs should be non-negative. But maybe a negative value could represent credit? Not in schema. Need decide.
+
+Potential unhandled-input: parallel_running_months out of range is more concrete because months_left can be negative, directly causing negative retained cost and maybe total. Negative months also. The code's formula assumes 0<=months<=60. If input 61, months_left=-1. That's clearly wrong. If input -1, parallel_running negative. So report.
+
+Potential unhandled-input: Decimal or int values can be non-numeric strings? Inputs dataclass likely typed, but YAML may provide string. If target.parallel_running_months is string "12", MONTHS - months raises TypeError. But if Inputs fields are typed and parsed, maybe not. We only see this part. If inputs.yaml contains string, code crashes. But likely Inputs validates/coerces. Cannot guess. Could report low? But task says if fault depends on code you cannot see, say confidence. But unhandled input from inputs.yaml: if field is string, crash. However dataclass Inputs likely has fields with types Decimal | int | None; but Python doesn't enforce. If loader doesn't coerce, crash. Need not report if likely handled elsewhere? The instruction: only see this part; if fault depends on code you cannot see, say confidence. We can mention low/medium. But we need concrete faults. Maybe better focus on clear logic bug.
+
+Let's look for subtle bug: _line zero check uses any(value == 0 for _, value in factors). Suppose factor value is Decimal('0') but another factor is None. It returns zero and missing empty. This may violate "Show missing evidence as unknown" if a missing factor is masked by a zero factor. But mathematically if one factor is zero, product is zero. However missing evidence could still be unknown but not needed for amount. The code's missing tuple is supposed to list missing inputs that prevent amount. If amount is zero due to zero factor, missing inputs don't prevent amount. So okay.
+
+But consider _line with factors: (a, None), (b, 0). It returns zero, missing=(). If a is unknown but b=0, product unknown*0. In real arithmetic, if b exactly zero, product is zero regardless of a. So no missing. Good.
+
+Potential bug: _line if any factor is zero returns Fraction(0) even if multiplier is None? multiplier not None. If multiplier negative? no.
+
+Potential bug: _sum: total = Fraction(0); for amount in amounts: if amount is None return None; total += amount. If amounts is generator from group.total. If group.total is None, return None. Good.
+
+Potential bug: _group missing dedup using dict.fromkeys. Good.
+
+Potential bug: _result missing dedup. Good.
+
+Potential bug: In compute_scenarios, results = [_result("stay", running, tuple(_group(id) for id in BLOCKS), running.total)]. _group(id) with no lines returns total Fraction(0). So stay blocks total zero. But ScenarioResult.blocks for stay are empty groups with id direct_project, productivity_loss, parallel_running. Good.
+
+Potential bug: For exit scenarios, _exit_blocks returns groups: direct_project with lines one_time_migration, application_adaptation, external_advice, training. If all missing, group total None, missing paths. Good.
+
+Potential bug: training line: training_days_per_person * training_day_rate * training_staff. If training_staff is number of people? If missing, unknown. Good.
+
+Potential bug: productivity_loss line just a single amount. Good.
+
+Potential bug: parallel_running block: current_licences * parallel_running_months * (1/12). If current_licences is annual cost, months fraction. Good.
+
+Potential bug: retained_licences: retained_microsoft_licences_per_year * (60 - months)/12. If parallel running months is months where both current and retained? Wait retained licences are licences retained after exit? If parallel_running_months is period where old Microsoft licences still paid? Then retained_licences maybe new retained Microsoft licences (e.g. retained for some services) for remaining months after parallel running. If months=parallel running, retained licences start after parallel running? months_left = 60 - months. Good.
+
+But if parallel_running_months is None, months_left None, missing. Good.
+
+Potential bug: If months is 60, months_left=0, retained zero. If months is 0, retained full period. Good.
+
+Potential bug: If months is Decimal('60.5'), months_left=Decimal('-0.5'), negative. Out of range.
+
+Potential unhandled-input: parallel_running_months can be non-integer (e.g., 12.5). The field likely int, but YAML can provide float. Code accepts numeric. Fraction(Decimal) okay. If float, Fraction(float) okay. Could be okay. But months should be integer. Not necessarily fault.
+
+Potential bug: _line type _Factor = tuple[str, Decimal | int | None]. But current_licences is _Factor with value inputs.current_costs.microsoft_licences_per_year maybe Decimal | None. months_left may be int | Decimal | None. If months is Decimal, months_left Decimal. OK. If months is Fraction? not type but possible. Fraction(Fraction) works. If months is float, MONTHS - months float. Fraction(float) works. If months is string, crash.
+
+Potential contradicts-principle: "Use supplied costs and clearly labelled example amounts." This code computes 5-year totals from supplied monthly/annual costs. It invents no amounts except constants YEARS=5, MONTHS=60. Is 5-year horizon an invented figure? It's a design constant, maybe supplied by project. Not a fault.
+
+Potential bug: _line uses math.prod with start=Fraction(multiplier). In Python, math.prod(iterable, start=1). If iterable empty, returns start. Here if no factors, amount=multiplier. But _line with no factors not used. If used, missing=() and amount=multiplier. Could be intended? Not relevant.
+
+Potential bug: If multiplier is a Fraction and factors include Decimal, prod works. Good.
+
+Potential bug: If any factor value is 0, return Fraction(0) without considering missing. But if factor value is 0 and multiplier is None? no.
+
+Potential bug: If factor value is 0 but another factor is negative? zero. Fine.
+
+Potential bug: _exit_running: months_left = MONTHS - months if months is not None else None. If months is negative, months_left > MONTHS. Retained licences cost > 5 years. But parallel_running block negative. Total effect? Let's compute total running+parallel for Microsoft licences: retained: R*(60-m)/12; parallel: C*m/12. If m negative: R*(60+|m|)/12 - C*|m|/12. If R and C positive, total may be higher or lower depending. It's nonsensical. If m>60: R*(negative)/12 + C*m/12. Could be negative if R large. This can make exit cheaper than stay. So out-of-range input can make status look better. This is a principle issue too. But kind unhandled-input probably.
+
+Potential unhandled-input: parallel_running_months > MONTHS leads negative retained_licences amount, which can reduce total and difference_to_stay, making exit look better. That's concrete.
+
+Potential unhandled-input: parallel_running_months < 0 leads negative parallel_running block. Also can reduce total. Report one finding covering range.
+
+Need decide if report negative costs generally. Could be too broad. The parallel_running_months range is specific due to months_left. Negative costs as inputs maybe not as clear. The code plainly intends costs non-negative? No comment. But principle "costs" implies non-negative. However if user supplies negative cost, it's supplied cost, maybe could be a credit? The tool reads costs from inputs.yaml; negative costs are invalid. But without schema, maybe not. I'd lean not report general negative costs because could be intentional adjustments? But all fields are costs/rates, not adjustments. Yet "Do not report something you would need to guess about" - we need guess that negative is invalid. Parallel months out of range is more evident from formula.
+
+Potential unhandled-input: months_left can be None if months None. _line factor value None. Good. But if months is not None but not numeric, crash. Could report? If inputs.yaml has parallel_running_months: "12", MONTHS - months TypeError. But Inputs likely typed. If not, unhandled. But depends on loader. Confidence low. Maybe not.
+
+Potential bug: In _line, missing = tuple(path for path, value in factors if value is None). If value is None and another value is 0, missing ignored due to earlier zero. Already considered.
+
+Potential bug: _line zero check should be any(value == 0 for _, value in factors if value is not None)? It currently checks None==0 false, okay. If value is Decimal('sNaN')? Decimal('sNaN') == 0 raises InvalidOperation? Actually signaling NaN comparison may raise? Decimal('sNaN') == 0 raises InvalidOperation? In Python, Decimal('sNaN') == 0 raises InvalidOperation? Let's recall: Decimal comparisons with signaling NaN raise InvalidOperation. If inputs.yaml contains sNaN, value == 0 could raise. But unlikely.
+
+Potential bug: Fraction(value) for Decimal('Infinity') raises OverflowError. If inputs.yaml contains .inf, crash. Unhandled input. But likely validation. Not focus.
+
+Potential bug: _line amount = prod((Fraction(value) for _, value in factors if value is not None), start=Fraction(multiplier)). If value is Decimal with exponent, Fraction exact. Good.
+
+Potential bug: _line if any value == 0 returns Fraction(0) even if value is 0 and multiplier is None? no.
+
+Potential bug: _sum: if amounts is empty returns 0. _group with no lines total 0. In stay blocks, empty groups total 0. In exit, no empty groups. Good.
+
+Potential bug: _result: groups = (running, *blocks). total = _sum(group.total for group in groups). If running.total is None but blocks have zero, total None. Good. missing includes group.missing. If group.total None but group.missing empty? Could happen if _sum of empty? No, group.total None only if some line amount None, which has missing. Unless line amount None with missing empty? _line returns None only if missing nonempty. So okay.
+
+Potential bug: difference_to_stay for stay: total - stay_total. If total is 0 and stay_total 0, difference 0. If total None, None. Good.
+
+Potential bug: In compute_scenarios, other_it line is created once and included in stay running and each exit running. CostLine frozen, immutable. Good.
+
+Potential bug: current_licences factor is tuple with path and value. It is included in stay running line with multiplier YEARS. In exit blocks parallel_running line with multiplier _MONTHLY. Good.
+
+Potential bug: For stay, running.total = microsoft_licences*5 + other_it*5. If current_licences missing, running.total None. Then stay total None. Exit difference None. Good.
+
+Potential bug: For exit, if current_licences missing but parallel_running_months=0, parallel_running line zero, missing ignored. If months=0, no parallel cost, okay. If current_licences missing but months>0, parallel line missing, total None. Good.
+
+Potential bug: If current_licences=0 and months missing, parallel line zero, missing ignored. If no parallel running cost because current licences zero, okay.
+
+Potential bug: If target.parallel_running_months is 0, months_left=60. retained line uses months_left 60. If retained licences missing, line missing? _line factors: retained value None, months_left 60. any value==0? months_left 60 not zero, retained None false. missing includes retained. amount None. Good. If months=60, months_left=0, retained line zero even if retained missing. If parallel running full 5 years, no retained licences after? Maybe retained licences cost zero regardless of retained value. Good.
+
+Potential bug: If target.parallel_running_months is 60 and current_licences missing, parallel_running line: factors current None, months 60. any value==0? no. missing includes current. amount None. But if months=60, parallel running cost for full 5 years should be current licences * 5, unknown if current missing. Good.
+
+Potential bug: If target.parallel_running_months is 0 and current_licences missing, parallel line zero, missing ignored. Good.
+
+Potential bug: If target.parallel_running_months is 60 and retained missing, retained line zero, missing ignored. Good.
+
+Potential principle: "Show missing evidence as unknown." If months=60, retained missing is not shown because amount zero. But is retained evidence needed? If parallel running full 5 years, retained licences after parallel running none, so retained cost zero regardless. Okay.
+
+Potential bug: _line zero check with months_left=0 and retained missing hides missing retained. But if months_left=0 because months=60, retained cost zero. Good.
+
+Potential bug: _line zero check with months=0 and current_licences missing hides missing current. If no parallel running, cost zero. Good.
+
+Potential bug: _line zero check with training_staff=0 and training_days missing hides missing days. If no staff, training cost zero. Good.
+
+Now, any contradicts-principle about "skipped or denied collector never improves readiness"? Not in costs. Missing values not improving because total None if missing material. But zero factors can hide missing; if zero factor is supplied, not skipped. If a collector skipped leads to zero? Not here.
+
+Potential bug: "A skipped or denied collector never improves readiness." If a missing current_licences is masked by parallel_running_months=0, status could look better? But if months=0 supplied, no parallel cost, missing current not material. If months missing but current=0, missing months masked. If current=0 supplied, no parallel cost. Fine.
+
+Potential bug: The code uses Fraction(1, MONTHS_PER_YEAR) _MONTHLY. For annual cost * months * (1/12). If months is int, exact. Good.
+
+Potential bug: In _exit_running, months_left = MONTHS - months if months is not None else None. If months is a Decimal with fractional part, months_left Decimal. _line factor value type Decimal. Fraction(Decimal) exact. Good.
+
+Potential bug: In _exit_running, hosting line multiplier=MONTHS (60). If hosting_per_user_per_month is monthly, users count, 5-year total. Good.
+
+Potential bug: operations_per_year * YEARS. Good.
+
+Potential bug: other_recurring_per_year * YEARS. Good.
+
+Potential bug: other_it line multiplier=YEARS. Good.
+
+Potential bug: In _exit_blocks, one_time_migration etc are one-time amounts, no multiplier. Good.
+
+Potential bug: application_adaptation one-time. Good.
+
+Potential bug: external_advice one-time. Good.
+
+Potential bug: training line: training_days_per_person * training_day_rate * training_staff. If training_staff is total staff, days per person, rate per day. Good.
+
+Potential bug: productivity_loss single amount. Good.
+
+Potential bug: parallel_running line uses current_licences annual and months. Good.
+
+Potential bug: If current_licences is None and months is 0, zero. If months is None and current is 0, zero. Good.
+
+Potential unhandled-input: parallel_running_months can be > MONTHS or <0. Report.
+
+Are there any other concrete faults? Let's think about dataclass frozen and tuple. No.
+
+Potential bug: _line's zero check returns Fraction(0) if any factor is zero, but if a factor is zero and another factor is None, missing is empty. This can cause group.missing not to include a missing input that is in the line. The doc? No comment. But dataclass missing intended to list missing factors? It says missing: tuple[str, ...]. It might be intended to list all missing factors regardless of zero? The code plainly: if any value == 0 return CostLine(id, Fraction(0), ()) - it intentionally ignores missing. Is that a bug? Could be considered wrong if missing should list all missing inputs even if amount zero. But principle: show missing evidence as unknown. If amount is known zero due to zero factor, missing evidence not needed for amount. But report may want to show unknown inputs? The line's missing likely used to indicate why total unknown. If total known zero, no need. So not fault.
+
+Potential bug: _line if any factor value == 0 returns zero before checking if multiplier is None? no.
+
+Potential bug: _line if factor value is 0 and another factor is None, but the zero factor is not the one that makes amount zero if the None factor would be division? No division. Product.
+
+Potential bug: _line if factor value is 0 but multiplier is negative? zero.
+
+Potential bug: _line if factor value is 0 but value is Decimal('0E-10')? ==0 true.
+
+Potential bug: _line if factor value is 0 but value is bool False. zero.
+
+Potential unhandled-input: YAML can specify null for costs. Handled as missing. Good.
+
+Potential unhandled-input: YAML can specify list or dict for cost. Fraction(value) or value == 0 may crash or wrong. For example value = [] -> [] == 0 false, Fraction([]) TypeError. But Inputs dataclass likely expects scalar. If not validated, unhandled. But depends on loader. Could report? The code accepts from inputs.yaml via Inputs. If a field is list, crash. But likely inputs module validates. We only see this part. Need avoid guessing.
+
+Potential bug: type _Factor = tuple[str, Decimal | int | None], but months_left can be int | Decimal | None. If months is Decimal, ok. If months is Fraction? not in type but Fraction is int? No, Fraction not int. But type not enforced. If months is Fraction, MONTHS - months returns Fraction? int - Fraction returns Fraction? I think int - Fraction returns Fraction. Fraction(Fraction) works. Fine.
+
+Potential bug: _line uses Fraction(value) where value may be Decimal or int. If value is bool, Fraction(True)=1, but zero check catches False. If True, amount 1. If YAML bool true for cost, wrong. But inputs likely Decimal.
+
+Potential bug: _line uses any(value == 0 for _, value in factors). If value is Decimal('NaN'), comparison false? For quiet NaN, Decimal('NaN') == 0 returns False. Then Fraction(Decimal('NaN'))? Let's confirm. Python Fraction(Decimal('NaN')) returns nan? Quick memory: Fraction(Decimal('NaN')) returns Fraction('nan')? Actually Fraction constructor from Decimal: "If decimal is NaN, returns Fraction('nan')"? I recall Fraction(Decimal('NaN')) raises ValueError? Let's check mental: fractions.py: if isinstance(numerator, Decimal): if not numerator.is_finite(): raise ValueError('cannot convert Decimal to Fraction')? Hmm. For float, Fraction(float('nan')) returns nan? Actually Fraction(1.0) works; Fraction(float('nan')) returns nan? I think Fraction(float('nan')) returns nan (Fraction('nan')), Fraction(float('inf')) raises OverflowError. For Decimal, maybe similar: Fraction(Decimal('NaN')) returns nan, Fraction(Decimal('Infinity')) raises OverflowError. If inputs .inf, crash. But not likely.
+
+Potential bug: math.prod with Fraction('nan')? If value NaN, amount nan. Fraction('nan') comparisons? total += nan yields nan? Fraction nan + 0 returns nan? Maybe. Then total is nan not None, difference nan. Could silently wrong. But inputs with NaN invalid. Not report.
+
+Potential bug: _sum if amount is nan, total becomes nan, returns nan not None. Missing? no. But invalid.
+
+Potential principle: "Omit telemetry..." no.
+
+Potential bug: The module imports prod from math. In Python 3.8+ ok.
+
+Potential bug: In _line, if any factor is 0, returns zero without multiplying by multiplier. If multiplier is negative? zero. If multiplier is None? no.
+
+Potential bug: In _exit_running, months_left = MONTHS - months if months is not None else None. If months is 60, months_left=0. If months is MONTHS but type Decimal, 0. Good.
+
+Potential bug: If months is None, months_left None. But the factor path is f"{prefix}.parallel_running_months". In _exit_running retained line missing path prefix.parallel_running_months. In _exit_blocks parallel line missing path same. Dedup. Good.
+
+Potential bug: In compute_scenarios, prefix = f"target_costs.{id}". For partial_exit and full_exit. Good.
+
+Potential bug: SCENARIOS[1:] zipped with (inputs.partial_exit, inputs.full_exit), strict=True. If SCENARIOS changed length mismatch? It's constant length 3, strict ensures. No.
+
+Potential bug: If Inputs has additional scenarios? no.
+
+Potential bug: _result for stay uses running.total as stay_total. If running.total is None, difference None. Good.
+
+Potential bug: _result for exit uses running.total as stay_total, not stay_result.total. But stay total equals running.total because blocks zero. If running.total is None, same. Good.
+
+Potential bug: If stay running.total is 0 due to zero factors, exit difference computed. Good.
+
+Potential bug: If stay running.total is None but exit total is 0, difference None. Good.
+
+Potential bug: If stay running.total is 0 and exit total None, difference None. Good.
+
+Potential bug: If stay running.total is 0 and exit total 0, difference 0. Good.
+
+Potential bug: If stay running.total is negative due to negative inputs, difference weird. Not.
+
+Potential contradicts-principle: "Use supplied costs and clearly labelled example amounts." The code uses constant 5-year horizon. Is that an invented figure? It's not supplied by user? The report probably labels 5-year. The principle says use supplied costs and clearly labelled example amounts. The horizon is a model assumption, maybe not a cost. Not report.
+
+Potential bug: _line amount = prod(..., start=Fraction(multiplier)). If multiplier is int, Fraction(multiplier). If multiplier is Fraction, Fraction(Fraction) returns same. If multiplier is 1, ok. If multiplier is _MONTHLY Fraction(1,12). Good.
+
+Potential bug: If factors include value 0, zero check returns before missing. But if value is 0 and another value is None, missing hidden. Already.
+
+Potential bug: If factors include value 0 and another value is Decimal('NaN'), zero check returns zero, avoiding NaN. Good.
+
+Potential bug: If factors include value 0 and another value is Decimal('Infinity'), zero check returns zero, avoiding OverflowError. Good.
+
+Potential bug: If factors include value 0 and another value is list, zero check: list == 0 false, then missing? value is not None, missing empty, then Fraction(list) crash. But if one factor zero and another invalid list, it still crashes because zero check only returns if any value ==0; list ==0 false, so doesn't return. If invalid list and zero factor, crash. But invalid input.
+
+Potential bug: If value is 0 but is a custom object with __eq__ raising? no.
+
+Potential unhandled-input: parallel_running_months can be a string that equals "0"? "0" == 0 false, then MONTHS - "0" TypeError. If string "0" intended zero, crash. But inputs likely int.
+
+Need decide final findings. The safest finding is unhandled-input for out-of-range parallel_running_months. Are there any definite bugs independent of input validation? Let's search for logic errors.
+
+Maybe a bug: _line zero check uses any(value == 0 for _, value in factors), but factors can include None. If value is None, None == 0 false. OK.
+
+Maybe a bug: _line missing = tuple(path for path, value in factors if value is None). If missing: return CostLine(id, None, missing). It does not include missing paths for factors that are zero? intentional.
+
+Maybe a bug: _line amount = prod((Fraction(value) for _, value in factors if value is not None), start=Fraction(multiplier)). It filters None, but if

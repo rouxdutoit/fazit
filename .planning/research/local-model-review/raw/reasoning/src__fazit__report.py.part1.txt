@@ -1,0 +1,272 @@
+We need answer user's request: review code part 1 of 2, find concrete faults. Need output only findings in exact format. Need analyze code carefully. We only see lines 1-328 of 395. Need not report style. Need quote exact lines. Need consider principles. Let's inspect code.
+
+File src/fazit/report.py part 1. Need find bugs, unhandled input, contradicts comment, principle.
+
+Let's parse.
+
+Line 39-41 report_file_name: check_language, date.fromisoformat(generated_at[:10]). If generated_at invalid? maybe from elsewhere. Could be unhandled input if generated_at shorter than 10 -> ValueError. But likely generated_at is ISO timestamp. Need concrete? Maybe scan.json? It's function not shown called. Could be command line? Not enough? Could report if generated_at can be input? But from source? The function accepts generated_at. If CLI passes maybe could be invalid. But task says input from scan.json, inputs.yaml, rule file, command line or file system. generated_at may be from scan? If scan.json generated_at invalid -> crash. But maybe report_file_name called with scan.generated_at? Need not guess? It's a function in this part. If generated_at[:10] not valid date, crash. But is generated_at an input? Could be command line? Not sure. Could be unhandled input if from scan.json. But we need concrete. Maybe not.
+
+Line 44-66 _coverage_text. coverage.kind maybe not in labels? If rule file? Could KeyError. But likely validated. coverage.scanned/total can be negative? formatter.integer maybe handles. No obvious.
+
+Line 69-72 _literal_text: if value bool returns yes/no; else formatter.integer(value). But FindingValue maybe str? If value is string, formatter.integer(str) crash? Need know FindingValue type. Could be int/bool only? Maybe not. If scan.json has string value, unhandled-input. But model likely FindingValue = int | bool? Need not guess. Could be value can be date? Hmm.
+
+Line 75-97 _value_text: value None -> unavailable. lower_bound. if type(value) is int and unit bytes -> storage. else literal. If unit not None, group = unit_one if type(value) is int and value == 1 else units. text = f"{text} {code_label(strings, group, finding.unit)}". If value bool and unit not None? _literal_text returns yes/no, then appends unit. Maybe okay? If value is 0 and unit bytes? type int and unit bytes goes storage; lower_bound? If lower_bound true, returns partial_positive with value=text. If value 0 and lower_bound? partial_positive says at least 0? Maybe wrong? But lower_bound with 0 means at least 0, not positive. But maybe lower_bound never true for zero? Could be input. Principle missing value? Not obvious.
+
+Line 90-96: if value int 0 and coverage and coverage.kind != complete -> partial_zero. Good honest.
+
+Line 100-102 _label: label.split(".",1) expects one dot. If label no dot -> ValueError? Rule file? Could unhandled. But labels likely controlled.
+
+Line 105-115 _finding_labels: labels = {entry.id: _label(strings, entry.label) for entry in catalogue.findings}. If entry.label missing dot or strings missing -> crash. But catalogue rule file. Could unhandled input. But maybe expected.
+
+Line 118-138 _cost_table_blocks. scenarios tuple. groups_by_scenario = ((result.running, *result.blocks) for result in scenarios). zip(*groups_by_scenario, strict=True). If scenarios empty? zip(*[], strict=True) yields nothing? In Python 3.10, zip(*[]) returns empty iterator, strict? It may not error? Let's recall: zip(*[], strict=True) returns empty iterator, no error because no inputs. blocks empty. okay. If scenario groups lengths differ? strict=True raises ValueError if inputs differ length. But result.running + blocks length should match across scenarios? Maybe compute_scenarios ensures. If not, crash. But not likely.
+
+Line 129: scenario_lines = tuple({line.id: line for line in group.lines} for group in groups). If group.lines has duplicate id, last wins. Could silently wrong? Maybe cost lines unique. Not report.
+
+Line 130: ids = dict.fromkeys(id for lines in scenario_lines for id in lines). This preserves order of first occurrence across scenarios? dict.fromkeys over ids from each scenario's lines. If a line appears in scenario 2 but not 1, id included. Good. But if line id appears in group 1 after group2? It preserves first in iteration over scenario_lines (scenario order). okay.
+
+Line 133: groups[0].id. If groups empty? zip yields groups tuple length = number scenarios. If scenarios nonempty. If scenario has no running and no blocks? groups_by_scenario item empty tuple. zip(*groups_by_scenario) with one empty iterable? If scenarios length 1 and groups item empty, zip(*[()]) yields nothing? Actually zip with one empty iterable yields empty. Then blocks empty. If scenarios multiple, strict True with one empty and others nonempty raises. But maybe not.
+
+Potential bug: _cost_table_blocks uses groups[0].id for block id. If first scenario's group id differs from others? It zips groups by position. It assumes all scenarios have same group ids in same order. If compute_scenarios can produce different group ids? Maybe cost groups fixed. Not enough.
+
+Line 141-153 render_report: context, _ = _prepare_report(...). returns _render_html(context). okay.
+
+Line 156-160 render_demo: context, plans = _prepare_report(...), returns _render_html(context), scan_to_json(scan, plans=plans). okay.
+
+Line 172-192 _licence_rows: products tuple, plans. unregistered = 0. For product: roster = plans.rosters.get(product.key). If roster None: unregistered +=1; code = f"unregistered-{unregistered}"; label = ... number=unregistered. else label=code=roster.part_number. rows append _LicenceRow(code, label, product.purchased, product.assigned, classify_product(product, plans)). Potential issue: if multiple unregistered products, code unique by counter. If registered product part_number duplicates? Could duplicate row id? Maybe not. If product.key not in rosters, unregistered. Good.
+
+But note: _LicenceRow field name plans, but passing classify_product(product, plans) which maybe returns tuple[RegisteredPlan | None, ...]? okay.
+
+Line 195-235 _prepare_report:
+formatter = Formatter(lang)
+catalogue = load_catalogue() if None.
+checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}
+status_rules = load_status_rules(catalogue, checksums=checksums)
+plans = load_service_plans(catalogue, checksums=checksums)
+risky_kinds = load_risky_file_types(catalogue, checksums=checksums)
+mapping = load_mapping(profile, catalogue, checksums=checksums)
+sample_scan = scan.is_sample
+scan_periods = sorted({item.period for item in scan.findings if item.period is not None})
+provided = provided_findings(inputs, catalogue) if inputs is not None else ()
+scan, other_evidence = combine(scan, provided)
+derived = licence_findings(scan, plans, catalogue, file_name=scan_file_name)
+products = () if scan.licences is None else scan.licences.products
+by_id = {item.id: item for item in scan.findings + derived}
+context = dict(...)
+return context, plans
+
+Potential bug: scan_periods computed before combine. If provided findings have periods, not included. Maybe scan_periods should include provided? It says scan periods from scan.findings only. But provided answers may have periods? Could be unhandled? The report might omit periods from provided evidence. But maybe scan_periods only scan periods. Need not guess.
+
+Potential bug: by_id = {item.id: item for item in scan.findings + derived}. If duplicate ids among scan.findings or derived, last overwrites. combine maybe ensures unique? derived licence findings maybe could duplicate existing ids? If duplicate, silently wrong. But maybe not.
+
+Line 227: product_count=derived[0] if derived else None. Derived is licence_findings. It assumes first derived finding is product count. If derived empty, None. But if derived not empty but first not product count? Maybe function returns tuple with product count first. okay.
+
+Line 229: risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds]. If finding missing, None. okay.
+
+Line 230 checksums.
+
+Line 238-280 _mapping_gaps. Need inspect for bugs.
+
+mapping: TargetMapping, by_id, statuses.
+missing: dict[str, list[str]] = defaultdict(list)
+for row in statuses:
+    for gap in row.missing:
+        missing[gap.finding_id].append(gap.reason_code)
+gaps = []
+for item in mapping.functions:
+    if item.coverage != "not_available":
+        continue
+    finding = by_id.get(item.need_finding) if item.need_finding else None
+    need = "unknown"
+    if finding is not None and is_complete(finding):
+        need = "yes" if finding.value else "no"
+    reasons = tuple(
+        dict.fromkeys(
+            code
+            for code in missing.get(item.need_finding, ())
+            if code != "answer_not_provided" or need == "unknown"
+        )
+    )
+    if reasons:
+        need = "unknown"
+    if item.need_if_positive and need != "yes":
+        count = by_id.get(item.need_if_positive)
+        disputes = tuple(
+            code
+            for code in ("confirmation_conflict", "provided_answers_conflict")
+            if code in missing[item.need_if_positive]
+        )
+        if disputes:
+            finding, need, reasons = count, "unknown", disputes
+        elif count is not None and type(count.value) is int and count.value > 0:
+            if need == "no":
+                need, reasons = "unknown", ("desktop_requirements_conflict",)
+            elif finding is None or finding.value is None:
+                finding, need, reasons = count, "yes", ()
+    if need == "unknown" and not reasons:
+        default = "answer_not_provided" if item.need_if_positive else "not_established"
+        reasons = ((finding.missing_reason if finding else None) or default,)
+    gaps.append((item, finding, need, reasons))
+return gaps
+
+Potential issues:
+- missing[item.need_if_positive] uses missing dict. defaultdict(list) so if key missing returns [] but also inserts? okay.
+- If item.need_finding is None, missing.get(None, ()) okay? missing keys are finding ids maybe strings, None not. okay.
+- need = "yes" if finding.value else "no". If finding.value is None but is_complete? is_complete probably false if value None. If value bool false -> no. If value int 0 -> no. If value positive -> yes. okay.
+- reasons from missing for item.need_finding. If need is known yes/no, excludes answer_not_provided. But if need known and missing has answer_not_provided? That seems contradictory: is_complete true but missing reason answer_not_provided? Maybe missing reasons from status evaluation can include answer_not_provided even if complete? Maybe not. If there are other reasons, need set unknown. Good.
+- If reasons nonempty, need unknown. Then if need_if_positive and need != yes (unknown), count. disputes if missing[need_if_positive] contains conflict codes. If disputes, finding = count (maybe None), need unknown, reasons disputes. Good.
+- elif count positive: if need == "no": set unknown conflict. elif finding is None or finding.value is None: set finding=count, need="yes", reasons=(). This is interesting: if primary need finding missing (None value) but a positive count exists, it treats need as yes. Is that honest? Maybe if need_if_positive is a count of desktops requiring function, positive count establishes need yes even if answer not provided? Could be intended. But principle: missing value treated as good news? Here if need_if_positive >0 and primary unknown, need becomes yes (not unknown). That might be a positive inference from measured count. It says if item.need_if_positive and need != "yes": if count positive and finding missing, need = yes. This uses count to establish need. Could be intended mapping gap. But need_if_positive likely a finding indicating positive requirement (e.g. desktop count). If count >0, need yes. Not missing treated zero/good. It's measured.
+- But if need == "no" and count >0, need unknown conflict. Good.
+- If need == "unknown" and count positive but finding not None and finding.value not None? Wait if need unknown due reasons, and finding.value not None? Could happen if reasons nonempty from missing but finding complete? Then need set unknown. count positive. finding not None and value not None, so doesn't set yes. remains unknown with reasons. okay.
+- If need_if_positive is None? item.need_if_positive maybe optional string. If None, skip.
+- Potential bug: disputes = tuple(code for code in (...) if code in missing[item.need_if_positive]). missing is defaultdict; if need_if_positive is None? We are inside if item.need_if_positive truthy. okay.
+- Potential bug: if count is not None and type(count.value) is int and count.value > 0: if need == "no" set need unknown reasons conflict. elif finding is None or finding.value is None: set need yes. But if need == "unknown" and finding is not None but finding.value is not None? It remains unknown with original reasons. okay.
+- If count is bool? type(value) is int excludes bool? In Python bool is subclass int, but type(value) is int excludes bool. Good.
+- If count.value is None, type None not int. okay.
+- If need_if_positive finding has missing reason answer_not_provided, but count positive? It can set need yes, ignoring missing reason. Is that okay? If count is complete? It doesn't check is_complete(count). It only checks value int >0. If count has missing reason? value >0 likely complete. okay.
+
+Potential principle: skipped or denied collector never improves readiness. In _mapping_gaps, if need unknown and reasons empty, default = answer_not_provided if item.need_if_positive else not_established; reasons = ((finding.missing_reason if finding else None) or default,). If finding is None and item.need_if_positive true, default answer_not_provided. But if finding missing because collector skipped? missing_reason maybe skipped? It uses finding.missing_reason if finding else None. If finding None, default answer_not_provided. Could hide skipped? But maybe not.
+
+Line 283-328 _evidence_context:
+alternatives = {item.id: item for item in other_evidence}
+statuses = evaluate(by_id, status_rules, catalogue, collectors={item.id: item for item in scan.collectors}, alternatives=alternatives)
+counts = Counter(row.status for row in statuses)
+observations = [(entry, by_id.get(entry.id)) for entry in catalogue.findings]
+by_workload = {workload.id: [] for workload in catalogue.workloads}
+for entry, finding in observations:
+    if finding is not None:
+        by_workload[entry.workload].append((entry, finding))
+return dict(
+ alternatives=alternatives,
+ conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)},
+ answer_conflicts={item.id for item in other_evidence if provided_answers_conflict(by_id[item.id], item)},
+ statuses=statuses,
+ status_counts=[(status, counts[status]) for status in STATUSES],
+ status_rules=status_rules,
+ status_by_workload={row.workload: row for row in statuses},
+ mapping_gaps=_mapping_gaps(mapping, by_id, statuses),
+ unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
+ skipped_collectors=[collector for collector in scan.collectors if collector.status == "skipped"],
+ headlines=[row for row in observations if row[0].headline],
+ groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
+ software=[row for row in observations if row[0].provided in ("software_list", "software_list_without_web_version")],
+)
+
+Potential bug: conflicts and answer_conflicts use by_id[item.id] for item in other_evidence. If other_evidence contains finding id not in by_id? But by_id includes scan.findings + derived. other_evidence from combine(scan, provided) likely provided findings that are alternatives? Could include ids not in scan.findings? Let's think: combine(scan, provided) returns scan, other_evidence. other_evidence likely provided findings that conflict or alternatives not merged? It may include provided findings with ids not in scan.findings? If a provided answer for a finding not in scan, combine might put it into other_evidence but not into scan.findings? Then by_id[item.id] KeyError. Need know. The code uses by_id[item.id] assuming every other_evidence id exists in by_id. If provided finding id not in scan.findings/derived, KeyError. Is that possible? provided_findings(inputs, catalogue) returns findings from inputs. combine(scan, provided) likely merges provided into scan if compatible, and returns other_evidence as provided findings that are not merged? It might include provided findings for ids not in scan. Then by_id lacks them unless combine adds them to scan.findings? The name other_evidence suggests evidence not in scan? Let's infer. In _prepare_report: scan, other_evidence = combine(scan, provided). by_id = {item.id: item for item in scan.findings + derived}. Then _evidence_context uses alternatives = {item.id: item for item in other_evidence}. statuses evaluate with alternatives. conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}. If other_evidence id not in by_id, crash. But perhaps combine ensures other_evidence only for ids present in scan.findings (alternatives to scan findings). Provided answers for missing scan findings may be merged into scan? Need not guess? Could be unhandled input: inputs.yaml provides answer for finding id not in scan.json; combine returns it as other_evidence; by_id missing -> KeyError. But is that a concrete fault? We only see this part, combine not visible. Need confidence. The task says if fault depends on code cannot see, say confidence. Could report with medium/low? Need concrete. Maybe there is a clearer bug.
+
+Line 308: conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}. If other_evidence has duplicate ids? alternatives dict dedup. But by_id[item.id] KeyError if absent. Could be.
+
+Line 313: status_counts=[(status, counts[status]) for status in STATUSES]. If a status row has status not in STATUSES, counts missing? It iterates STATUSES, not all counts. If statuses include unknown status not in STATUSES, omitted. But status rules likely constrained. If row.status not in STATUSES, counts has it but not shown. Could be wrong. But not enough.
+
+Line 315: status_by_workload={row.workload: row for row in statuses}. If multiple rows same workload, last wins. Maybe statuses one per workload. okay.
+
+Line 317: unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"]. If finding.provenance maybe None? okay.
+
+Line 318: skipped_collectors=[collector for collector in scan.collectors if collector.status == "skipped"]. If scan.collectors None? Model maybe tuple. If None, crash. Could unhandled input if scan.json collectors null. But model likely validates. Not report.
+
+Line 321: headlines=[row for row in observations if row[0].headline]. observations entries from catalogue.findings. row[0] entry. okay.
+
+Line 322: groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads]. by_workload initialized all workload ids. okay.
+
+Line 323-327 software filter row[0].provided in ... okay.
+
+Need look for principle violations: offline report, no external resources? This part only prepares context, no network. _render_html not shown. Could be in part 2. No.
+
+Honest figures: missing evidence unknown. In _value_text, if value is None -> unavailable. Good. If value 0 with incomplete coverage -> partial_zero. Good. But if coverage.kind == "complete" and value 0 -> plain zero. Good.
+
+But line 81: if type(value) is int and finding.unit == "bytes": text = formatter.storage(value, lower_bound=lower_bound). If value is bool? bool excluded. If value negative? storage maybe. If lower_bound true and value 0? It returns storage 0 with lower_bound? Then line 88 if lower_bound returns partial_positive. For value 0 lower_bound, says partial_positive with value=0, maybe "at least 0" not positive. Could be wrong. But lower_bound with 0 maybe means at least 0, not positive. The string partial_positive likely says "at least {value}". If value 0, at least 0 is true but not positive. But not necessarily wrong. The name partial_positive maybe for partial positive? Could be intended for >0 only. If lower_bound true and value 0, should maybe partial_zero? But lower_bound zero is not positive. Could be input: scan.json finding value 0 is_lower_bound true. It will say at least 0 (maybe okay) but if string says "at least" not positive. Not clear.
+
+Line 86: group = "unit_one" if type(value) is int and value == 1 else "units". If value is bool True, type is bool not int, group units. _literal_text returns yes, then appends unit? If unit not None and value bool, text "yes 1 unit"? Wait value True, _literal_text returns "yes". Then if unit not None: group units (since type not int), text = "yes <unit>". That seems wrong: boolean with unit? But FindingValue bool probably no unit. If unit present with bool, maybe invalid. Not report.
+
+Line 86 if value is 1 but unit bytes? It goes storage branch, no unit. okay.
+
+Line 86 if value is 1 and unit e.g. "desktop" -> unit_one. If value is 1.0 float? type not int, group units, text integer? _literal_text formatter.integer(value) on float? Could crash or int? Not sure.
+
+Line 100 _label: label.split(".", 1). If label is "group.name" okay. If strings missing key -> KeyError. Rule file unhandled. But maybe validation elsewhere.
+
+Line 108: labels = {entry.id: _label(strings, entry.label) for entry in catalogue.findings}. If catalogue.findings entry.label not in strings, crash. Could be unhandled rule file. But likely strings built for all.
+
+Line 110-114: for workload, label in workloads.items(): for signal in (...): labels[f"{workload}.licence_{signal}"] = strings["licences"][signal].format(workload=label). If strings missing signal -> KeyError. Not.
+
+Line 126: groups_by_scenario = ((result.running, *result.blocks) for result in scenarios). If result.running is None? CostGroup? Maybe running can be None? It expects CostGroup. If None, group.lines AttributeError. But compute_scenarios likely returns CostGroup. Not.
+
+Line 128: zip(*groups_by_scenario, strict=True). If scenarios is empty, blocks empty. But if scenarios length >0 and one group tuple length 0? For one scenario with no groups, zip(*[()]) yields nothing, no strict error? Let's verify Python: zip(*[], strict=True) -> empty iterator. zip(*[()], strict=True) -> zip() -> empty. So no error. If two scenarios, one empty one nonempty -> ValueError. Could be unhandled if cost scenarios produce inconsistent group counts. But compute_scenarios likely consistent.
+
+Line 129: {line.id: line for line in group.lines}. If group.lines is None? no.
+
+Line 130: ids = dict.fromkeys(id for lines in scenario_lines for id in lines). If line.id None? okay.
+
+Line 134: tuple((id, tuple(lines.get(id) for lines in scenario_lines)) for id in ids). If a line id appears in some scenarios not others, None. Good.
+
+Potential bug: _cost_table_blocks uses groups[0].id. But if groups from different scenarios have different ids at same position, block id taken from first scenario. Could be wrong if group order differs. But likely same.
+
+Line 206: checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}. If catalogue.checksum is empty string, no checksum. okay. If checksum is None. okay.
+
+Line 207-210: load functions with checksums. If catalogue.checksum missing, checksums empty. okay.
+
+Line 212: scan_periods = sorted({item.period for item in scan.findings if item.period is not None}). If periods are date objects? sorted okay if same type. If mix date and string? crash. scan.json could have mixed period types? Model likely validates. Could unhandled. But not concrete.
+
+Line 214: scan, other_evidence = combine(scan, provided). If provided findings conflict? combine maybe.
+
+Line 216: products = () if scan.licences is None else scan.licences.products. If scan.licences.products None? crash? Model likely.
+
+Line 217: by_id = {item.id: item for item in scan.findings + derived}. If scan.findings is None? crash. Model likely tuple.
+
+Line 221: _evidence_context(scan, by_id, other_evidence, status_rules, catalogue, mapping). It passes scan (combined). okay.
+
+Line 226: licences=_licence_rows(products, plans, formatter). If products is None? no.
+
+Line 227: product_count=derived[0] if derived else None. If derived is empty but product count should be unknown? okay. But if derived not empty, uses first. If derived[0] not a Finding? licence_findings returns tuple[Finding,...]. okay.
+
+Potential bug: product_count should maybe be derived finding id "licences.product_count" not first. If derived includes multiple, first maybe product count. okay.
+
+Line 229: risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds]. If kind.finding_id not in by_id, None. okay.
+
+Line 232: repository_url=REPOSITORY_URL. Principle offline? Report includes repository URL maybe external link? It says omit external resources. A URL in text is not a resource? Could be link? The principle says self-contained HTML with inline CSS and embedded fonts, omit JavaScript and external resources. Including repository_url as text maybe okay, but if template renders <a href> external? Not visible. Could be contradicts-principle if report includes external URL? But principle says reports may show organisation name and app names. It doesn't forbid URL text. External resources means fetching. Not report.
+
+Line 233 tool_version.
+
+Need maybe find a specific bug in _mapping_gaps: missing reasons for item.need_finding when item.need_finding is None. It uses missing.get(item.need_finding, ()) okay. But later if need == "unknown" and not reasons: default = "answer_not_provided" if item.need_if_positive else "not_established"; reasons = ((finding.missing_reason if finding else None) or default,). If item.need_finding is None and finding None, reasons default. okay.
+
+But there is a subtle bug: reasons = tuple(dict.fromkeys(code for code in missing.get(item.need_finding, ()) if code != "answer_not_provided" or need == "unknown")). Suppose need is "no" (complete false) and missing contains "answer_not_provided" only. It excludes answer_not_provided because need != unknown, reasons empty. Then if need_if_positive and count positive and finding.value is not None (0), it doesn't set yes because finding.value is 0 not None. need remains "no". Then final if need == unknown false. So gap not added? Wait gaps.append regardless after if? It appends all items with coverage not_available, regardless need? Yes gaps list includes item even if need no? It appends at end unconditionally. But reasons empty and need no. That's okay maybe no gap? But function named _mapping_gaps returns gaps for mapping functions with coverage not_available. It may include need no with no reasons? The template may show? Hmm.
+
+Actually it appends every item after processing, not only if reasons or need unknown. So mapping gaps may include items with need no and no reasons. Maybe intended to show all not_available functions? Maybe.
+
+Potential bug: if reasons nonempty, need = "unknown". Then if item.need_if_positive and need != "yes" (true), count. If disputes, finding, need, reasons = count, "unknown", disputes. If count is None, finding becomes None. Then final if need unknown and not reasons? reasons disputes nonempty. okay.
+
+If count positive and need == "no", set need unknown reasons conflict. Good. If count positive and finding is None or finding.value is None, set need yes reasons empty. But note: if reasons were nonempty initially (need unknown), and finding is not None but finding.value is None? It sets need yes and clears reasons. This could overwrite missing reasons for primary finding with yes based on count. Is that intended? If primary finding value None but missing reason (e.g. skipped collector), and count positive, it says need yes, no reasons. That may be okay if count establishes. But if count is from a skipped/denied collector? It only checks value >0, not collector status. If count finding has value >0 but collector skipped? Can a skipped collector have value >0? Maybe not. But if input scan.json has finding value >0 and collector status skipped, principle skipped collector never improves readiness. The code would use it to set need yes. But value >0 from skipped collector? Could be manually provided? Hmm.
+
+Principle 8: A skipped or denied collector never improves readiness. In _evidence_context, skipped_collectors listed. But statuses evaluation likely handles. In _mapping_gaps, if count.value >0, it may improve need to yes even if count finding's collector skipped? It doesn't check is_complete or missing_reason. If count has missing_reason "collector_skipped" but value >0? Could be inconsistent. But unhandled? Not clear.
+
+Maybe there is a clear contradicts-principle: line 252 need = "yes" if finding.value else "no". If finding.value is None but is_complete true? is_complete maybe true if value is None? No. If value is False, need no. If value is 0, no. If value is missing? unknown. okay.
+
+Line 257: if code != "answer_not_provided" or need == "unknown". This means if need known (yes/no), it drops answer_not_provided. But if need known yes and missing contains answer_not_provided plus another reason, it keeps other reason and sets need unknown. Good. If need known no and missing contains answer_not_provided only, reasons empty, need no. But if missing reason answer_not_provided exists, is_complete should be false? If finding is complete but missing reason says answer not provided, contradictory. Dropping it may make status look better. But maybe missing reasons are from status rules, not finding completeness. Hmm.
+
+Potential bug: line 251 if finding is not None and is_complete(finding): need = "yes" if finding.value else "no". If finding.value is a string? bool truthiness. But FindingValue maybe int/bool.
+
+Potential bug: line 271 elif count is not None and type(count.value) is int and count.value > 0: if count.value is bool True, type is bool not int, so not >0. But bool True should be positive? If need_if_positive finding is boolean (e.g. has desktops) true, code ignores because type(value) is int excludes bool. Could be bug. Does FindingValue include bool? Yes _literal_text handles bool. A need_if_positive could be boolean? The name suggests count, but could be boolean. If count.value is True, type(True) is bool, not int, so not treated as positive. That could be a bug: bool True is positive but excluded. However they deliberately use type(value) is int to exclude bool in other places? In _value_text line 81, 86, 91 they use type(value) is int to treat ints only, excluding bool. For counts, bool probably not used. But if need_if_positive is boolean, a true value should count positive. Is that concrete? Need know model. Could be unhandled/bug. But maybe need_if_positive is always a count (int). The name "need_if_positive" suggests numeric count. Not report maybe.
+
+Line 271: type(count.value) is int and count.value > 0. If count.value is a float 1.0, not int, ignored. But counts likely int.
+
+Line 274: elif finding is None or finding.value is None: finding, need, reasons = count, "yes", (). This sets need yes if primary finding missing. But if count positive and primary finding is incomplete with missing_reason, it clears reasons. Could be okay.
+
+Line 278: reasons = ((finding.missing_reason if finding else None) or default,). If finding.missing_reason is empty string, uses default. okay.
+
+Potential bug: In _mapping_gaps, missing is built from row.missing. row.missing likely tuple of MissingEvidence with finding_id and reason_code. If a status row missing has finding_id None? missing[None].append. Later missing.get(item.need_finding, ()) if need_finding None. okay.
+
+Potential bug: line 267 if code in missing[item.need_if_positive]. missing is defaultdict, so if key not present, returns [] but also creates key. okay.
+
+Potential bug: line 308 and 310 by_id[item.id] could KeyError as above. Need decide if report.
+
+Let's think about combine and other_evidence. The function provided_findings(inputs, catalogue) returns findings from inputs. combine(scan, provided) likely combines scan findings and provided findings. It returns scan (maybe with provided merged) and other_evidence (provided findings that are not in scan? or alternatives). In _evidence_context, alternatives = {item.id: item for item in other_evidence}. evaluate(by_id, ..., alternatives=alternatives). Then conflicts = {item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)}. This implies other_evidence are alternative findings for ids that exist in by_id. If provided answer for a finding absent from scan, combine might add it to scan.findings (so by_id has it) and not other_evidence. Or it might return as other_evidence and by_id lacks. Which is more plausible? The name other_evidence suggests evidence from inputs that is not in scan? But then by_id should include it? They didn't include other_evidence in by_id. Why would they not? Maybe because other_evidence are duplicates/conflicting versions of scan findings, not new findings. So by_id has scan version. Provided answers for missing scan findings likely merged into scan by combine. So no KeyError. Hard to know.
+
+Line 217 by_id only scan.findings + derived, not other_evidence. If other_evidence includes provided findings for ids not in scan, bugs. But maybe combine moves provided into scan if no conflict, and other_evidence only conflicting alternatives. Then by_id has scan version. okay.
+
+Potential bug: conflicts and answer_conflicts use by_id[item.id], but if other_evidence has an id that was not in scan.findings but in derived? derived included. okay.
+
+Potential bug: status_counts uses counts[status] for status in STATUSES. If STATUSES is tuple of all possible statuses, okay. If a status row status not in STATUSES, counts has extra not shown. But maybe evaluate returns only STATUSES. okay.
+
+Potential bug: _licence_rows: unregistered counter increments for each unregistered product. code = f"unregistered-{unregistered}". If there are registered products with part_number same as code? Could collision. Not likely.
+
+Potential bug: _licence_rows label for unregistered uses number=unregistered. If multiple unregistered, labels "Unregistered product 1", etc. okay.
+
+Potential bug: _licence_rows code for registered = roster.part_number. If part_number None? label None. Template maybe. Could unhandled rule

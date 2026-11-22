@@ -1,0 +1,11 @@
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 1722
+kind: bug
+claim: The Office 365 E1 SKU is listed as bundling the Intune service plan, which makes the rule file report Intune as included in an Office 365 E1 licence.
+evidence: "      - sku_part_number: \"STANDARDPACK\""
+"      sku_guid: 18181a46-0d4e-45cd-891e-60aabd171b4e"
+"      bundled:"
+"        - INTUNE_O365"
+why: STANDARDPACK is the Office 365 E1 SKU, and the comment labels it “Office 365 E1”. Intune is not part of Office 365 E1; it is part of Microsoft 365 E1 and other Microsoft 365 licences. A tenant with Office 365 E1 licences will therefore be told it has Intune entitlement it does not have.
+confidence: medium

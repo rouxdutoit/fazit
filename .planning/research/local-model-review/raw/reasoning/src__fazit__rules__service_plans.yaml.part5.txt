@@ -1,0 +1,154 @@
+We need answer user's request. Need review code part 5 of service_plans.yaml lines 1423-1765. Need find concrete faults only. Need output exact format. Need analyze YAML for faults relative to principles and code? It's rule file. Need infer schema? We only see part. Need identify concrete faults in this YAML. Could be duplicate keys? inconsistent sku_part_number? no_workload entries that are in bundled? add_on? missing? Need be careful: only report if plainly wrong. Since only part 5, maybe faults visible: line 1752 sku_part_number: "THREAT_INTELLIGENCE" but comment says Microsoft Defender for Office 365 (Plan 2). SKU part number likely should be "ATP" or "THREAT_INTELLIGENCE"? In Microsoft licensing, Microsoft Defender for Office 365 Plan 2 SKU part number maybe "THREAT_INTELLIGENCE"? Actually MDO Plan 2 SKU part number? Let's recall: Office 365 Advanced Threat Protection (ATP) SKU part number is "THREAT_INTELLIGENCE"? In Graph servicePlanNames, MDO Plan 2 maybe servicePlanName "THREAT_INTELLIGENCE"? SKU part number for Microsoft Defender for Office 365 Plan 2 is "THREAT_INTELLIGENCE"? I think yes? Actually Microsoft 365 E5 includes servicePlanName THREAT_INTELLIGENCE, and SKU part number for MDO P2 maybe "THREAT_INTELLIGENCE"? There is also "ATP" service plan? Let's recall: Microsoft 365 E5 bundled service plans include "THREAT_INTELLIGENCE" (MDO P2?) and "ATP_ENTERPRISE"? In line 1585 E5 bundled includes ATA, ATP_ENTERPRISE, THREAT_INTELLIGENCE. MDO P2 standalone SKU part number maybe "THREAT_INTELLIGENCE" and add_on ATP_ENTERPRISE? Could be. Not a fault.
+
+Line 1759 WIN_DEF_ATP comment Microsoft Defender for Endpoint, sku_guid 111046dd... add_on WINDEFATP no_workload EXCHANGE_S_FOUNDATION. Could be correct.
+
+Need check for duplicate sku_part_number in this part or with earlier? We only see part 5, but maybe duplicate within visible: line 1752 THREAT_INTELLIGENCE and line 1647 E5 bundled includes THREAT_INTELLIGENCE (not SKU part number). No duplicate SKU part numbers visible? POWER_BI_PRO_DEPT, POWERAPPS_PER_USER, SMB_BUSINESS_ESSENTIALS, SPB, SPE_E3, SPE_E5, SPE_F1, STANDARDPACK, THREAT_INTELLIGENCE, WIN_DEF_ATP.
+
+Need check no_workload semantics: likely service plans that are not workloads? Or excluded from workload detection? If an entry appears in bundled and no_workload for same SKU? For SPB: bundled includes? no_workload includes EXCHANGE_S_FOUNDATION, but bundled includes EXCHANGE_S_STANDARD, not FOUNDATION. Fine. E3 no_workload includes EXCHANGE_S_FOUNDATION not in bundled. E5 no_workload includes EXCHANGE_ANALYTICS? not in bundled. F1 no_workload includes Deskless? bundled includes EXCHANGE_S_DESKLESS, not Deskless. OK.
+
+Potential bug: line 1752 sku_part_number "THREAT_INTELLIGENCE" is same as service plan name in bundled lists, but maybe should be "ATP"? But maybe not.
+
+Need inspect YAML syntax. All lines start with spaces. Looks valid. Could be duplicate service plan names across different SKUs? That's normal.
+
+Need find contradictions with comments: line 1423 comment Power BI Pro Dept, sku POWER_BI_PRO_DEPT, add_on BI_AZURE_P2, no_workload EXCHANGE_S_FOUNDATION. OK.
+Line 1430 Power Apps Premium, sku POWERAPPS_PER_USER, add_on POWERAPPS_PER_USER, bundled includes CDSAICAPACITY_PERUSER_NEW, DYN365_CDS_P2, Flow_PowerApps_PerUser, Power_Pages_Internal_User, no_workload CDSAICAPACITY_PERUSER, EXCHANGE_S_FOUNDATION. OK? Add_on same as sku part number? Could be.
+Line 1443 M365 Business Basic, sku SMB_BUSINESS_ESSENTIALS. OK.
+Line 1461 M365 Business Premium, sku SPB. OK.
+Line 1521 M365 E3, sku SPE_E3. OK.
+Line 1577 M365 E5, sku SPE_E5. OK.
+Line 1668 M365 F3, sku SPE_F1. Wait comment says Microsoft 365 F3, sku_part_number: "SPE_F1". Is that a fault? Microsoft 365 F3 SKU part number is "SPE_F1"? Historically Microsoft 365 F3 SKU part number maybe "SPE_F1"? Yes F1? Let's recall: Microsoft 365 F3 (formerly Office 365 F3) SKU part number is "SPE_F1"? The SKU part number for F3 might be "SPE_F1" because F1? Actually there is "SPE_F1" for Microsoft 365 F3? I think yes: SKU part number SPE_F1, service plan names include BPOS_S_TODO_FIRSTLINE, CDS_O365_F1, etc. Could be correct.
+Line 1712 Office 365 E1, sku STANDARDPACK. OK.
+Line 1751 MDO Plan 2, sku THREAT_INTELLIGENCE. Hmm.
+Line 1759 Defender for Endpoint, sku WIN_DEF_ATP.
+
+Need consider principle: no network, etc. YAML no.
+
+Could be issue: no_workload lists service plans that should be ignored as workloads. If a service plan in no_workload is also in bundled for same SKU, maybe it would hide a workload? For line 1431 POWERAPPS_PER_USER: bundled includes CDSAICAPACITY_PERUSER_NEW, no_workload includes CDSAICAPACITY_PERUSER (slightly different). OK.
+Line 1752 THREAT_INTELLIGENCE: add_on ATP_ENTERPRISE, bundled MTP, THREAT_INTELLIGENCE. If no_workload absent, maybe THREAT_INTELLIGENCE is a workload? But it's the SKU's own service plan? Not necessarily.
+
+Need infer from project: service_plans.yaml holds licence service plans. Fields: sku_part_number, sku_guid, add_on, bundled, no_workload. Perhaps used to map service plan names to license SKUs and determine which service plans are included in a SKU. no_workload likely service plans that are not workloads (e.g. foundation, discovery). If a service plan is in no_workload, it should not count as workload. Could be a bug if no_workload includes a plan that is actually a workload or bundled? But need concrete.
+
+Potential duplicate SKU GUID? Check GUIDs:
+3a6a908c-09c5-406a-8170-8ebb63c42882
+b30411f5-fea1-4a59-9ad9-3db7c7ead579
+dab7782a-93b1-4074-8bb1-0e61318bea0b
+cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46
+05e9a617-0261-4cee-bb44-138d3ef5d965
+06ebc4ee-1bb5-47dd-8120-11324bc54e06
+66b55226-6b4f-492c-910c-a3b7a3c9d993
+18181a46-0d4e-45cd-891e-60aabd171b4e
+3dd6cf57-d688-4eed-ba52-9e40b5468c3e
+111046dd-295b-4d6d-9724-d52ac90bd1f2
+No duplicates visible.
+
+Potential issue: line 1752 sku_part_number: "THREAT_INTELLIGENCE" but sku_guid 3dd6cf57... Could be wrong GUID? Need know. Microsoft Defender for Office 365 Plan 2 SKU GUID? I can recall some SKU GUIDs:
+- SPE_E5: 06ebc4ee-1bb5-47dd-8120-11324bc54e06 correct.
+- SPE_E3: 05e9a617-0261-4cee-bb44-138d3ef5d965 correct.
+- SPB: cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46 correct.
+- SMB_BUSINESS_ESSENTIALS: dab7782a-93b1-4074-8bb1-0e61318bea0b correct.
+- POWER_BI_PRO_DEPT: 3a6a908c-09c5-406a-8170-8ebb63c42882 maybe correct.
+- POWERAPPS_PER_USER: b30411f5-fea1-4a59-9ad9-3db7c7ead579 maybe correct.
+- SPE_F1: 66b55226-6b4f-492c-910c-a3b7a3c9d993 maybe correct? F3 SKU GUID maybe 66b55226... yes.
+- STANDARDPACK: 18181a46-0d4e-45cd-891e-60aabd171b4e correct.
+- WIN_DEF_ATP: 111046dd-295b-4d6d-9724-d52ac90bd1f2? Defender for Endpoint SKU part number WIN_DEF_ATP GUID maybe 111046dd... yes.
+- THREAT_INTELLIGENCE: 3dd6cf57-d688-4eed-ba52-9e40b5468c3e? Could be MDO P2 SKU GUID? I think MDO Plan 2 SKU part number is "THREAT_INTELLIGENCE" and GUID maybe 3dd6cf57... yes.
+
+Need check service plan names: Are any misspelled? Could lead to unmatched evidence. But only if known. Let's inspect:
+Line 1427 BI_AZURE_P2: Is Power BI Pro service plan name "BI_AZURE_P2"? Yes.
+Line 1434 add_on POWERAPPS_PER_USER: Is service plan name same? Power Apps Premium service plan maybe "POWERAPPS_PER_USER"? yes.
+Line 1436 CDSAICAPACITY_PERUSER_NEW: maybe service plan name? Could be.
+Line 1437 DYN365_CDS_P2: yes.
+Line 1438 Flow_PowerApps_PerUser: yes?
+Line 1439 Power_Pages_Internal_User: yes.
+Line 1441 CDSAICAPACITY_PERUSER: no_workload.
+Business Basic bundled:
+BPOS_S_TODO_1, EXCHANGE_S_STANDARD, FLOW_O365_P1, FORMS_PLAN_E1, MCOSTANDARD, OFFICEMOBILE_SUBSCRIPTION, POWERAPPS_O365_P1, PROJECTWORKMANAGEMENT, SHAREPOINTSTANDARD, SHAREPOINTWAC, SWAY, TEAMS1, VIVAENGAGE_CORE, YAMMER_MIDSIZE.
+Business Basic should include YAMMER_MIDSIZE? Yes. OK.
+Business Premium bundled includes many. Check line 1492 PROJECT_O365_P3 and line 1493 PROJECTWORKMANAGEMENT. Both? Maybe duplicate project plans? Could be intentional? Project Plan 3 and Project Work Management? In M365 Business Premium includes Project Plan 3? It might include "PROJECT_O365_P3" and "PROJECTWORKMANAGEMENT"? Project Work Management maybe included in E3/E5? Actually Project Plan 1/2/3 service plan names: PROJECT_O365_P1, PROJECT_O365_P2, PROJECT_O365_P3. Project Work Management maybe "PROJECTWORKMANAGEMENT" is a separate service plan? It may be included with Project Plan? Could be.
+Line 1494 PURVIEW_DISCOVERY: Business Premium includes Purview? Maybe.
+Line 1495 RMS_S_ENTERPRISE, 1496 RMS_S_PREMIUM. OK.
+Line 1502 UNIVERSAL_PRINT_01. OK.
+Line 1503 VIVA_LEARNING_SEEDED. OK.
+Line 1505 WHITEBOARD_PLAN1. OK.
+Line 1507 WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE. OK.
+Line 1508 YAMMER_ENTERPRISE. OK.
+no_workload includes M365_LIGHTHOUSE_CUSTOMER_PLAN1, M365_LIGHTHOUSE_PARTNER_PLAN1, MICROSOFT_SEARCH, MYANALYTICS_P2, Nucleus, O365_SB_Relationship_Management. OK.
+
+E3 bundled:
+Line 1525 AAD_PREMIUM, 1526 ADALLOM_S_DISCOVERY, 1527 ATP_ENTERPRISE, 1528 BPOS_S_TODO_2, 1529 CDS_O365_P2, 1530 CLIPCHAMP, 1531 ContentExplorer_Standard, 1532 DYN365_CDS_O365_P2, 1533 EXCHANGE_S_ENTERPRISE, 1534 FLOW_O365_P2, 1535 FORMS_PLAN_E3, 1536 GRAPH_CONNECTORS_SEARCH_INDEX, 1537 INTUNE_A, 1538 INTUNE_O365, 1539 MCOSTANDARD, 1540 MDE_LITE, 1541 MESH_AVATARS_ADDITIONAL_FOR_TEAMS, 1542 MESH_AVATARS_FOR_TEAMS, 1543 MESH_IMMERSIVE_FOR_TEAMS, 1544 MFA_PREMIUM, 1545 MICROSOFT_LOOP, 1546 MICROSOFTBOOKINGS, 1547 MIP_S_CLP1, 1548 OFFICESUBSCRIPTION, 1549 POWER_VIRTUAL_AGENTS_O365_P2, 1550 POWERAPPS_O365_P2, 1551 PROJECT_O365_P2, 1552 PROJECTWORKMANAGEMENT, 1553 RMS_S_ENTERPRISE, 1554 RMS_S_PREMIUM, 1555 SHAREPOINTENTERPRISE, 1556 SHAREPOINTWAC, 1557 STREAM_O365_E3, 1558 SWAY, 1559 TEAMS1, 1560 UNIVERSAL_PRINT_01, 1561 VIVA_LEARNING_SEEDED, 1562 VIVAENGAGE_CORE, 1563 WHITEBOARD_PLAN2, 1564 WIN10_PRO_ENT_SUB, 1565 Windows_Autopatch, 1566 WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE, 1567 YAMMER_ENTERPRISE.
+Does E3 include MDE_LITE? Microsoft 365 E3 includes Windows 10/11 Enterprise and MDE? It includes Windows Defender for Endpoint? Actually E3 includes MDE Lite? yes.
+Does E3 include AAD_PREMIUM? yes.
+Does E3 include ATP_ENTERPRISE? MDO Plan 1? yes.
+Does E3 include PURVIEW_DISCOVERY? Not listed. Maybe E3 includes Purview? It might not. OK.
+Does E3 include MICROSOFT_SEARCH? no_workload. OK.
+
+E5 bundled:
+Line 1581 AAD_PREMIUM, 1582 AAD_PREMIUM_P2, 1583 ADALLOM_S_O365, 1584 ADALLOM_S_STANDALONE, 1585 ATA, 1586 ATP_ENTERPRISE, 1587 BI_AZURE_P2, 1588 BPOS_S_TODO_3, 1589 CDS_O365_P3, 1590 CLIPCHAMP, 1591 COMMUNICATIONS_DLP, 1592 Content_Explorer, 1593 ContentExplorer_Standard, 1594 CUSTOMER_KEY, 1595 CustomerLockboxA_Enterprise, 1596 DATA_INVESTIGATIONS, 1597 Defender_for_Iot_Enterprise, 1598 DYN365_CDS_O365_P3, 1599 EQUIVIO_ANALYTICS, 1600 EXCEL_PREMIUM, 1601 EXCHANGE_S_ENTERPRISE, 1602 FLOW_O365_P3, 1603 FORMS_PLAN_E5, 1604 GRAPH_CONNECTORS_SEARCH_INDEX, 1605 INFO_GOVERNANCE, 1606 INFORMATION_BARRIERS, 1607 INSIDER_RISK, 1608 INTUNE_A, 1609 INTUNE_O365, 1610 LOCKBOX_ENTERPRISE, 1611 M365_ADVANCED_AUDITING, 1612 M365_AUDIT_PLATFORM, 1613 MCOEV, 1614 MCOMEETADV, 1615 MCOSTANDARD, 1616 MESH_AVATARS_ADDITIONAL_FOR_TEAMS, 1617 MESH_AVATARS_FOR_TEAMS, 1618 MESH_IMMERSIVE_FOR_TEAMS, 1619 MFA_PREMIUM, 1620 MICROSOFT_COMMUNICATION_COMPLIANCE, 1621 MICROSOFT_LOOP, 1622 MICROSOFTBOOKINGS, 1623 MICROSOFTENDPOINTDLP, 1624 MIP_S_CLP1, 1625 MIP_S_CLP2, 1626 MIP_S_Exchange, 1627 ML_CLASSIFICATION, 1628 MTP, 1629 OFFICESUBSCRIPTION, 1630 PAM_ENTERPRISE, 1631 POWER_VIRTUAL_AGENTS_O365_P3, 1632 POWERAPPS_O365_P3, 1633 PREMIUM_ENCRYPTION, 1634 PROJECT_O365_P3, 1635 PROJECTWORKMANAGEMENT, 1636 PURVIEW_DISCOVERY, 1637 RECORDS_MANAGEMENT, 1638 RMS_S_ENTERPRISE, 1639 RMS_S_PREMIUM, 1640 RMS_S_PREMIUM2, 1641 SAFEDOCS, 1642 SHAREPOINTENTERPRISE, 1643 SHAREPOINTWAC, 1644 STREAM_O365_E5, 1645 SWAY, 1646 TEAMS1, 1647 THREAT_INTELLIGENCE, 1648 UNIVERSAL_PRINT_01, 1649 VIVA_LEARNING_SEEDED, 1650 VIVAENGAGE_CORE, 1651 WHITEBOARD_PLAN3, 1652 WIN10_PRO_ENT_SUB, 1653 WINDEFATP, 1654 Windows_Autopatch, 1655 WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE, 1656 YAMMER_ENTERPRISE.
+Potential issue: E5 includes both MTP and THREAT_INTELLIGENCE? MTP is Microsoft Threat Protection? E5 includes MDO P2? yes.
+Potential issue: E5 includes "Content_Explorer" and "ContentExplorer_Standard" both. E3 only ContentExplorer_Standard. Could be correct? Microsoft 365 E5 includes Content Explorer? Maybe both? Not sure.
+Potential issue: E5 no_workload includes INSIDER_RISK_MANAGEMENT but bundled includes INSIDER_RISK. Different. OK.
+Potential issue: E5 no_workload includes COMMUNICATIONS_COMPLIANCE but bundled includes MICROSOFT_COMMUNICATION_COMPLIANCE and COMMUNICATIONS_DLP. OK.
+
+F3 bundled:
+Line 1672 AAD_PREMIUM, 1673 ADALLOM_S_DISCOVERY, 1674 BPOS_S_TODO_FIRSTLINE, 1675 CDS_O365_F1, 1676 DYN365_CDS_O365_F1, 1677 EXCHANGE_S_DESKLESS, 1678 FLOW_O365_S1, 1679 FORMS_PLAN_K, 1680 INTUNE_A, 1681 INTUNE_O365, 1682 MCOIMP, 1683 MFA_PREMIUM, 1684 MICROSOFTBOOKINGS, 1685 OFFICEMOBILE_SUBSCRIPTION, 1686 POWER_VIRTUAL_AGENTS_O365_F1, 1687 POWERAPPS_O365_S1, 1688 PROJECT_O365_F3, 1689 PROJECTWORKMANAGEMENT, 1690 RMS_S_ENTERPRISE, 1691 RMS_S_PREMIUM, 1692 SHAREPOINTDESKLESS, 1693 SHAREPOINTWAC, 1694 STREAM_O365_K, 1695 SWAY, 1696 TEAMS1, 1697 UNIVERSAL_PRINT_01, 1698 VIVA_LEARNING_SEEDED, 1699 VIVAENGAGE_CORE, 1700 WHITEBOARD_FIRSTLINE1, 1701 WIN10_ENT_LOC_F1, 1702 Windows_Autopatch, 1703 WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE, 1704 YAMMER_ENTERPRISE.
+Potential issue: F3 includes INTUNE_A and INTUNE_O365? Does F3 include Intune? Microsoft 365 F3 includes Intune? I think F3 includes Intune? Maybe yes.
+Potential issue: F3 no_workload includes Deskless, but bundled includes EXCHANGE_S_DESKLESS and SHAREPOINTDESKLESS. OK.
+
+Office 365 E1 bundled:
+Line 1716 BPOS_S_TODO_1, 1717 CDS_O365_P1, 1718 DYN365_CDS_O365_P1, 1719 EXCHANGE_S_STANDARD, 1720 FLOW_O365_P1, 1721 FORMS_PLAN_E1, 1722 INTUNE_O365, 1723 MCOSTANDARD, 1724 MESH_AVATARS_ADDITIONAL_FOR_TEAMS, 1725 MESH_AVATARS_FOR_TEAMS, 1726 MESH_IMMERSIVE_FOR_TEAMS, 1727 MICROSOFTBOOKINGS, 1728 OFFICEMOBILE_SUBSCRIPTION, 1729 POWER_VIRTUAL_AGENTS_O365_P1, 1730 POWERAPPS_O365_P1, 1731 PROJECT_O365_P1, 1732 PROJECTWORKMANAGEMENT, 1733 RMS_S_BASIC, 1734 SHAREPOINTSTANDARD, 1735 SHAREPOINTWAC, 1736 STREAM_O365_E1, 1737 SWAY, 1738 TEAMS1, 1739 VIVA_LEARNING_SEEDED, 1740 VIVAENGAGE_CORE, 1741 WHITEBOARD_PLAN1, 1742 YAMMER_ENTERPRISE.
+Potential issue: Office 365 E1 includes INTUNE_O365? I think O365 E1 does not include Intune. Wait Microsoft 365 E1? O365 E1 maybe includes Microsoft Intune? Let's recall: Office 365 E1 includes Exchange, SharePoint, Office, Teams, Forms, etc. It might include Intune? No, Intune is included in Microsoft 365 Business Basic? Business Basic includes Intune? Actually Business Basic includes Intune? I think Business Basic includes Intune? Microsoft 365 Business Basic includes Intune? Maybe yes? Business Premium includes Intune. Office 365 E1? I think Office 365 E1 does not include Intune. But line 1722 includes INTUNE_O365. Is that a fault? Need be careful. Microsoft 365 E1 (SPE_E1?) includes Intune? Let's check memory: Office 365 E1 service plans: BPOS_S_TODO_1, EXCHANGE_S_STANDARD, MCOSTANDARD, SHAREPOINTSTANDARD, TEAMS1, OFFICEMOBILE_SUBSCRIPTION, FORMS_PLAN_E1, PROJECTWORKMANAGEMENT, SWAY, YAMMER_ENTERPRISE, VIVAENGAGE_CORE, WHITEBOARD_PLAN1, etc. It may not include INTUNE_O365. However Microsoft 365 E1 (SPE_E1) includes Intune? The difference: Microsoft 365 E1 includes Windows 10/11 Enterprise, Intune, Defender for Endpoint? Actually Microsoft 365 E1 is O365 E1 plus Windows 10/11 Enterprise, Intune, Windows Defender for Endpoint? Wait M365 E1 service plans include BPOS_S_TODO_2? Hmm.
+SKU STANDARDPACK is Office 365 E1, not Microsoft 365 E1. Does Office 365 E1 include Intune? I think no. But maybe Office 365 E1 now includes Intune? Let's recall from Microsoft: Office 365 E1 includes Microsoft Intune? The license "Office 365 E1" includes Exchange, SharePoint, Office, Teams, Forms, Project Plan 1, Power Apps, Power Automate, Whiteboard, Viva Engage, Yammer, Microsoft 365 Apps? It does not include Windows 10/11, Intune, Defender. But there is "Microsoft 365 E1" which includes Windows 10/11, Intune, Defender. The SKU for Microsoft 365 E1 is "SPE_E1"? The code has STANDARDPACK for Office 365 E1. It includes INTUNE_O365, which seems wrong. But is INTUNE_O365 a service plan for Intune? Yes. Could be a concrete fault if O365 E1 doesn't include Intune. But we need be certain. Let's verify from known service plan names: Office 365 E1 (STANDARDPACK) service plans from Microsoft documentation? I recall a list:
+- BPOS_S_TODO_1
+- EXCHANGE_S_STANDARD
+- MCOSTANDARD
+- SHAREPOINTSTANDARD
+- TEAMS1
+- OFFICEMOBILE_SUBSCRIPTION
+- FORMS_PLAN_E1
+- PROJECTWORKMANAGEMENT
+- SWAY
+- YAMMER_ENTERPRISE
+- VIVAENGAGE_CORE
+- WHITEBOARD_PLAN1
+- CDS_O365_P1?
+- DYN365_CDS_O365_P1?
+- FLOW_O365_P1?
+- POWERAPPS_O365_P1?
+- POWER_VIRTUAL_AGENTS_O365_P1?
+- MESH_AVATARS...?
+- STREAM_O365_E1?
+- RMS_S_BASIC?
+Maybe INTUNE_O365 is not included. But I need high confidence? Could be medium. But task says don't report something need guess; if depends on external Microsoft facts maybe maybe not. But rule file judgement; if wrong service plan inclusion could affect report. We can report if plainly wrong relative to comment? Comment says Office 365 E1. If we know O365 E1 doesn't include Intune, it's contradicts-comment? But not explicit in code. Could be unhandled? No.
+Need avoid false positives. Maybe O365 E1 includes Intune? Let's think: Microsoft 365 E1 license (SPE_E1) includes Intune. Office 365 E1 (STANDARDPACK) maybe also includes Intune? Wait service plan INTUNE_O365 is "Microsoft Intune" and is included in Microsoft 365 Business Basic, Business Premium, E3, E5, F3? It may also be included in Office 365 E1? I can recall from a table: Office 365 E1 includes "Microsoft Intune"? Hmm. There is a service plan "INTUNE_O365" under Office 365 E1? Let's search memory: In Graph, servicePlanNames for STANDARDPACK maybe include "INTUNE_O365"? I have seen lists: Office 365 E1: BPOS_S_TODO_1, EXCHANGE_S_STANDARD, MCOSTANDARD, SHAREPOINTSTANDARD, TEAMS1, OFFICEMOBILE_SUBSCRIPTION, FORMS_PLAN_E1, PROJECTWORKMANAGEMENT, SWAY, YAMMER_ENTERPRISE, VIVAENGAGE_CORE, WHITEBOARD_PLAN1, CDS_O365_P1, DYN365_CDS_O365_P1, FLOW_O365_P1, POWERAPPS_O365_P1, POWER_VIRTUAL_AGENTS_O365_P1, MESH_AVATARS..., STREAM_O365_E1, RMS_S_BASIC. I don't recall INTUNE_O365. But maybe it includes "INTUNE_O365" because Office 365 E1 now includes Intune? Let's check Microsoft licensing: "Office 365 E1" includes Microsoft Intune? I know "Microsoft 365 E1" includes Windows 10/11 Enterprise, Microsoft Intune, Windows Defender for Endpoint, Office 365 E1. "Office 365 E1" does not include Windows 10/11 or Intune. But I have seen "Office 365 E1" includes "Microsoft Intune"? No, Intune is a mobile device management service; it is part of Microsoft 365 E1, Business, E3/E5, not O365 E1? Actually Office 365 E1 is an enterprise license, maybe includes Intune? Let's recall comparison: Office 365 E1 vs Microsoft 365 E1. Microsoft 365 E1 = Office 365 E1 + Windows 10/11 Enterprise + Intune + Windows Defender for Endpoint? Yes. So O365 E1 no Intune. But line 1722 includes INTUNE_O365. Could be a fault. However maybe the service plan name INTUNE_O365 is included in STANDARDPACK as a "no_workload"? No, it's bundled. If it's wrong, report.
+
+But the task likely expects faults planted in code. This is part 5 of 5, maybe the only faults are in this YAML. Need find planted errors. Let's look for subtle inconsistencies.
+
+Could be a duplicate service plan in no_workload that is also bundled for same SKU, causing workload hidden. For line 1752 THREAT_INTELLIGENCE: bundled includes THREAT_INTELLIGENCE. If no_workload absent, no issue. But for SKU "THREAT_INTELLIGENCE", the service plan name same as SKU part number. Maybe the intended field is add_on: ATP_ENTERPRISE, bundled: MTP, THREAT_INTELLIGENCE. OK.
+
+Could be missing no_workload for THREAT_INTELLIGENCE? Not a fault.
+
+Could be line 1752 sku_part_number should be "ATP" not "THREAT_INTELLIGENCE"? Let's verify MDO Plan 2 SKU part number. In Microsoft 365 admin center, Microsoft Defender for Office 365 Plan 2 SKU part number is "THREAT_INTELLIGENCE"? I think yes. The service plan name for MDO P2 is "THREAT_INTELLIGENCE". The SKU part number might be "THREAT_INTELLIGENCE". There is also "ATP" for MDO P1? Actually Microsoft Defender for Office 365 Plan 1 SKU part number is "THREAT_INTELLIGENCE"? Wait: MDO Plan 1 and Plan 2? There is "ATP" service plan? In E3/E5, service plan "ATP_ENTERPRISE" is MDO Plan 1? "THREAT_INTELLIGENCE" is MDO Plan 2? Standalone MDO Plan 2 SKU part number maybe "THREAT_INTELLIGENCE". OK.
+
+Could be line 1760 WIN_DEF_ATP: sku_part_number "WIN_DEF_ATP" but comment Microsoft Defender for Endpoint. The actual SKU part number for Defender for Endpoint is "WIN_DEF_ATP" yes. Service plan "WINDEFATP". OK.
+
+Potential YAML issue: line 1597 "Defender_for_Iot_Enterprise" uses underscores, but actual service plan name maybe "DEFENDER_FOR_IOT_ENTERPRISE"? Could be wrong. But if scan.json uses that exact coded evidence? Need know. Service plan names in Microsoft are often all caps with underscores, but some include mixed case: "ContentExplorer_Standard", "Content_Explorer", "CustomerLockboxA_Enterprise", "Windows_Autopatch", "Defender_for_Iot_Enterprise"? I think actual service plan name is "Defender_for_Iot_Enterprise"? Maybe yes. "Content_Explorer" and "ContentExplorer_Standard" exist. "CustomerLockboxA_Enterprise" exists. "Defender_for_Iot_Enterprise" might be actual. OK.
+
+Potential issue: line 1623 MICROSOFTENDPOINTDLP: actual service plan maybe "MICROSOFTENDPOINTDLP" yes.
+
+Potential issue: line 1647 THREAT_INTELLIGENCE in E5 bundled and line 1752 SKU part number same. Could be confusing but not fault.
+
+Potential issue: line 1585 ATA: Actual service plan name for Microsoft 365 E5 advanced audit? "ATA" maybe. OK.
+
+Potential issue: line 1599 EQUIVIO_ANALYTICS: actual maybe "EQUIVIO_ANALYTICS" yes.
+
+Potential issue: line 1611 M365_ADVANCED_AUDITING, 1612 M365_AUDIT_PLATFORM. OK.
+
+Potential issue: line 1627 ML_CLASSIFICATION: maybe.
+
+Potential issue: line 1630 PAM_ENTERPRISE: maybe.
+
+Potential issue: line 1633 PREMIUM_ENCRYPTION: maybe.
+
+Need think about schema: `add_on`, `bundled`, `no_workload`. Maybe `add_on` means service plans that are add-ons to this SKU? Or service plans that are add-ons included? For Power BI Pro Dept: add_on: BI_AZURE_P2. For Power Apps Premium: add_on: POWERAPPS_PER_USER. For MDO P2: add_on: ATP_ENTERPRISE. For Defender Endpoint: add_on: WINDEFATP. Could be mapping from SKU to service plan that identifies it? The field name add_on maybe means "service plan that is an add-on and should be treated as this SKU"? Not sure.
+
+Could be a bug: line 1431 Power Apps Premium has `add_on: - POWERAPPS_PER_USER` and `bundled:` includes `POWERAPPS_PER_USER`? No, bundled includes CDSAICAPACITY_PERUSER_NEW etc, not POWERAPPS_PER

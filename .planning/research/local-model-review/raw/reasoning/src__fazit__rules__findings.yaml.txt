@@ -1,0 +1,239 @@
+We need answer user's request. Need review code file src/fazit/rules/findings.yaml for concrete faults. Must output findings in exact format or NO FINDINGS. Need analyze YAML. Need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. We only see this YAML. Need infer intended schema? We need be careful not to guess. But can spot inconsistencies: finding entries with provided: answer and measured_by? Maybe provided can be answer? Need understand semantics. The file is rule file. It lists workloads, findings, codes. Need find concrete faults. Let's inspect.
+
+File:
+workloads list ids.
+findings list: each has id, workload, type, unit, label, maybe measured_by, provided, headline, coverage_total_from.
+Provided values: answer, "no", software_list, software_list_without_web_version.
+measured_by maps collector? source? e.g. {directory: [sample.directory]}. Keys likely collector names? Values sample source IDs. codes.collectors lists: licences, directory, mailbox_usage, onedrive_usage, sharepoint_site_usage, teams_usage, exchange_recipients, office_files, telephony.
+sources lists sample.directory etc.
+licence_sources sample.licences.
+provided_sources sample.inputs_yaml, sample.interview, interview, inputs_yaml.
+reasons list.
+permissions list.
+sku_exceptions mapping.
+
+Potential faults:
+- finding id telephony.in_use has type boolean, unit null, measured_by: {telephony: [sample.telephony]}, provided: answer. Is boolean measured? Maybe okay? But provided answer and measured_by? Could be both? Need not guess.
+- office_files.kind.* have type count, unit files, measured_by office_files sample.office_files, provided: answer. Counts provided by answer? Maybe allowed? But principle honest figures? If count provided by answer maybe okay? But if measured_by and provided answer conflict? Need know schema.
+- device_management.device_count and windows_device_count provided answer, no measured_by. But principles say metadata only, honest figures; answer-provided counts maybe okay? But if missing treated as zero? Not in YAML.
+- integrations.application_count measured_by directory sample.directory and provided answer. Could be okay.
+- licence workload finding licences.contract_terms_known provided answer.
+- Windows software application_count provided software_list, without_web_version_count provided software_list_without_web_version.
+- codes.provided_sources includes sample.inputs_yaml, sample.interview, interview, inputs_yaml. But finding provided values are answer, no, software_list, software_list_without_web_version. Are these source IDs? Maybe provided field expects source or "no"/"answer"? In codes.provided_sources includes interview/inputs_yaml not answer/software_list. Maybe provided: answer means source answer? But not in provided_sources. Could be a fault? Need not guess.
+- permissions: DeviceManagementManagedDevices.Read.All. Principle read-only allowlist read endpoints. DeviceManagementManagedDevices.Read.All is read. But maybe live collection may contact only login and graph. okay.
+- sku_exceptions comment: Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed. Are pairs exact? Need check UUIDs? Could be typos? We can't verify. Need not guess.
+- YAML line 33 blank? okay.
+- Duplicate IDs? Workloads unique. Findings unique? Let's check: licences.contract_terms_known, directory.user_count, licensed_user_count, guest_count, group_count, account_list_reviewed, mail.mailbox_count, shared_mailbox_count, storage_bytes, item_count, other_systems_send_mail, onedrive.account_count, storage_bytes, external_sharing_in_use, sharepoint.site_count, storage_bytes, file_count, custom_solutions_in_use, teams.team_count, channel_count, teams_with_guests_count, chat_history_must_be_kept, office_files.kind.macro/access/publisher/visio/onenote, device_management.device_count, windows_device_count, in_use, windows_desktops_required, windows_software.application_count, without_web_version_count, power_platform.in_use, telephony.in_use, replacement_available, identity_access.sso_application_count, conditional_access_in_use, security_compliance.protection_or_retention_in_use, small_apps.in_use, integrations.application_count. Unique.
+- Workload IDs in findings all in workloads? licences, directory, mail, onedrive, sharepoint, teams, office_files, device_management, windows_software, power_platform, telephony, identity_access, security_compliance, small_apps, integrations. Yes.
+- measured_by keys must be collectors? directory, mailbox_usage, exchange_recipients, onedrive_usage, sharepoint_site_usage, teams_usage, office_files, telephony. All in codes.collectors. Values sample.directory etc in sources. Good.
+- coverage_total_from: teams.team_count. Is that a finding id? yes.
+- type values: boolean, count, bytes. unit null for boolean. count units. bytes unit bytes. okay.
+- headline booleans.
+- provided: "no" for measured findings. For answer findings provided: answer. For software list findings provided: software_list / software_list_without_web_version.
+Potential issue: finding telephony.in_use is boolean but has measured_by. If boolean provided by answer, measured_by may be irrelevant? But maybe measured_by can supply boolean from telephony sample. Could be intended.
+- finding office_files.kind.* are counts but provided: answer. They also have measured_by. If provided is answer, measured_by ignored? Maybe not. But if answer missing, could be unknown. Not visible.
+- codes.reasons includes answer_not_provided, source_not_supplied, collector_skipped, not_in_scan, licensed_use_not_measured, etc.
+- Principle 8: skipped or denied collector never improves readiness. This rule file maybe statuses? Not here.
+- Principle 5: privacy by construction. Exclude names/emails. No names.
+- Principle 6: offline report. no.
+- Principle 2: local processing. no network.
+- Principle 1: read-only. permissions list includes read scopes. But DeviceManagementManagedDevices.Read.All? It's read. But maybe DeviceManagementManagedDevices.Read.All is not a valid Microsoft Graph permission? Actually valid? There is DeviceManagementManagedDevices.Read.All. Yes.
+- Principle 2: live collection may contact only login.microsoftonline.com and graph.microsoft.com. Not in file.
+- Principle 3 tokens in memory no.
+- Principle 4 metadata only no.
+
+Need find concrete faults in code below. Maybe there is a YAML syntax issue? Let's parse mentally.
+Line 47: measured_by: {directory: [sample.directory]} flow mapping. okay.
+Line 48: provided: "no" quoted string. okay.
+Line 196: coverage_total_from: teams.team_count. okay.
+Line 407: # Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed.
+sku_exceptions keys are UUIDs without quotes? YAML allows unquoted UUID? It starts with letters/digits and hyphens. Fine. Values quoted.
+Potential issue: sku_exceptions comment says only these exact pairs allowed. But keys are SKU IDs? Values are SKUs? Are pairs exact? Maybe one UUID typo? Need check known Microsoft 365 SKU IDs? Could be intentionally planted faults: maybe a SKU identifier is wrong (UUID) or value mismatch. We can compare? Need know exact pairs? The comment says Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed. Could be a fault if a UUID is not valid? All look 36 chars? Let's check lengths mentally maybe one wrong. Could be planted: a23dbafb... value Microsoft_365_E3_EEA_(no_Teams)_Unattended_License. Is that real? Maybe not. But we can't verify external. Need not guess.
+Maybe there is a missing collector in codes.collectors: licences? It includes licences. But findings measured_by doesn't use licences. licence_sources sample.licences. okay.
+Maybe missing source sample.licences in sources? It's in licence_sources separately. okay.
+Maybe provided_sources should include software_list? The provided field values software_list and software_list_without_web_version are not in provided_sources. If code validates provided against provided_sources, these would be invalid? But not visible. Could be unhandled-input? The file itself is input. If rule file says provided: software_list but codes.provided_sources doesn't list it, maybe invalid rule. But maybe provided_sources is list of source IDs that can be "provided" by user, not values of provided field. Need not guess.
+Maybe finding windows_software.application_count provided: software_list, but codes.provided_sources lacks software_list. If "provided" field expects one of provided_sources, then this is an unhandled-input/bug: rule file accepts a provided source not in allowlist. But is that concrete? We need infer schema. The field named provided, and codes.provided_sources likely enumerates allowed provided sources. Values in findings: answer, no, software_list, software_list_without_web_version. provided_sources includes sample.inputs_yaml, sample.interview, interview, inputs_yaml. That doesn't match answer/no either. Maybe provided_sources are sources from which a provided value can come, not the provided field? Hmm.
+
+Let's think of likely Fazit design. Rule files in YAML hold judgement: status rules, mappings, findings, risky file types and licence service plans. This findings.yaml defines findings. Each finding can be measured_by scan sources, or provided by answers. provided: answer means user answer. provided: "no" means not provided (only measured). provided: software_list means provided by software list input. codes.provided_sources maybe list of sources that can provide values? It includes sample.inputs_yaml, sample.interview, interview, inputs_yaml. Maybe these are source IDs in scan.json for provided answers? But provided field values are not source IDs. Could be a different concept: provided_sources are sources that indicate a value was provided, e.g. sample.inputs_yaml. The finding's provided field may be a source ID? But then values answer/no/software_list not source IDs. Maybe "provided" can be a string token: "no" or a source ID. For answer findings, source ID is "answer"? But provided_sources doesn't include answer. For software list, source ID is "software_list"? Not included. Could be missing in provided_sources: answer, software_list, software_list_without_web_version. That would be a concrete inconsistency: codes.provided_sources doesn't include the provided sources used by findings. But is provided_sources intended to list all allowed provided sources? The name suggests yes. But not certain.
+
+Maybe the fault is that finding telephony.in_use is boolean but has measured_by and provided answer. Boolean findings should not be measured? But maybe telephony sample can indicate in use. The type boolean with measured_by could be okay: measured boolean. But provided: answer also. If both, maybe conflict? The code might choose provided over measured or vice versa. Not visible.
+
+Look for contradictions with comments: Only comment at line 407. It says Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed. Does the mapping include exact pairs? Could be one value has punctuation? All values have underscores and parentheses. Maybe "SKU identifiers with punctuation" refers to SKU names, not UUIDs. Only exact pairs allowed. Could be a pair not exact because UUID case? UUIDs lowercase. Microsoft may use uppercase? But exact? Hmm.
+Maybe one SKU ID is not a valid UUID: line 414 a640eead-25f6-4bec-97e3-23cfd382d7c2. Let's check UUID format: 8-4-4-4-12. 23cfd382d7c2 is 12? 23 c f d 3 8 2 d 7 c 2 =12. okay.
+Line 416 c2fe850d-fbbb-4858-b67d-bd0c6e746da3: 8-4-4-4-12? c2fe850d 8, fbbb 4, 4858 4, b67d 4, bd0c6e746da3 12. okay.
+Line 417 602e6573-55a3-46b1-a1a0-cc267991501a: last cc267991501a 12? c c 2 6 7 9 9 1 5 0 1 a =12. okay.
+Line 421 71772aeb-4bb8-4f74-9dd4-36c7a9b5ca74: last 36c7a9b5ca74 12. okay.
+Could be duplicate UUID? Check list:
+b1f3042b-a390-4b56-ab61-b88e7e767a97
+ffa3a2a0-3820-462a-aa81-8a4d741f0cba
+a23dbafb-3396-48b3-ad9c-a304fe206043
+6ee4114a-9b2d-4577-9e7a-49fa43d222d3
+90277bc7-a6fe-4181-99d8-712b08b8d32b
+a640eead-25f6-4bec-97e3-23cfd382d7c2
+f7ee79a7-7aec-4ca4-9fb9-34d6b930ad87
+c2fe850d-fbbb-4858-b67d-bd0c6e746da3
+602e6573-55a3-46b1-a1a0-cc267991501a
+d711d25a-a21c-492f-bd19-aae1e8ebaf30
+3271cf8e-2be5-4a09-a549-70fd05baaa17
+1e988bf3-8b7c-4731-bec0-4e2a2946600c
+71772aeb-4bb8-4f74-9dd4-36c7a9b5ca74
+a3f586b6-8cce-4d9b-99d6-55238397f77a
+c1f79c29-5d7a-4bec-a2c1-1a76774864c0
+b57282e3-65bd-4252-9502-c0eae1e5ab7f
+cf50bae9-29e8-4775-b07c-56ee10e3776d
+All unique? yes.
+
+Maybe fault: codes.collectors includes licences, but no finding measured_by licences. Not fault.
+Maybe missing sample.licences in sources? But licence_sources separate.
+Maybe permissions missing for telephony? Telephony data may require CommunicationLine.Read? But not in file.
+Maybe principle 1: explicit allowlist of read endpoints. Permissions include DeviceManagementManagedDevices.Read.All, but device management collector maybe not in codes.collectors? Actually device_management finding provided answer, not measured. But permission still included. If no collector uses it, maybe not a fault. But if permission is for a collector not in allowlist? Not visible.
+Maybe principle 2: live collection may contact only login and graph. Permissions are Graph scopes. okay.
+
+Need maybe find a bug in YAML: line 33 is three spaces? It may be blank with spaces. Not fault.
+Line 346 blank with spaces. okay.
+YAML duplicate keys? In sku_exceptions no duplicate. In findings no duplicate. In workloads no duplicate.
+Potential issue: unit for bytes is bytes. For count units. For boolean null. okay.
+Potential issue: finding id teams.teams_with_guests_count has coverage_total_from: teams.team_count. But team_count is measured by teams_usage. If team_count unknown, coverage unknown. okay.
+Potential issue: finding office_files.kind.macro etc have provided: answer and measured_by. If answer is boolean? But type count. User answer for count? Could be a count. okay.
+Potential issue: device_management.device_count and windows_device_count are counts provided by answer. But principle 4 metadata only? User-provided counts okay? Honest figures? If missing, unknown. Not in YAML.
+Potential issue: windows_software.without_web_version_count provided: software_list_without_web_version. But codes.provided_sources doesn't include that. Again.
+
+Let's consider the task: "You are reviewing one part of source code... Rule files in YAML hold the judgement: status rules, mappings, findings, risky file types and licence service plans." They ask find concrete faults. This file likely intentionally contains one or more faults. Need identify likely planted faults.
+
+Common planted faults in YAML rule file:
+- A finding's workload not in workloads.
+- A measured_by source not in sources.
+- A collector not in collectors.
+- A reason not in reasons.
+- A permission not read-only.
+- A SKU exception mismatch.
+- A finding id duplicate.
+- A type mismatch (boolean with unit not null, count with unit null).
+- A provided source missing.
+- A coverage_total_from referencing non-existent finding.
+- A label missing? All have label.
+- A headline wrong type? All booleans.
+- A measured_by for a finding whose type is boolean? maybe not.
+- A finding with provided: answer but also measured_by? Could be invalid? But maybe allowed.
+- A finding with provided: "no" but no measured_by? Let's check: all provided "no" have measured_by? directory yes, mail yes, onedrive yes, sharepoint yes, teams yes. office_files provided answer have measured_by. telephony.in_use provided answer has measured_by. integrations provided answer has measured_by.
+- Findings with provided answer but no measured_by: licences.contract_terms_known, directory.account_list_reviewed, mail.other_systems_send_mail, onedrive.external_sharing_in_use, sharepoint.custom_solutions_in_use, teams.chat_history_must_be_kept, device_management.* (except? no measured), windows_software.* (provided software_list), power_platform.in_use, telephony.replacement_available, identity_access.*, security_compliance, small_apps. okay.
+- Maybe a boolean finding should have unit: null. All boolean unit null.
+- Maybe a bytes finding should have type bytes and unit bytes. yes.
+- Maybe count finding unit should not be null. yes.
+
+Maybe the fault is that `telephony.in_use` is a boolean but `measured_by: {telephony: [sample.telephony]}`. If the telephony sample is metadata counts? It can indicate in use. But provided: answer too. Not clear.
+
+Could be a contradicts-principle: `provided: answer` for counts like device_management.device_count and windows_device_count. Principle 8: Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness. User answers are supplied? okay. But if answer missing, maybe status? Not in file.
+Maybe `provided: answer` for `identity_access.sso_application_count` (count) means user can supply count. okay.
+Maybe `provided: answer` for boolean `power_platform.in_use` etc. okay.
+
+Could be a contradicts-principle: permissions include `DeviceManagementManagedDevices.Read.All` but no collector in codes.collectors for device_management (device management data not collected; finding provided answer). If live collection requests this permission but doesn't use it? Principle 1: use explicit allowlist of read endpoints. If permission not needed, not necessarily violation. But if it's a read permission, okay. However "Exclude requests that can change tenant, even if GET." All are read.
+
+Maybe `DeviceManagementManagedDevices.Read.All` is not a valid Microsoft Graph permission? Let's verify: Microsoft Graph has DeviceManagementManagedDevices.Read.All? I think yes: "Read the device management properties of managed devices". There is also DeviceManagementManagedDevices.ReadWrite.All. So read.
+
+Maybe `Team.ReadBasic.All` and `Channel.ReadBasic.All` are valid? yes.
+
+Maybe `Files.Read.All` can access file contents? Principle 4 metadata only. But Files.Read.All is a permission scope, not request. It could allow reading file contents, but if used only for metadata, okay. The principle says collect counts, sizes, coded evidence; leave file contents unopened. Permission alone not violation.
+
+Maybe `Sites.Read.All` can read site contents? okay.
+
+Could be a fault: `codes.collectors` includes `licences`, but `sources` does not include `sample.licences`; it is in `licence_sources`. If code expects all measured_by source IDs in `sources`, then licence_sources separate. okay.
+
+Maybe `provided_sources` includes `sample.inputs_yaml`, `sample.interview`, `interview`, `inputs_yaml`. But finding `provided` values are `answer`, `software_list`, etc. Could be that `provided` field should be a source ID from `provided_sources` or "no". If so, many findings invalid: `provided: answer` not in provided_sources. But maybe `answer` is a source? It is not listed. The codes list `provided_sources` includes `interview` and `inputs_yaml`, maybe these are source IDs for provided data. But finding `provided: answer` maybe means provided by an answer (not a source). The codes list may be for something else: sources that can provide values? Let's parse: `provided_sources` likely a list of source identifiers that indicate provided data. In scan.json, sources may include `sample.inputs_yaml`, `sample.interview`, `interview`, `inputs_yaml`. Findings with `provided: answer` maybe not source IDs but a flag. Hmm.
+
+Maybe the planted fault is that `provided: answer` is not a valid source and should be `provided: inputs_yaml` or `interview`? But many use answer. If schema expects `provided` to be either `no` or a source ID from provided_sources, then `answer` is invalid. But the field name `provided` and value `answer` seems intentional: provided by answer. The codes `provided_sources` includes `sample.inputs_yaml` etc. Could be that `provided_sources` are sources that can provide *answers*, not the value of `provided`. Hard.
+
+Let's think of possible code that loads this YAML. It may validate:
+- For each finding, if measured_by: keys must be in codes.collectors, values in codes.sources.
+- if provided != "no": provided must be in codes.provided_sources? If so, `answer`, `software_list`, `software_list_without_web_version` fail. But would the file be so obviously invalid? The task likely expects finding this if visible. But the user says rule files hold judgement; we only see this part. If a fault depends on code you cannot see, say confidence. But we can report if the YAML itself is internally inconsistent: `provided` values not in `provided_sources`. Is that plainly intended? The list name `provided_sources` strongly suggests allowed values for `provided`. But it includes `sample.inputs_yaml`, not `answer`. Maybe `provided` can be a list? No.
+
+Maybe `provided` field values should be source IDs, and `answer` is a source ID missing from `provided_sources`. The `provided_sources` includes `sample.inputs_yaml`, `sample.interview`, `interview`, `inputs_yaml`. Why four? Maybe source IDs for different input files: sample inputs yaml, sample interview, interview, inputs yaml. `answer` is not a source. But finding `provided: answer` could mean the value is an answer, not a source. Could be a boolean flag? The value `"no"` quoted means not a source. So `provided` is a source or "no". If source, `answer` should be in provided_sources. It isn't. That is a concrete unhandled-input? The rule file is input; if loader validates, crash or silently wrong. But if loader doesn't validate, maybe no. Need confidence medium.
+
+But maybe `provided_sources` is not an allowlist for `provided` field; it's a list of sources that can be marked as "provided" in scan.json. The finding's `provided` field may be a *kind* of provided: answer, software_list. Then provided_sources not relevant. The name could mean sources that are provided by the user, not values. Hmm.
+
+Let's inspect values: `provided: answer` for many boolean answers and counts. `provided: software_list` and `software_list_without_web_version` for windows software. These look like source kinds, not source IDs. `provided_sources` includes `sample.inputs_yaml`, `sample.interview`, `interview`, `inputs_yaml`. These look like source IDs from scan.json. Maybe the code maps provided kind to sources? For example, if provided is `answer`, it looks in `inputs_yaml` or `interview`. If provided is `software_list`, it looks in `inputs_yaml` software list. So `provided_sources` lists actual source IDs that may contain provided values. That makes sense. So not a fault.
+
+Potential planted fault: `windows_software.without_web_version_count` provided: `software_list_without_web_version`. But maybe the source/kind should be `software_list` (since without web version is derived from software list), not a separate provided source. But not visible.
+
+Maybe `codes.reasons` missing a reason used in findings? Findings don't use reasons. Status rules maybe elsewhere. Not fault.
+
+Maybe `permissions` missing `Application.Read.All` for integrations application_count measured by directory? Directory sample may include enterprise applications? To read applications need Application.Read.All. But finding measured_by directory sample.directory. If directory collector collects applications, permission maybe missing. But not visible. Could be a bug: integrations.application_count measured_by directory but permissions don't include Application.Read.All. However directory collector may use User.Read.All/Group.Read.All/Organization.Read.All? Application.Read.All not listed. If live collection needs it, missing permission would cause denied. But we can't see collector endpoints. Do not report if depends on unseen code. But rule file permissions likely allowlist of scopes requested. If a measured source requires a scope not listed, that's a fault. Can we infer? `integrations.application_count` measured by `sample.directory`. Directory sample could include applications? The finding is integrations application count, likely from Azure AD applications. To collect that, need Application.Read.All. Not in permissions. But the collector is `directory`; maybe directory collector collects users, groups, applications? The permission list includes User, Group, Organization, Sites, Files, Team, Channel, DeviceManagement. No Application. If directory collector includes applications, missing scope. But is that concrete? The finding id `integrations.application_count` measured_by directory suggests it is measured from directory sample. The `directory` collector might collect directory users/groups, not applications. But integrations applications are directory applications. Could be a planted fault: missing permission for application count. However principle 1: explicit allowlist of read endpoints. If permission missing, not a violation? It would cause live collection to fail or not collect. But if scan.json offline, no. The file is rule file, not collector code. Hard.
+
+Maybe `DeviceManagementManagedDevices.Read.All` permission is included but no finding measured by device_management; device management findings are provided answer. If no collector uses it, why request? Could be unnecessary but not fault. But principle 1 says request read permissions and use explicit allowlist. Requesting extra read permission not necessarily violation, but maybe "Exclude requests that can change tenant" only. Not.
+
+Maybe the fault is `provided: answer` for `device_management.device_count` and `windows_device_count` despite `DeviceManagementManagedDevices.Read.All` permission and no measured_by. If device count could be measured but is provided by answer, maybe missing evidence shown as unknown? But not necessarily.
+
+Let's search for line-level anomalies:
+Line 4: label: workload.licences. Workload id licences. okay.
+Line 35: id: licences.contract_terms_known. label finding.licences.contract_terms_known.
+Line 42: id directory.user_count. measured_by directory sample.directory. provided no. headline true.
+Line 50 licensed_user_count. measured_by directory. okay.
+Line 58 guest_count. okay.
+Line 66 group_count. okay.
+Line 74 account_list_reviewed boolean provided answer.
+Line 81 mail.mailbox_count measured_by mailbox_usage.
+Line 89 mail.shared_mailbox_count measured_by exchange_recipients.
+Line 97 mail.storage_bytes measured_by mailbox_usage.
+Line 105 mail.item_count measured_by mailbox_usage.
+Line 113 mail.other_systems_send_mail boolean answer.
+Line 120 onedrive.account_count measured_by onedrive_usage.
+Line 128 onedrive.storage_bytes measured_by onedrive_usage.
+Line 136 onedrive.external_sharing_in_use boolean answer.
+Line 143 sharepoint.site_count measured_by sharepoint_site_usage.
+Line 151 sharepoint.storage_bytes measured_by sharepoint_site_usage.
+Line 159 sharepoint.file_count measured_by sharepoint_site_usage.
+Line 167 sharepoint.custom_solutions_in_use boolean answer.
+Line 174 teams.team_count measured_by teams_usage.
+Line 182 teams.channel_count measured_by teams_usage.
+Line 190 teams.teams_with_guests_count measured_by teams_usage, coverage_total_from teams.team_count.
+Line 199 teams.chat_history_must_be_kept boolean answer.
+Line 206 office_files.kind.macro count measured_by office_files provided answer.
+...
+Line 246 device_management.device_count count provided answer headline true.
+Line 253 windows_device_count count provided answer.
+Line 260 in_use boolean answer.
+Line 267 windows_desktops_required boolean answer.
+Line 274 windows_software.application_count count provided software_list.
+Line 281 without_web_version_count count provided software_list_without_web_version.
+Line 288 power_platform.in_use boolean answer.
+Line 295 telephony.in_use boolean answer measured_by telephony.
+Line 303 replacement_available boolean answer.
+Line 310 identity_access.sso_application_count count answer.
+Line 317 conditional_access_in_use boolean answer.
+Line 324 security_compliance.protection_or_retention_in_use boolean answer.
+Line 331 small_apps.in_use boolean answer.
+Line 338 integrations.application_count count measured_by directory provided answer.
+
+Potential issue: `integrations.application_count` is measured_by directory and provided answer. If measured and provided conflict? Maybe allowed. But if provided answer missing, measured used. okay.
+
+Potential issue: `telephony.in_use` boolean measured_by telephony and provided answer. If telephony sample is a count? Could be boolean derived. okay.
+
+Potential issue: `office_files.kind.*` counts are provided answer and measured_by office_files. If measured_by office_files sample contains counts by kind, why provided answer? Maybe user can confirm? But if measured, provided should be "no"? The pattern: measured findings have provided: "no". But office_files.kind.* and integrations.application_count and telephony.in_use have measured_by plus provided answer. Is that inconsistent? Maybe some findings can be both measured and provided. But if the intent is that measured findings are not provided, then these are contradictions? There is no comment. Could be a bug: counts with measured_by should not be provided by answer? But not plainly intended. The presence of `provided: answer` alongside `measured_by` could be intentional for confirmation. The codes.reasons includes `confirmation_conflict`, `provided_answers_conflict`, suggesting measured and provided can both exist and conflict. So okay.
+
+Potential issue: `office_files.kind.*` type count, provided answer. If user answers a boolean? Not visible.
+
+Maybe the file has a contradiction with principle 8: `headline: true` for `device_management.device_count` which is provided by answer. If missing, unknown. Headline not issue.
+
+Could be a fault: `unit: null` for boolean, but YAML null. okay.
+
+Maybe a bug: `provided: "no"` is a string, but `provided: answer` unquoted. If code expects string, both strings. okay.
+
+Maybe a bug: `measured_by: {directory: [sample.directory]}` uses a mapping from collector to list of sources. For `office_files.kind.macro`, measured_by office_files sample.office_files. But the source `sample.office_files` may contain all office files, not kind-specific. The finding id includes kind.macro; maybe code maps kind. okay.
+
+Maybe a bug: `codes.collectors` includes `exchange_recipients`, but no finding measured_by exchange_recipients? There is mail.shared_mailbox_count. yes.
+
+Maybe a bug: `codes.sources` missing `sample.licences` but licence_sources includes it. okay.
+
+Maybe a bug: `codes.permissions` includes `DeviceManagementManagedDevices.Read.All`, but principle 2 live collection may contact only graph. Device management Graph endpoint is graph. okay.
+
+Maybe a bug: `sku_exceptions` comment says only exact pairs allowed. But one of the SKU names likely should have "Microsoft 365" vs "Office 365"? Let's examine real SKUs. Microsoft 365 Business Basic EEA (no Teams) maybe SKU ID b1f3042b...? Could be. Microsoft 365 Business Standard EEA (no Teams) ffa3a2a0...? Maybe. Microsoft 365 E3 EEA (no Teams) Unattended License? Is there such SKU? Maybe "Microsoft 365 E3 EEA (no Teams) Unattended License" not real? Could be planted. But we can't verify. The task likely doesn't require external knowledge? It says find concrete faults in code. If a SKU pair is wrong, we'd need know Microsoft publishes. Could be a known typo. We can maybe infer from pattern: All values use underscores and parentheses. One line: `a23dbafb-3396-48b3-ad9c-a304fe206043: "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License"`. Is "Unattended License" a SKU? There is "Microsoft 365 E3 EEA (no Teams) Unattended License"? Maybe not. But could be real for EEA? Hmm.
+Line 414: `a640eead-25f6-4bec-97e3-23cfd382d7c2: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB"`. There is maybe "Microsoft 365 E5 EEA (no Teams) without Audio Conferencing (500 seats min) HUB". okay.
+Line 416: `c2fe850d-fbbb-4858-b67d-bd0c6e746da3: "O365_w/o Teams Bundle_M3"`. Microsoft publishes "O365 w/o Teams Bundle M3"? maybe.
+Line 421: `71772aeb-4bb8-4f74-9dd4-36c7a9b5ca74: "Office_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"`. There is "Office 365 E5 EEA (no Teams) without Audio Conferencing". okay.
+Could be one UUID belongs to a different SKU. Without external data, can't be high confidence. The instruction: Do not report something you would need to guess about; you only see this part. If fault depends on code you cannot see, say confidence. But external Microsoft data not code. We shouldn't report uncertain.
+
+Maybe there is a YAML issue: line 407 comment says "SKU identifiers with punctuation". The keys are identifiers (GUIDs) without punctuation? The values have punctuation. "Only these exact pairs are allowed." If a key is not quoted, YAML may interpret as string. okay.
+
+Maybe a fault: `sku_exceptions` mapping keys are lowercase UUIDs, but Microsoft SKU IDs are uppercase? Exact pairs? If code compares case-sensitive, scan.json may have uppercase? But not visible. The comment says exact pairs. Could be case mismatch. But we don't know scan.json. Not concrete.
+
+Maybe a fault: `permissions` includes `DeviceManagementManagedDevices.Read.All`, but the collector list does not include `device_management`. However finding workload device_management exists. If live collection has a collector for device management? codes.collectors is allowlist of collectors? It doesn't include device_management. If a collector named device_management is used, not allowed

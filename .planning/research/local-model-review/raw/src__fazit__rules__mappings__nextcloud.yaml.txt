@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/mappings/nextcloud.yaml
+line: 153
+kind: contradicts-principle
+claim: The rule file supplies an external reference URL that the report would expose as an external resource, contrary to the offline-report principle.
+evidence: "      reference_url: https://nextcloud-talk.readthedocs.io/en/stable/quick-install/#introduction"
+why: Principle 6 requires a self-contained offline HTML report and says to omit external resources. Embedding or linking this external readthedocs URL ties the report content to an outside resource rather than keeping the report self-contained.
+confidence: medium

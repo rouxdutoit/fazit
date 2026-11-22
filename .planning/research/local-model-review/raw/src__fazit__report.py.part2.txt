@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/report.py
+line: 380-383
+kind: bug
+claim: The icon loader accepts an SVG with multiple path elements and silently uses only the first one.
+evidence: "        match = _ICON_PATH.search(package.joinpath(\"icons\", f\"{name}.svg\").read_text(\"utf-8\"))\n        if match is None:\n            raise RuntimeError(f\"Icon {name} has no single path.\")\n        icons[name] = match[1]"
+why: `_ICON_PATH.search` returns the first matching `<path>` and the code only checks for no match, so an icon file containing more than one path is not rejected and the report embeds an incomplete or wrong icon.
+confidence: medium

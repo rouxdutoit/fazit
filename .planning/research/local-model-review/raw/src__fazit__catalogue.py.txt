@@ -1,0 +1,35 @@
+FINDING
+file: src/fazit/catalogue.py
+line: 67-71
+kind: unhandled-input
+claim: `accepts_sku_part_number` crashes if `guid` is not `None` and not a string.
+evidence: `        return isinstance(part_number, str) and (`
+`            bool(IDENTIFIER.fullmatch(part_number))`
+`            or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)`
+why: The method only checks that `part_number` is a string; when called with a non-string `guid`, `sku_key` executes `guid.lower()` and raises `AttributeError`. This can happen if a caller passes malformed scan data such as an integer GUID.
+confidence: medium
+
+FINDING
+file: src/fazit/catalogue.py
+line: 23-24
+kind: unhandled-input
+claim: `sku_key` crashes if `guid` is not a string.
+evidence: `def sku_key(part_number: str, guid: str) -> tuple[str, str]:`
+`    return part_number.replace("\u00a0", " ").casefold(), guid.lower()`
+why: The type hint says `guid` is a string, but Python callers can pass other non-`None` objects; `guid.lower()` then raises `AttributeError` instead of producing a key or rejecting the input.
+confidence: medium
+
+FINDING
+file: src/fazit/catalogue.py
+line: 146-152
+kind: unhandled-input
+claim: A null `measured_by` value is passed to mapping validation instead of being treated as an empty optional value.
+evidence: `        _measurement_pairs(`
+`            row.get("measured_by", {}),`
+`            reader,`
+`            f"{field}.measured_by",`
+`            collector_ids,`
+`            measured_sources,`
+`        ),`
+why: `row.get("measured_by", {})` only substitutes `{}` when the key is absent; if the rule file contains `measured_by: null`, `None` is passed to `_measurement_pairs`, which then calls `reader.fields(None, ...)`. Depending on the validator, this either crashes or treats the explicitly null optional field differently from an absent one.
+confidence: low

@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/mappings/opendesk.yaml
+line: 16
+kind: bug
+claim: The checked_on value is a future date, so the rule claims it was checked on a date that has not occurred.
+evidence: checked_on: "2026-11-21"
+why: The current date is 2026-06-22, so a field named checked_on cannot honestly record 2026-11-21 as the date the reference was checked. This would make the report show an impossible verification date.
+confidence: medium

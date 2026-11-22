@@ -1,0 +1,10 @@
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 89-91
+kind: bug
+claim: The fallback status reason always uses the ready reason, so a non-ready workload with no deciding evidence or reason code can be shown with a ready explanation.
+evidence: "    {% if row.deciding %}{{ row.deciding.reason[lang] }}
+    {% elif row.reason_code %}{{ reason_detail(row.reason_code) }}
+    {% else %}{{ status_rules.workloads[row.workload].ready_reason[lang] }}{% endif %}"
+why: If row.status is needs_work, blocker, or unknown and both row.deciding and row.reason_code are absent, the template renders ready_reason[lang], which misrepresents the workload status reason.
+confidence: medium

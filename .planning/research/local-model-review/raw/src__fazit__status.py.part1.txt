@@ -1,0 +1,26 @@
+FINDING
+file: src/fazit/status.py
+line: 261-274
+kind: contradicts-principle
+claim: A condition can be treated as true when the evidence has a conflict or missing-answer gap, as long as the value is a lower bound.
+evidence: "        gap.reason_code\n        in (\"coverage_partial\", \"coverage_unknown\", \"answer_not_provided\", \"confirmation_conflict\")\n        and condition.op != \"==\"\n        and finding.is_lower_bound\n        and _matches_condition(condition, finding)\n      ):\n          return True"
+why: A `confirmation_conflict` or `answer_not_provided` gap means the evidence is disputed or incomplete, but the code returns `True` if a lower-bound value meets a `>` or `>=` threshold. That can make a workload look more ready than the evidence supports, contrary to honest figures and missing evidence staying unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/status.py
+line: 200-206
+kind: contradicts-principle
+claim: A non-`ok` collector that is not explicitly `skipped` is treated as partial coverage rather than as a blocked or unknown collector.
+evidence: "              collector = collectors.get(collector_id)\n              if collector is None or collector.status == \"ok\":\n                  continue\n              if (finding_id, collector_id) not in recorded:\n                  fallback = (\n                      \"collector_skipped\" if collector.status == \"skipped\" else \"coverage_partial\"\n                  )\n                  yield MissingEvidence(finding_id, collector.reason or fallback, collector_id)"
+why: If a collector is denied or otherwise not `ok` and not `skipped`, the fallback reason becomes `coverage_partial`. Downstream, `coverage_partial` can allow partial-true or lower-bound evidence to satisfy a condition, so a denied collector can improve readiness instead of leaving the result unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/status.py
+line: 316-330
+kind: bug
+claim: A status rule with an empty `when` list fires unconditionally.
+evidence: "      for rule in block.rules:\n          matches = [results[condition] for condition in rule.when]\n          if any(match is False for match, _ in matches):\n              continue\n          missing.update(dict.fromkeys(gap for _, gap in matches if gap is not None))\n          if all(match for match, _ in matches):\n              fired.append(rule)"
+why: If a rule file supplies `when: []`, `matches` is empty, `any(...)` is false, and `all(...)` is true, so the rule is appended to `fired` without any evidence condition being satisfied. That can assign `needs_work` or `blocker` with no matching evidence.
+confidence: medium

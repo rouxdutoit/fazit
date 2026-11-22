@@ -1,0 +1,240 @@
+We need answer user's request: review code and output findings exact format or NO FINDINGS. Need analyze code deeply. Need identify concrete faults categories. Need only report concrete faults. Need quote exact lines. Need confidence.
+
+Let's parse code.
+
+File src/fazit/evidence.py
+
+Functions:
+is_complete(finding): returns False if finding None or value None or provenance unknown. If coverage None: return provenance == "provided". Else coverage.kind == "complete".
+
+evidence_conflicts(first, second): measured, provided = (first, second) if first.provenance == "measured" else (second, first). If not (measured.provenance == "measured" and measured.value is not None and provided.provenance == "provided" and is_complete(provided)): return False. If is_complete(measured): return measured.value != provided.value. If type(measured.value) is bool: return measured.value and provided.value is False. return measured.is_lower_bound and measured.value > provided.value.
+
+Potential issue: if first.provenance not measured, then measured=second, provided=first. If second not measured either, condition fails. Fine. If first measured and second provided, ok. If first provided second measured, ok. If both measured? then provided=first? Wait if first.provenance == "measured", measured=first, provided=second. If second also measured, provided.provenance == measured, condition fails. If both provided, first not measured -> measured=second, provided=first, condition fails. ok.
+
+But type(measured.value) is bool: if measured.value is True, provided.value is False conflict. If measured False, no conflict. For non-bool lower bound: measured.is_lower_bound and measured.value > provided.value. If measured.value is None? condition measured.value is not None. If provided.value None? is_complete(provided) false if value None. ok.
+
+provided_answers_conflict: both provided and values differ.
+
+select_evidence(recorded, supplied): if recorded None or unknown return supplied. if supplied unknown return recorded. if recorded measured: if is_complete(recorded) return recorded. if recorded.is_lower_bound and (not is_complete(supplied) or evidence_conflicts(recorded, supplied)): return recorded. return supplied.
+
+Potential bug? If recorded measured but incomplete and not lower_bound, returns supplied even if supplied unknown? But supplied unknown handled earlier. If supplied provided incomplete, returns supplied, maybe losing measured lower? But if not lower_bound, maybe measured partial? Need principles? Skipped/denied collector never improves readiness. select_evidence chooses supplied over recorded if recorded measured partial not lower bound. Could be wrong if supplied is answer? But maybe intended: provided answers can override measured partial? Need infer.
+
+_provided: creates Finding provenance unknown if value None else provided. coverage param default None. missing_reason answer_not_provided if None.
+
+_without_web_version(software: tuple[WindowsSoftware, ...]) -> tuple[int | None, Coverage | None]: confirmed = sum(item.vendor_has_web_version is False for item in software); answered = sum(item.vendor_has_version is not None ...). If answered == len(software): return confirmed, None. return confirmed or None, Coverage("partial", scanned=answered, total=len(software)).
+
+Potential bug: If no software? len 0, answered 0, returns 0, None. But provided_findings only if software is not None. windows_only_software may be empty tuple? If inputs has empty list? Then software = inputs.windows_only_software. If empty tuple not None, it will add finding value len(software)=0 for software_list and _without_web_version returns 0. Is empty list a valid answer? Could be supplied zero? If user provided empty software list, maybe should be 0? But if not provided, maybe None. Need know Inputs. windows_only_software property likely returns tuple of software if provided? Could return empty tuple for no software? If empty means no software? Could be valid. Not enough.
+
+Potential bug: confirmed or None: if confirmed=0 but partial coverage, returns None. That may be intended: unknown if zero confirmed? For lower bound, if no confirmed no web version, value None unknown, partial coverage. ok.
+
+provided_findings: answers = {**inputs.provided_counts, **inputs.confirmations}. software = inputs.windows_only_software. findings list. For entry in catalogue.findings:
+ if entry.provided == "answer" and (value := answers.get(entry.id)) is not None: _provided(entry, value)
+ elif software is not None and entry.provided == "software_list": _provided(entry, len(software))
+ elif software is not None and entry.provided == "software_list_without_web_version": lower_bound, coverage = _without_web_version(software); _provided(entry, lower_bound, inputs, coverage)
+Return tuple.
+
+Potential unhandled-input: answers.get(entry.id) may be non-int/bool? inputs.yaml could supply string? _provided value int|bool|None but no validation. If string, Finding value string; later comparisons may fail? But maybe inputs parses to int/bool. Not sure. Could be unhandled-input if scan.json/inputs.yaml accepts arbitrary. But code accepts from inputs. If string "5", is_complete true? provenance provided, value not None. evidence_conflicts compares measured.value != provided.value maybe works (5 != "5" true). Or lower bound > string TypeError. Could crash. But is that a fault? Inputs likely validated elsewhere. We only see this part. Need not guess. But unhandled-input: input code accepts from inputs.yaml leads crash. If no validation in this code, string can cause TypeError in evidence_conflicts if measured.is_lower_bound and measured.value > provided.value. But maybe inputs module enforces types. Cannot see. Need confidence low/medium? The task says only see this part; if fault depends on code you cannot see, say confidence. We can report if code plainly accepts any value from dict. But maybe inputs.py ensures. Hmm.
+
+combine(scan, provided): if not provided return scan, (). by_id = {finding.id: finding for finding in scan.findings}. skipped = {collector.id for collector in scan.collectors if collector.status == "skipped"}. alternatives list. for supplied in {finding.id: finding for finding in provided}.values(): recorded = by_id.get(supplied.id); selected = select_evidence(recorded, supplied); by_id[supplied.id] = selected; if recorded and ((recorded.provenance == "measured" and supplied.provenance == "provided") or provided_answers_conflict(recorded, supplied) or (selected is supplied and recorded.collector in skipped)): alternatives.append(recorded if selected is supplied else supplied). return replace(scan, findings=tuple(by_id.values())), tuple(alternatives).
+
+Potential bug: alternatives logic. When selected is supplied (supplied chosen), alternatives append recorded (the other). When selected is recorded (recorded chosen), append supplied. Condition includes recorded.provenance measured and supplied.provenance provided always, even if no conflict? It adds alternative for every measured+provided pair, even if they agree? That may be intended to show alternatives? But maybe if they agree, no conflict? It says alternatives maybe evidence alternatives? Not necessarily fault.
+
+Potential bug: by_id dict preserves insertion order? Python dict preserves. If supplied id not in scan.findings, by_id adds new at end. ok.
+
+Potential bug: skipped set uses collector.id. recorded.collector may be None? If recorded.provenance unknown? Condition selected is supplied and recorded.collector in skipped. If recorded.collector None, None in set false. ok.
+
+Potential contradicts-principle: skipped or denied collector never improves readiness. In combine, if recorded collector skipped and selected is supplied, alternatives append recorded. But selected is supplied. Does skipped collector make status better? select_evidence: if recorded unknown returns supplied. If recorded measured? skipped collector likely status skipped but finding maybe unknown? If recorded provenance unknown? select returns supplied. That's ok: skipped doesn't improve? Actually if collector skipped, recorded may be unknown, supplied provided can be used. But principle says skipped/denied collector never improves readiness. If measured collector skipped? Hmm.
+
+Need find concrete faults.
+
+Let's inspect each function for subtle bugs.
+
+is_complete: If finding.coverage is None: return finding.provenance == "provided". For measured finding with no coverage, is_complete false. But maybe measured complete without coverage? Could be intended: measured requires coverage complete. ok. For provided with coverage partial, false. For provided with coverage complete true. For provided with coverage None true if value not None and provenance provided. ok.
+
+evidence_conflicts: It assumes if first not measured then second measured. But if first.provenance == "measured" and second.provenance == "provided", ok. If first.provenance == "provided" and second.provenance == "measured", ok. If first.provenance == "measured" and second.provenance == "unknown", condition fails. If first unknown second measured, condition fails. ok.
+
+But potential bug: If first.provenance == "measured" and second.provenance == "provided", measured=first, provided=second. If measured incomplete bool True and provided False: conflict. If measured incomplete bool False and provided True: no conflict. But if measured value False (lower bound? bool not lower bound?) and provided True, maybe not conflict? Could be intended? For boolean, measured False is not evidence of provided True? ok.
+
+If measured is lower bound int 5 and provided 5: no conflict (5 > 5 false). If provided 4 conflict. If measured lower bound 5 and provided None? provided is_complete false, no conflict. ok.
+
+If measured value is bool True and provided value is bool True: no conflict. If measured True and provided False conflict. If measured False and provided False no conflict. ok.
+
+select_evidence: if recorded measured and is_complete(recorded), return recorded even if supplied conflicts. That means measured complete always wins. But if supplied provided complete and different, evidence_conflicts true, but select returns recorded. alternatives in combine will include supplied because recorded measured and supplied provided. ok.
+
+If recorded measured lower_bound and supplied incomplete: return recorded. If supplied complete and no conflict: return supplied. If conflict: return recorded. ok.
+
+Potential bug: For recorded measured incomplete lower_bound with bool? is_lower_bound maybe false for bool? If measured bool True incomplete, supplied provided False complete: evidence_conflicts True, but recorded.is_lower_bound? likely false, so select returns supplied. Wait condition: if recorded.is_lower_bound and (...). If is_lower_bound false, returns supplied. So measured bool True does not conflict? But evidence_conflicts would say conflict if called, but not called because is_lower_bound false. Is that intended? Maybe measured boolean not lower bound; if incomplete measured True vs provided False, should maybe conflict? But select only honors conflicts for lower_bound measured. If measured is not lower bound but incomplete, it returns supplied regardless. Could be bug? Need know model: is_lower_bound attribute probably for counts. For boolean, no lower bound. If measured True but partial coverage, and provided False, which should win? The code's evidence_conflicts handles bool conflict, but select_evidence only uses it if recorded.is_lower_bound. So bool conflict ignored unless is_lower_bound true (unlikely). Is that a fault? It might be intended: only lower-bound measured evidence can override supplied? But evidence_conflicts includes bool case, suggesting it should be used for bool too. If is_lower_bound false for bool, bool conflict never used in select. But maybe bool findings have is_lower_bound True? No, lower bound is for counts. Could be a bug: select_evidence fails to use evidence_conflicts for non-lower-bound measured values (e.g., booleans). But does it "plainly intend"? evidence_conflicts supports bool, so maybe select should call for any measured incomplete? The code says if recorded.is_lower_bound and (...). If not lower bound, no conflict check. Could be intentional: only lower bounds can be overridden by supplied? But then why bool branch? Could be for completeness or other callers. Need not guess.
+
+Potential bug: evidence_conflicts uses type(measured.value) is bool. If measured.value is bool True and provided.value is False, conflict. If measured.value is bool False and provided.value is True, no conflict. But if measured.value is bool False incomplete and provided True, maybe no conflict because measured false could be partial? ok.
+
+provided_findings: answers = {**inputs.provided_counts, **inputs.confirmations}. If same id in both, confirmations override provided_counts. ok.
+
+software = inputs.windows_only_software. If software is not None. For entry.provided == "software_list", value len(software). If software empty, value 0. If software None (not provided), no finding. ok.
+
+_without_web_version: coverage partial scanned=answered total=len. If answered == len, return confirmed, None. If software empty, returns 0 None. If partial and confirmed=0 returns None and partial coverage. _provided with value None provenance unknown missing_reason answer_not_provided. But coverage partial attached. is_complete: value None -> false. ok.
+
+But potential bug: If answered == len(software) and confirmed = 0, return 0, None. That means if all software answered and none confirmed no web version, lower bound 0 complete? For software_list_without_web_version, value 0. That's supplied answer: all have web version? Actually vendor_has_web_version is False means confirmed no web version. If all answered and none false, lower bound 0. That's honest. ok.
+
+Potential bug: confirmed = sum(item.vendor_has_web_version is False) counts only explicit False. answered counts not None. If some True, some None. partial. confirmed or None returns None if 0. ok.
+
+combine: by_id = {finding.id: finding for finding in scan.findings}. If scan.findings has duplicate ids? Dict keeps last. Could lose earlier. Maybe scan shouldn't have duplicates. Provided dict dedupes. ok.
+
+Potential bug: alternatives condition: if recorded and (... or (selected is supplied and recorded.collector in skipped)): alternatives.append(recorded if selected is supplied else supplied). For first condition recorded.provenance measured and supplied.provenance provided, it always appends alternative even if selected is recorded and no conflict? It appends supplied. That may be intended to show alternative evidence (provided answer) even if not conflict. But "alternatives" maybe for conflicts? Not clear.
+
+Potential contradicts-principle: "A skipped or denied collector never improves readiness." In combine, if recorded.collector in skipped and selected is supplied, alternatives append recorded. But how does skipped improve? Let's think. select_evidence: recorded may be unknown from skipped collector? If recorded unknown, select returns supplied. That's not skipped improving; supplied is used. If recorded measured? collector skipped can't have measured? Maybe status skipped but finding value unknown. If recorded.provenance unknown, selected supplied. ok.
+
+But condition (selected is supplied and recorded.collector in skipped) adds recorded as alternative. If recorded is unknown from skipped collector, alternatives include unknown. Could make report show unknown alternative? Not improve.
+
+Potential bug: skipped set only includes status == "skipped", not "denied". Principle says skipped or denied collector never improves readiness. Code only checks skipped, not denied. If collector.status == "denied", recorded.collector not in skipped. Could affect alternatives? But maybe denied collector findings unknown, select returns supplied. No improvement. But if recorded measured? denied can't measured. If recorded provided? no.
+
+Potential contradicts-principle: missing value treated as zero or good news. In _without_web_version, confirmed or None treats 0 as None when partial. Good. But in provided_findings for software_list, len(software) if software empty returns 0. If software list not provided? software None. If provided but empty, 0. ok.
+
+Potential bug: In provided_findings, if entry.provided == "answer" and value is not None, it adds provided. If value is False (bool), value is not None true, so _provided with False. ok. If value 0, not None true. ok.
+
+Potential unhandled-input: inputs.provided_counts or confirmations may contain values None? answers.get returns None if key absent or value None. If explicit None, ignored. ok.
+
+Potential bug: _provided source=inputs.answer_source, collected_at=inputs.as_of. For provided answers, collected_at maybe as_of. ok.
+
+Potential bug: select_evidence if recorded measured incomplete lower_bound and supplied unknown? supplied unknown handled earlier returns recorded. ok.
+
+Potential bug: evidence_conflicts if first.provenance == "measured" else (second, first). If first.provenance is not measured but second also not, condition fails. If first.provenance is measured and second.provenance is provided, ok. But if first.provenance is measured and second.provenance is measured? condition fails. ok.
+
+Potential bug: In combine, for supplied in {finding.id: finding for finding in provided}.values(): if provided has duplicate ids, keeps last. ok.
+
+Potential bug: by_id[supplied.id] = selected. If recorded is None, selected supplied, adds. If recorded exists, replaces. But if selected is recorded, by_id already had recorded; assignment no change. ok.
+
+Potential bug: alternatives.append(recorded if selected is supplied else supplied). Identity check. If selected is supplied but recorded and supplied are equal? Finding dataclass maybe not frozen? Identity. ok.
+
+Potential bug: If selected is supplied and recorded.provenance measured and supplied.provenance provided, alternatives append recorded. If selected is recorded, append supplied. For measured+provided, always alternative. If recorded measured complete and supplied provided complete same value, alternatives still includes supplied. Is that a fault? Maybe alternatives should only include conflicting evidence? The name alternatives could mean alternative evidence, not necessarily conflict. Not enough.
+
+Need focus on concrete faults likely planted. Let's look for subtle off-by-one or wrong boolean.
+
+Line 76: confirmed = sum(item.vendor_has_web_version is False for item in software)
+Line 77: answered = sum(item.vendor_has_web_version is not None for item in software)
+Line 78: if answered == len(software): return confirmed, None
+Line 80: return confirmed or None, Coverage("partial", scanned=answered, total=len(software))
+
+Potential bug: If software is empty, answered == len -> return 0, None. But if software is empty because no software entries, maybe should be None not 0? But if inputs.windows_only_software returns empty tuple when no software provided? Need know. The property name windows_only_software likely returns tuple if inputs has software list? Could be empty tuple if user supplied empty list. If empty list is an answer, 0 is correct. If None means not provided. ok.
+
+Potential bug: Coverage("partial", scanned=answered, total=len(software)). If software empty and partial? not reached. ok.
+
+Potential bug: _without_web_version returns confirmed or None for partial. If confirmed=0 but some answered True, lower bound unknown. But if some answered False? confirmed >0. ok. If no confirmed, 0 lower bound is not useful? It would be true lower bound 0 but unknown? They choose None to avoid good news? ok.
+
+Potential bug: In provided_findings, for entry.provided == "software_list_without_web_version", lower_bound, coverage = _without_web_version(software). If lower_bound is None, _provided value None provenance unknown, coverage partial. missing_reason answer_not_provided. But actually answer was provided partially, not answer_not_provided. Could be contradicts-principle? It labels missing evidence as unknown. missing_reason maybe wrong: answer was provided but incomplete. But not in categories? bug: does something other than plainly intends? The comment? No comment. Could be wrong result: missing_reason should be something else? We don't know expected.
+
+Potential bug: _provided missing_reason="answer_not_provided" if value is None else None. For software_list_without_web_version partial with zero confirmed, value None but answer provided (software list provided). missing_reason answer_not_provided is inaccurate. But maybe missing_reason for lower bound unknown due to no confirmed? Could be bug. But not sure.
+
+Potential bug: In combine, skipped = {collector.id for collector in scan.collectors if collector.status == "skipped"}. What about denied? principle says skipped or denied. But code only skipped. However condition only for alternatives, not status. If denied collector recorded unknown and supplied provided, selected supplied. Not improvement. If denied collector recorded measured? impossible. If recorded.provenance provided? no.
+
+Potential contradicts-principle: "A skipped or denied collector never improves readiness." In select_evidence, if recorded is unknown returns supplied. If recorded is from skipped collector with unknown, supplied can make status better. But that's supplied answer, not skipped collector. The skipped collector didn't improve; answer did. ok.
+
+Potential bug: evidence_conflicts line 18: measured, provided = (first, second) if first.provenance == "measured" else (second, first). If first.provenance == "measured" and second.provenance == "provided", ok. If first.provenance == "provided" and second.provenance == "measured", ok. But if first.provenance == "measured" and second.provenance == "unknown", measured=first provided=second; condition fails. ok. If first.provenance == "unknown" and second.provenance == "measured", measured=second provided=first; condition fails. ok.
+
+Potential bug: If first.provenance == "measured" and second.provenance == "provided", but measured.value is bool and provided.value is None? is_complete(provided) false if value None. ok.
+
+Potential bug: If measured.value is bool True and provided.value is False, type(measured.value) is bool returns True and provided.value is False -> True. If measured.value is bool False and provided.value is True -> False. But if measured.value is bool True and provided.value is None? no. ok.
+
+Potential bug: If measured.value is bool and provided.value is bool, but is_complete(measured) true? Then measured.value != provided.value, so True vs False conflict. ok.
+
+Potential bug: If measured.value is bool and is_complete(measured) false, but measured.is_lower_bound maybe true? If is_lower_bound true for bool? Then condition in select calls evidence_conflicts. ok.
+
+Potential unhandled-input: scan.json collectors status maybe not string? skipped set compares == "skipped". If status None, false. ok.
+
+Potential unhandled-input: finding.coverage.kind maybe not "complete"? is_complete returns false for other kinds. ok.
+
+Potential bug: is_complete for provided with coverage None returns True. But if provided value is lower bound? Provided answers are not lower bounds? _provided doesn't set is_lower_bound? Finding dataclass maybe default? We don't see. Provided finding for software_list_without_web_version is a lower bound? It passes value lower_bound but does not set is_lower_bound=True. Wait Finding constructor in _provided does not include is_lower_bound. Maybe Finding dataclass has is_lower_bound field default? We don't see model. If provided lower bound should have is_lower_bound True? The function _without_web_version returns lower_bound, but _provided doesn't mark is_lower_bound. Could be bug: provided finding for software_list_without_web_version is a lower bound but not flagged, so evidence_conflicts/select may treat it as exact provided. But maybe is_lower_bound is derived from entry? _provided doesn't set. Let's examine: Finding fields in constructor: id, workload, unit, value, provenance, collector, source, collected_at, period, coverage, missing_reason. No is_lower_bound. But evidence_conflicts uses measured.is_lower_bound. So Finding must have is_lower_bound field with default maybe False, or maybe computed? If not passed, default. For measured findings, is_lower_bound set elsewhere. For provided lower bound, should be True? The name lower_bound in _without_web_version suggests value is a lower bound. But _provided doesn't set is_lower_bound=True. If default False, then provided lower bound is treated as exact value. In evidence_conflicts, provided is_complete true, measured lower bound 5, provided value 3 (but provided is lower bound? Actually provided lower bound 3 means at least 3; measured lower bound 5 conflicts if 5 > 3? Wait if both lower bounds, 5 and 3 not conflict? If measured lower bound 5 and provided lower bound 3, no conflict because at least 5 satisfies at least 3. But evidence_conflicts line 30: measured.is_lower_bound and measured.value > provided.value => conflict. That treats provided.value as exact upper? If provided is lower bound, 5 > 3 would be conflict incorrectly. But provided_answers? Hmm.
+
+Let's reason domain: Findings have value and is_lower_bound. Measured lower bound e.g. at least 100 files. Provided answer maybe exact count? If provided answer is lower bound? The entry.provided == "software_list_without_web_version" yields lower bound of software without web version from list. It is not exact; it's a lower bound because some items unknown. It should be marked lower bound. But _provided doesn't set is_lower_bound. Maybe Finding.is_lower_bound is not a field but property based on provenance? No, evidence_conflicts accesses measured.is_lower_bound, model likely field. If _provided omits, default maybe False. That could be a bug: provided lower bound not marked. But is there evidence in code? _without_web_version variable lower_bound, but _provided signature doesn't accept is_lower_bound. Maybe FindingEntry has is_lower_bound? Not passed. Could be intentional: provided answers are exact, except this one? But the name lower_bound and coverage partial indicate not exact. If not marked, is_complete for provided with coverage partial returns false (coverage.kind partial). So provided partial lower bound is incomplete, not exact. In select_evidence, if recorded measured lower bound and supplied provided partial (not complete), returns recorded if recorded.is_lower_bound and not is_complete(supplied). So supplied lower bound not used. If supplied complete (answered all) returns confirmed exact? If all answered, coverage None, value confirmed. Is that exact? If all answered, confirmed count of False. If some True, confirmed exact count of no web version? Yes if all answered, exact. So complete provided is exact. If partial, value lower bound but incomplete. is_complete false. So maybe is_lower_bound not needed for provided because incomplete. But evidence_conflicts for measured lower bound vs provided complete exact: if measured lower bound 5, provided exact 3 conflict. ok. If provided partial lower bound 3, is_complete false, no conflict. select returns recorded if measured lower bound. ok. So not marking lower bound maybe okay because partial not complete. But if partial coverage kind "complete"? no.
+
+Potential bug: _without_web_version returns Coverage("partial", scanned=answered, total=len(software)) even when answered == 0? If software non-empty and no answers, partial scanned 0 total n, value None. ok.
+
+Potential bug: In provided_findings, if entry.provided == "software_list" and software empty, value 0. If software list provided empty, exact 0. ok.
+
+Potential bug: In combine, alternatives includes recorded if selected is supplied else supplied. For provided_answers_conflict(recorded, supplied), if selected is supplied (because select_evidence for provided vs provided? Let's see select_evidence: if recorded.provenance == "measured" branch only. If both provided, recorded not measured, returns supplied (line 49). So selected is supplied. alternatives append recorded. Good: conflict between provided answers, selected supplied (last provided in dict), alternative recorded. But if provided has duplicate ids, by_id from scan may have recorded provided, supplied provided conflict. ok.
+
+But if recorded.provenance == "provided" and supplied.provenance == "provided" and values equal, provided_answers_conflict false, no alternative. ok.
+
+If recorded.provenance == "provided" and supplied.provenance == "provided" values differ, select returns supplied (because recorded not measured). alternatives append recorded. ok.
+
+If recorded.provenance == "measured" and supplied.provenance == "provided", select may return recorded or supplied. alternatives always append other. ok.
+
+If recorded.provenance == "provided" and supplied.provenance == "measured"? Can supplied be measured? provided tuple from provided_findings only provided/unknown. So no.
+
+Potential bug: In combine, by_id includes scan.findings. If scan.findings has a finding with same id as supplied but recorded.provenance unknown, select returns supplied. Condition if recorded and (recorded.provenance == "measured" and supplied.provenance == "provided") false; provided_answers_conflict false; selected is supplied and recorded.collector in skipped maybe if unknown from skipped collector. If not skipped, no alternative. So unknown recorded replaced by supplied, no alternative. ok.
+
+Potential bug: If recorded unknown from skipped collector and supplied provided, selected supplied, alternative recorded (unknown) added. ok.
+
+Potential contradicts-principle: "Show missing evidence as unknown." In _without_web_version, if partial and confirmed=0, returns None unknown. Good. But if partial and confirmed>0, returns confirmed lower bound. That's measured? It's provided lower bound. ok.
+
+Potential bug: "Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown." Not in this file.
+
+Potential contradicts-principle: "Metadata only. Leave mail bodies and file contents unopened." Not here.
+
+Potential bug: "Read-only" not here.
+
+Need identify likely planted faults. Let's scrutinize line 108-113.
+
+if recorded and (
+    (recorded.provenance == "measured" and supplied.provenance == "provided")
+    or provided_answers_conflict(recorded, supplied)
+    or (selected is supplied and recorded.collector in skipped)
+):
+    alternatives.append(recorded if selected is supplied else supplied)
+
+Suppose recorded.provenance == "measured" and supplied.provenance == "provided". If selected is supplied (because recorded incomplete no conflict), alternatives append recorded. If selected is recorded, append supplied. ok.
+
+But if recorded.provenance == "measured" and supplied.provenance == "provided", and recorded is skipped? The first condition adds alternative regardless of skipped. ok.
+
+Suppose recorded.provenance == "provided" and supplied.provenance == "provided" conflict. selected is supplied. alternatives append recorded. ok.
+
+Suppose recorded.provenance == "provided" and supplied.provenance == "provided" no conflict. no alternative. ok.
+
+Suppose recorded.provenance == "unknown" and supplied.provenance == "provided", recorded.collector in skipped. selected supplied. alternatives append recorded. ok.
+
+Suppose recorded.provenance == "unknown" and supplied.provenance == "provided", recorded.collector not skipped. no alternative. ok.
+
+Potential bug: If recorded is not None but selected is supplied and recorded.collector in skipped, alternatives append recorded. But if recorded.provenance == "provided" and supplied.provenance == "provided" conflict also true, still one alternative. ok.
+
+Potential bug: If recorded is not None and selected is supplied and recorded.collector in skipped, but recorded is the same object as supplied? Could happen if provided tuple includes scan finding? No, provided from inputs, distinct. ok.
+
+Potential bug: alternatives may include duplicates if multiple conditions? It appends once per supplied. ok.
+
+Potential bug: by_id values after replacement: if selected is supplied and supplied id not in scan, adds. If selected is recorded, by_id value remains recorded. ok.
+
+Potential bug: if provided empty returns scan, (). But if scan.findings has duplicates? no.
+
+Potential bug: In _provided, provenance="unknown" if value is None else "provided". For value False, provenance provided. ok. missing_reason answer_not_provided if value None. ok.
+
+Potential bug: In provided_findings, answers = {**inputs.provided_counts, **inputs.confirmations}. If confirmations value None? It overrides provided_counts with None, then value is None -> not added. If explicit None should maybe ignore. ok.
+
+Potential unhandled-input: catalogue.findings entry.provided may be other strings. Code only handles answer, software_list, software_list_without_web_version. Others ignored. ok.
+
+Potential bug: entry.provided == "answer" and value is not None. If value is False, ok. If value is 0, ok. If value is None, ignored. ok.
+
+Potential bug: In _without_web_version, if answered == len(software), return confirmed, None. But if software tuple contains items with vendor_has_web_version None? answered < len, partial. ok.
+
+Potential bug: If vendor_has_web_version is a non-bool (e.g., string) from inputs.yaml, item.vendor_has_web_version is False false, is not None true. answered counts it as answered. confirmed counts only False. If string "no", not counted. Could be wrong. But WindowsSoftware likely validated bool. Not enough.
+
+Potential bug: type(measured.value) is bool. If measured.value is bool subclass? no.
+
+Potential bug: evidence_conflicts line 28: if type(measured.value) is bool: return measured.value and provided.value is False. If measured.value is True and provided.value is False -> True. If measured.value is True and provided.value is None? is_complete(provided) false earlier. If measured.value is True and provided.value is "false" string? provided.value is False false, no conflict. But inputs validated.
+
+Potential bug: If measured.value is bool False and provided.value is False, returns False. ok.
+
+Potential bug: If measured.value is bool True and provided.value is True, returns False. ok.
+
+Potential bug: If measured.value is bool and provided.value is bool but is_complete(measured) false. ok.
+
+Potential bug: If measured.value is bool and provided.value is bool but measured.is_lower_bound false, select ignores conflict. As noted.
+
+Let's consider model likely: Finding has is_lower_bound bool default False. Measured findings from collectors may set is_lower_bound True for counts that are lower bounds. Boolean findings likely is_lower_bound False. select_evidence: if recorded measured incomplete and not lower bound, returns supplied. That means a partial measured boolean True will be overridden by provided False, even though evidence_conflicts would flag conflict. Is that a wrong result? If measured True partial (e.g., at least one user has feature) and provided False (org says no), conflict. Which should win? Maybe measured evidence should conflict and be shown alternative, but selected maybe measured? The principle: skipped/denied collector never improves readiness; honest figures. If measured says True (bad) and provided says False (good), choosing provided would make status better based on user answer, maybe okay? But evidence_conflicts bool branch suggests conflict should be recognized. But select only recognizes conflicts for lower_bound. Could be planted bug: missing is_lower_bound condition for bool. Let's see if evidence_conflicts is used elsewhere? Only in select_evidence. The bool branch would be dead if measured bool never is_lower_bound. But maybe measured bool can have is_lower_bound True? Unlikely. The code includes bool branch, so likely intended to be used. But select condition recorded.is_lower_bound and (... evidence_conflicts) means bool conflict not used. Is that a bug? It gives wrong result: measured incomplete boolean evidence conflicting with provided answer is discarded without conflict. But is that "plainly intends"? The function evidence_conflicts plainly handles bool. select_evidence intends to prefer recorded lower bound if conflict or supplied incomplete. It doesn't mention bool. Could be a bug. Need confidence medium? We only see code. It might be intended that only lower-bound measured evidence can conflict; bool measured evidence is not lower bound and should not override supplied. But then why bool branch? Could be for future or completeness. The task wants concrete faults; this is somewhat speculative. Need maybe report if high confidence? Let's hold.
+
+Another possible planted bug: line 18 in evidence_conflicts: if first.provenance == "measured" else (second, first). If first.provenance is "measured" and second.provenance is "provided", ok. But if first.provenance is "provided" and second.provenance is "measured", ok. If first.provenance is "measured" and second.provenance is "measured", condition fails. But what if first.provenance is "provided" and second.provenance is "provided"? fails. ok.
+
+Potential bug: evidence_conflicts when first.provenance == "measured" but second.provenance == "provided" and measured.value is None? condition measured.value is not None. ok.
+
+Potential bug: evidence_conflicts line 27: if is_complete(measured): return measured.value != provided.value. If measured complete lower bound? is_complete true if coverage complete. If measured is lower bound complete? A complete lower bound is just exact? If measured.value != provided.value conflict. ok.
+
+Potential bug: line 30: return measured.is_lower_bound and measured.value > provided.value. If measured.value and provided.value are bool? handled earlier. If measured.value is None? condition earlier. If provided.value is None? is_complete false. If values are strings? TypeError. unhandled-input.
+
+Potential unhandled-input: scan.json finding value could be string? Model likely typed but JSON can contain string. is_complete returns True if value not None. evidence_conflicts may compare > between int and str TypeError. But if no conflict? If measured complete, != works. If lower bound, > can crash. If scan.json has string for count, crash. Does code accept? Finding from scan likely parsed with validation elsewhere. We cannot see. Could report low confidence. But task says input from scan.json leads crash. The code itself doesn't validate.

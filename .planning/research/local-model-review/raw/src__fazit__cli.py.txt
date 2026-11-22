@@ -1,0 +1,26 @@
+FINDING
+file: src/fazit/cli.py
+line: 141
+kind: unhandled-input
+claim: The report command accepts an arbitrary --lang value and only validates the message language before loading inputs, so an invalid language can reach the report renderer.
+evidence:      lang: Annotated[str | None, typer.Option(help="Report language (en or de).")] = None,
+why: If the user passes --lang fr, check_language(message_lang) is called before the scan and inputs are loaded; if those later fail, _exit_with_error calls load_locale(lang) with the invalid language instead of the default, causing an unhandled failure.
+confidence: high
+
+FINDING
+file: src/fazit/cli.py
+line: 155
+kind: unhandled-input
+claim: A language supplied in inputs.yaml is used as the report language without being checked against the supported languages.
+evidence:          report_lang = lang if lang is not None else answers.language or DEFAULT_LANGUAGE
+why: If inputs.yaml contains an unsupported language such as fr, report_lang becomes that value and is passed to render_report, which can crash or produce a wrong report instead of reporting an input error.
+confidence: medium
+
+FINDING
+file: src/fazit/cli.py
+line: 156
+kind: unhandled-input
+claim: A target profile supplied in inputs.yaml is used without being checked against the allowed profiles.
+evidence:          target = profile if profile is not None else answers.target_profile or "opendesk"
+why: If inputs.yaml contains an unsupported target_profile value, that value is passed to render_report instead of being rejected as invalid input, leading to a crash or silently wrong report depending on the renderer.
+confidence: medium

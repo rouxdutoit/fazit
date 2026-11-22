@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/costs.py
+line: 74-86
+kind: unhandled-input
+claim: An out-of-range `parallel_running_months` value makes the retained-licence cost negative or otherwise nonsensical.
+evidence: "    months = target.parallel_running_months\n    months_left = MONTHS - months if months is not None else None"
+why: If `inputs.yaml` supplies a value greater than 60, `months_left` is negative and the `retained_licences` line computes a negative five-year cost; if it supplies a negative value, the parallel-running block becomes negative. Either can make an exit scenario look cheaper than it is.
+confidence: medium

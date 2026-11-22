@@ -1,0 +1,44 @@
+FINDING
+file: src/fazit/licences.py
+line: 178
+kind: unhandled-input
+claim: `classify_product` assumes `product.key` exists and can be used to look up a roster, but a `Product` with no usable SKU identity can make `product.key` raise or produce a non-matching key.
+evidence: "    roster = plans.rosters.get(product.key)"
+why: If scan.json contains a licence product whose `sku_part_number`/`sku_guid` are missing or of an unexpected type and `Product.key` is derived from them, this line can crash or silently return no roster, turning an invalid input into a crash or an unclassified product.
+confidence: medium
+
+FINDING
+file: src/fazit/licences.py
+line: 262
+kind: unhandled-input
+claim: `_inventory_evidence` crashes when `licences.coverage` is `None`, even though `_coverage_gap` explicitly accepts `None`.
+evidence: "    if coverage.kind == \"complete\":"
+why: A scan.json with `licences.coverage` null and a partial collector reaches this line and raises `AttributeError: 'NoneType' object has no attribute 'kind'`; if the collector is not partial, line 266 also dereferences `coverage.kind`.
+confidence: high
+
+FINDING
+file: src/fazit/licences.py
+line: 266
+kind: unhandled-input
+claim: The zero-products case also dereferences `coverage.kind` without checking for `None`.
+evidence: "    known_count = count > 0 or ("
+why: When `count` is zero and `licences.coverage` is null, Python evaluates the right-hand side and crashes on `coverage.kind`, so an otherwise representable missing-coverage input becomes a traceback.
+confidence: high
+
+FINDING
+file: src/fazit/licences.py
+line: 293
+kind: contradicts-principle
+claim: The directory cross-check can report a licence-assignment conflict from a `directory.licensed_user_count` finding that is not comparable to the licence collection.
+evidence: "    if comparable and accounts.value > assigned_seats:"
+why: `comparable` requires the same collection time, but `accounts.collected_at` and `licences.collected_at` may be missing or different; if `same_collection_time` treats missing times as equal, a stale or unverified directory count can make licence readiness look worse or invent a conflict.
+confidence: medium
+
+FINDING
+file: src/fazit/licences.py
+line: 302
+kind: bug
+claim: `_directory_cross_check` returns `accounts.missing_reason` even when the directory finding is present, measured, and comparable, which can hide a valid zero or positive count.
+evidence: "    return accounts.missing_reason or ("
+why: If `directory.licensed_user_count` has a `missing_reason` set alongside a measured value, the function prefers that reason over the actual comparable value, producing a wrong gap status for licence assignments.
+confidence: low

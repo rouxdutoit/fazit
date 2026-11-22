@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/risky_files.py
+line: 44-56
+kind: unhandled-input
+claim: A rule file can define a risky file kind with an empty extensions list, producing a kind that can never match any file and silently undercounting that risk.
+evidence: "          extensions = reader.rows(row[\"extensions\"], f\"{field}.extensions\")\n          for number, extension in enumerate(extensions):\n              member = f\"{field}.extensions[{number}]\"\n              extension = reader.matches(extension, member, _EXTENSION)\n              if extension in seen_extensions:\n                  reader.fail(member, \"duplicate_id\")\n              seen_extensions.add(extension)\n          kinds[kind] = RiskyKind(\n              kind,\n              finding_ids[kind],\n              reader.bilingual(row[\"label\"], f\"{field}.label\"),\n              reader.bilingual(row[\"note\"], f\"{field}.note\"),\n              tuple(extensions),\n          )"
+why: If `extensions: []` is supplied, the loop is skipped and the code still creates a `RiskyKind` with `extensions=()`. A risky kind with no extensions cannot identify any files, so evidence for that risk is effectively treated as absent/zero rather than unknown or rejected.
+confidence: medium
