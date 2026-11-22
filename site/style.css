@@ -1006,16 +1006,12 @@ code {
   padding-block: clamp(64px, 8vw, 96px);
 }
 
-.sec::before, .bar-in::after, .foot-in::before {
+.sec::before, .foot-in::before {
   position: absolute;
   inset: 0 var(--gutter) auto;
   height: 1px;
   background: var(--rule);
   content: "";
-}
-
-.bar-in::after {
-  inset: auto var(--gutter) 0;
 }
 
 .page-intro ~ .sec {
