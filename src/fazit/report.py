@@ -39,7 +39,6 @@ from .parsing import read_text
 from .risky_files import load_risky_file_types
 from .status import (
     MissingEvidence,
-    NextStep,
     StatusRuleSet,
     TransferGap,
     WorkloadStatus,
@@ -334,18 +333,34 @@ def _target_functions(row: WorkloadStatus, mapping: TargetMapping) -> tuple[Func
 
 
 @dataclass(frozen=True)
+class _SummaryOpenArea:
+    workload: str
+    finding_id: str | None
+    fix: str | None
+
+
+@dataclass(frozen=True)
 class _SummaryRows:
     blockers: tuple[WorkloadStatus, ...]
-    open_areas: tuple[tuple[str, str], ...]
+    open_areas: tuple[_SummaryOpenArea, ...]
 
 
-def _summary_rows(statuses: tuple[WorkloadStatus, ...], strings: dict) -> _SummaryRows:
+def _summary_rows(
+    statuses: tuple[WorkloadStatus, ...], catalogue: Catalogue, strings: dict
+) -> _SummaryRows:
     open_areas = []
     for row in statuses:
         if row.status == "unknown" or row.incomplete:
-            code = row.reason_code if row.reason_code is not None else row.missing[0].reason_code
+            first_gap = row.missing[0] if row.missing else None
+            code = row.reason_code or (first_gap.reason_code if first_gap else "not_established")
+            gap = next((item for item in row.missing if item.reason_code == code), first_gap)
             _, fix = reason_text(strings, code)
-            open_areas.append((row.workload, fix))
+            finding_id = gap.finding_id if gap else None
+            if code == "answer_not_provided" and finding_id:
+                entry = catalogue.finding(finding_id)
+                if _finding_input_key(entry):
+                    fix = None
+            open_areas.append(_SummaryOpenArea(row.workload, finding_id, fix))
     return _SummaryRows(
         blockers=tuple(row for row in statuses if row.status == "blocker"),
         open_areas=tuple(open_areas),
@@ -517,23 +532,50 @@ def _open_points(
     )
 
 
+@dataclass(frozen=True)
+class _PathAction:
+    kind: str
+    text: str
+
+
+def _area_actions(
+    row: WorkloadStatus, status_rules: StatusRuleSet, lang: str, strings: dict
+) -> Iterator[_PathAction]:
+    functions: dict[str, list[str]] = defaultdict(list)
+    for gap in row.transfer_gaps:
+        if gap.need == "yes":
+            functions[gap.mapping.coverage].append(gap.mapping.microsoft[lang])
+
+    fired_steps = {rule.id: rule.next_step for rule in (row.deciding, *row.notes) if rule}
+    for step in fired_steps.values():
+        # The evaluator attaches the template's action to each fired transfer rule.
+        coverage = next(
+            (code for code, rule in status_rules.target_gaps.items() if step is rule.next_step),
+            None,
+        )
+        if coverage is None:
+            yield _PathAction(step.kind, step.text[lang])
+        elif names := functions.pop(coverage, None):
+            text = strings["path"]["transfer_actions"][coverage].format(functions=", ".join(names))
+            yield _PathAction(step.kind, text)
+
+
 def _next_steps(
     status_groups: list[tuple[str, tuple[WorkloadStatus, ...]]],
-) -> tuple[tuple[tuple[str, NextStep], ...], tuple[tuple[str, NextStep], ...]]:
-    steps = []
+    status_rules: StatusRuleSet,
+    lang: str,
+    strings: dict,
+) -> tuple[dict[str, list[_PathAction]], dict[str, list[_PathAction]]]:
+    staying: dict[str, list[_PathAction]] = defaultdict(list)
+    moving: dict[str, list[_PathAction]] = defaultdict(list)
     for status, rows in status_groups:
         if status not in ("blocker", "needs_work"):
             continue
         for row in rows:
-            seen = set()
-            for rule in (row.deciding, *row.notes):
-                if rule is not None and rule.id not in seen:
-                    steps.append((row.workload, rule.next_step))
-                    seen.add(rule.id)
-    return (
-        tuple(step for step in steps if step[1].kind != "replace"),
-        tuple(step for step in steps if step[1].kind == "replace"),
-    )
+            for action in _area_actions(row, status_rules, lang, strings):
+                group = moving if action.kind == "replace" else staying
+                group[row.workload].append(action)
+    return staying, moving
 
 
 def _evidence_context(
@@ -562,7 +604,7 @@ def _evidence_context(
         for status in _DISPLAY_ORDER
         if counts[status]
     ]
-    staying_steps, move_steps = _next_steps(status_groups)
+    staying_steps, move_steps = _next_steps(status_groups, status_rules, lang, strings)
     observations = [(entry, by_id.get(entry.id)) for entry in catalogue.findings]
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     for entry, finding in observations:
@@ -579,7 +621,7 @@ def _evidence_context(
         status_counts=[(status, counts[status]) for status in _DISPLAY_ORDER],
         status_groups=status_groups,
         area_count=len(catalogue.assessed_workload_ids),
-        summary_rows=_summary_rows(statuses, strings),
+        summary_rows=_summary_rows(statuses, catalogue, strings),
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
         mapping_gaps=[

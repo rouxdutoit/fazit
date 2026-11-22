@@ -1967,7 +1967,8 @@ def _rendered_coverage_counts(html: str, lang: str) -> Counter[str]:
     section = report_section(html, "moves")
     column = re.escape(load_locale(lang)["moves"]["replacement"])
     cells = re.findall(
-        rf'<td role="cell" data-label="{column}">\s*<span class="cov-cell">\s*'
+        rf'<td role="cell" data-label="{column}" data-coverage-label="[^"]+">'
+        r'\s*<span class="cov-cell">\s*'
         r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
         section,
         re.S,
@@ -2134,9 +2135,11 @@ def test_next_steps_and_open_evidence_follow_the_findings(
         rule for rule in status_rules.workloads["telephony"].rules if rule.status == "blocker"
     )
     assert re.search(
-        rf'<dt><a href="#readiness-telephony">[^<]+</a></dt>\s*'
-        rf'<dd data-step-kind="{rule.next_step.kind}">{re.escape(rule.next_step.text["en"])}</dd>',
+        r'<dt><a href="#readiness-telephony" class="more">.*?</a></dt>\s*'
+        r'<dd>\s*<ul class="path-actions">\s*'
+        rf'<li data-step-kind="{rule.next_step.kind}">{re.escape(rule.next_step.text["en"])}</li>',
         path,
+        re.S,
     )
     staying, moving = path.split('id="not-examined"')
     assert set(re.findall(r'data-step-kind="([^"]+)"', staying)) == {"clarify", "decide"}

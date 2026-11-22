@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: Was ein Umstieg von Microsoft 365 erfordert
+  title: "Was ein Umstieg von Microsoft\u00a0365 erfordert"
   unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung (scan.json)
   inputs_date: Stand der Angaben (inputs.yaml)
@@ -17,6 +17,7 @@ nav:
   replacements: Ersatz
   closer_look: Prüfbedarf
   appendix: Anhang
+  on_this_page: Auf dieser Seite
   label: Abschnitte des Berichts
   skip: Zum Inhalt springen
 summary:
@@ -37,6 +38,7 @@ summary:
   scope_title: Was {profile} abdeckt
   scope_of: 'Von den {n} Funktionen, die Fazit für {profile} prüft:'
   scope_needed: Nicht in {profile} enthalten und hier benötigt
+  scope_unknown_one: Eine weitere Funktion fehlt in {profile}. Ob sie hier benötigt wird, ist unbekannt.
   scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob sie hier benötigt werden, ist unbekannt.'
 found:
   title: Was Fazit erfasst hat
@@ -89,7 +91,6 @@ costs:
   rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
   provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
   missing: 'Fehlende Angaben für das Szenario „{scenario}“'
-  total_label: '{scenario} · Summe über fünf Jahre'
   stay_basis: Heutige Jahreskosten über fünf Jahre
   comparison_unknown: Vergleich unbekannt
   stay_assumption: Für den Verbleib ist keine Preisänderung angenommen.
@@ -159,7 +160,7 @@ costs:
 readiness:
   title: Wo jeder Bereich steht
   next_step: Nächster Schritt
-  incomplete: Datengrundlage unvollständig
+  incomplete: Nachweise unvollständig
   missing: Noch benötigte Angaben
   conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
   evidence_summary: Nachweise · {measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt
@@ -169,10 +170,13 @@ filter:
   category_legend: Bereiche nach Kategorie anzeigen
   all: Alle
   all_categories: Alle Kategorien
-  empty: Kein Bereich entspricht dieser Auswahl. Wählen Sie „Alle“, um alle Bereiche anzuzeigen.
+  empty: Kein Bereich entspricht diesen Filtern. Wählen Sie „Alle“ und „Alle Kategorien“, um alle Bereiche anzuzeigen.
   search_hint: Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht.
 moves:
   title: Was wodurch ersetzt wird
+  coverage: Funktionsabdeckung
+  need: Hier benötigt
+  need_not_assessed: Nicht geprüft
   microsoft: Funktion bei Microsoft
   replacement: Ersatz im Zielsystem
   workload_status: Status des Bereichs
@@ -210,6 +214,40 @@ path:
   title: Was als Nächstes zu tun ist
   even_if_staying: Sinnvoll, auch wenn Sie bleiben
   for_move: Für einen Umstieg nötig
+  input_field: Feld in inputs.yaml
+  questions:
+    licences.contract_terms_known: Hat die Vergabestelle die Vertragsbedingungen der Microsoft-Lizenzen geprüft?
+    directory.account_list_reviewed: Hat die IT-Abteilung die aktuelle Kontenliste geprüft?
+    mail.shared_mailbox_count: Wie viele freigegebene Postfächer hat die Organisation?
+    mail.other_systems_send_mail: Versenden andere Systeme E-Mails über Microsoft?
+    onedrive.external_sharing_in_use: Gibt Ihre Organisation OneDrive-Dateien für Externe frei?
+    sharepoint.custom_solutions_in_use: Setzt Ihre Organisation individuell angepasste SharePoint-Lösungen ein?
+    sharepoint.workflows_in_use: Werden über SharePoint-Websites, Listen oder Bibliotheken Workflows oder automatisierte Genehmigungen ausgeführt oder gestartet?
+    teams.chat_history_must_be_kept: Muss der Chatverlauf aus Teams erhalten bleiben?
+    teams.apps_in_use: Sind in Teams Apps, Registerkarten, Bots oder Konnektoren eingebunden?
+    office_files.kind.macro: Wie viele Dateien haben Endungen, die Makros zulassen?
+    office_files.kind.access: Wie viele Access-Datenbankdateien gibt es?
+    office_files.kind.publisher: Wie viele Publisher-Dateien gibt es?
+    office_files.kind.visio: Wie viele Visio-Zeichnungsdateien gibt es?
+    office_files.kind.onenote: Wie viele OneNote-Dateien gibt es?
+    office_files.vba_macros_in_use: Sind die Beschäftigten auf VBA-Makros in Office-Dateien angewiesen?
+    device_management.device_count: Wie viele Geräte umfasst der von der IT-Abteilung erfasste Bestand?
+    device_management.windows_device_count: Wie viele dieser Geräte laufen unter Windows?
+    device_management.in_use: Verwaltet Ihre Organisation Geräte über Microsoft?
+    device_management.windows_desktops_required: Benötigen Sie Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie?
+    windows_software.application_count: Welche Anwendungen laufen ausschließlich unter Windows?
+    windows_software.without_web_version_count: Für welche reinen Windows-Anwendungen gibt es keine Webversion?
+    power_platform.in_use: Nutzt Ihre Organisation Dienste der Power Platform?
+    telephony.in_use: Läuft die Telefonie Ihrer Organisation ganz oder teilweise über Microsoft?
+    telephony.replacement_available: Steht für die eingesetzte Microsoft-Telefonie eine Alternative zur Verfügung?
+    identity_access.sso_application_count: Wie viele Anwendungen nutzen die zentrale Anmeldung über Microsoft?
+    identity_access.conditional_access_in_use: Setzt Ihre Organisation den bedingten Zugriff von Microsoft ein?
+    security_compliance.protection_or_retention_in_use: Nutzt Ihre Organisation Schutz- oder Aufbewahrungsfunktionen von Microsoft?
+    small_apps.in_use: Nutzen die Fachbereiche kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings?
+    integrations.application_count: Wie viele Fachanwendungen sind an Microsoft 365 angebunden?
+  transfer_actions:
+    not_available: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die betreffenden Funktionen nach dem Umstieg bereitgestellt werden ({functions}).
+    transfer_undocumented: Die fachlich verantwortliche Stelle und die IT-Abteilung planen und erproben die Übernahme oder den Neuaufbau der Inhalte für {functions}.
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
     unknown: Der Status ist für alle Bereiche bekannt.

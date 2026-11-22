@@ -26,7 +26,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Lists of facts are tiles:** a soft fill, no border, the card radius, 24 px padding. Each tile has one anchor (a symbol, a large number or a name), never two, then a short label or main line, then one line of detail. Within a group, either every tile has a symbol or none does.
 - **A sequence is a timeline,** not tiles: a rail with one dot per step, filled only for what exists today.
 - **No borders on cards.** Lines only separate rows and sections; in icon lists they start at the text.
-- **Labels, not pills.** Pills are only for controls the reader presses, such as filters.
+- **Badges show state.** A card can show a status or incomplete evidence in a non-interactive capsule at the top right. On phones the badges wrap below the name. Use pressable pills for controls such as filters.
 
 ## Symbols
 

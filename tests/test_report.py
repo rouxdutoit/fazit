@@ -85,10 +85,12 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
 
     assert tags[tags.index(("body", {})) + 1] == ("a", {"class": "skip", "href": "#main"})
     assert [attrs["id"] for tag, attrs in tags if tag == "main"] == ["main"]
-    nav = re.search(r'<nav class="bar-links" aria-label="([^"]+)">(.*?)</nav>', html, re.S)
-    assert nav and unescape(nav[1]) == strings["nav"]["label"]
-    links = re.findall(r'<a href="#([^"]+)">([^<]+)</a>', nav[2])
-    assert links == [
+    assert [attrs["aria-label"] for tag, attrs in tags if tag == "nav"] == [
+        strings["nav"]["label"],
+        strings["nav"]["label"],
+    ]
+    indexes = re.findall(r'<ul class="index-links" role="list">(.*?)</ul>', html, re.S)
+    expected_links = [
         (f"{section}-title", strings["nav"][key])
         for section, key in (
             ("summary", "summary"),
@@ -100,6 +102,9 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
             ("appendix", "appendix"),
         )
     ]
+    assert len(indexes) == 2
+    for index in indexes:
+        assert re.findall(r'<a href="#([^"]+)">([^<]+)</a>', index) == expected_links
     appendix = unescape(report_section(html, "appendix"))
     for key in ("not_looked", "not_looked_text"):
         assert strings["appendix"][key] in appendix
@@ -126,6 +131,7 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
     moves = report_section(html, "moves")
     rows = dict(re.findall(r'<tr data-function="([^"]+)"(.*?)</tr>', moves, re.S))
     assert list(rows) == [item.function for item in mapping.functions]
+    needs = dict(re.findall(r'<li data-gap="([^"]+)" data-need="([^"]+)"', html))
     symbols = {
         coverage: icon
         for icon, codes in (
@@ -149,7 +155,20 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
     for item in mapping.functions:
         row = rows[item.function]
         status = re.search(r'data-status="([^"]+)"', row)[1]
-        assert row.count("<td ") == 3
+        assert row.count("<td ") == 4
+        need = re.search(
+            rf'<td role="cell" data-label="{strings["moves"]["need"]}">\s*([^<]+)',
+            row,
+        )
+        assert need
+        expected_need = needs.get(item.function)
+        assert need[1].strip() == (
+            strings["status"]["unknown"]
+            if expected_need == "unknown"
+            else strings["common"][expected_need]
+            if expected_need
+            else strings["moves"]["need_not_assessed"]
+        )
         coverage = re.search(r'<span class="cov-cell">.*?</td>', row, re.S)
         assert coverage is not None
         source = ROOT / "site" / "icons" / f"{symbols[item.coverage]}.svg"
@@ -157,7 +176,9 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         assert re.findall(r'<path d="([^"]+)"', coverage[0]) == [path]
         assert path not in status_paths
         assert strings["mapping_coverage"][item.coverage] in unescape(coverage[0])
-        link = re.search(r'<a href="#readiness-([^"]+)" aria-label="([^"]+)">(.*?)</a>', row, re.S)
+        link = re.search(
+            r'<a href="#readiness-([^"]+)" aria-label="([^"]+)" class="more">(.*?)</a>', row, re.S
+        )
         assert link and link[1] == item.workload
         assert unescape(link[2]) == strings["moves"]["status_link"].format(
             area=strings["workload"][item.workload], status=strings["status"][status]
@@ -172,7 +193,8 @@ def _assert_status_summary(summary: str, counts: Counter[str], formatter: Format
     status_list = re.search(r'<dl class="status-summary">(.*?)</dl>', summary, re.S)
     assert status_list is not None
     rows = re.findall(
-        r'<dt><span class="status ([a-z_]+)"><svg[^>]*>.*?</svg> ([^<]+)</span> ([^<]+)</dt>'
+        r'<dt><span class="status ([a-z_]+)"><svg[^>]*>.*?</svg> ([^<]+)</span>'
+        r' <span class="row-count">([^<]+)</span></dt>'
         r"\s*<dd>([^<]+)</dd>",
         unescape(status_list[1]),
     )
@@ -192,7 +214,10 @@ def _assert_status_summary(summary: str, counts: Counter[str], formatter: Format
 
 def _summary_area_rows(part: str) -> list[tuple[str, str, str]]:
     return re.findall(
-        r'<dt>(<a href="#readiness-([^"]+)".*?</dt>)\s*<dd>\s*(.*?)\s*</dd>', part, re.S
+        r'<dt class="finding-head">(\s*<div>\s*<a href="#readiness-([^"]+)".*?</dt>)'
+        r"\s*<dd>\s*(.*?)\s*</dd>",
+        part,
+        re.S,
     )
 
 
@@ -249,7 +274,13 @@ def test_summary_caps_blockers_and_open_areas_in_catalogue_order(
         else:
             reason_part = re.search(r'<li data-missing="[^"]+">.*?</li>', card, re.S)[0]
         reason_code = re.search(r'data-reason="([^"]+)"', reason_part)[1]
-        assert fix == strings["reason"][reason_code]["fix"]
+        gaps = re.findall(r'<li data-missing="([^"]+)">.*?data-reason="([^"]+)"', card, re.S)
+        finding_id = next((id for id, code in gaps if code == reason_code), gaps[0][0])
+        question = strings["path"]["questions"][finding_id]
+        if reason_code == "answer_not_provided":
+            assert " ".join(fix.split()) == question
+        else:
+            assert " ".join(fix.split()) == f"{question} {strings['reason'][reason_code]['fix']}"
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
@@ -385,28 +416,105 @@ def test_open_points_group_both_software_counts_by_the_input_list(tmp_path: Path
     assert "<code>windows_only_software</code>" in software
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_manual_open_points_name_the_actual_question_and_input(tmp_path: Path, lang: str) -> None:
+    html = _sample_report("town", tmp_path, lang, "opendesk")
+    summary = unescape(report_section(html, "summary"))
+    path = unescape(report_section(html, "path"))
+    strings = load_locale(lang)
+    points = dict(_open_point_rows(path))
+    for finding_id in (
+        "sharepoint.workflows_in_use",
+        "office_files.vba_macros_in_use",
+        "device_management.windows_desktops_required",
+    ):
+        key = f"confirmations.{finding_id}"
+        question = strings["path"]["questions"][finding_id]
+        assert f'<dt data-open-point="{key}">{question}</dt>' in path
+        assert question in summary
+        assert f"{strings['path']['input_field']} <code>{key}</code>" in points[key]
+        assert strings["reason"]["answer_not_provided"]["fix"] not in points[key]
+
+
+def _path_action_rows(part: str) -> list[tuple[str, list[tuple[str, str]]]]:
+    groups = re.findall(
+        r'<dt><a href="#readiness-([^"]+)" class="more">.*?</a></dt>\s*'
+        r'<dd>\s*<ul class="path-actions">(.*?)</ul>',
+        part,
+        re.S,
+    )
+    return [
+        (workload, re.findall(r'<li data-step-kind="([^"]+)">([^<]+)</li>', items))
+        for workload, items in groups
+    ]
+
+
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
-def test_next_steps_render_every_fired_rule_in_display_order(sample: str, lang: str) -> None:
+def test_next_steps_group_actions_by_area_in_display_order(sample: str, lang: str) -> None:
     entries = catalogue.load_catalogue()
     scan = load_scan(sample_scan_path(sample), entries)
     inputs = load_inputs(sample_inputs_path(sample), entries)
     context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
     path = unescape(report_section(report_module._render_html(context), "path"))
     before, after = path.split('id="not-examined"')
-    expected = [
-        (row.workload, rule.next_step.kind, rule.next_step.text[lang])
-        for status in ("blocker", "needs_work")
-        for row in context["statuses"]
-        if row.status == status
-        for rule in (row.deciding, *row.notes)
-    ]
-    row_pattern = (
-        r'<dt><a href="#readiness-([^"]+)">[^<]+</a></dt>\s*'
-        r'<dd data-step-kind="(clarify|decide|replace)">([^<]+)</dd>'
+    templates = context["status_rules"].target_gaps
+    transfer_copy = load_locale(lang)["path"]["transfer_actions"]
+    expected_stay: dict[str, list[tuple[str, str]]] = {}
+    expected_move: dict[str, list[tuple[str, str]]] = {}
+    for status in ("blocker", "needs_work"):
+        for row in (row for row in context["statuses"] if row.status == status):
+            grouped: set[str] = set()
+            for rule in (row.deciding, *row.notes):
+                target = next(
+                    (
+                        code
+                        for code, template in templates.items()
+                        if rule.id.startswith(template.id + "-")
+                    ),
+                    None,
+                )
+                kind, text = rule.next_step.kind, rule.next_step.text[lang]
+                if target in grouped:
+                    continue
+                if target is not None:
+                    grouped.add(target)
+                    functions = ", ".join(
+                        gap.mapping.microsoft[lang]
+                        for gap in row.transfer_gaps
+                        if gap.need == "yes" and gap.mapping.coverage == target
+                    )
+                    assert functions
+                    text = transfer_copy[target].format(functions=functions)
+                group = expected_move if kind == "replace" else expected_stay
+                group.setdefault(row.workload, []).append((kind, text))
+    assert _path_action_rows(before) == list(expected_stay.items())
+    assert _path_action_rows(after) == list(expected_move.items())
+    assert path.count("data-step-kind=") == sum(
+        len(actions) for actions in (*expected_stay.values(), *expected_move.values())
     )
-    assert re.findall(row_pattern, before) == [step for step in expected if step[1] != "replace"]
-    assert re.findall(row_pattern, after) == [step for step in expected if step[1] == "replace"]
-    assert path.count("data-step-kind=") == len(expected)
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_next_steps_name_both_functions_in_one_transfer_action(lang: str) -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    inputs = load_inputs(sample_inputs_path("town"), entries)
+    inputs = replace(
+        inputs,
+        confirmations=inputs.confirmations | {"device_management.windows_desktops_required": True},
+    )
+    context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
+    path = unescape(report_section(report_module._render_html(context), "path"))
+    rows = _path_action_rows(path.split('id="not-examined"')[1])
+    device_rows = [actions for workload, actions in rows if workload == "device_management"]
+    assert len(device_rows) == 1
+    functions = ", ".join(
+        item.microsoft[lang]
+        for item in context["mapping"].functions
+        if item.function in ("device_management", "desktop_operating_system")
+    )
+    action = load_locale(lang)["path"]["transfer_actions"]["not_available"]
+    assert device_rows[0].count(("replace", action.format(functions=functions))) == 1
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])
@@ -425,15 +533,18 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
     assert blocks is not None
     assert blocks[1] == strings["summary"]["scope_title"].format(profile=scope.profile)
     intro = strings["summary"]["scope_of"].format(n=scope.total, profile=scope.profile)
-    coverage = " · ".join(
-        f"{strings['mapping_coverage'][code]} {formatter.integer(count)}"
+    assert blocks[2] == intro
+    coverage = re.search(r'<dl class="coverage-summary">(.*?)</dl>', summary, re.S)
+    assert coverage
+    assert re.findall(r'<dt>([^<]+)</dt>\s*<dd class="row-count">([^<]+)</dd>', coverage[1]) == [
+        (strings["mapping_coverage"][code], formatter.integer(count))
         for code, count in scope.by_coverage
-    )
-    assert " ".join(blocks[2].split()) == f"{intro} {coverage}"
+    ]
     moves = unescape(report_section(html, "moves"))
     replacement_column = re.escape(strings["moves"]["replacement"])
     labels = re.findall(
-        rf'<td role="cell" data-label="{replacement_column}">\s*<span class="cov-cell">\s*'
+        rf'<td role="cell" data-label="{replacement_column}" data-coverage-label="[^"]+">'
+        r'\s*<span class="cov-cell">\s*'
         r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
         moves,
         re.S,
@@ -441,8 +552,9 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
     assert Counter(label.strip() for label in labels) == {
         strings["mapping_coverage"][code]: count for code, count in scope.by_coverage
     }
-    assert re.findall(r'<a href="#([^"]+)">([^<]+)</a>', summary) == [
-        (anchor, name) for name, anchor in scope.needed
+    assert re.findall(r'<a href="#([^"]+)" class="more">([^<]+)<svg', summary) == [
+        (f"replacement-{anchor.removeprefix('transfer-gap-')}", name)
+        for name, anchor in scope.needed
     ]
     assert (
         strings["summary"]["scope_unknown"].format(n=scope.unknown_need, profile=scope.profile)
@@ -480,6 +592,8 @@ def test_readiness_cards_keep_status_order_and_show_the_area_and_action(
         status = re.search(r'data-status="([^"]+)"', card)[1]
         label = strings["status"][status]
         assert re.search(rf'<p class="finding-status">.*?</svg> {label}</span>', card, re.S)
+        incomplete = strings["readiness"]["incomplete"]
+        assert (f'<span class="badge">{incomplete}</span>' in card) == (" data-incomplete" in card)
         reason = re.search(r'<div class="finding-reason">(.*?)</div>', card, re.S)
         assert reason and re.sub(r"<[^>]+>", "", reason[1]).strip()
         if status != "ready":
@@ -635,42 +749,44 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
     entries = catalogue.load_catalogue()
     formatter = Formatter(lang)
     strings = formatter.strings
-    groups = re.findall(
-        r'<fieldset class="segmented" data-filter="([^"]+)">(.*?)</fieldset>', readiness, re.S
+    (status_group,) = re.findall(
+        r'<fieldset class="segmented" data-filter="status">(.*?)</fieldset>', readiness, re.S
     )
-    assert [group for group, _ in groups] == ["status", "category"]
     cards = [attrs for tag, attrs in ReportDocument(readiness).tags if tag == "article"]
     counts = Counter(card["data-status"] for card in cards)
     category_ids = [category.id for category in entries.categories]
     assert {card["data-category"] for card in cards} == set(category_ids)
 
-    for kind, group in groups:
-        ids = DISPLAY_ORDER if kind == "status" else category_ids
-        assert f'<legend class="sr-only">{strings["filter"][f"{kind}_legend"]}</legend>' in group
-        labels = re.findall(r"<label>(.*?)</label>", group, re.S)
-        radios = [attrs for tag, attrs in ReportDocument(group).tags if tag == "input"]
-        assert len(labels) == len(radios) == len(ids) + 1
-        for option, label, radio in zip(("all", *ids), labels, radios, strict=True):
-            assert radio["type"] == "radio" and radio["name"] == f"f-{kind}"
-            assert radio["id"] == f"f-{kind}-{option}"
-            assert "<input " in label
-            assert ("checked" in radio) is (option == "all")
-            assert ("disabled" in radio) is (
-                kind == "status" and option != "all" and not counts[option]
-            )
-            text = unescape(" ".join(re.sub(r"<[^>]*>", "", label).split()))
-            if kind == "status":
-                count = len(entries.assessed_workload_ids) if option == "all" else counts[option]
-                name = strings["filter"]["all"] if option == "all" else strings["status"][option]
-                assert text == f"{name} · {formatter.integer(count)}"
-                assert ("<svg" in label) is (option != "all")
-            else:
-                name = (
-                    strings["filter"]["all_categories"]
-                    if option == "all"
-                    else strings["category"][option]
-                )
-                assert text == name and "<svg" not in label
+    assert f'<legend class="sr-only">{strings["filter"]["status_legend"]}</legend>' in status_group
+    labels = re.findall(r"<label>(.*?)</label>", status_group, re.S)
+    radios = [attrs for tag, attrs in ReportDocument(status_group).tags if tag == "input"]
+    assert len(labels) == len(radios) == len(DISPLAY_ORDER) + 1
+    for option, label, radio in zip(("all", *DISPLAY_ORDER), labels, radios, strict=True):
+        assert radio["type"] == "radio" and radio["name"] == "f-status"
+        assert radio["id"] == f"f-status-{option}"
+        assert "<input " in label
+        assert ("checked" in radio) is (option == "all")
+        assert ("disabled" in radio) is (option != "all" and not counts[option])
+        text = unescape(" ".join(re.sub(r"<[^>]*>", "", label).split()))
+        count = len(entries.assessed_workload_ids) if option == "all" else counts[option]
+        name = strings["filter"]["all"] if option == "all" else strings["status"][option]
+        assert text == f"{name} {formatter.integer(count)}"
+        assert ("<svg" in label) is (option != "all")
+
+    ((legend, category_menu),) = re.findall(
+        r'<select id="f-category" name="f-category" aria-label="([^"]+)">(.*?)</select>',
+        readiness,
+        re.S,
+    )
+    assert unescape(legend) == strings["filter"]["category_legend"]
+    options = re.findall(
+        r'<option id="f-category-([^"]+)" value="([^"]+)"( selected)?>([^<]+)</option>',
+        category_menu,
+    )
+    assert options == [
+        ("all", "all", " selected", strings["filter"]["all_categories"]),
+        *((id, id, "", strings["category"][id]) for id in category_ids),
+    ]
 
     assert strings["filter"]["search_hint"] in unescape(readiness)
     assert f'<p class="areas-empty note">{strings["filter"]["empty"]}</p>' in unescape(readiness)
@@ -921,7 +1037,7 @@ def test_print_hides_controls_opens_disclosures_and_starts_working_sections_on_n
             hidden.update(names)
         if re.search(r"break-before:\s*page", declarations):
             page_starts.update(names)
-    assert {".bar", ".skip", ".filters", ".areas-empty"} <= hidden
+    assert {".section-index", ".index-disclosure", ".skip", ".filters", ".areas-empty"} <= hidden
     assert page_starts == {"[data-section=path]", "[data-section=costs]", "[data-section=appendix]"}
     disclosure = re.search(r"details::details-content\s*\{([^}]+)\}", print_css)
     assert disclosure

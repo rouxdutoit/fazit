@@ -16,6 +16,7 @@ from xml.etree import ElementTree
 
 from typer.testing import CliRunner
 
+from fazit import REPOSITORY_URL
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
@@ -167,7 +168,7 @@ class Page(HTMLParser):
             self._cell_text.clear()
         elif self._target is not None and "cov" in classes:
             self._badge = " ".join(name for name in classes if name.startswith("cov-"))
-        elif tag == "p" and "tally" in classes:
+        elif tag == "div" and "tally" in classes:
             self._tally_text = []
         if tag == "article" and values.get("id", "").startswith("readiness-"):
             self.status_counts[values.get("data-status", "")] += 1
@@ -260,7 +261,7 @@ class Page(HTMLParser):
             self._target = None
         elif tag == "table":
             self._coverage_table = False
-        elif tag == "p" and self._tally_text is not None:
+        elif tag == "div" and self._tally_text is not None:
             self.tallies.append(" ".join("".join(self._tally_text).split()))
             self._tally_text = None
 
@@ -526,20 +527,55 @@ def check_tally(page: Page, demo: Page, lang: str) -> list[str]:
     total = demo.status_counts.total()
     prefix = {"en": "Of {} areas in the sample", "de": "Von {} Bereichen im Beispiel"}[lang]
     order = ("blocker", "needs_work", "unknown", "ready")
-    counts = ", ".join(f"{labels[status]} {demo.status_counts[status]}" for status in order)
-    expected = f"{prefix.format(total)}: {counts}."
+    counts = " ".join(f"{labels[status]} {demo.status_counts[status]}" for status in order)
+    expected = f"{prefix.format(total)}: {counts}"
     return [] if page.tallies == [expected] else [f"Sample tally should read {expected!r}."]
 
 
 def check_area_counts(demo: Page, lang: str) -> list[str]:
     total = str(demo.status_counts.total())
     prefix = "/de" if lang == "de" else ""
-    pattern = r'<span(?: class="figure-num")? data-assessed-areas>\s*([0-9]+)\s*</span>'
+    pattern = r"<span data-assessed-areas>\s*([0-9]+)\s*</span>"
     errors = []
     for route in (f"{prefix}/", f"{prefix}/pilots/"):
         path = local_path(route)
         if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != [total]:
             errors.append(f"{path.relative_to(ROOT)}: Expected {total} assessed areas.")
+    return errors
+
+
+def check_commands(lang: str) -> list[str]:
+    prefix = "/de" if lang == "de" else ""
+    expected = [f"git clone {REPOSITORY_URL}", "cd fazit", "uv run fazit demo"]
+    if lang == "de":
+        expected[-1] += " --lang de"
+    components = []
+    errors = []
+    for route in (f"{prefix}/", f"{prefix}/start/"):
+        path = local_path(route)
+        if not path.is_file():
+            continue
+        markup = path.read_text(encoding="utf-8")
+        component = re.search(
+            r'<div class="command"[^>]*>.*?<p class="copy-message" role="status"></p>\s*</div>',
+            markup,
+            re.S,
+        )
+        if component is None:
+            errors.append(f"{route}: Expected the shared command block and its copy status.")
+            continue
+        block = component[0]
+        components.append(re.sub(r">\s+<", "><", block))
+        code = re.search(r"<code>(.*?)</code>", block, re.S)
+        commands = re.findall(r"<span>([^<]+)</span>", code[1].replace("<wbr>", "")) if code else []
+        if commands != expected:
+            errors.append(f"{route}: Expected the three demo commands for {lang}.")
+        if not re.search(r"<button [^>]*\bdata-copy(?:\s|>)", block) or not all(
+            re.search(rf'\b{flag}="[^"]+"', block) for flag in ("data-copied", "data-manual")
+        ):
+            errors.append(f"{route}: Expected copy feedback and manual-copy instructions.")
+    if len(components) == 2 and components[0] != components[1]:
+        errors.append(f"{prefix}/: Home and Start should use the same command block.")
     return errors
 
 
@@ -697,6 +733,7 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
             if en == "/coverage/":
                 page.errors.extend(check_coverage(page, lang))
             elif en == "/":
+                page.errors.extend(check_commands(lang))
                 if demo_page := pages.get(local_path(f"/demo/{lang}/")):
                     page.errors.extend(check_tally(page, demo_page, lang))
                     errors.extend(check_area_counts(demo_page, lang))

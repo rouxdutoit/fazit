@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: What leaving Microsoft 365 would take
+  title: "What leaving Microsoft\u00a0365 would take"
   unnamed_organisation: This organisation
   scan_date: Evidence date (scan.json)
   inputs_date: Inputs as of (inputs.yaml)
@@ -17,6 +17,7 @@ nav:
   replacements: Replacements
   closer_look: Closer look
   appendix: Appendix
+  on_this_page: On this page
   label: Report sections
   skip: Skip to content
 summary:
@@ -37,6 +38,7 @@ summary:
   scope_title: What {profile} covers
   scope_of: 'Of the {n} functions Fazit checks for {profile}:'
   scope_needed: Outside {profile} and needed here
+  scope_unknown_one: One more function is outside {profile}. Whether this organisation needs it is unknown.
   scope_unknown: '{n} more are outside {profile} and still Unknown here.'
 found:
   title: What Fazit recorded
@@ -89,7 +91,6 @@ costs:
   rounding: Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
   provide_inputs: Supply a cost input file with the report command's --inputs option.
   missing: 'Missing inputs for {scenario}'
-  total_label: '{scenario} · five-year total'
   stay_basis: Today's yearly costs for five years
   comparison_unknown: Comparison unknown
   stay_assumption: Staying assumes no price change.
@@ -169,10 +170,13 @@ filter:
   category_legend: Show areas by category
   all: All
   all_categories: All categories
-  empty: No area matches this selection. Choose "All" to see every area.
+  empty: No area matches these filters. Choose “All” and “All categories” to see every area.
   search_hint: Filtered-out areas and, in some browsers, closed sections are not searched.
 moves:
   title: What replaces what
+  coverage: Coverage
+  need: Needed here
+  need_not_assessed: Not assessed
   microsoft: Microsoft function
   replacement: Target replacement
   workload_status: Area status
@@ -210,6 +214,40 @@ path:
   title: What to do next
   even_if_staying: Worth doing even if you stay
   for_move: Needed for a move
+  input_field: Field in inputs.yaml
+  questions:
+    licences.contract_terms_known: Has procurement reviewed the Microsoft licence terms?
+    directory.account_list_reviewed: Has the IT team reviewed the current account list?
+    mail.shared_mailbox_count: How many shared mailboxes does the organisation have?
+    mail.other_systems_send_mail: Do other systems send mail through Microsoft?
+    onedrive.external_sharing_in_use: Does your organisation share OneDrive files with people outside it?
+    sharepoint.custom_solutions_in_use: Does your organisation use any custom SharePoint solutions?
+    sharepoint.workflows_in_use: Do any SharePoint sites, lists or libraries run or start workflows or automated approvals?
+    teams.chat_history_must_be_kept: Does your organisation need to keep its Teams chat history?
+    teams.apps_in_use: Are apps, tabs, bots or connectors added to teams?
+    office_files.kind.macro: How many files have extensions that allow macros?
+    office_files.kind.access: How many Access database files are there?
+    office_files.kind.publisher: How many Publisher files are there?
+    office_files.kind.visio: How many Visio drawing files are there?
+    office_files.kind.onenote: How many OneNote files are there?
+    office_files.vba_macros_in_use: Do staff rely on VBA macros in Office files?
+    device_management.device_count: How many devices does the IT inventory cover?
+    device_management.windows_device_count: How many of those devices run Windows?
+    device_management.in_use: Does your organisation manage devices through Microsoft?
+    device_management.windows_desktops_required: Do applications, devices or peripherals require Windows workstations?
+    windows_software.application_count: Which applications run only on Windows?
+    windows_software.without_web_version_count: Which Windows-only applications have no web version?
+    power_platform.in_use: Does your organisation use Power Platform services?
+    telephony.in_use: Does any of your organisation's telephony run through Microsoft?
+    telephony.replacement_available: Is a replacement available for the Microsoft telephony in use?
+    identity_access.sso_application_count: How many applications use Microsoft single sign-on?
+    identity_access.conditional_access_in_use: Does your organisation use Microsoft Conditional Access?
+    security_compliance.protection_or_retention_in_use: Does your organisation use Microsoft's protection or retention features?
+    small_apps.in_use: Do departments use smaller Microsoft applications such as Forms, Planner or Bookings?
+    integrations.application_count: How many business applications are connected to Microsoft 365?
+  transfer_actions:
+    not_available: The service lead and IT team decide how to provide the following after the move ({functions}).
+    transfer_undocumented: The service lead and IT team plan and test how to transfer or rebuild the content for {functions}.
   empty:
     blocker: The evidence identified no blocker.
     unknown: Every area has a known status.

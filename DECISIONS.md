@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-22 — Report polish
+
+**D36. Area cards use badges for status and incomplete evidence.**
+
+The founder chose the area name as the anchor on both the website and the report. A quiet badge gives the status as a symbol and word. A second badge marks incomplete evidence when needed. Both sit at the top right on wide screens and below the area name on phones. The capsules are labels with no interaction. Pill-shaped controls remain pressable. This updates the card hierarchy in D33 and the structure rule in DESIGN.md.
+
 ## 2026-11-22 — Report redesign
 
 **D33. The report leads with the findings.**

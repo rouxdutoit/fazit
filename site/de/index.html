@@ -77,18 +77,13 @@
         </picture>
       </div>
       <figcaption>
-        <span>Beispielbericht für eine fiktive Stadtverwaltung. Eine HTML-Datei auf Deutsch oder Englisch, offline lesbar.</span>
+        <span><span data-assessed-areas>14</span> Bereiche, drei Ziele (openDesk, Nextcloud und eine produktneutrale Prüfliste), auf Deutsch und Englisch als offline lesbare HTML-Datei.</span>
         <span class="caption-links">
           <a class="more" href="/demo/de/">Beispielbericht öffnen</a>
-          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html"><span class="btn-icon icon-download" aria-hidden="true"></span>HTML herunterladen, 380 KB</a>
+          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html"><span class="btn-icon icon-download" aria-hidden="true"></span>HTML herunterladen, 420 KB</a>
         </span>
       </figcaption>
     </figure>
-
-    <ul class="figures" aria-label="Fazit in Zahlen">
-      <li><span class="figure-num" data-assessed-areas>14</span><span>bewertete Bereiche, darunter E-Mail und Telefonie</span></li>
-      <li><span class="figure-num">3</span><span>Ziele: openDesk, Nextcloud und eine produktneutrale Prüfliste</span></li>
-    </ul>
 
     <section class="sec grid" id="why" aria-labelledby="why-title">
       <h2 class="sec-label" id="why-title">Hindernisse erkennen, bevor das Projekt sie findet</h2>
@@ -104,11 +99,16 @@
       <div class="sec-body">
         <p class="sec-intro">Für jeden Bereich nennt der Bericht den Status, die Nachweise und die noch offenen Angaben. Das Beispiel zeigt den Bereich E-Mail im Bericht für eine fiktive Stadtverwaltung. Die Messwerte sind simuliert.</p>
         <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
-          <h3 class="finding-area" id="area-mail">E-Mail · <span class="finding-category">Kommunikation</span></h3>
-          <p class="finding-status">
-            <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-            <small class="note-text">Datengrundlage unvollständig</small>
-          </p>
+          <div class="finding-head">
+            <div>
+              <h3 class="finding-area" id="area-mail">E-Mail</h3>
+              <span class="finding-category">Kommunikation</span>
+            </div>
+            <p class="finding-status">
+              <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+              <span class="badge">Nachweise unvollständig</span>
+            </p>
+          </div>
           <div class="finding-reason">
             Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
           </div>
@@ -228,13 +228,15 @@
           </p>
         </article>
         <p class="note-text">Fazit prüft den Aufbau der Eingaben und ausgewählte Zusammenhänge zwischen Zahlen. Ob die Angaben zum Bestand stimmen, kann Fazit nicht feststellen. Die Aussagekraft des Berichts hängt von den Personen und Programmen ab, die die Nachweise geliefert haben.</p>
-        <p class="tally">
-          Von 14 Bereichen im Beispiel:
-          <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis 1</span>,
-          <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf 9</span>,
-          <span class="status unknown"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> Unbekannt 1</span>,
-          <span class="status ready"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> Bereit 3</span>.
-        </p>
+        <div class="tally">
+          <p id="sample-tally-title">Von 14 Bereichen im Beispiel:</p>
+          <ul role="list" aria-labelledby="sample-tally-title">
+            <li class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis 1</li>
+            <li class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf 9</li>
+            <li class="status unknown"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> Unbekannt 1</li>
+            <li class="status ready"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> Bereit 3</li>
+          </ul>
+        </div>
         <p><a class="more" href="/demo/de/#readiness-title">Alle Bereiche im Beispielbericht ansehen</a></p>
       </div>
     </section>
@@ -290,9 +292,14 @@
       <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
       <div class="sec-body">
         <p>Installieren Sie Git und uv. Führen Sie anschließend diese Befehle aus. Beim ersten Lauf lädt uv die benötigten Pakete. Danach läuft das Beispiel ohne Netzwerkverbindung und ohne Microsoft-Konto.</p>
-        <pre class="command-line"><code>git clone https://github.com/<wbr>rouxdutoit/fazit
-cd fazit
-uv run fazit demo --lang de</code></pre>
+        <div class="command" role="group" aria-label="Im Terminal ausführen">
+          <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
+          <div class="command-line">
+            <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
+            <button class="btn copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
         <p><a class="more" href="/de/start/">Jetzt starten</a></p>
       </div>
     </section>

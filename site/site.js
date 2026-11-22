@@ -87,16 +87,23 @@
     });
     matchMedia("(min-width: 820px)").addEventListener("change", () => setOpen(false));
 
-    const copy = document.querySelector("[data-copy]");
-    if (copy) {
-      const command = document.getElementById("demo-command");
-      const message = document.querySelector(".copy-message");
+    for (const copy of document.querySelectorAll("[data-copy]")) {
+      const block = copy.closest(".command");
+      const command = block?.querySelector("code");
+      const message = block?.querySelector(".copy-message");
+      if (!command || !message) continue;
       let reset;
+      let pending = false;
       copy.hidden = false;
       copy.addEventListener("click", async () => {
+        if (pending) return;
+        pending = true;
         clearTimeout(reset);
+        copy.classList.remove("done");
+        message.textContent = "";
         try {
-          await navigator.clipboard.writeText(command.innerText);
+          const lines = Array.from(command.children, (line) => line.textContent);
+          await navigator.clipboard.writeText(lines.join("\n"));
           copy.classList.add("done");
           message.classList.add("sr-only");
           message.textContent = copy.dataset.copied;
@@ -107,6 +114,8 @@
           getSelection().addRange(range);
           message.classList.remove("sr-only");
           message.textContent = copy.dataset.manual;
+        } finally {
+          pending = false;
         }
         reset = setTimeout(() => {
           copy.classList.remove("done");

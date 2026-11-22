@@ -103,12 +103,32 @@
 {% macro icon(name) -%}
   <svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="{{ icons[name] }}"/></svg>
 {%- endmacro %}
+{% set index_sections = (
+  ('summary', 'summary'), ('path', 'next_steps'), ('readiness', 'areas'),
+  ('costs', 'costs'), ('moves', 'replacements'), ('attention', 'closer_look'), ('appendix', 'appendix')
+) %}
+{% macro index_links() -%}
+  <ul class="index-links" role="list">
+    {% for section, key in index_sections %}
+      <li><a href="#{{ section }}-title">{{ strings.nav[key] }}</a></li>
+    {% endfor %}
+  </ul>
+{%- endmacro %}
 {% macro status_label(status) -%}
   <span class="status {{ status }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {{ strings.status[status] }}</span>
 {%- endmacro %}
-{% macro workload_status(row) -%}
+{% macro finding_badges(row) -%}
   {{ status_label(row.status) }}
-  {% if row.incomplete %}<small class="note-text">{{ strings.readiness.incomplete }}</small>{% endif %}
+  {% if row.incomplete %}<span class="badge">{{ strings.readiness.incomplete }}</span>{% endif %}
+{%- endmacro %}
+{% macro summary_area(row) -%}
+  <dt class="finding-head">
+    <div>
+      <a href="#readiness-{{ row.workload }}" class="finding-area more">{{ workload_labels[row.workload] }}{{ icon('chevron-right') }}</a>
+      <span class="finding-category">{{ category_labels[workload_categories[row.workload]] }}</span>
+    </div>
+    <span class="finding-status">{{ finding_badges(row) }}</span>
+  </dt>
 {%- endmacro %}
 {% macro status_reason(row) -%}
   {% if row.deciding %}{{ row.deciding.reason[lang] }}
@@ -143,20 +163,26 @@
 {%- endmacro %}
 {% macro next_steps(steps) -%}
   <dl class="rows">
-    {% for workload, step in steps %}
+    {% for workload, actions in steps.items() %}
       <div>
-        <dt><a href="#readiness-{{ workload }}">{{ workload_labels[workload] }}</a></dt>
-        <dd data-step-kind="{{ step.kind }}">{{ step.text[lang] }}</dd>
+        <dt><a href="#readiness-{{ workload }}" class="more">{{ workload_labels[workload] }}{{ icon('chevron-right') }}</a></dt>
+        <dd>
+          <ul class="path-actions">
+            {% for action in actions %}<li data-step-kind="{{ action.kind }}">{{ action.text }}</li>{% endfor %}
+          </ul>
+        </dd>
       </div>
     {% endfor %}
   </dl>
 {%- endmacro %}
 {% macro open_point(point) -%}
   {% set first = point.items[0] %}
+  {% set question = strings.path.questions.get(first.id) %}
+  {% set fixes = point.reasons|reject('eq', 'answer_not_provided')|list if point.input_key else point.reasons %}
   <div>
     <dt data-open-point="{{ point.key }}">{{
       code_label('collector', point.collector) if point.collector else
-      (workload_labels[first.id] if first.kind == 'area' else finding_labels[first.id])
+      (workload_labels[first.id] if first.kind == 'area' else question or finding_labels[first.id])
     }}</dt>
     <dd>
       <ul class="open-items" role="list">
@@ -167,10 +193,11 @@
             </li>
           {% else %}
             <li{% if item.unknown %} data-unexamined-finding="{{ item.id }}"{% endif %}{% if item.gap %} data-unexamined-gap="{{ item.id }}"{% endif %}>
-              {% if item.kind == 'finding' %}{{ finding_labels[item.id] }}{% endif %}
+              {% set show_label = item.kind == 'finding' and (point.collector or point.items|length > 1 or not item.areas) %}
+              {% if show_label %}{{ strings.path.questions.get(item.id) or finding_labels[item.id] }}{% endif %}
               {% for workload in item.areas %}
-                {% if item.kind == 'finding' or not loop.first %} · {% endif %}
-                <a href="#readiness-{{ workload }}"{% if status_by_workload[workload].status == 'unknown' %} data-unexamined-workload="{{ workload }}"{% endif %}>{{ workload_labels[workload] }}</a>
+                {% if show_label or not loop.first %} · {% endif %}
+                <a href="#readiness-{{ workload }}"{% if status_by_workload[workload].status == 'unknown' %} data-unexamined-workload="{{ workload }}"{% endif %} class="more">{{ workload_labels[workload] }}{{ icon('chevron-right') }}</a>
               {% endfor %}
             </li>
           {% endif %}
@@ -178,8 +205,8 @@
       </ul>
       <p>
         <strong>{% for owner in point.owners %}{{ strings.role[owner] }}{{ ' · ' if not loop.last }}{% endfor %}</strong>
-        {% if point.input_key %} · <code>{{ point.input_key }}</code>{% endif %}
-        · {% for code in point.reasons %}{{ reason_text(code)[1] }}{{ ' ' if not loop.last }}{% endfor %}
+        {% if point.input_key %} · {{ strings.path.input_field }} <code>{{ point.input_key }}</code>{% endif %}
+        {% if fixes %} · {% for code in fixes %}{{ reason_text(code)[1] }}{{ ' ' if not loop.last }}{% endfor %}{% endif %}
       </p>
     </dd>
   </div>
@@ -329,7 +356,7 @@
       font-weight: 100 900;
       font-display: swap;
     }
-    {# Same tokens as the website. Light: apple.com neutrals and link blue. Dark: Fazit's green
+    {# Same tokens as the website. Light: apple.com neutrals. Dark: Fazit's green
        on black. Status: iOS system colours. A test keeps both in step. #}
     :root {
       color-scheme: light;
@@ -388,7 +415,6 @@
       --gutter: 20px;
       --max: 1120px;
       --measure: 42.5rem;
-      --bar-h: 52px;
       --hit: 44px;
       --radius: 8px;
       --radius-pill: 999px;
@@ -414,14 +440,14 @@
       font: 400 var(--fs-body) / 1.47 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    html { scroll-padding-block-start: calc(var(--bar-h) + 16px); }
+    html { scroll-padding-block-start: 24px; hyphens: manual; }
     code {
       font: 400 0.875em / 1.5 var(--mono);
       overflow-wrap: anywhere;
     }
     h1, h2, h3, h4, p { margin: 0; }
     h3, h4 { font-weight: 600; text-wrap: balance; }
-    h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 8px; }
+    h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 12px; }
     p, li, dd, td { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
@@ -456,71 +482,89 @@
       color: var(--solid-fg);
     }
     .skip:hover { color: var(--solid-fg); text-shadow: none; }
-    .bar {
-      position: sticky;
-      inset: 0 0 auto;
-      z-index: 10;
-      background: color-mix(in srgb, var(--bg) 82%, transparent);
-      backdrop-filter: saturate(180%) blur(20px);
-    }
-    .bar-in {
-      position: relative;
-      display: flex;
-      align-items: baseline;
-      gap: 24px;
+    .report-layout {
+      width: 100%;
       max-width: var(--max);
-      min-height: var(--bar-h);
-      margin: 0 auto;
-      padding: 8px var(--gutter);
+      margin-inline: auto;
+      padding-inline: var(--gutter);
     }
-    .wordmark, .wordmark:hover { color: var(--fg); }
-    .wordmark:hover { text-shadow: none; }
-    .wordmark {
-      font-size: var(--fs-body);
+    .report-layout main { min-width: 0; }
+    .section-index { display: none; }
+    .index-disclosure {
+      margin-block-start: 24px;
+      border: 0;
+    }
+    .index-disclosure > summary {
+      width: fit-content;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: var(--fill);
+      font-size: var(--fs-subhead);
       font-weight: 600;
-      line-height: 36px;
     }
-    .bar-links { margin-inline-start: auto; }
-    .bar-links-in {
+    .index-disclosure nav { margin-block-start: 8px; }
+    .section-index, .index-disclosure nav {
+      padding: 24px;
+      border-radius: var(--radius-card);
+      background: var(--fill);
+    }
+    .index-title {
+      margin-block-end: 8px;
+      font-size: var(--fs-subhead);
+      font-weight: 600;
+    }
+    .index-links { margin: 0; padding: 0; list-style: none; }
+    .index-links a {
       display: flex;
-      align-items: baseline;
-      gap: 24px;
-    }
-    .wordmark, .bar-links a {
-      display: inline-flex;
       align-items: center;
       min-height: var(--hit);
+      padding-inline: 8px;
+      border-radius: var(--radius);
+      font-size: var(--fs-subhead);
+      color: var(--link-quiet);
     }
-    .bar-links a {
-      color: color-mix(in srgb, var(--fg) 80%, transparent);
-      font-size: var(--fs-footnote);
-      white-space: nowrap;
+    .index-links a:hover { color: var(--fg); }
+    @media screen and (min-width: 880px) {
+      .report-layout {
+        display: grid;
+        grid-template-columns: 12rem minmax(0, 1fr);
+        gap: 48px;
+      }
+      .section-index {
+        display: block;
+        position: sticky;
+        inset-block-start: 24px;
+        align-self: start;
+        margin-block-start: 32px;
+        max-block-size: calc(100dvh - 48px);
+        overflow: auto;
+      }
+      .index-disclosure { display: none; }
     }
-    .bar-links a:hover { color: var(--fg); }
-    @media screen and (max-width: 820px) {
-      .bar-links {
-        min-width: 0;
-        overflow-x: auto;
-        scrollbar-width: none;
-        padding: 4px;
-        scroll-padding-inline: 4px;
-        mask-image: linear-gradient(to left, transparent, var(--bg) 32px);
+    @media screen {
+      @supports (scroll-target-group: auto) and selector(:target-current) {
+        .index-links { scroll-target-group: auto; }
+        .index-links a:target-current {
+          background: var(--bg);
+          color: var(--fg);
+          font-weight: 600;
+        }
       }
-      .bar-links-in { width: max-content; }
-      .bar-links:focus-within {
-        mask-image: none;
-        scroll-snap-type: inline mandatory;
-      }
-      .bar-links a:focus-visible {
-        outline-offset: 2px;
-        scroll-snap-align: start;
-        scroll-margin-inline: 4px;
+      @supports not ((scroll-target-group: auto) and selector(:target-current)) {
+        {% for section, key in index_sections %}
+          body:has([data-section={{ section }}] :target) .index-links a[href="#{{ section }}-title"]{{ ',' if not loop.last }}
+        {% endfor %} {
+          background: var(--bg);
+          color: var(--fg);
+          font-weight: 600;
+        }
       }
     }
     .page-intro {
-      max-width: var(--max);
-      margin-inline: auto;
-      padding: clamp(48px, 7vw, 96px) var(--gutter) clamp(48px, 6vw, 64px);
+      padding-block: 24px;
+    }
+    @media screen and (min-width: 880px) {
+      .page-intro { padding-block: 32px 16px; }
     }
     .page-intro h1 {
       font-size: var(--fs-display);
@@ -540,23 +584,26 @@
       font-weight: 600;
     }
     .page-intro .eyebrow { margin-top: 0; overflow-wrap: anywhere; }
-    .page-intro .note { margin-top: 24px; }
+    @media screen {
+      .page-intro .note {
+        margin-top: 16px;
+        padding: 0;
+        background: none;
+        font-size: var(--fs-subhead);
+      }
+    }
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      width: 100%;
-      max-width: var(--max);
-      margin: 0 auto;
-      padding-inline: var(--gutter);
-      gap: 16px 48px;
+      gap: 12px;
     }
     .sec {
       position: relative;
-      padding-block: clamp(64px, 8vw, 96px);
+      padding-block: 48px;
     }
     .sec::before {
       position: absolute;
-      inset: 0 var(--gutter) auto;
+      inset: 0 0 auto;
       height: 1px;
       background: var(--rule);
       content: "";
@@ -567,14 +614,6 @@
       line-height: 1.25;
       text-wrap: balance;
     }
-    @media (min-width: 880px) {
-      .grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
-      .sec-label {
-        position: sticky;
-        inset-block-start: calc(var(--bar-h) + 24px);
-        align-self: start;
-      }
-    }
     .sec-body {
       min-width: 0;
       overflow-wrap: break-word;
@@ -583,44 +622,70 @@
     .sec-body > p, .sec-body .subsection > p { max-width: var(--measure); }
     .sec-body p + p { margin-top: 12px; }
     .sec-intro { color: var(--fg-2); }
-    .subsection { margin-top: 48px; }
-    .sec-body h3 + p { margin-top: 8px; }
-    .status-summary { margin: 12px 0 0; }
+    .subsection { margin-top: 32px; }
+    .subsection > :first-child { margin-top: 0; }
+    @media screen and (max-width: 600px) {
+      .sec { padding-block: 32px; }
+    }
+    @media screen {
+      [data-section=summary] .sec { padding-block-start: 24px; }
+    }
+    .status-summary, .coverage-summary {
+      max-width: var(--measure);
+      margin: 12px 0 0;
+    }
+    .status-summary { --status-indent: calc(1.2 * var(--fs-lead) + 8px); }
     .status-summary > div {
       display: grid;
-      align-items: baseline;
-      gap: 4px 24px;
+      gap: 4px;
     }
-    .status-summary > div + div { margin-top: 4px; }
-    .status-summary dt { font-size: var(--fs-lead); }
+    .status-summary > div + div { margin-top: 8px; }
+    .status-summary dt, .coverage-summary > div {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 4ch;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .status-summary dt {
+      font-size: var(--fs-lead);
+      line-height: 1.2;
+    }
+    .status-summary .status {
+      position: relative;
+      display: block;
+      padding-inline-start: var(--status-indent);
+    }
+    .status-summary .icon {
+      position: absolute;
+      inset-inline-start: 0;
+      inset-block-start: calc((1lh - 1.2em) / 2);
+    }
     .status-summary dd {
-      margin: 0;
+      margin: 0 0 0 var(--status-indent);
       color: var(--fg-2);
       font-size: var(--fs-footnote);
     }
-    @media (min-width: 640px) {
-      .status-summary > div { grid-template-columns: auto minmax(0, 1fr); }
+    .row-count {
+      text-align: end;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
     }
-    @media screen and (min-width: 880px) {
-      [data-section=summary] .sec { padding-block-start: 16px; }
-      .status-summary { line-height: 1.2; }
-      [data-summary=blockers] { margin-top: 16px; }
-      [data-summary=blockers] h3 { margin-block-start: 0; }
-      [data-summary=blockers] .rows > div {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-        align-items: baseline;
-        gap: 4px 16px;
-        padding-block: 12px;
-      }
+    .coverage-summary { font-size: var(--fs-subhead); }
+    .coverage-summary > div + div { margin-block-start: 4px; }
+    .coverage-summary dd { margin: 0; }
+    .scope-needed { margin-block: 12px 4px; }
+    .scope-links {
+      display: grid;
+      gap: 4px;
+      margin: 0 0 12px;
+      padding: 0;
+      list-style: none;
     }
     .rows {
       margin: 0;
-      padding: 0 24px;
+      padding: 8px 24px;
       border-radius: var(--radius-card);
       background: var(--fill);
-    }
-    @media (max-width: 480px) {
-      .rows { padding-inline: 16px; }
     }
     .rows > div {
       display: grid;
@@ -630,10 +695,15 @@
     }
     .rows > div + div { border-top: 1px solid var(--rule); }
     .rows dt { font-weight: 600; }
-    .rows dd { margin: 0; color: var(--fg-2); }
+    .rows dd { max-width: var(--measure); margin: 0; color: var(--fg-2); }
+    [data-summary] .rows > div { gap: 8px; }
     h3 + .rows, .subsection p + .rows { margin-top: 12px; }
-    .subsection p:has(> .more) { margin-top: 24px; }
-    .rows dt .note-text { margin-top: 0; font-weight: 400; }
+    .summary-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 12px;
+    }
     .tiles {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -684,14 +754,15 @@
       overflow-x: auto;
     }
     .tiles-3 .figure-num { font-size: var(--fs-headline); }
+    .summary-costs .tiles { margin-top: 0; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
     .cost-value { white-space: nowrap; }
-    .cost-notes { max-width: var(--measure); }
+    .cost-notes { max-width: var(--measure); margin-top: 12px; }
     .report-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 24px;
-      margin: 16px 0 0;
+      gap: 4px 12px;
+      margin: 12px 0 0;
       font-size: var(--fs-footnote);
     }
     .report-meta div { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -700,14 +771,13 @@
     .muted, small { color: var(--muted); }
     small { display: block; font-size: var(--fs-footnote); line-height: 1.33; }
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
-    .table-scroll { overflow-x: auto; margin-block: 16px 24px; }
+    .table-scroll { overflow-x: auto; margin-block: 12px 24px; }
     table { width: 100%; border-collapse: collapse; font-size: var(--fs-subhead); line-height: 1.43; }
     th, td {
       padding: 12px 16px 12px 0;
       border-bottom: 1px solid var(--line);
       text-align: start;
       vertical-align: top;
-      hyphens: auto;
     }
     thead th { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
     tbody th { font-weight: 600; }
@@ -737,6 +807,29 @@
       width: 28%;
       font-weight: 600;
     }
+    .replacements :is(th, td) { overflow-wrap: normal; }
+    .replacements td:last-child { padding-inline-end: 0; }
+    .replacement-name {
+      display: block;
+      padding-inline-start: calc(1.2em + 8px);
+    }
+    .replacements .note-text { margin-block-start: 4px; }
+    @media screen and (min-width: 70rem) {
+      .replacements { table-layout: fixed; }
+      .replacements thead th:nth-child(1) { width: 26%; min-width: 12rem; }
+      .replacements thead th:nth-child(2) { width: 29%; min-width: 14rem; }
+      .replacements thead th:nth-child(3) { width: 12%; }
+      .replacements thead th:nth-child(4) { width: 14%; }
+      .replacements tbody th { width: auto; }
+      .replacements :is(th, td):is(:nth-child(3), :nth-child(4)) { padding-inline-end: 8px; }
+    }
+    @media screen and (min-width: 880px) {
+      .file-types { table-layout: fixed; }
+      .file-types thead th:nth-child(1) { width: 20%; }
+      .file-types thead th:nth-child(2) { width: 26%; }
+      .file-types thead th:nth-child(3) { width: 22%; }
+      .file-types tbody th { width: auto; }
+    }
     .cov {
       display: inline-flex;
       align-items: center;
@@ -757,82 +850,110 @@
     .cov-cell strong { display: block; font-weight: 600; }
     /* Material Symbols (Apache-2.0), inline so the report needs no other file. */
     .icon { flex: none; width: 1.2em; height: 1.2em; fill: currentColor; }
-    .status { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
+    .status { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; }
     .ready { --status-fill: var(--status-ready); }
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
     .status .icon { color: var(--status-fill); }
     .finding {
-      margin-top: 24px;
-      padding: clamp(24px, 4vw, 32px);
+      padding: 24px;
       border-radius: var(--radius-card);
       background: var(--fill);
     }
+    .finding-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
     .finding-area {
-      color: var(--fg-2);
-      font-size: var(--fs-subhead);
+      margin: 0;
+      color: var(--fg);
+      font-size: var(--fs-headline);
       font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    .finding-category {
+      display: block;
+      margin-block-start: 4px;
+      color: var(--fg-2);
+      font-size: var(--fs-footnote);
+      font-weight: 400;
     }
     .finding-status {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 4px;
-      font-size: var(--fs-title);
-      line-height: 1.15;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      font-size: var(--fs-footnote);
       font-weight: 600;
-      letter-spacing: -0.015em;
+    }
+    .finding-status > :is(.status, .badge) {
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .finding-status .status {
+      background: color-mix(in srgb, var(--status-fill) 12%, var(--fill));
+    }
+    .finding-status .badge { background: var(--fill-2); }
+    @media screen and (max-width: 600px) {
+      .finding-head { flex-direction: column; }
+      .finding-head > div { max-width: 100%; }
+      .finding-status { justify-content: flex-start; }
     }
     .finding-reason {
       max-width: var(--measure);
-      margin-top: 12px;
+      margin-top: 16px;
     }
     .finding-target {
       max-width: var(--measure);
-      margin-top: 32px;
+      margin-top: 16px;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
     }
     .finding-target > span { display: block; }
+    .finding-target .more { margin-block-start: 4px; }
     .more {
       display: inline-flex;
-      align-items: center;
-      gap: 1px;
+      align-items: flex-start;
+      gap: 4px;
       color: var(--link-quiet);
     }
     .more:hover { color: var(--link); }
-    .more .icon { width: 1em; height: 1em; }
+    .more > .icon {
+      width: 1em;
+      height: 1em;
+      margin-block-start: calc((1lh - 1em) / 2);
+    }
     .table-note, .note-text {
       margin-top: 16px;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
     }
-    .areas .finding-area {
-      color: var(--fg);
-      font-size: var(--fs-headline);
-    }
-    .areas .finding-status {
-      flex-wrap: wrap;
-      font-size: var(--fs-body);
-    }
-    .areas .finding[data-status="ready"] { padding: 16px 24px; }
-    .finding-status .note-text { margin-top: 0; }
-    .finding-category {
-      color: var(--fg-2);
-      font-size: var(--fs-subhead);
-      font-weight: 400;
-    }
-    .finding-next { max-width: 36em; margin-top: 12px; }
+    .finding-next { max-width: var(--measure); margin-top: 16px; }
+    .finding-next > strong { display: block; font-size: var(--fs-subhead); }
     .finding-missing { margin-top: 16px; font-size: var(--fs-subhead); }
-    .status-group > h3 { margin-top: 0; }
+    .finding .workload-evidence { margin-top: 12px; }
+    .status-group {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    .status-group > h3 { margin: 0; }
     .status-group + .status-group { margin-top: 32px; }
     .filters {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      display: grid;
       gap: 12px;
       margin-block-end: 32px;
+    }
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
     }
     .filters .note-text { margin: 0; }
     .segmented {
@@ -847,7 +968,6 @@
       border-radius: var(--radius-pill);
       background: var(--fill);
     }
-    .segmented[data-filter="category"] { border-radius: var(--radius-card); }
     .segmented label {
       position: relative;
       display: inline-flex;
@@ -855,7 +975,7 @@
       justify-content: center;
       gap: 4px;
       min-height: var(--hit);
-      padding: 0 16px;
+      padding: 0 12px;
       border-radius: var(--radius-pill);
       color: var(--fg-2);
       font: 600 var(--fs-subhead) / 1 var(--sans);
@@ -863,13 +983,34 @@
       transition: background-color 0.2s var(--ease);
     }
     .segmented .status { color: inherit; gap: 4px; }
+    .segment-count { font-variant-numeric: tabular-nums; }
+    .category-filter { position: relative; min-width: 0; max-width: 100%; }
+    .category-filter select {
+      appearance: none;
+      display: block;
+      field-sizing: content;
+      max-width: 100%;
+      min-height: var(--hit);
+      padding: 8px 32px 8px 16px;
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--fill);
+      color: var(--fg);
+      font: 600 var(--fs-subhead) / 1.3 var(--sans);
+      cursor: pointer;
+    }
+    .category-filter .icon {
+      position: absolute;
+      inset-inline-end: 12px;
+      inset-block-start: 50%;
+      pointer-events: none;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: var(--fs-subhead);
+    }
     .note {
-      padding: 16px 24px;
+      padding: 24px;
       border-radius: var(--radius-card);
       background: var(--fill);
-    }
-    @media (max-width: 480px) {
-      .note { padding-inline: 16px; }
     }
     .areas-empty {
       display: none;
@@ -894,18 +1035,18 @@
           outline-offset: 3px;
         }
         {% for status, count in status_counts %}
-          [data-section=readiness]:has(#f-status-{{ status }}:checked) .status-group:not([data-status-group="{{ status }}"], :has(> .finding:target)),
-          [data-section=readiness]:has(#f-status-{{ status }}:checked) .finding:not([data-status="{{ status }}"], :target) {
+          [data-section=readiness]:has(#f-status-{{ status }}:checked) .status-group:not([data-status-group="{{ status }}"], :has(> h3:target, > .finding:target)),
+          [data-section=readiness]:has(#f-status-{{ status }}:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-status="{{ status }}"], :target) {
             display: none;
           }
         {% endfor %}
         {% for category in categories %}
-          [data-section=readiness]:has([id='f-category-{{ category.id }}']:checked) .finding:not([data-category="{{ category.id }}"], :target),
-          [data-section=readiness]:has([id='f-category-{{ category.id }}']:checked) .status-group:not(:has(> .finding[data-category="{{ category.id }}"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-{{ category.id }}']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="{{ category.id }}"], :target),
+          [data-section=readiness]:has([id='f-category-{{ category.id }}']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="{{ category.id }}"], > .finding:target)) {
             display: none;
           }
           {% for status, count in status_counts %}
-            [data-section=readiness]:has(#f-status-{{ status }}:checked):has([id='f-category-{{ category.id }}']:checked):not(:has(.finding[data-status="{{ status }}"][data-category="{{ category.id }}"], .finding:target)) .areas-empty {
+            [data-section=readiness]:has(#f-status-{{ status }}:checked):has([id='f-category-{{ category.id }}']:checked):not(:has(.finding[data-status="{{ status }}"][data-category="{{ category.id }}"], .finding:target, .status-group > h3:target)) .areas-empty {
               display: block;
             }
           {% endfor %}
@@ -913,6 +1054,7 @@
       }
     }
     .licence-plan small { margin-block-end: 4px; }
+    .licence-plan + .licence-plan { margin-block-start: 8px; }
     .finding ul, .rule-details ul { margin: 4px 0; padding-inline-start: 16px; }
     .readiness li + li { margin-block-start: 8px; }
     .mapping-gaps {
@@ -922,7 +1064,11 @@
     }
     .mapping-gaps > li { padding-block: 16px; }
     .mapping-gaps > li + li { border-top: 1px solid var(--rule); }
+    .mapping-gaps > li > strong { display: block; margin-block-end: 4px; }
+    .mapping-gaps > li > small:first-of-type { margin-block-start: 8px; }
     .open-items { margin: 0 0 8px; padding: 0; list-style: none; }
+    .path-actions { max-width: var(--measure); margin: 0; padding-inline-start: 16px; }
+    .path-actions li + li { margin-block-start: 8px; }
     h4 + .rows { margin-top: 12px; }
     .finding .rule-evidence {
       display: grid;
@@ -950,7 +1096,7 @@
     details { border-block-end: 1px solid var(--line); }
     summary {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 4px;
       min-height: var(--hit);
       padding-block: 12px;
@@ -959,10 +1105,12 @@
       list-style: none;
     }
     summary::-webkit-details-marker { display: none; }
-    summary > .icon { transition: transform 0.3s var(--ease); }
+    summary > .icon {
+      margin-block-start: calc((1lh - 1.2em) / 2);
+      transition: transform 0.3s var(--ease);
+    }
     details[open] > summary > .icon { transform: rotate(90deg); }
-    .cost-inputs { margin-block: 24px 16px; }
-    .licence-products { margin-block-start: 24px; }
+    .cost-inputs, .licence-products { margin-block-start: 32px; }
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -990,8 +1138,9 @@
       justify-content: space-between;
       gap: 4px 16px;
     }
-    .cost-chart-heading h3, .cost-chart-heading h3 + p { margin: 0; }
-    .cost-chart-heading small { display: inline-block; margin-inline-start: 8px; }
+    .cost-chart-heading h3, .cost-chart-heading > p { margin: 0; }
+    .cost-chart-heading > p { text-align: end; }
+    .cost-chart-heading small { margin-block-start: 4px; }
     .cost-bar {
       display: flex;
       width: calc(var(--share) * (100% - 56px));
@@ -1035,10 +1184,10 @@
     .cost-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
     .cost-table .subtotals > *, .cost-table .totals > * { background: var(--surface); }
     .cost-table .totals td { font-weight: 600; }
-    .run-details dt { font-weight: 600; }
-    .run-details dd { margin: 0 0 8px; }
-    .rule-details dd, .mapping-details dd { margin: 0 0 12px; }
-    .rule-details dt, .mapping-details dt { font-weight: 600; }
+    :is(.run-details, .rule-details, .mapping-details) { margin-block: 16px; }
+    :is(.run-details, .rule-details, .mapping-details) dt { font-weight: 600; }
+    :is(.run-details, .rule-details, .mapping-details) dd { margin: 4px 0 12px; }
+    [data-section=appendix] ul { margin-block: 8px; padding-inline-start: 16px; }
     footer {
       width: calc(100% - 2 * var(--gutter));
       max-width: calc(var(--max) - 2 * var(--gutter));
@@ -1086,9 +1235,52 @@
         content: attr(data-label);
       }
       .workload-evidence .coverage td { grid-column: 1 / -1; }
+      :is(.file-types, .licence-products .coverage) tbody td:last-child {
+        grid-column: 1 / -1;
+        margin-block-start: 8px;
+      }
+    }
+    @media screen and (width < 70rem) {
+      .replacements thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .replacements tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 16px;
+        padding-block: 24px;
+        border-block-end: 1px solid var(--rule);
+      }
+      .replacements tbody tr:last-child { border-block-end: 0; }
+      .replacements tbody :is(th, td) {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .replacements tbody th { font-size: var(--fs-body); }
+      .replacements tbody :is(th, td:nth-child(-n+3)) { grid-column: 1 / -1; }
+      .replacements td::before, .replacement-name::before {
+        display: block;
+        margin-block-end: 4px;
+        color: var(--fg-2);
+        font-size: var(--fs-footnote);
+        font-weight: 600;
+        content: attr(data-label);
+      }
+      .replacements td[data-coverage-label]::before { content: attr(data-coverage-label); }
+      .replacement-name { margin-block-start: 12px; padding: 0; }
+    }
+    @media screen and (width < 22.5rem) {
+      .replacements tbody tr { grid-template-columns: minmax(0, 1fr); }
     }
     @media screen and (max-width: 40rem) {
       .segmented { border-radius: var(--radius-card); }
+      .segmented label { flex: 1 1 auto; padding-inline: 4px; }
       .cost-table thead {
         position: absolute;
         width: 1px;
@@ -1099,6 +1291,8 @@
         white-space: nowrap;
       }
       .cost-chart-values { display: grid; }
+      .cost-chart-heading { display: grid; justify-content: start; }
+      .cost-chart-heading > p { text-align: start; }
       .cost-table, .cost-table :is(caption, tbody) { display: block; }
       .cost-table tr {
         display: grid;
@@ -1118,7 +1312,6 @@
       .cost-table td::before {
         content: attr(data-label);
         color: var(--fg-2);
-        font-size: var(--fs-footnote);
         font-weight: 600;
         text-align: start;
         white-space: normal;
@@ -1136,15 +1329,17 @@
         --fs-subhead: 9pt;
         --fs-footnote: 8pt;
       }
-      .bar, .skip, .filters, .areas-empty { display: none; }
+      .section-index, .index-disclosure, .skip, .filters, .areas-empty { display: none; }
       body {
         display: block;
         margin: 0;
         print-color-adjust: exact;
       }
       .page-intro, .sec { padding: 16pt 0; }
-      .page-intro { padding-block-end: 0; }
-      .grid { display: block; padding-inline: 0; }
+      .page-intro { padding-block: 0 4pt; }
+      .page-intro h1 { font-size: var(--fs-title); }
+      .report-layout { padding: 0; }
+      .grid { display: block; }
       .report-meta { gap: 4pt 12pt; margin-top: 8pt; }
       .page-intro .note { margin-top: 4pt; padding: 4pt 12pt; }
       .sec-label { position: static; margin-bottom: 8pt; }
@@ -1153,39 +1348,58 @@
       h1, h2, h3, h4 { break-after: avoid; }
       .sec-body h3 { margin-block: 16pt 4pt; }
       header, [data-section=summary] { line-height: 1.15; }
-      .status-summary { margin-top: 4pt; }
-      .status-summary > div { grid-template-columns: auto minmax(0, 1fr); }
+      .status-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4pt 12pt;
+        margin-top: 4pt;
+      }
+      .status-summary > div { gap: 0; }
       .status-summary > div + div { margin-top: 0; }
+      [data-section=summary] .sec { padding-block: 4pt 0; }
+      [data-section=summary] .sec-label { margin-bottom: 4pt; }
+      [data-summary=scope] {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        column-gap: 12pt;
+      }
+      [data-summary=scope] > :is(h3, p) { grid-column: 1 / -1; }
+      .coverage-summary { margin-top: 4pt; }
+      .coverage-summary > div + div { margin: 0; }
+      .scope-requirements { margin-top: 4pt; font-size: var(--fs-subhead); }
+      .scope-needed { margin-block: 0 2pt; }
+      .scope-links { gap: 2pt; margin: 0; }
       [data-section=summary] .subsection { margin-top: 4pt; }
       [data-section=summary] .subsection h3 { margin-block: 0 4pt; }
       [data-section=summary] .subsection > p,
       [data-section=summary] .rows { margin-top: 4pt; }
       [data-section=summary] .rows > div {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-        gap: 4pt 8pt;
+        gap: 2pt;
         padding-block: 2pt;
       }
-      [data-summary=unknown] .rows > div {
-        grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
+      .rows { padding: 4pt 12pt; }
+      .rows .finding-head {
+        align-items: baseline;
+        gap: 4pt 8pt;
       }
-      [data-section=summary] .cost-notes p { margin-top: 2pt; }
+      .rows .finding-area { font-size: var(--fs-body); }
+      .rows .finding-category { display: inline; margin-inline-start: 4pt; }
+      .rows .finding-status > :is(.status, .badge) { padding: 0 4pt; }
+      .more > .icon { display: none; }
+      .finding-head, .finding-reason, .finding-next {
+        break-inside: avoid;
+        break-after: avoid;
+      }
+      [data-section=summary] .cost-notes { margin-top: 4pt; }
+      [data-section=summary] .cost-notes p { margin-top: 0; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
       .tiles .figure-num { overflow: visible; }
-      .tiles li, .areas .finding[data-status] { padding: 12pt; }
-      .tiles-3 { gap: 8pt; margin-top: 4pt; }
-      .tiles-3 li { gap: 2pt; }
+      .tiles li, .finding { padding: 12pt; }
+      .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8pt; }
+      .tiles-3 li { gap: 2pt; padding-block: 8pt; }
       .sec-body .tiles-3 p { line-height: 1.2; }
       .tiles-3 .tile-title, .tiles-3 .tile-label { margin-bottom: 0; }
       .sec-body .tiles-3 p + p { margin-top: 0; }
-      .tiles-3 li:last-child {
-        grid-column: 1 / -1;
-        grid-template-columns: auto auto minmax(0, 1fr);
-        align-items: baseline;
-        gap: 2pt 8pt;
-      }
-      .tiles-3 li:last-child > p:last-child { grid-column: 1 / -1; }
-      .finding-area, .finding-status, .finding-reason, .finding-next { break-inside: avoid; }
-      .finding-area, .finding-status, .finding-reason { break-after: avoid; }
       a, a:hover, .more, .more:hover { color: var(--fg); text-shadow: none; }
       footer { width: 100%; padding-block-end: 0; }
       .table-scroll { overflow: visible; }
@@ -1214,22 +1428,16 @@
 </head>
 <body>
   <a class="skip" href="#main">{{ strings.nav.skip }}</a>
-  <div class="bar">
-    <div class="bar-in">
-      <a class="wordmark" href="#main">{{ project_name }}</a>
-      <nav class="bar-links" aria-label="{{ strings.nav.label }}">
-        <div class="bar-links-in">
-          <a href="#summary-title">{{ strings.nav.summary }}</a>
-          <a href="#path-title">{{ strings.nav.next_steps }}</a>
-          <a href="#readiness-title">{{ strings.nav.areas }}</a>
-          <a href="#costs-title">{{ strings.nav.costs }}</a>
-          <a href="#moves-title">{{ strings.nav.replacements }}</a>
-          <a href="#attention-title">{{ strings.nav.closer_look }}</a>
-          <a href="#appendix-title">{{ strings.nav.appendix }}</a>
-        </div>
-      </nav>
-    </div>
-  </div>
+  <div class="report-layout">
+    <nav class="section-index" aria-label="{{ strings.nav.label }}">
+      <p class="index-title">{{ strings.nav.on_this_page }}</p>
+      {{ index_links() }}
+    </nav>
+    <details class="index-disclosure">
+      <summary>{{ icon('chevron-right') }}{{ strings.nav.on_this_page }}</summary>
+      <nav aria-label="{{ strings.nav.label }}">{{ index_links() }}</nav>
+    </details>
+  <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
       <p class="eyebrow">{{ inputs.organisation_name if inputs and inputs.organisation_name else strings.header.unnamed_organisation }}</p>
@@ -1251,7 +1459,6 @@
       {% if sample_scan %}<p class="note">{{ strings.header.sample }}</p>{% endif %}
     </div>
   </header>
-  <main id="main" tabindex="-1">
     <section data-section="summary">
       <div class="sec grid">
         <h2 class="sec-label" id="summary-title">{{ strings.summary.title }}</h2>
@@ -1260,7 +1467,7 @@
           <dl class="status-summary">
             {% for status, count in status_counts %}
               <div>
-                <dt>{{ status_label(status) }} {{ format.integer(count) }}</dt>
+                <dt>{{ status_label(status) }} <span class="row-count">{{ format.integer(count) }}</span></dt>
                 <dd>{{ strings.summary.define[status] }}</dd>
               </div>
             {% endfor %}
@@ -1277,12 +1484,12 @@
               <dl class="rows">
                 {% for row in shown %}
                   <div>
-                    <dt><a href="#readiness-{{ row.workload }}">{{ workload_labels[row.workload] }}</a>{% if row.incomplete %}<small class="note-text">{{ strings.readiness.incomplete }}</small>{% endif %}</dt>
+                    {{ summary_area(row) }}
                     <dd>{{ status_reason(row) }}</dd>
                   </div>
                 {% endfor %}
               </dl>
-              <p><a class="more" href="#status-blocker">{{ strings.summary.all_blockers }}{{ icon('chevron-right') }}</a></p>
+              <p class="summary-links"><a class="more" href="#status-blocker">{{ strings.summary.all_blockers }}{{ icon('chevron-right') }}</a></p>
             {% else %}
               <p>{{ strings.path.empty.blocker }}</p>
               {% if open_areas %}
@@ -1295,19 +1502,25 @@
             <h3>{{ strings.summary.unknown }}</h3>
             {% if open_areas %}
               <dl class="rows">
-                {% for workload, fix in open_areas[:4] %}
+                {% for item in open_areas[:4] %}
                   <div>
-                    <dt><a href="#readiness-{{ workload }}">{{ workload_labels[workload] }}</a></dt>
-                    <dd>{{ fix }}</dd>
+                    {{ summary_area(status_by_workload[item.workload]) }}
+                    <dd>
+                      {% if item.finding_id %}
+                        {% set question = strings.path.questions.get(item.finding_id) %}
+                        {{ question or finding_labels[item.finding_id] }}{% if not question and item.fix %} ·{% endif %}
+                      {% endif %}
+                      {% if item.fix %}{{ item.fix }}{% endif %}
+                    </dd>
                   </div>
                 {% endfor %}
               </dl>
             {% else %}
               <p>{{ strings.path.empty.unknown }}</p>
             {% endif %}
-            <p>
+            <p class="summary-links">
               <a class="more" href="#not-examined">{{ strings.summary.not_examined }}{{ icon('chevron-right') }}</a>
-              {% if missing_cost_paths %} · {{ missing_cost_link(missing_cost_paths|length) }}{% endif %}
+              {% if missing_cost_paths %}{{ missing_cost_link(missing_cost_paths|length) }}{% endif %}
             </p>
             {% if missing_cost_paths %}<p class="note-text">{{ costs.missing_fix }}</p>{% endif %}
           </div>
@@ -1315,30 +1528,39 @@
             {% set scope = scope_statement %}
             <div class="subsection" data-summary="scope">
               <h3>{{ strings.summary.scope_title.format(profile=scope.profile) }}</h3>
-              <p>{{ strings.summary.scope_of.format(n=format.integer(scope.total), profile=scope.profile) }}
+              <p>{{ strings.summary.scope_of.format(n=format.integer(scope.total), profile=scope.profile) }}</p>
+              <dl class="coverage-summary">
                 {% for coverage, count in scope.by_coverage %}
-                  {{ strings.mapping_coverage[coverage] }} {{ format.integer(count) }}{{ ' · ' if not loop.last }}
-                {% endfor %}
-              </p>
-              {% if scope.needed %}
-                <dl class="rows">
                   <div>
-                    <dt>{{ strings.summary.scope_needed.format(profile=scope.profile) }}</dt>
-                    <dd>{% for name, anchor in scope.needed %}<a href="#{{ anchor }}">{{ name }}</a>{{ ' · ' if not loop.last }}{% endfor %}</dd>
+                    <dt>{{ strings.mapping_coverage[coverage] }}</dt>
+                    <dd class="row-count">{{ format.integer(count) }}</dd>
                   </div>
-                </dl>
+                {% endfor %}
+              </dl>
+              {% if scope.needed %}
+                <div class="scope-requirements">
+                  <h4 class="scope-needed">{{ strings.summary.scope_needed.format(profile=scope.profile) }}</h4>
+                  <ul class="scope-links" role="list">
+                    {% for name, anchor in scope.needed %}
+                      <li><a href="#replacement-{{ anchor.removeprefix('transfer-gap-') }}" class="more">{{ name }}{{ icon('chevron-right') }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
               {% endif %}
               {% if scope.unknown_need %}
-                <p>{{ strings.summary.scope_unknown.format(n=format.integer(scope.unknown_need), profile=scope.profile) }}</p>
+                {% set unknown = strings.summary.scope_unknown_one if scope.unknown_need == 1 else strings.summary.scope_unknown %}
+                <p>{{ unknown.format(n=format.integer(scope.unknown_need), profile=scope.profile) }}</p>
               {% endif %}
               {% if scope.reviewed_on is none %}<p class="note-text">{{ strings.moves.unreviewed }}</p>{% endif %}
             </div>
           {% endif %}
-          <ul class="tiles tiles-3" role="list">
+          <div class="subsection summary-costs">
+            <h3>{{ costs.total }}</h3>
+            <ul class="tiles tiles-3" role="list">
             {% for tile in cost_tiles %}
               {% set result = tile.result %}
               <li data-cost-tile="{{ result.id }}">
-                <p class="tile-label">{{ costs.total_label.format(scenario=costs[result.id]) }}</p>
+                <p class="tile-label">{{ costs[result.id] }}</p>
                 {% if result.total is none %}
                   <span class="figure-num">{{ status_label('unknown') }}</span>
                   <p class="tile-title">{{
@@ -1361,8 +1583,9 @@
                 {% endif %}
               </li>
             {% endfor %}
-          </ul>
-          {{ cost_notes() }}
+            </ul>
+            {{ cost_notes() }}
+          </div>
         </div>
       </div>
     </section>
@@ -1394,20 +1617,30 @@
         <h2 class="sec-label" id="readiness-title">{{ strings.readiness.title }}</h2>
         <div class="sec-body">
           <div class="filters">
-            <fieldset class="segmented" data-filter="status">
-              <legend class="sr-only">{{ strings.filter.status_legend }}</legend>
-              <label><input class="sr-only" type="radio" name="f-status" id="f-status-all" checked> {{ strings.filter.all }} · {{ format.integer(area_count) }}</label>
-              {% for status, count in status_counts %}
-                <label><input class="sr-only" type="radio" name="f-status" id="f-status-{{ status }}"{% if count == 0 %} disabled{% endif %}>{{ status_label(status) }} · {{ format.integer(count) }}</label>
-              {% endfor %}
-            </fieldset>
-            <fieldset class="segmented" data-filter="category">
-              <legend class="sr-only">{{ strings.filter.category_legend }}</legend>
-              <label><input class="sr-only" type="radio" name="f-category" id="f-category-all" checked> {{ strings.filter.all_categories }}</label>
-              {% for category in categories %}
-                <label><input class="sr-only" type="radio" name="f-category" id="f-category-{{ category.id }}"> {{ category_labels[category.id] }}</label>
-              {% endfor %}
-            </fieldset>
+            <div class="filter-controls">
+              <fieldset class="segmented" data-filter="status">
+                <legend class="sr-only">{{ strings.filter.status_legend }}</legend>
+                <label>
+                  <input class="sr-only" type="radio" name="f-status" id="f-status-all" checked>
+                  {{ strings.filter.all }} <span class="segment-count">{{ format.integer(area_count) }}</span>
+                </label>
+                {% for status, count in status_counts %}
+                  <label>
+                    <input class="sr-only" type="radio" name="f-status" id="f-status-{{ status }}"{% if count == 0 %} disabled{% endif %}>
+                    {{ status_label(status) }} <span class="segment-count">{{ format.integer(count) }}</span>
+                  </label>
+                {% endfor %}
+              </fieldset>
+              <div class="category-filter" data-filter="category">
+                <select id="f-category" name="f-category" aria-label="{{ strings.filter.category_legend }}">
+                  <option id="f-category-all" value="all" selected>{{ strings.filter.all_categories }}</option>
+                  {% for category in categories %}
+                    <option id="f-category-{{ category.id }}" value="{{ category.id }}">{{ category_labels[category.id] }}</option>
+                  {% endfor %}
+                </select>
+                {{ icon('chevron-right') }}
+              </div>
+            </div>
             <p class="note-text">{{ strings.filter.search_hint }}</p>
           </div>
           <div class="areas readiness">
@@ -1417,8 +1650,13 @@
                 {% for row in rows %}
                   {% set category = workload_categories[row.workload] %}
                   <article data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} data-category="{{ category }}" class="finding" id="readiness-{{ row.workload }}" aria-labelledby="area-{{ row.workload }}">
-                    <h4 class="finding-area" id="area-{{ row.workload }}">{{ workload_labels[row.workload] }} · <span class="finding-category">{{ category_labels[category] }}</span></h4>
-                    <p class="finding-status">{{ workload_status(row) }}</p>
+                    <div class="finding-head">
+                      <div>
+                        <h4 class="finding-area" id="area-{{ row.workload }}">{{ workload_labels[row.workload] }}</h4>
+                        <span class="finding-category">{{ category_labels[category] }}</span>
+                      </div>
+                      <p class="finding-status">{{ finding_badges(row) }}</p>
+                    </div>
                     {% if row.reason_code %}{% set reason, fix = reason_text(row.reason_code) %}{% endif %}
                     <div class="finding-reason">
                       {% if row.reason_code %}<span data-reason="{{ row.reason_code }}">{{ reason }}</span>
@@ -1544,7 +1782,7 @@
               </tbody>
             </table>
           </div>
-          <p class="muted">{{ costs.rounding }}</p>
+          <p class="note-text">{{ costs.rounding }}</p>
           <p class="note-text">{{ costs.vat_note }}</p>
           {% if missing_cost_paths %}
             <div id="costs-missing">
@@ -1596,12 +1834,13 @@
             'not_available': 'cancel'
           } %}
           <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
-            <table class="coverage" role="table">
+            <table class="coverage replacements" role="table">
               {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
               <thead role="rowgroup">
                 <tr role="row">
                   {{ column(strings.moves.microsoft) }}
                   {{ column(strings.moves.replacement) }}
+                  {{ column(strings.moves.need) }}
                   {{ column(strings.appendix.mapping_date) }}
                   {{ column(strings.moves.workload_status) }}
                 </tr>
@@ -1610,17 +1849,30 @@
                 {% for item in mapping.functions %}
                   {% set row = status_by_workload[item.workload] %}
                   {% set symbol = coverage_icons[item.coverage] %}
-                  <tr data-function="{{ item.function }}" data-workload="{{ item.workload }}" data-status="{{ row.status }}" role="row">
+                  {% set gap = row.transfer_gaps|selectattr('mapping.function', 'eq', item.function)|first|default(none) %}
+                  <tr data-function="{{ item.function }}" data-workload="{{ item.workload }}" data-status="{{ row.status }}" role="row" id="replacement-{{ item.function }}">
                     <th scope="row" role="rowheader" data-label="{{ strings.moves.microsoft }}">{{ item.microsoft[lang] }}</th>
-                    <td role="cell" data-label="{{ strings.moves.replacement }}">
+                    <td role="cell" data-label="{{ strings.moves.replacement }}" data-coverage-label="{{ strings.moves.coverage }}">
                       <span class="cov-cell">
                         <span class="cov{{ ' cov-none' if symbol == 'cancel' }}">{{ icon(symbol) }}</span>
-                        <span><strong>{{ strings.mapping_coverage[item.coverage] }}</strong>{{ item.replacement[lang] }}</span>
+                        <span><strong>{{ strings.mapping_coverage[item.coverage] }}</strong></span>
                       </span>
+                      <span class="replacement-name" data-label="{{ strings.moves.replacement }}">{{ item.replacement[lang] }}</span>
+                    </td>
+                    <td role="cell" data-label="{{ strings.moves.need }}">
+                      {% if gap and gap.need != 'unknown' %}
+                        {{ strings.common[gap.need] }}
+                        <small class="prov">{{ provenance_word(gap.finding.provenance) }}</small>
+                      {% elif gap %}
+                        {{ strings.status.unknown }}
+                      {% else %}
+                        {{ strings.moves.need_not_assessed }}
+                      {% endif %}
                     </td>
                     <td role="cell" data-label="{{ strings.appendix.mapping_date }}">{{ mapping_date(item) }}</td>
                     <td role="cell" data-label="{{ strings.moves.workload_status }}">
-                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}">{{ workload_status(row) }}</a>
+                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}" class="more">{{ status_label(row.status) }}{{ icon('chevron-right') }}</a>
+                      {% if row.incomplete %}<small class="note-text">{{ strings.readiness.incomplete }}</small>{% endif %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -1639,7 +1891,7 @@
         <div class="sec-body">
           <h3 id="risky-files-title">{{ strings.attention.files }}</h3>
           <div class="table-scroll" role="region" aria-labelledby="risky-files-title" tabindex="0">
-            <table class="coverage" role="table">
+            <table class="coverage file-types" role="table">
               {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
               <thead role="rowgroup">
                 <tr role="row">
@@ -1982,6 +2234,7 @@
       </div>
     </section>
   </main>
+  </div>
   <footer data-section="footer">
     <p>{{ project_name }} · {{ repository_url }}</p>
   </footer>

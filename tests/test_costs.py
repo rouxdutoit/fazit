@@ -433,6 +433,7 @@ def test_town_cost_tiles_use_whole_units_and_show_the_break_even(tmp_path: Path,
     formatter = Formatter(lang)
     strings = formatter.strings["costs"]
     assert re.findall(r'data-cost-tile="([^"]+)"', summary) == list(SCENARIOS)
+    assert f"<h3>{strings['total']}</h3>" in summary
 
     def money(amount: int) -> str:
         return formatter.money(Fraction(amount), "EUR", whole=True)
@@ -442,7 +443,7 @@ def test_town_cost_tiles_use_whole_units_and_show_the_break_even(tmp_path: Path,
     assert all(formatter.strings["format"]["decimal_separator"] not in text for text in figures)
     for scenario in SCENARIOS:
         tile = _cost_tile(summary, scenario)
-        assert strings["total_label"].format(scenario=strings[scenario]) in _visible_text(tile)
+        assert f'<p class="tile-label">{strings[scenario]}</p>' in tile
         origin = strings["origins"]["calculated_with_examples"]
         assert f'<p data-cost-origin="calculated_with_examples">{origin}</p>' in tile
 
