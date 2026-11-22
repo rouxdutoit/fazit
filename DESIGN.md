@@ -38,7 +38,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Text links:** link colour, no underline; on hover they brighten, and in dark mode they also glow. A standalone link ends in a chevron in the link colour; a link inside a sentence does not.
 - **A card that leads to another page is one link as a whole:** black title, a circled neutral chevron in the corner, and on hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com:** pill shape, regular weight (500 in Figtree), 15 px text with 7 × 15 px padding in content, 12 px with 3 × 10 px in the bar. The primary button lightens on hover and darkens when pressed; the text never changes colour.
-- One main action per screen. The bar holds the page links and one button.
+- One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".
 
 ## Motion
 
