@@ -154,7 +154,7 @@ class Page(HTMLParser):
             self._badge = " ".join(name for name in classes if name.startswith("cov-"))
         elif tag == "p" and "tally" in classes:
             self._tally_text = []
-        if tag == "tr" and values.get("id", "").startswith("readiness-"):
+        if tag == "article" and values.get("id", "").startswith("readiness-"):
             self.status_counts[values.get("data-status", "")] += 1
 
     def record_button_icon(self, tag: str, classes: list[str], line: int) -> None:

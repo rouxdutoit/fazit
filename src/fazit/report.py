@@ -2,6 +2,7 @@
 import base64
 import re
 from collections import Counter
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import date
 from functools import lru_cache, partial
@@ -28,18 +29,19 @@ from .licences import (
     load_service_plans,
     scan_to_json,
 )
-from .mappings import COVERAGE_LADDER, TargetMapping, load_mapping
+from .mappings import COVERAGE_LADDER, FunctionMapping, TargetMapping, load_mapping
 from .model import Coverage, Finding, FindingValue, Product, Scan
 from .parsing import read_text
 from .risky_files import load_risky_file_types
 from .status import (
-    STATUSES,
     StatusRuleSet,
     TransferGap,
     WorkloadStatus,
     evaluate,
     load_status_rules,
 )
+
+_DISPLAY_ORDER = ("blocker", "needs_work", "unknown", "ready")
 
 
 def report_file_name(generated_at: str, *, lang: str) -> str:
@@ -298,6 +300,26 @@ def scope_statement(
     )
 
 
+def _evidence_counts(
+    observations: Iterable[Finding],
+    rule_evidence: tuple[Finding, ...],
+    alternatives: Mapping[str, Finding],
+) -> dict[str, int]:
+    distinct = {finding.id: finding for finding in observations}
+    distinct.update((finding.id, finding) for finding in rule_evidence)
+    counts = Counter(finding.provenance for finding in distinct.values())
+    counts.update(
+        alternatives[finding_id].provenance for finding_id in distinct if finding_id in alternatives
+    )
+    return {kind: counts[kind] for kind in ("measured", "provided", "unknown")}
+
+
+def _target_functions(row: WorkloadStatus, mapping: TargetMapping) -> tuple[FunctionMapping, ...]:
+    needed = {gap.mapping.function for gap in row.transfer_gaps if gap.need == "yes"}
+    functions = (item for item in mapping.functions if item.workload == row.workload)
+    return tuple(sorted(functions, key=lambda item: item.function not in needed)[:2])
+
+
 def _evidence_context(
     scan: Scan,
     by_id: dict[str, Finding],
@@ -331,7 +353,13 @@ def _evidence_context(
             item.id for item in other_evidence if provided_answers_conflict(by_id[item.id], item)
         },
         statuses=statuses,
-        status_counts=[(status, counts[status]) for status in STATUSES],
+        status_counts=[(status, counts[status]) for status in _DISPLAY_ORDER],
+        status_groups=[
+            (status, tuple(row for row in statuses if row.status == status))
+            for status in _DISPLAY_ORDER
+            if counts[status]
+        ],
+        area_count=len(catalogue.assessed_workload_ids),
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
         mapping_gaps=[
@@ -344,7 +372,17 @@ def _evidence_context(
             collector for collector in scan.collectors if collector.status == "skipped"
         ],
         headlines=[row for row in observations if row[0].headline],
-        groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
+        catalogue_evidence=by_workload,
+        inventory_workloads=tuple(
+            workload.id for workload in catalogue.workloads if not workload.assessed
+        ),
+        evidence_counts={
+            row.workload: _evidence_counts(
+                (finding for _, finding in by_workload[row.workload]), row.evidence, alternatives
+            )
+            for row in statuses
+        },
+        target_functions={row.workload: _target_functions(row, mapping) for row in statuses},
         software=[
             row
             for row in observations

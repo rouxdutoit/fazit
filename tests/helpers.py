@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from importlib.resources import files
 from pathlib import Path
 
+from report_expectations import DISPLAY_ORDER
 from typer.testing import CliRunner, Result
 
 from fazit.cli import app
@@ -93,9 +94,24 @@ def report_section(html: str, name: str) -> str:
 
 
 def readiness_row(html: str, workload: str) -> str:
-    row = re.search(rf'<tr data-workload="{workload}"[^>]*>.*?</tr>', html, re.S)
+    row = re.search(rf'<article data-workload="{workload}"[^>]*>.*?</article>', html, re.S)
     assert row is not None, workload
     return row[0]
+
+
+def assert_readiness_order(readiness: str, assessed: tuple[str, ...]) -> None:
+    parts = re.split(r'<div class="status-group" data-status-group="([^"]+)">', readiness)
+    group_statuses = parts[1::2]
+    assert group_statuses == [status for status in DISPLAY_ORDER if status in group_statuses]
+    assert "<article data-workload=" not in parts[0]
+    workloads = []
+    for status, group in zip(group_statuses, parts[2::2], strict=True):
+        cards = re.findall(r'<article data-workload="([^"]+)" data-status="([^"]+)"', group)
+        assert cards and all(card_status == status for _, card_status in cards)
+        ids = [workload for workload, _ in cards]
+        assert ids == [workload for workload in assessed if workload in ids]
+        workloads.extend(ids)
+    assert sorted(workloads) == sorted(assessed)
 
 
 def rebuild_report(

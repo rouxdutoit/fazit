@@ -2,6 +2,7 @@
 import json
 import re
 from collections import Counter
+from dataclasses import replace
 from hashlib import sha256
 from html import unescape
 from itertools import pairwise
@@ -15,18 +16,23 @@ from helpers import (
     RESOURCE_ATTRIBUTES,
     RESOURCE_ELEMENTS,
     ReportDocument,
+    assert_readiness_order,
+    readiness_row,
     rebuild_report,
+    report_section,
     runner,
     sample_inputs_path,
     sample_scan_path,
 )
-from report_expectations import SECTION_ORDER
+from report_expectations import DISPLAY_ORDER, SECTION_ORDER
 
 from fazit import __version__, catalogue, rules
 from fazit import report as report_module
 from fazit.cli import app
-from fazit.i18n import load_locale
-from fazit.mappings import PROFILES
+from fazit.i18n import Formatter, load_locale
+from fazit.inputs import load_inputs
+from fazit.mappings import PROFILES, load_mapping
+from fazit.model import load_scan
 
 # The report embeds its two fonts; nothing else in its CSS may point anywhere.
 EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
@@ -36,6 +42,234 @@ SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "d
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
     return rebuild_report(
         sample_scan_path(sample), out, lang, profile=profile, inputs=sample_inputs_path(sample)
+    )
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_readiness_cards_keep_status_order_and_show_the_area_and_action(
+    tmp_path: Path, sample: str, lang: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, "opendesk")
+    readiness = report_section(html, "readiness")
+    entries = catalogue.load_catalogue()
+    strings = load_locale(lang)
+
+    assert_readiness_order(readiness, entries.assessed_workload_ids)
+    assert 'data-workload="licences"' not in readiness
+    assert "readiness-bar" not in html and "data-segment" not in html
+    for workload in (entry for entry in entries.workloads if entry.assessed):
+        card = readiness_row(readiness, workload.id)
+        assert f'class="finding" id="readiness-{workload.id}"' in card
+        assert f'aria-labelledby="area-{workload.id}"' in card
+        assert f'<h4 class="finding-area" id="area-{workload.id}">' in card
+        assert f'data-category="{workload.category}"' in card
+        category = strings["category"][workload.category]
+        assert f'<span class="finding-category">{category}</span>' in unescape(card)
+        status = re.search(r'data-status="([^"]+)"', card)[1]
+        label = strings["status"][status]
+        assert re.search(rf'<p class="finding-status">.*?</svg> {label}</span>', card, re.S)
+        reason = re.search(r'<div class="finding-reason">(.*?)</div>', card, re.S)
+        assert reason and re.sub(r"<[^>]+>", "", reason[1]).strip()
+        if status != "ready":
+            action = re.search(r'<p class="finding-next"><strong>[^<]+</strong>(.*?)</p>', card)
+            assert action and action[1].strip()
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_card_disclosures_count_each_observation_once(
+    tmp_path: Path, sample: str, lang: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, "opendesk")
+    entries = catalogue.load_catalogue()
+    readiness = report_section(html, "readiness")
+    found = report_section(html, "found")
+    assert re.findall(r'data-evidence-workload="([^"]+)"', found) == ["licences"]
+    assert load_locale(lang)["found"]["notes"]["directory"] in readiness
+    for workload in entries.assessed_workload_ids:
+        card = readiness_row(readiness, workload)
+        if 'data-status="ready"' in card:
+            assert 'class="finding-next"' not in card and 'class="finding-missing"' not in card
+        records = re.findall(
+            r'<(li|tr) data-(?:evidence|finding)="([^"]+)"[^>]*>(.*?)</\1>', card, re.S
+        )
+        disclosures = re.findall(r'<details class="workload-evidence"[^>]*>', card)
+        if not records:
+            assert not disclosures
+            continue
+        assert disclosures == [
+            f'<details class="workload-evidence" data-evidence-workload="{workload}">'
+        ]
+        detail = card.split(disclosures[0], 1)[1].split("</details>", 1)[0]
+        observations = {}
+        for _, finding, record in records:
+            assert record in detail
+            provenances = tuple(re.findall(r'<div data-provenance="([^"]+)"', record))
+            assert provenances and observations.setdefault(finding, provenances) == provenances
+        counts = Counter(
+            provenance for evidence in observations.values() for provenance in evidence
+        )
+        expected = load_locale(lang)["readiness"]["evidence_summary"].format(
+            **{kind: counts[kind] for kind in ("measured", "provided", "unknown")}
+        )
+        assert re.search(
+            rf'<summary id="evidence-{workload}">.*?</svg>{expected}</summary>', detail
+        )
+        if '<table class="coverage"' in detail and '<ul class="rule-evidence"' in detail:
+            assert detail.index('<ul class="rule-evidence"') < detail.index(
+                '<table class="coverage"'
+            )
+
+
+@pytest.mark.parametrize("with_inventory", [True, False])
+def test_card_disclosure_can_contain_derived_licence_evidence_alone(with_inventory: bool) -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    scan = replace(
+        scan,
+        findings=tuple(finding for finding in scan.findings if finding.workload != "telephony"),
+        licences=scan.licences if with_inventory else None,
+    )
+    card = readiness_row(report_module.render_report(scan, lang="en"), "telephony")
+    assert ('data-evidence-workload="telephony"' in card) is with_inventory
+    assert ('data-evidence="telephony.licence_add_on_assigned"' in card) is with_inventory
+    assert '<table class="coverage"' not in card
+
+
+def test_card_disclosure_counts_two_disagreeing_observations_with_the_same_provenance() -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    finding = scan.finding("small_apps.in_use")
+    assert finding is not None
+    supplied = replace(
+        finding, value=True, provenance="provided", source="interview", missing_reason=None
+    )
+    scan = replace(
+        scan,
+        findings=tuple(supplied if item.id == supplied.id else item for item in scan.findings),
+        licences=None,
+    )
+    inputs = load_inputs(sample_inputs_path("town"), entries)
+    card = readiness_row(report_module.render_report(scan, lang="en", inputs=inputs), "small_apps")
+    assert "Evidence · 0 measured, 2 provided, 0 unknown" in card
+    assert card.count('class="evidence-meta"><span class="prov">Provided</span>') == 4
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+@pytest.mark.parametrize("profile", PROFILES)
+def test_card_target_lines_keep_needed_gaps_and_mapping_details(
+    tmp_path: Path, sample: str, lang: str, profile: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, profile)
+    entries = catalogue.load_catalogue()
+    mapping = load_mapping(profile, entries)
+    formatter = Formatter(lang)
+    strings = formatter.strings
+    gaps = set(re.findall(r'<li data-gap="([^"]+)" data-need="yes"', html))
+
+    for workload in entries.assessed_workload_ids:
+        card = readiness_row(html, workload)
+        target = re.search(r'<p class="finding-target">(.*?)</p>', card, re.S)
+        assert target and re.findall(r'href="([^"]+)"', target[1]) == ["#moves-title"]
+        functions = [item for item in mapping.functions if item.workload == workload]
+        needed = [item for item in functions if item.function in gaps]
+        expected = (needed + [item for item in functions if item not in needed])[:2]
+        shown = re.findall(r'<span data-target-function="([^"]+)">(.*?)</span>', target[1], re.S)
+        assert {item.function for item in needed} <= {function for function, _ in shown}
+        assert [function for function, _ in shown] == [item.function for item in expected]
+        for (_, text), item in zip(shown, expected, strict=True):
+            assert item.replacement[lang] in unescape(text)
+            assert strings["mapping_coverage"][item.coverage] in unescape(text)
+            date_text = (
+                formatter.date(item.checked_on.isoformat())
+                if item.checked_on
+                else strings["moves"]["no_project_check"]
+            )
+            assert date_text in text
+
+
+def test_needed_teams_chat_history_comes_first_on_the_card(tmp_path: Path) -> None:
+    inputs = tmp_path / "inputs.yaml"
+    original = sample_inputs_path("town").read_text(encoding="utf-8")
+    inputs.write_text(
+        original.replace(
+            "teams.chat_history_must_be_kept: false", "teams.chat_history_must_be_kept: true"
+        ),
+        encoding="utf-8",
+    )
+    html = rebuild_report(sample_scan_path("town"), tmp_path / "out", "en", inputs=inputs)
+    card = readiness_row(html, "teams")
+    assert re.findall(r'data-target-function="([^"]+)"', card) == ["teams_chat_history", "chat"]
+
+
+def _screen_media_spans(css: str) -> list[range]:
+    spans = []
+    for media in re.finditer(r"@media\s+screen\b[^{}]*\{", css):
+        depth = 1
+        for brace in re.finditer(r"[{}]", css[media.end() :]):
+            depth += 1 if brace[0] == "{" else -1
+            if depth == 0:
+                spans.append(range(media.end(), media.end() + brace.start()))
+                break
+        assert depth == 0
+    return spans
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_readiness_filters_use_the_card_counts_and_catalogue(
+    tmp_path: Path, sample: str, lang: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, "opendesk")
+    readiness = report_section(html, "readiness")
+    entries = catalogue.load_catalogue()
+    formatter = Formatter(lang)
+    strings = formatter.strings
+    groups = re.findall(
+        r'<fieldset class="segmented" data-filter="([^"]+)">(.*?)</fieldset>', readiness, re.S
+    )
+    assert [group for group, _ in groups] == ["status", "category"]
+    cards = [attrs for tag, attrs in ReportDocument(readiness).tags if tag == "article"]
+    counts = Counter(card["data-status"] for card in cards)
+    category_ids = [category.id for category in entries.categories]
+    assert {card["data-category"] for card in cards} == set(category_ids)
+
+    for kind, group in groups:
+        ids = DISPLAY_ORDER if kind == "status" else category_ids
+        assert f'<legend class="sr-only">{strings["filter"][f"{kind}_legend"]}</legend>' in group
+        labels = re.findall(r"<label>(.*?)</label>", group, re.S)
+        radios = [attrs for tag, attrs in ReportDocument(group).tags if tag == "input"]
+        assert len(labels) == len(radios) == len(ids) + 1
+        for option, label, radio in zip(("all", *ids), labels, radios, strict=True):
+            assert radio["type"] == "radio" and radio["name"] == f"f-{kind}"
+            assert radio["id"] == f"f-{kind}-{option}"
+            assert "<input " in label
+            assert ("checked" in radio) is (option == "all")
+            assert ("disabled" in radio) is (
+                kind == "status" and option != "all" and not counts[option]
+            )
+            text = unescape(" ".join(re.sub(r"<[^>]*>", "", label).split()))
+            if kind == "status":
+                count = len(entries.assessed_workload_ids) if option == "all" else counts[option]
+                name = strings["filter"]["all"] if option == "all" else strings["status"][option]
+                assert text == f"{name} · {formatter.integer(count)}"
+                assert ("<svg" in label) is (option != "all")
+            else:
+                name = (
+                    strings["filter"]["all_categories"]
+                    if option == "all"
+                    else strings["category"][option]
+                )
+                assert text == name and "<svg" not in label
+
+    assert strings["filter"]["search_hint"] in unescape(readiness)
+    assert f'<p class="areas-empty note">{strings["filter"]["empty"]}</p>' in unescape(readiness)
+    document = ReportDocument(html)
+    assert not any(tag == "form" for tag, _ in document.tags)
+    (css,) = document.styles
+    screen_spans = _screen_media_spans(css)
+    checked = [match.start() for match in re.finditer(r":checked\b", css)]
+    assert checked and all(any(position in span for span in screen_spans) for position in checked)
+    assert re.search(
+        r"@supports not selector\(:has\(\*\)\)\s*\{\s*\.filters\s*\{\s*display:\s*none", css
     )
 
 

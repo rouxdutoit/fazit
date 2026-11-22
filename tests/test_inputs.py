@@ -554,7 +554,7 @@ def test_sample_inputs_and_rendered_statuses(
     assert inputs.partial_exit.users < inputs.full_exit.users
 
     html = render_report(scan, lang="en", catalogue=catalogue, inputs=inputs)
-    statuses = dict(re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', html))
+    statuses = dict(re.findall(r'<article data-workload="([^"]+)" data-status="([^"]+)"', html))
     assert statuses == {
         workload: status for status, workloads in expected.items() for workload in workloads
     }
@@ -569,8 +569,10 @@ def test_sample_inputs_and_rendered_statuses(
     answer = "Yes" if sample == "town" else "No"
     assert re.search(rf'data-provenance="provided">\s*{answer}\b', contract[0])
     if sample == "town":
-        mail = re.search(r'<tr data-workload="mail".*?</tr>', html, re.S)[0]
-        security = re.search(r'<tr data-workload="security_compliance".*?</tr>', html, re.S)[0]
+        mail = re.search(r'<article data-workload="mail".*?</article>', html, re.S)[0]
+        security = re.search(
+            r'<article data-workload="security_compliance".*?</article>', html, re.S
+        )[0]
         assert 'data-status="needs_work" data-incomplete' in mail
         assert 'data-reason="needs_recipient_export"' in mail
         assert 'data-rule="mail-other-systems"' in html
@@ -637,7 +639,7 @@ windows_only_software:
 
     assert markup not in html and "<img" not in html
     assert "&lt;strong&gt;Example Authority&lt;/strong&gt;" in html
-    row = re.search(r'<tr data-workload="windows_software".*?</tr>', html, re.S)[0]
+    row = re.search(r'<article data-workload="windows_software".*?</article>', html, re.S)[0]
     assert 'data-status="needs_work" data-incomplete' in row
     assert "At least 1 application" in row and "1 of 2 answers supplied" in row
     assert 'data-reason="answer_not_provided"' in row

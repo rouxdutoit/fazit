@@ -10,3 +10,4 @@ SECTION_ORDER = (
     "appendix",
     "footer",
 )
+DISPLAY_ORDER = ("blocker", "needs_work", "unknown", "ready")

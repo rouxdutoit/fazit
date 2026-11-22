@@ -45,12 +45,7 @@ found:
   finding: Merkmal
   value: Wert
   provenance: Herkunft des Werts
-  evidence: Datengrundlage der Ergebnisse
   collector: Erhebungsverfahren
-  source: Datenquelle
-  collected: Erhebungsdatum
-  period: Berichtszeitraum
-  coverage: Umfang der Erhebung
   sample: Die Messwerte der Erhebung sind simuliert.
   note: Hinweis
   comparison: Weitere Beobachtung
@@ -166,8 +161,6 @@ costs:
 readiness:
   title: Wo jeder Bereich steht
   counts: Anzahl der Bereiche je Status
-  workload: Bereich
-  evidence: Datengrundlage
   next_step: Nächster Schritt
   incomplete: Datengrundlage unvollständig
   missing: Noch benötigte Angaben

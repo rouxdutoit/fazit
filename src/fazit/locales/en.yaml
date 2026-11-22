@@ -45,12 +45,7 @@ found:
   finding: Finding
   value: Value
   provenance: How we know
-  evidence: Evidence behind the figures
   collector: Collection method
-  source: Source
-  collected: Collection date
-  period: Reporting period
-  coverage: Coverage
   sample: Scan measurements are simulated.
   note: Note
   comparison: Other observation
@@ -166,8 +161,6 @@ costs:
 readiness:
   title: Where each area stands
   counts: Areas by status
-  workload: Area
-  evidence: Evidence
   next_step: Next step
   incomplete: Evidence incomplete
   missing: Evidence still needed

@@ -11,7 +11,13 @@ from shutil import copytree
 
 import pytest
 import yaml
-from helpers import readiness_row, report_section, runner, sample_inputs_path
+from helpers import (
+    assert_readiness_order,
+    readiness_row,
+    report_section,
+    runner,
+    sample_inputs_path,
+)
 from report_expectations import SECTION_ORDER
 
 from fazit import i18n, rules
@@ -1455,8 +1461,10 @@ def test_town_telephony_shows_deciding_next_step(
     )
     step = f'<p class="finding-next"><strong>{label}</strong> {rule.next_step.text[lang]}</p>'
     assert row.index(rule.reason[lang]) < row.index(step)
-    for workload in ("onedrive", "security_compliance"):
-        assert 'class="finding-next"' not in readiness_row(html, workload)
+    assert 'class="finding-next"' not in readiness_row(html, "onedrive")
+    security = unescape(readiness_row(html, "security_compliance"))
+    fix = load_locale(lang)["reason"]["licensed_use_not_measured"]["fix"]
+    assert f'<p class="finding-next"><strong>{label}</strong> {fix}</p>' in security
 
 
 def test_next_step_text_is_autoescaped(
@@ -1599,8 +1607,7 @@ def test_demo_rows_show_the_categories_of_assessed_workloads(
     assert path.is_file()
     html = path.read_text(encoding="utf-8")
     table = report_section(html, "readiness")
-    workloads = re.findall(r'<tr data-workload="([^"]+)"', table)
-    assert tuple(workloads) == catalogue.assessed_workload_ids
+    assert_readiness_order(table, catalogue.assessed_workload_ids)
     assert 'data-workload="licences" data-status=' not in html
     labels = load_locale(lang)["category"]
     for workload, category in expected.items():

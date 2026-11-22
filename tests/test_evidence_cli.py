@@ -1149,9 +1149,12 @@ def test_measured_positive_count_cannot_be_overridden_by_zero(
         if kind == "complete"
         else strings["readiness"]["conflict"]
     )
-    assert conflict in row
+    evidence = re.search(rf'<li data-evidence="{re.escape(finding_id)}">.*?</li>', row, re.S)
+    assert evidence is not None and conflict in evidence[0]
     bounds = "" if kind == "complete" else "At least "
-    assert re.findall(r'data-provenance="(?:measured|provided)">\s*([^\n]+ applications)', row) == [
+    assert re.findall(
+        r'data-provenance="(?:measured|provided)">\s*([^\n]+ applications)', evidence[0]
+    ) == [
         f"{bounds}3 applications",
         "0 applications",
     ]
@@ -1209,15 +1212,21 @@ def test_disagreeing_provided_answers_remain_visible_and_undecided(
     strings = load_locale("en")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="provided_answers_conflict"' in row
-    assert sorted(re.findall(r'data-provenance="provided">\s*(Yes|No)', row)) == ["No", "Yes"]
-    assert strings["source"]["interview"] in row and strings["source"]["inputs_yaml"] in row
-    assert "2 November 2026" in row
+    evidence = re.search(r'<li data-evidence="small_apps\.in_use">.*?</li>', row, re.S)
+    assert evidence is not None
+    assert sorted(re.findall(r'data-provenance="provided">\s*(Yes|No)', evidence[0])) == [
+        "No",
+        "Yes",
+    ]
+    assert strings["source"]["interview"] in evidence[0]
+    assert strings["source"]["inputs_yaml"] in evidence[0]
+    assert "2 November 2026" in evidence[0]
     supplied_date = (
         f"{int(inputs_date[-2:])} November 2026"
         if inputs_date
         else strings["common"]["date_not_supplied"]
     )
-    assert supplied_date in row
+    assert supplied_date in evidence[0]
     assert 'data-path-status="ready" data-path-workload="small_apps"' not in html
 
 

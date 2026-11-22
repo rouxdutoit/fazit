@@ -23,6 +23,7 @@ from helpers import (
     TOKEN,
     ReportDocument,
     assert_no_private_text,
+    assert_readiness_order,
     audit_environment,
     readiness_row,
     rebuild_report,
@@ -173,8 +174,10 @@ def _render(tenant: Tenant) -> str:
 
 def _statuses(html: str) -> dict[str, str]:
     readiness = report_section(html, "readiness")
-    statuses = dict(re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness))
-    assert tuple(statuses) == CATALOGUE.assessed_workload_ids
+    statuses = dict(
+        re.findall(r'<article data-workload="([^"]+)" data-status="([^"]+)"', readiness)
+    )
+    assert_readiness_order(readiness, CATALOGUE.assessed_workload_ids)
     assert set(statuses.values()) <= set(STATUSES)
     return statuses
 
