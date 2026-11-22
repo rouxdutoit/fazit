@@ -9,50 +9,50 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 
 ### Command line
 
-- [ ] **CLI-01**: User can run `demo [--lang de|en]` and get a complete report from bundled sample data without a Microsoft account or network access
-- [ ] **CLI-02**: User can run `report scan.json [--inputs inputs.yaml] [--lang de|en] [--profile NAME]` to rebuild the HTML report with no network access
+- [x] **CLI-01**: User can run `demo [--lang de|en]` and get a complete report from bundled sample data without a Microsoft account or network access
+- [x] **CLI-02**: User can run `report scan.json [--inputs inputs.yaml] [--lang de|en] [--profile NAME]` to rebuild the HTML report with no network access
 - [ ] **CLI-03**: User can run `import PATH...` to turn admin-centre CSV exports into a `scan.json` and a report
 - [ ] **CLI-04**: User can run `scan` to sign in, collect live data, and get a `scan.json` and a report
 - [ ] **CLI-05**: User can run `doctor` to see whether consent, roles and sign-in flows allow a scan, with the exact fix for each problem
-- [ ] **CLI-06**: Every command that writes a report prints the path of the file it wrote, and accepts `--out DIR`
+- [x] **CLI-06**: Every command that writes a report prints the path of the file it wrote, and accepts `--out DIR`
 
 ### Evidence model
 
-- [ ] **MODL-01**: `scan.json` has a versioned schema that collectors write and rules and report only read (published documentation is DOCS-04)
-- [ ] **MODL-02**: Every finding records its source, collection date, reporting period, coverage, and the reason for any missing value
-- [ ] **MODL-03**: Every value is marked as measured, provided by the user, or unknown, and the report shows the three differently
-- [ ] **MODL-04**: Bundled sample data describes a fictional 85-person town office and a fictional 20-person non-profit
+- [x] **MODL-01**: `scan.json` has a versioned schema that collectors write and rules and report only read (published documentation is DOCS-04)
+- [x] **MODL-02**: Every finding records its source, collection date, reporting period, coverage, and the reason for any missing value
+- [x] **MODL-03**: Every value is marked as measured, provided by the user, or unknown, and the report shows the three differently
+- [x] **MODL-04**: Bundled sample data describes a fictional 85-person town office and a fictional 20-person non-profit
 
 ### Rules and mapping
 
-- [ ] **RULE-01**: User can choose a target profile (`opendesk`, `nextcloud`, `generic`) that maps each Microsoft service to its open source replacement, defined in a YAML file
-- [ ] **RULE-02**: Each workload gets a status of Ready, Needs work, Blocker or Unknown with a human-readable reason, from rules in a YAML file
-- [ ] **RULE-03**: A workload with missing, partial or skipped evidence is never Ready: it is Unknown unless a problem confirmed by complete evidence gives it a worse status, and it is always marked incomplete with the missing items listed
-- [ ] **RULE-04**: Rule and mapping files are validated on load, and an invalid file produces an error that names the file and the field
-- [ ] **RULE-05**: The list of risky file types is configurable, excludes `.dotx`, and macro-enabled types are reported as "may contain macros"
+- [x] **RULE-01**: User can choose a target profile (`opendesk`, `nextcloud`, `generic`) that maps each Microsoft service to its open source replacement, defined in a YAML file
+- [x] **RULE-02**: Each workload gets a status of Ready, Needs work, Blocker or Unknown with a human-readable reason, from rules in a YAML file
+- [x] **RULE-03**: A workload with missing, partial or skipped evidence is never Ready: it is Unknown unless a problem confirmed by complete evidence gives it a worse status, and it is always marked incomplete with the missing items listed
+- [x] **RULE-04**: Rule and mapping files are validated on load, and an invalid file produces an error that names the file and the field
+- [x] **RULE-05**: The list of risky file types is configurable, excludes `.dotx`, and macro-enabled types are reported as "may contain macros"
 
 ### Costs and manual inputs
 
-- [ ] **COST-01**: User can supply organisation name, currency, current costs, target costs, Windows-only software, profile and language through `inputs.yaml`
-- [ ] **COST-02**: Report compares three five-year scenarios: stay, partial exit, full exit, including one-time migration, training, retained licences and parallel running
-- [ ] **COST-03**: Any missing cost input is shown as "not provided", and a total that depends on it is shown as unknown
-- [ ] **COST-04**: The tool contains no hardcoded prices
-- [ ] **COST-05**: `inputs.example.yaml` ships with comments in English and German
-- [ ] **COST-06**: An interview checklist in English and German lists the questions whose answers fill `inputs.yaml`, including user-provided counts for things the tool cannot measure in v1 (risky files, Windows-only software, devices)
+- [x] **COST-01**: User can supply organisation name, currency, current costs, target costs, Windows-only software, profile and language through `inputs.yaml`
+- [x] **COST-02**: Report compares three five-year scenarios: stay, partial exit, full exit, including one-time migration, training, retained licences and parallel running
+- [x] **COST-03**: Any missing cost input is shown as "not provided", and a total that depends on it is shown as unknown
+- [x] **COST-04**: The tool contains no hardcoded prices
+- [x] **COST-05**: `inputs.example.yaml` ships with comments in English and German
+- [x] **COST-06**: An interview checklist in English and German lists the questions whose answers fill `inputs.yaml`, including user-provided counts for things the tool cannot measure in v1 (risky files, Windows-only software, devices)
 
 ### Report
 
-- [ ] **REPT-01**: Report is one self-contained `.html` file with inline CSS and JS, system fonts, and no external resources
-- [ ] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer
-- [ ] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
-- [ ] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
-- [ ] **REPT-05**: Status is never conveyed by colour alone: each status has a text label and its own symbol (D-80)
-- [ ] **REPT-06**: Person names and email addresses are absent from the report, `scan.json`, the filename and printed output, because schema 1.x has no field that can hold them and unknown fields are dropped
+- [x] **REPT-01**: Report is one self-contained `.html` file with inline CSS and JS, system fonts, and no external resources
+- [x] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer
+- [x] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
+- [x] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
+- [x] **REPT-05**: Status is never conveyed by colour alone: each status has a text label and its own symbol (D-80)
+- [x] **REPT-06**: Person names and email addresses are absent from the report, `scan.json`, the filename and printed output, because schema 1.x has no field that can hold them and unknown fields are dropped
 
 ### Languages
 
-- [ ] **I18N-01**: All user-facing report strings come from `locales/de.yaml` and `locales/en.yaml`, with none hardcoded in templates
-- [ ] **I18N-02**: A test fails if a key exists in one locale and not the other
+- [x] **I18N-01**: All user-facing report strings come from `locales/de.yaml` and `locales/en.yaml`, with none hardcoded in templates
+- [x] **I18N-02**: A test fails if a key exists in one locale and not the other
 
 ### Decision support (added 2026-11-22)
 
@@ -92,17 +92,17 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **SAFE-01**: A test proves the Graph client raises on any non-allowed host
 - [ ] **SAFE-02**: A test proves the requested scopes contain no write or manage scope
 - [ ] **SAFE-03**: A test runs a scan against fixtures with a temporary home directory and finds no token-like string on disk
-- [ ] **SAFE-04**: A test parses generated reports and finds no `src` or `href` that would load an external resource and no external stylesheet
-- [ ] **SAFE-05**: A test plants names, email addresses and credential-like strings in a `scan.json` and proves none of them reaches the report, the JSON copy, the filename or the printed path
+- [x] **SAFE-04**: A test parses generated reports and finds no `src` or `href` that would load an external resource and no external stylesheet
+- [x] **SAFE-05**: A test plants names, email addresses and credential-like strings in a `scan.json` and proves none of them reaches the report, the JSON copy, the filename or the printed path
 - [ ] **SAFE-06**: A test proves a collector returning `403` is skipped, listed in the appendix, and the report still renders
-- [ ] **SAFE-07**: CI runs the whole test suite without a live tenant
+- [x] **SAFE-07**: CI runs the whole test suite without a live tenant
 
 ### Distribution and documentation
 
 - [ ] **DIST-01**: User can run the tool with `uvx fazit demo` from PyPI
 - [ ] **DIST-02**: User can run a signed, self-contained Windows build without installing Python
-- [ ] **DIST-03**: Repository has `LICENSE` (AGPL-3.0-or-later), SPDX headers, `CONTRIBUTING.md` and `SECURITY.md`
-- [ ] **DOCS-01**: README exists in English and German, shows the `demo` command first, and states that the code is written with AI assistance
+- [x] **DIST-03**: Repository has `LICENSE` (AGPL-3.0-or-later), SPDX headers, `CONTRIBUTING.md` and `SECURITY.md`
+- [x] **DOCS-01**: README exists in English and German, shows the `demo` command first, and states that the code is written with AI assistance
 - [ ] **DOCS-02**: App-registration guide exists in English and German with the exact steps and who can grant consent
 - [ ] **DOCS-03**: `docs/permissions.md` lists every scope and why it is needed
 - [ ] **DOCS-04**: `docs/schema.md` documents the `scan.json` format
@@ -154,35 +154,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLI-01 | Phase 1 | Pending |
-| CLI-02 | Phase 1 | Pending |
+| CLI-01 | Phase 1 | Complete |
+| CLI-02 | Phase 1 | Complete |
 | CLI-03 | Phase 2 | Pending |
 | CLI-04 | Phase 3 | Pending |
 | CLI-05 | Phase 3 | Pending |
-| CLI-06 | Phase 1 | Pending |
-| MODL-01 | Phase 1 | Pending |
-| MODL-02 | Phase 1 | Pending |
-| MODL-03 | Phase 1 | Pending |
-| MODL-04 | Phase 1 | Pending |
-| RULE-01 | Phase 1 | Pending |
-| RULE-02 | Phase 1 | Pending |
-| RULE-03 | Phase 1 | Pending |
-| RULE-04 | Phase 1 | Pending |
-| RULE-05 | Phase 1 | Pending |
-| COST-01 | Phase 1 | Pending |
-| COST-02 | Phase 1 | Pending |
-| COST-03 | Phase 1 | Pending |
-| COST-04 | Phase 1 | Pending |
-| COST-05 | Phase 1 | Pending |
-| COST-06 | Phase 1 | Pending |
-| REPT-01 | Phase 1 | Pending |
-| REPT-02 | Phase 1 | Pending |
-| REPT-03 | Phase 1 | Pending |
-| REPT-04 | Phase 1 | Pending |
-| REPT-05 | Phase 1 | Pending |
-| REPT-06 | Phase 1 | Pending |
-| I18N-01 | Phase 1 | Pending |
-| I18N-02 | Phase 1 | Pending |
+| CLI-06 | Phase 1 | Complete |
+| MODL-01 | Phase 1 | Complete |
+| MODL-02 | Phase 1 | Complete |
+| MODL-03 | Phase 1 | Complete |
+| MODL-04 | Phase 1 | Complete |
+| RULE-01 | Phase 1 | Complete |
+| RULE-02 | Phase 1 | Complete |
+| RULE-03 | Phase 1 | Complete |
+| RULE-04 | Phase 1 | Complete |
+| RULE-05 | Phase 1 | Complete |
+| COST-01 | Phase 1 | Complete |
+| COST-02 | Phase 1 | Complete |
+| COST-03 | Phase 1 | Complete |
+| COST-04 | Phase 1 | Complete |
+| COST-05 | Phase 1 | Complete |
+| COST-06 | Phase 1 | Complete |
+| REPT-01 | Phase 1 | Complete |
+| REPT-02 | Phase 1 | Complete |
+| REPT-03 | Phase 1 | Complete |
+| REPT-04 | Phase 1 | Complete |
+| REPT-05 | Phase 1 | Complete |
+| REPT-06 | Phase 1 | Complete |
+| I18N-01 | Phase 1 | Complete |
+| I18N-02 | Phase 1 | Complete |
 | AIAS-01 | Phase 1.1 | Pending |
 | DECI-01 | Phase 1.1 | Pending |
 | OUTP-01 | Phase 1.2 | Pending |
@@ -207,14 +207,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAFE-01 | Phase 3 | Pending |
 | SAFE-02 | Phase 3 | Pending |
 | SAFE-03 | Phase 3 | Pending |
-| SAFE-04 | Phase 1 | Pending |
-| SAFE-05 | Phase 1 | Pending |
+| SAFE-04 | Phase 1 | Complete |
+| SAFE-05 | Phase 1 | Complete |
 | SAFE-06 | Phase 3 | Pending |
-| SAFE-07 | Phase 1 | Pending |
+| SAFE-07 | Phase 1 | Complete |
 | DIST-01 | Phase 4 | Pending |
 | DIST-02 | Phase 4 | Pending |
-| DIST-03 | Phase 1 | Pending |
-| DOCS-01 | Phase 1 | Pending |
+| DIST-03 | Phase 1 | Complete |
+| DOCS-01 | Phase 1 | Complete |
 | DOCS-02 | Phase 4 | Pending |
 | DOCS-03 | Phase 4 | Pending |
 | DOCS-04 | Phase 4 | Pending |

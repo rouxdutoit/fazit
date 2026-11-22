@@ -46,7 +46,7 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 
 - **S1. The scanner is free and complete, and earns nothing by itself.** Any income comes from paid assessments and support built around it, sold mainly through integrators. No scanning feature is ever held back for payment.
 - **S2. Primary user is the integrator or municipal IT provider**, not the town IT officer. The tool must stay simple enough for the officer.
-- **S3. Market is Germany, Austria and Switzerland, public and private.** One study counts Microsoft 365 as mail provider for 793 of 11,129 German municipalities, 1,401 of 2,092 Austrian and 1,099 of 2,110 Swiss (cited by Codex from the MX-map study, April 2026; not yet opened by Claude). German towns are mostly on on-premises systems.
+- **S3. Market is Germany, Austria and Switzerland, public and private.** Microsoft 365 is the mail provider of 793 of 11,129 German municipalities, 1,401 of 2,092 Austrian and 1,099 of 2,110 Swiss (Bischof et al., "Email Provider Dependencies and Email Security in Municipalities Across Germany, Austria, and Switzerland", SecAssure 2026, table 3: <https://papers.mxmap-project.org/secassure2026.pdf>; checked on 2026-11-22). 87 % of German municipalities use domestic mail providers, hosted or their own.
 - **S4. Positioning is exit readiness.** The report must be useful when the answer is "not yet" or "only this department".
 - **S5. Licence stays AGPL-3.0-or-later.** Codex proposed Apache-2.0 and withdrew it.
 

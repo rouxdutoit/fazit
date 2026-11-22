@@ -68,7 +68,7 @@ An organisation gets honest, inspectable numbers about its own Microsoft depende
 
 **Users.** The person running the tool is usually an integrator or an IT provider's engineer on Linux or macOS. The person reading the report is an IT lead or a non-technical decision-maker. The report must work for the second without help from the first.
 
-**How the work is done.** The founder is an AI-assisted coder and says so openly. Claude and Codex both write code here and review each other's work; the README will state this. Because the founder cannot audit every line at the models' level, trust must rest on things anyone can check: small readable modules, tests that enforce each principle, and a minimal dependency list.
+**How the work is done.** The founder is an AI-assisted coder and says so openly. Claude and Codex write the code, and two other models review it before each release, independently and then against each other; the README and the site say so. Because the founder cannot audit every line at the models' level, trust must rest on things anyone can check: small readable modules, tests that enforce each principle, and a minimal dependency list.
 
 **Funding.** A Prototype Fund application (Resilienz track, deadline 30 November 2026) is drafted. If granted, funding runs from June 2027 and covers later work only; nothing in this roadmap depends on it.
 
@@ -77,13 +77,13 @@ An organisation gets honest, inspectable numbers about its own Microsoft depende
 - **Read-only**: Request only read permissions and call only allow-listed read endpoints — a GET that provisions resources is excluded
 - **Network**: Only `login.microsoftonline.com` and `graph.microsoft.com`, enforced in one transport and by test — the central trust promise
 - **Tokens**: In memory only, never on disk — a scan must leave no credentials behind
-- **Privacy**: No person names or email addresses in the report or `scan.json` unless `--include-names` is passed
-- **Offline report**: One `.html` file with inline CSS and JS, system fonts, no external resources, prints cleanly to PDF
+- **Privacy**: No person names or email addresses in the report, `scan.json`, file names or printed output. There is no `--include-names` in v1 (D19)
+- **Offline report**: One `.html` file with inline CSS and embedded fonts (D29), no JavaScript, no external resources, prints cleanly to PDF
 - **Honest numbers**: No hardcoded prices; unknowns are shown as unknown; a skipped collector never improves a status
 - **Tech stack**: Python 3.12+, Typer, Jinja2, httpx, MSAL for Python, pytest with recorded fixtures, ruff, packaged for `uvx` — small and auditable; ask before adding any other dependency
 - **Languages**: German and English from day one; all user-facing strings in `locales/de.yaml` and `locales/en.yaml`, none hardcoded in templates
 - **Licence**: AGPL-3.0-or-later with SPDX headers — keeps the rule data and the tool from being absorbed into a closed product
-- **Accessibility of status**: Status colours differ in lightness and always carry a text label; blue and orange rather than red and green
+- **Accessibility of status**: Status is never colour alone: every status carries a text label
 - **CI**: Never needs a live tenant
 - **Plain language**: Code and documentation a council IT officer could read and trust
 

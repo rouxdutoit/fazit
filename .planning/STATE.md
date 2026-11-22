@@ -1,31 +1,30 @@
 ---
 gsd_state_version: '1.0'
-status: planning
+status: executing
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 11
+  completed_plans: 11
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-21)
+See: .planning/PROJECT.md (updated 2026-11-22)
 
 **Core value:** An organisation gets honest, inspectable numbers about its own Microsoft dependency, including "unknown" and "not yet", without any of its data leaving the machine.
-**Current focus:** Phase 1: Demo and Report
+**Current focus:** Release review of Phase 1, then Phase 1.1
 
 ## Current Position
 
-Phase: 1 of 4 (Demo and Report)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-11-21 — Roadmap created (4 phases, 58 of 58 v1 requirements mapped)
+Phase: 1 of 4 complete (Demo and Report, 11 plans). Phases 1.1 to 1.3 are inserted and planned; 1.1 has four plans.
+Status: Release review in progress (`.planning/quick/261122-rev-release-review/`); a founder-approved report redesign is being built (`.planning/report-redesign/`).
+Last activity: 2026-11-22 — release review round 2 and fixes
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -68,7 +67,6 @@ None yet.
 - [Roadmap] `DECISIONS.md` gained entry F1 on 2026-11-21: the tool should produce what an assessment repeats, including "the interview checklist that fills `inputs.yaml`". No v1 requirement covers that checklist. Nearest are COST-05 (Phase 1) and CONV-01 (v2). Decide whether to add a requirement before planning Phase 1.
 - [Phase 1] Carries 31 of the 58 requirements. This is deliberate (the demo needs real judgement), but if planning finds it too large, the natural cut is the cost comparison and `inputs.yaml`.
 - [Phase 1] No v1 import or collector supplies file-type or device counts (FILE-01 and SRC-02 are v2). The demo's sample data can show findings that a real v1 report shows as Unknown. Decide in the Phase 1 discussion how the demo makes that plain.
-- [Phase 1] `m365-exit-scan` is a working name and gets baked into the package and command. Renaming after PyPI publication is costly; decide before Phase 4.
 - [Phase 1] MODL-01 calls the schema "documented", but `docs/schema.md` is DOCS-04 in Phase 4. Move DOCS-04 to Phase 1 if the document is wanted from day one.
 - [Phase 2] Needs real admin-centre export files to fix the expected columns. None are in the repository yet.
 - [Phase 3] A person cannot verify sign-in, and fixtures cannot be recorded, without a test tenant and an app registration. CI still needs neither.

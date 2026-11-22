@@ -92,7 +92,7 @@ Bereiche, Bewertungsregeln, Lizenzdienste, zu prüfende Dateitypen und Zuordnung
 
 ## Wie Fazit entsteht
 
-Ein Mensch leitet die KI-gestützte Arbeit und verantwortet das Ergebnis. Codex (GPT-6.2-Sol, mit maximaler Denktiefe) schreibt den Code, Claude prüft jede Änderung und führt die Tests aus, bevor sie übernommen wird. Vor jeder Veröffentlichung prüfen Claude Fable 5.2 und Codex GPT-6.2-Astra unabhängig voneinander den gesamten Code, beide mit maximalem Aufwand und einschließlich der Sicherheit. Ihre Berichte sind öffentlich. [Prüfberichte zu Phase 1 (Englisch)](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
+Fazit entsteht KI-gestützt und wird von Menschen geprüft. Ein Mensch leitet die Arbeit und verantwortet das Ergebnis. Claude Opus 5.5 und Codex GPT-6.2-Sol schreiben den Code, beide mit maximalem Aufwand, und jede Änderung wird getestet, bevor sie übernommen wird. Vor jeder Veröffentlichung prüfen Claude Fable 5.2 und Codex GPT-6.2-Astra, ebenfalls mit maximalem Aufwand, den gesamten Code zunächst unabhängig voneinander und dann gegenseitig, einschließlich der Sicherheit. Ihre Prüfberichte sind öffentlich. [Prüfberichte zu Phase 1 (Englisch)](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
 
 ## Lizenz
 

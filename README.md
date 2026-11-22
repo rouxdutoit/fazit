@@ -92,7 +92,7 @@ The workload catalogue, status rules, service plans, risky file types and target
 
 ## How it is made
 
-Fazit is developed with AI assistance under the direction and responsibility of a human maintainer. Codex (GPT-6.2-Sol, at maximum reasoning) writes the code, and Claude checks every change and runs the tests before it is committed. Before each release, Claude Fable 5.2 and Codex GPT-6.2-Astra review the whole codebase independently, both at maximum effort, including security. Their reports are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
+Fazit is AI-assisted and human-reviewed. A human maintainer directs the work and is responsible for it. Claude Opus 5.5 and Codex GPT-6.2-Sol write the code, both at maximum effort, and every change is tested before it is committed. Before each release, Claude Fable 5.2 and Codex GPT-6.2-Astra, also at maximum effort, review the whole codebase independently and then against each other, including security. Their reviews are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
 
 ## Licence
 
