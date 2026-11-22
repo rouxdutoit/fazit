@@ -52,6 +52,20 @@ CSS_REFS = re.compile(
     re.I,
 )
 EMBEDDED_SVG = "data:image/svg+xml,"
+CSS_COMMENTS = re.compile(r"/\*.*?\*/", re.S)
+CSS_DECLARATION = re.compile(r"(?:^|(?<=[;{]))\s*([-\w]+)\s*:\s*([^;{}]+)(?=[;}]|$)")
+CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
+CSS_FONT_FACE = re.compile(r"@font-face\s*\{([^{}]*)\}", re.I)
+CSS_COVERAGE = re.compile(r"[^{};]*\.cov(?:-[\w-]+)?(?![\w-])[^{};]*\{([^{}]*)\}")
+CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+# These neutral shadows give the menu and cards depth in either palette.
+SHADOW_COLOURS = {"rgb(0 0 0 / 4%)", "rgb(0 0 0 / 8%)", "rgb(0 0 0 / 18%)"}
+FONT_FAMILY = re.compile(r"var\(--(?:sans|mono)\)")
+FONT_SHORTHAND = re.compile(
+    r"(?:(?:[1-9]00|normal|bold|italic|oblique|small-caps)\s+)*"
+    r"(?:var\(--fs-[\w-]+\)|[\d.]+(?:px|rem|em|pt|%))"
+    r"(?:\s*/\s*[\d.]+(?:px|rem|em|pt|%)?)?\s+" + FONT_FAMILY.pattern
+)
 
 
 @dataclass(frozen=True)
@@ -550,6 +564,104 @@ def check_assets() -> list[str]:
     return errors
 
 
+def _check_design_fonts(css: str) -> Iterator[str]:
+    names = {
+        value.strip().strip("\"'")
+        for face in CSS_FONT_FACE.findall(css)
+        for prop, value in CSS_DECLARATION.findall(face)
+        if prop.lower() == "font-family"
+    }
+    if names != {"Figtree", "Geist Mono"}:
+        yield f"Unexpected @font-face font-family set {sorted(names)}."
+
+    expected = {"--sans": "Figtree", "--mono": '"Geist Mono"'}
+    generic = {"ui-sans-serif", "system-ui", "sans-serif", "ui-monospace", "monospace"}
+    fonts = {"font-family": FONT_FAMILY, "font": FONT_SHORTHAND}
+    tokens = set()
+    for prop, value in CSS_DECLARATION.findall(CSS_FONT_FACE.sub("", css)):
+        value = value.strip()
+        if prop in expected:
+            family, *fallbacks = map(str.strip, value.split(","))
+            if family != expected[prop] or not set(fallbacks) <= generic:
+                yield f"{prop}: {value} must name the assigned font and only generic fallbacks."
+            tokens.add(prop)
+        if (pattern := fonts.get(prop.lower())) and value != "inherit":
+            if not pattern.fullmatch(value):
+                yield f"{prop}: {value} must use --sans, --mono or inherit for its family."
+    for missing in sorted(expected.keys() - tokens):
+        yield f"Missing font token {missing}."
+
+
+def _check_design_urls(css: str) -> Iterator[str]:
+    for face in CSS_FONT_FACE.findall(css):
+        for ref in css_references(face, 1):
+            if (
+                not re.fullmatch(r"fonts/[\w-]+\.woff2", ref.value)
+                or not (ROOT / ref.value).is_file()
+            ):
+                yield f"@font-face URL {ref.value!r} must name a local WOFF2 font."
+    for ref in css_references(CSS_FONT_FACE.sub("", css), 1):
+        # check_reference verifies the source comment and the bytes of each embedded symbol.
+        if not ref.value.startswith(EMBEDDED_SVG) or ref.symbol_source is None:
+            yield f"CSS URL {ref.value!r} must embed a symbol from icons/."
+
+
+def _svg_paths(svg: bytes) -> set[str]:
+    root = ElementTree.fromstring(svg)
+    return {
+        " ".join(path.attrib["d"].split())
+        for path in root.findall(".//{*}path")
+        if "d" in path.attrib
+    }
+
+
+def _check_coverage_symbols(css: str) -> Iterator[str]:
+    package = ROOT.parent / "src" / "fazit"
+    template = (package / "templates" / "report.html.j2").read_text(encoding="utf-8")
+    macro = template.partition("macro status_label(")[2].split("endmacro", 1)[0]
+    names = dict(re.findall(r"'([\w]+)'\s*:\s*'([\w-]+)'", macro))
+    if set(names) != set(STATUSES):
+        yield "Could not read every status symbol from status_label in report.html.j2."
+        return
+    status_paths = {}
+    for name in names.values():
+        source = package / "icons" / f"{name}.svg"
+        try:
+            paths = _svg_paths(source.read_bytes())
+        except (OSError, ElementTree.ParseError):
+            yield f"Status symbol {name}.svg must be a readable SVG."
+            continue
+        if not paths:
+            yield f"Status symbol {name}.svg has no SVG path."
+        status_paths.update(dict.fromkeys(paths, name))
+    for rule in CSS_COVERAGE.findall(css):
+        for ref in css_references(rule, 1):
+            if not ref.value.startswith(EMBEDDED_SVG):
+                continue
+            name = ref.symbol_source or "embedded coverage symbol"
+            svg = unquote_to_bytes(ref.value.removeprefix(EMBEDDED_SVG))
+            try:
+                reused = _svg_paths(svg) & status_paths.keys()
+            except ElementTree.ParseError:
+                yield f"Coverage symbol {name} is not valid SVG."
+                continue
+            for status_icon in sorted({status_paths[path] for path in reused}):
+                yield f"Coverage symbol {name} reuses the path of status symbol {status_icon}.svg."
+
+
+def check_design(css: str) -> list[str]:
+    source = CSS_COMMENTS.sub("", CSS_REFS.sub("", css))
+    errors = []
+    for prop, value in CSS_DECLARATION.findall(CSS_ROOT.sub("", source)):
+        for colour in CSS_COLOUR.findall(value):
+            if prop.lower() != "box-shadow" or colour not in SHADOW_COLOURS:
+                errors.append(f"{prop}: {value.strip()} uses colour {colour} outside :root.")
+    errors.extend(_check_design_fonts(source))
+    errors.extend(_check_design_urls(css))
+    errors.extend(_check_coverage_symbols(css))
+    return [f"style.css: {error}" for error in errors]
+
+
 def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
     errors = []
     declared = {}
@@ -593,9 +705,9 @@ def main() -> int:
 
     references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"
-    references.extend(
-        (stylesheet, ref) for ref in css_references(stylesheet.read_text(encoding="utf-8"), 1)
-    )
+    css = stylesheet.read_text(encoding="utf-8")
+    errors.extend(check_design(css))
+    references.extend((stylesheet, ref) for ref in css_references(css, 1))
     for path, ref in references:
         if error := check_reference(route_for(path), ref, pages):
             errors.append(f"{path.relative_to(ROOT)}:{ref.line}: {error}")

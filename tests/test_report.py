@@ -42,12 +42,32 @@ from fazit.parsing import read_text
 # The report embeds its two fonts; nothing else in its CSS may point anywhere.
 EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
+CSS_DECLARATION = re.compile(r"(?:^|(?<=[;{]))\s*([-\w]+)\s*:\s*([^;{}]+)(?=[;}]|$)")
+CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
+CSS_FONT_FACE = re.compile(r"@font-face\s*\{([^{}]*)\}", re.I)
+CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+FONT_FAMILY = re.compile(r"var\(--(?:sans|mono)\)")
+FONT_SHORTHAND = re.compile(
+    r"(?:(?:[1-9]00|normal|bold|italic|oblique|small-caps)\s+)*"
+    r"(?:var\(--fs-[\w-]+\)|[\d.]+(?:px|rem|em|pt|%))"
+    r"(?:\s*/\s*[\d.]+(?:px|rem|em|pt|%)?)?\s+" + FONT_FAMILY.pattern
+)
 
 
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
     return rebuild_report(
         sample_scan_path(sample), out, lang, profile=profile, inputs=sample_inputs_path(sample)
     )
+
+
+@pytest.fixture(scope="session")
+def style_references(tmp_path_factory: pytest.TempPathFactory) -> dict[str, str]:
+    return {
+        lang: _sample_report(
+            "town", tmp_path_factory.mktemp(f"report-style-{lang}"), lang, "opendesk"
+        )
+        for lang in ("en", "de")
+    }
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
@@ -748,8 +768,19 @@ def test_rendered_text_is_autoescaped(
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
 @pytest.mark.parametrize("profile", PROFILES)
-def test_report_document_structure(tmp_path: Path, sample: str, lang: str, profile: str) -> None:
-    document = ReportDocument(_sample_report(sample, tmp_path, lang, profile))
+def test_report_document_structure(
+    tmp_path: Path, style_references: dict[str, str], sample: str, lang: str, profile: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, profile)
+    document = ReportDocument(html)
+    (reference_css,) = ReportDocument(style_references[lang]).styles
+    assert document.styles == [reference_css]
+
+    metas = {
+        attrs.get("name"): attrs.get("content") for tag, attrs in document.tags if tag == "meta"
+    }
+    assert "width=device-width" in (metas.get("viewport") or "")
+    assert metas.get("color-scheme") == "light dark"
 
     assert [attrs.get("lang") for tag, attrs in document.tags if tag == "html"] == [lang]
     headings = [int(tag[1]) for tag, _ in document.tags if re.fullmatch(r"h[1-6]", tag)]
@@ -774,6 +805,14 @@ def test_report_document_structure(tmp_path: Path, sample: str, lang: str, profi
     }
     assert cells and all(attrs.get("data-label") in labels for attrs in cells)
 
+    # Colour is never the only cue: every status label carries its own symbol and its text.
+    icons = {
+        status: re.findall(rf'<span class="status {status}"><svg[^>]*><path d="([^"]+)"', html)
+        for status in ("ready", "needs_work", "blocker", "unknown")
+    }
+    paths = {next(iter(set(found))) for found in icons.values() if found}
+    assert len(paths) == sum(1 for found in icons.values() if found)
+
 
 def _luminance(color: str) -> float:
     channels = [int(color[i : i + 2], 16) / 255 for i in (1, 3, 5)]
@@ -786,19 +825,11 @@ def _luminance(color: str) -> float:
     )
 
 
-@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
-@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize("lang", ("en", "de"))
 def test_report_styles_work_in_light_dark_narrow_and_print(
-    tmp_path: Path, sample: str, lang: str, profile: str
+    style_references: dict[str, str], lang: str
 ) -> None:
-    html = _sample_report(sample, tmp_path, lang, profile)
-    document = ReportDocument(html)
-    metas = {
-        attrs.get("name"): attrs.get("content") for tag, attrs in document.tags if tag == "meta"
-    }
-    assert "width=device-width" in (metas.get("viewport") or "")
-    assert metas.get("color-scheme") == "light dark"
-    (css,) = document.styles
+    (css,) = ReportDocument(style_references[lang]).styles
     assert "apple.com" not in css and "iOS system colours" not in css
     assert re.search(r"a:hover\s*\{\s*color:\s*var\(--accent-hover\);\s*\}", css)
     light = re.search(r":root\s*\{([^}]+)\}", css)
@@ -824,13 +855,55 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert re.search(r"print-color-adjust:\s*exact", css)
     print_css = css.split("@media print", 1)[1]
     assert re.search(r"::details-content\s*\{[^}]*content-visibility:\s*visible", print_css)
-    # Colour is never the only cue: every status label carries its own symbol and its text.
-    icons = {
-        status: re.findall(rf'<span class="status {status}"><svg[^>]*><path d="([^"]+)"', html)
-        for status in ("ready", "needs_work", "blocker", "unknown")
-    }
-    paths = {next(iter(set(found))) for found in icons.values() if found}
-    assert len(paths) == sum(1 for found in icons.values() if found)
+
+
+def _assert_report_font_families(css: str) -> None:
+    faces = CSS_FONT_FACE.findall(css)
+    assert {
+        value.strip().strip("\"'")
+        for face in faces
+        for prop, value in CSS_DECLARATION.findall(face)
+        if prop.lower() == "font-family"
+    } == {"Figtree", "Geist Mono"}
+    expected = {"--sans": "Figtree", "--mono": '"Geist Mono"'}
+    generic = {"ui-sans-serif", "system-ui", "sans-serif", "ui-monospace", "monospace"}
+    tokens = set()
+    for prop, value in CSS_DECLARATION.findall(CSS_FONT_FACE.sub("", css)):
+        value = value.strip()
+        if prop in expected:
+            family, *fallbacks = map(str.strip, value.split(","))
+            assert family == expected[prop] and set(fallbacks) <= generic, (prop, value)
+            tokens.add(prop)
+        if prop.lower() == "font-family":
+            assert value == "inherit" or FONT_FAMILY.fullmatch(value), (prop, value)
+        if prop.lower() == "font":
+            assert value == "inherit" or FONT_SHORTHAND.fullmatch(value), (prop, value)
+    assert tokens == expected.keys(), tokens
+
+
+@pytest.mark.parametrize("lang", ("en", "de"))
+def test_report_styles_follow_the_design_rules(style_references: dict[str, str], lang: str) -> None:
+    html = style_references[lang]
+    (css,) = ReportDocument(html).styles
+    css = re.sub(r"/\*.*?\*/", "", EMBEDDED_FONT.sub("", css), flags=re.S)
+    for prop, value in CSS_DECLARATION.findall(CSS_ROOT.sub("", css)):
+        for colour in CSS_COLOUR.findall(value):
+            assert prop.lower() == "box-shadow" and colour == "rgb(0 0 0 / 12%)", (prop, value)
+    _assert_report_font_families(css)
+
+    for icon in sorted((ROOT / "src" / "fazit" / "icons").glob("*.svg")):
+        shared = ROOT / "site" / "icons" / icon.name
+        assert shared.is_file() and shared.read_bytes() == icon.read_bytes(), icon.name
+
+    moves = report_section(html, "moves")
+    coverage_cells = re.findall(r'<span class="cov-cell">.*?</td>', moves, re.S)
+    coverage_paths = set(re.findall(r'<path d="([^"]+)"', "".join(coverage_cells)))
+    status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
+    assert coverage_paths and status_paths, "Coverage cells and status labels both need symbols"
+    assert coverage_paths.isdisjoint(status_paths), (
+        "Coverage cells reuse a status symbol",
+        coverage_paths & status_paths,
+    )
 
 
 def test_print_hides_controls_opens_disclosures_and_starts_working_sections_on_new_pages(

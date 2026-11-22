@@ -63,7 +63,7 @@
   --fs-subhead: 0.875rem;
   --fs-footnote: 0.75rem;
   --sans: Figtree, ui-sans-serif, system-ui, sans-serif;
-  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --mono: "Geist Mono", ui-monospace, monospace;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --gutter: 20px;
   --max: 1120px;
@@ -994,7 +994,7 @@ code {
   display: block;
   width: 100%;
   height: auto;
-  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, var(--bg) 70%, transparent);
 }
 
 .report-preview figcaption {
