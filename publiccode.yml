@@ -20,7 +20,7 @@ description:
       a move from Microsoft 365. Phase 1 runs from source and accepts bundled
       samples or a compatible scan file with answers and costs in inputs.yaml.
       Measured figures currently come from the samples. The offline HTML report
-      gives a readiness status and supporting evidence for 15 areas and compares
+      gives a readiness status and supporting evidence for 14 areas and compares
       five-year costs. Next, Fazit will revise the report, then add local import
       of admin-centre exports (2). Installation packages and the public launch
       follow (2.1). Then come AI assistant coverage and renewal deadlines (1.1),
@@ -39,7 +39,7 @@ description:
       einen Umstieg von Microsoft 365 prüfen. In Phase 1 läuft Fazit aus dem
       Quellcode und verarbeitet Beispieldaten oder eine kompatible Erhebungsdatei
       mit Antworten und Kosten aus inputs.yaml. Messwerte stammen aus den
-      Beispielen. Der offline lesbare HTML-Bericht bewertet 15 Bereiche, nennt
+      Beispielen. Der offline lesbare HTML-Bericht bewertet 14 Bereiche, nennt
       die Nachweise und vergleicht die Kosten über fünf Jahre. Als Nächstes
       wird der Bericht überarbeitet. Danach verarbeitet Fazit lokal die aus dem
       Admin Center exportierten Daten (2). In Phase 2.1 sind Installationspakete
