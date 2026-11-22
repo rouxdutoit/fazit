@@ -1258,16 +1258,17 @@ code {
 }
 
 .timeline-step.on .timeline-dot {
-  border-color: var(--link);
-  background: var(--link);
+  border-color: var(--fg);
+  background: var(--fg);
 }
 
 .timeline-name {
+  color: var(--fg-2);
   font-weight: 600;
 }
 
 .timeline-step.on .timeline-name {
-  color: var(--link);
+  color: var(--fg);
 }
 
 .timeline-step.on .timeline-text {
