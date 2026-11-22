@@ -51,6 +51,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - Headings are statements a cold reader understands ("Know what leaving Microsoft 365 would take"), not labels ("Overview").
 - Short sentences, one idea each, plain words. No marketing filler, no stacked triads for rhythm, no rhetorical questions.
 - **English** is British. **German** is native, formal (Sie), and written in German rather than translated; every German string gets a native review before release.
+- **The name:** lowercase "fazit" only in the wordmark, the favicon and the command (`fazit demo`). Everywhere else, including buttons and headings, it is "Fazit": a German noun is always capitalised.
 - Use the same word for the same thing everywhere: Umstieg, area or Bereich, finding or Befund, and the status names exactly as Ready, Needs work, Blocker, Unknown and Bereit, Handlungsbedarf, Hindernis, Unbekannt.
 - Never overclaim: say what exists today, mark what is planned, and never say "completely secure" or "guaranteed".
 
