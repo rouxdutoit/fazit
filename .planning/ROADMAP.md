@@ -19,8 +19,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1.2: Outputs for Integrators** (INSERTED) - CSV export for project plans and `fazit verify` to detect changes to a report
 - [ ] **Phase 1.3: Sovereignty Criteria** (INSERTED) - every finding linked to ZenDiS's sovereignty criteria catalogue and the Austrian and Swiss equivalents
 - [ ] **Phase 2: Import** - `import` turns admin-centre CSV exports into a real report locally, keeping aggregates only
+- [ ] **Phase 2.1: Packaging and Launch** (INSERTED) - `uvx fazit` from PyPI, a signed Windows build, verifiable releases, then the public launch
 - [ ] **Phase 3: Doctor, Sign-in and Live Counts** - `doctor` and `scan` with browser sign-in, live licence and directory counts, and enforced host and endpoint allowlists
-- [ ] **Phase 4: Documentation, Packaging and Release** - bilingual guides, `uvx` from PyPI, signed Windows build, first tagged release
+- [ ] **Phase 4: Documentation for Live Scans** - bilingual app-registration guide, permissions and schema reference
 
 ## Phase Details
 
@@ -96,6 +97,20 @@ Plans, run one at a time in this order:
   6. The report states the tenant's data location and EU Data Boundary status from an export or a provided answer, as a fact without a score.
 **Plans**: TBD
 
+### Phase 2.1: Packaging and Launch (INSERTED)
+**Goal**: Anyone can install a tagged release with one command or, on Windows without Python, run a signed program, check what it contains and who built it, and use it on their own exports; only then is Fazit announced
+**Mode:** mvp
+**Depends on**: Phase 2
+**Requirements**: DIST-01, DIST-02, DIST-04, DIST-05
+**Success Criteria** (what must be TRUE):
+  1. A user with `uv` installed runs `uvx fazit demo` and gets the report, installed from a tagged release that CI published to PyPI through trusted publishing.
+  2. A user on Windows without Python downloads one `.exe` built by CI from the tag, sees a valid Authenticode signature naming the project, and runs `demo` and `import` with the network switched off.
+  3. Every release lists SHA-256 checksums, a CycloneDX SBOM and build-provenance attestations, and the release notes show the commands to verify each.
+  4. The repository passes `reuse lint` and is mirrored on openCode.de.
+  5. The site's main button reads "Install" / "Installieren" and leads to a page with the install command and the Windows file, each with version, size and checksum.
+**Plans**: TBD
+**Open decision for the founder:** the code-signing route. Candidates, both in the EU: SignPath Foundation (free signing for open source projects, run from Vienna) and Certum's open-source code-signing certificate (Poland). Confirm current terms before applying.
+
 ### Phase 3: Doctor, Sign-in and Live Counts
 **Goal**: An operator can check whether a tenant is ready for a scan, sign in through the browser with the organisation's own app registration, and get measured licence and directory counts, while tests anyone can run prove the tool contacts only two hosts, calls only allow-listed read endpoints and leaves no token behind
 **Mode:** mvp
@@ -109,16 +124,14 @@ Plans, run one at a time in this order:
   5. Anyone can run the test suite without a tenant, locally or in CI, and see tests prove each of those promises: allowed hosts only, read-only scopes, no token-like string on disk after a scan against fixtures, and a collector answering `403` skipped while the report still renders.
 **Plans**: TBD
 
-### Phase 4: Documentation, Packaging and Release
-**Goal**: Anyone can run a tagged release with one command, including on a Windows machine without Python, and can find what they need to register the app, understand each permission and build on `scan.json`
+### Phase 4: Documentation for Live Scans
+**Goal**: Anyone can find what they need to register the app, understand each permission and build on `scan.json`
 **Mode:** mvp
 **Depends on**: Phase 3
-**Requirements**: DIST-01, DIST-02, DOCS-02, DOCS-03, DOCS-04, DIST-04
+**Requirements**: DOCS-02, DOCS-03, DOCS-04
 **Success Criteria** (what must be TRUE):
-  1. A user with `uv` installed runs `uvx fazit demo` and gets the report, installed from the tagged release on PyPI.
-  2. A user on a Windows machine without Python downloads the self-contained build, sees a valid signature on it, and runs `demo` to get the same report.
-  3. An administrator follows the app-registration guide in German or English from nothing to a passing `doctor` run, and the guide says who can grant consent.
-  4. A reader finds every scope the tool can request, with the reason for it, in `docs/permissions.md`, and every `scan.json` field in `docs/schema.md`, and both match what the released tool does.
+  1. An administrator follows the app-registration guide in German or English from nothing to a passing `doctor` run, and the guide says who can grant consent.
+  2. A reader finds every scope the tool can request, with the reason for it, in `docs/permissions.md`, and every `scan.json` field in `docs/schema.md`, and both match what the released tool does.
 **Plans**: TBD
 
 ## Notes on Order and Mapping
@@ -130,13 +143,15 @@ Plans, run one at a time in this order:
 - **MODL-01 and DOCS-04.** MODL-01 calls the schema "documented". Phase 1 delivers the versioned schema and the rule that collectors write it while rules and report only read it. The published `docs/schema.md` is DOCS-04 in Phase 4, written once import and live collection have settled the format.
 - **File types and devices have no v1 source.** RULE-05 ships in Phase 1 and is exercised by sample data. No v1 import or collector supplies file-type or device counts (FILE-01 and SRC-02 are v2), so a real v1 report shows those workloads as Unknown unless the user supplies counts through `inputs.yaml`, in which case they are shown as provided by the user (COST-06). The demo report must state plainly that it is built from sample data.
 - **Final review after all planned work.** Once phases 1.1 to 1.3 are built, Claude Fable 5.2 and Codex GPT-6.2-Astra, both at max, review everything changed since the release review, including security, and check the project against the resolutions of the No AI Slop manifesto (https://www.slopmanifesto.com/). This happens before the PyPI release and the announcement.
-- **Download button with the first release.** When phase 4 publishes the PyPI package and the signed Windows build, the main button changes from "Get started" / "Jetzt starten" (pointing to "How it works" until then) to "Install" / "Installieren" and leads to a short page with the install command and the Windows file, each with version and size.
+- **Launch gate.** Fazit is announced (Show HN, the German-speaking press, public-sector channels) only after phase 2.1 and the final review: people must be able to run it on their own exports and install it with one command or a signed program. A launch on sample data alone would be read as a demo.
+- **Packaging before live scans.** DIST-01, DIST-02 and DIST-04 moved from phase 4 into phase 2.1 so the launch does not wait for sign-in and live counts.
+- **Download button with the first release.** When phase 2.1 publishes the PyPI package and the signed Windows build, the main button changes from "Get started" / "Jetzt starten" (pointing to "How it works" until then) to "Install" / "Installieren" and leads to a short page with the install command and the Windows file, each with version and size.
 - **Languages after v1.** French and Italian (I18N-03) are planned with the Swiss pilot, because both are official languages in Switzerland, part of the stated market. A language is released only after review by a native speaker. Other languages follow the contributor process in `CONTRIBUTING.md` (I18N-04) and are not tied to a phase.
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 2.1 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -145,5 +160,6 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 3 → 4
 | 1.2. Outputs for Integrators | 0/TBD | Not started | - |
 | 1.3. Sovereignty Criteria | 0/TBD | Not started | - |
 | 2. Import | 0/TBD | Not started | - |
+| 2.1. Packaging and Launch | 0/TBD | Not started | - |
 | 3. Doctor, Sign-in and Live Counts | 0/TBD | Not started | - |
-| 4. Documentation, Packaging and Release | 0/TBD | Not started | - |
+| 4. Documentation for Live Scans | 0/TBD | Not started | - |

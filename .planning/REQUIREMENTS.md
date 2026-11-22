@@ -108,6 +108,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [x] **DIST-03**: Repository has `LICENSE` (AGPL-3.0-or-later), SPDX headers, `CONTRIBUTING.md` and `SECURITY.md`
 - [ ] **DIST-04**: The repository is REUSE-compliant and published on openCode.de. *Why: German public-sector IT looks there first, and REUSE makes the rights for code, fonts and icons checkable.*
 - [x] **DOCS-01**: README exists in English and German, shows the `demo` command first, and states that the code is written with AI assistance
+- [ ] **DIST-05**: Every release carries SHA-256 checksums, a CycloneDX SBOM and build-provenance attestations, and reaches PyPI only through trusted publishing from CI. *Why: public-sector buyers and technical readers ask what is inside a tool and who built it; this lets them check instead of trust.*
 - [ ] **DOCS-02**: App-registration guide exists in English and German with the exact steps and who can grant consent
 - [ ] **DOCS-03**: `docs/permissions.md` lists every scope and why it is needed
 - [ ] **DOCS-04**: `docs/schema.md` documents the `scan.json` format
@@ -217,8 +218,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAFE-05 | Phase 1 | Complete |
 | SAFE-06 | Phase 3 | Pending |
 | SAFE-07 | Phase 1 | Complete |
-| DIST-01 | Phase 4 | Pending |
-| DIST-02 | Phase 4 | Pending |
+| DIST-01 | Phase 2.1 | Pending |
+| DIST-02 | Phase 2.1 | Pending |
 | DIST-03 | Phase 1 | Complete |
 | DOCS-01 | Phase 1 | Complete |
 | DOCS-02 | Phase 4 | Pending |
@@ -228,20 +229,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OUTP-04 | Phase 1.2 | Pending |
 | IMPT-06 | Phase 2 | Pending |
 | VALD-01 | Phase 2 | Pending |
-| DIST-04 | Phase 4 | Pending |
+| DIST-04 | Phase 2.1 | Pending |
+| DIST-05 | Phase 2.1 | Pending |
 
 **Coverage:**
-- v1 requirements: 69 total
-- Mapped to phases: 69
+- v1 requirements: 70 total
+- Mapped to phases: 70
 - Unmapped: 0 ✓
 - Phase 1 (Demo and Report): 31
 - Phase 1.1 (AI Assistants and Decision Window): 2
 - Phase 1.2 (Outputs for Integrators): 4
 - Phase 1.3 (Sovereignty Criteria): 1
 - Phase 2 (Import): 9
+- Phase 2.1 (Packaging and Launch): 4
 - Phase 3 (Doctor, Sign-in and Live Counts): 16
-- Phase 4 (Documentation, Packaging and Release): 6
+- Phase 4 (Documentation for Live Scans): 3
 
 ---
 *Requirements defined: 2026-11-21*
-*Last updated: 2026-11-22 after the release review: Phase 1 complete, ideas both reviewers agreed on added (OUTP-03, OUTP-04, IMPT-06, VALD-01, DIST-04, CONV-06)*
+*Last updated: 2026-11-22 after the release review: Phase 1 complete, ideas both reviewers agreed on added (OUTP-03, OUTP-04, IMPT-06, VALD-01, DIST-04, CONV-06); packaging moved before live scans for the launch (phase 2.1, DIST-05)*
