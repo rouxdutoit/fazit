@@ -44,7 +44,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 ## Motion
 
-- Motion explains, it does not decorate: cards respond to hover and press, and the menu opens smoothly. Text and content never animate in; a page is readable the moment it loads.
+- Motion explains, it does not decorate: cards respond to hover and press, and the menu opens smoothly. Text and content never animate in; a page is readable the moment it loads. The one exception is the brand signature: the wordmark decodes in about half a second, in the bar when a visitor arrives from another site and in the footer as it comes into view.
 - Durations of 0.2 to 0.8 s with Apple's ease curves. Nothing loops, nothing blocks reading.
 - With reduced motion switched on, nothing moves. Without JavaScript, everything is visible and usable.
 

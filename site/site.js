@@ -1,7 +1,73 @@
 (() => {
   const COPY_FEEDBACK_MS = 3000;
+  const SCRAMBLE_DELAY_MS = 150;
+  const SCRAMBLE_STAGGER_MS = 800;
+  const MAX_CHAR_STEP_MS = 18;
+  const GLYPH_SWAP_MS = 42;
+  const GLYPH_SETTLE_MS = 200;
+  const GLYPHS = "-_/\\|<>~^*+=:;!?#%&@0123456789";
+
+  const root = document.documentElement;
+  const animate = matchMedia("(prefers-reduced-motion: no-preference)").matches;
+  // Brand signature: the bar's wordmark decodes when a visitor arrives from elsewhere, the footer's as it comes into view.
+  // The links keep their labels for screen readers.
+  const scrambleWordmark = animate && !document.referrer.startsWith(location.origin);
+
+  const decode = (element) => {
+    requestAnimationFrame((start) => {
+      const text = element.textContent;
+      const chars = [...text].map((char) => {
+        const span = document.createElement("span");
+        span.className = "ch wait";
+        span.textContent = char;
+        return span;
+      });
+      element.replaceChildren(...chars);
+      element.classList.add("scramble-started");
+
+      const step = Math.min(MAX_CHAR_STEP_MS, SCRAMBLE_STAGGER_MS / chars.length);
+      let lastSwap = 0;
+      const frame = (now) => {
+        const elapsed = now - start;
+        const swap = now - lastSwap > GLYPH_SWAP_MS;
+        if (swap) lastSwap = now;
+        let done = 0;
+        chars.forEach((span, index) => {
+          const from = index * step;
+          if (elapsed >= from + GLYPH_SETTLE_MS) {
+            span.className = "ch";
+            done += 1;
+          } else if (elapsed >= from && (swap || span.classList.contains("wait"))) {
+            span.className = "ch sg";
+            span.dataset.g = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+          }
+        });
+        if (done < chars.length) requestAnimationFrame(frame);
+        else element.textContent = text;
+      };
+      frame(start);
+    });
+  };
+
+  if (scrambleWordmark) {
+    root.classList.add("scramble");
+    window.addEventListener("error", () => root.classList.remove("scramble"), { once: true });
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
+    if (scrambleWordmark) {
+      const wordmark = document.querySelector(".bar .wordmark");
+      setTimeout(() => decode(wordmark), SCRAMBLE_DELAY_MS);
+    }
+    const footWordmark = document.querySelector("footer .wordmark");
+    if (animate && footWordmark) {
+      new IntersectionObserver((entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        decode(footWordmark);
+      }).observe(footWordmark);
+    }
+
     const bar = document.querySelector("[data-bar]");
     const menuButton = bar.querySelector(".menu-button");
     const setOpen = (open) => {
@@ -49,5 +115,5 @@
       });
     }
   }, { once: true });
-  document.documentElement.classList.add("has-js");
+  root.classList.add("has-js");
 })();
