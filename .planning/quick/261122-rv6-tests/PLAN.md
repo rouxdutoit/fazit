@@ -11,6 +11,10 @@ Fix R-33 from `.planning/quick/261122-rev-release-review/FINDINGS.md`. The concr
 
 **Never weaken a test or a principle.** Every promise in `AGENTS.md` ("What this tool must never do", "Report", "Tests") and every principle in `DECISIONS.md` keeps a test that fails when it breaks. Remove a test only when another test already fails for the same defect; say which one in the summary. Before deleting any test, break the code it guards on purpose and show that a remaining test fails (mutation check), then restore the code.
 
+## Coordination
+
+A report redesign (`.planning/report-redesign/UI-SPEC.md`) will rewrite `tests/test_report.py` right after this batch. Change `tests/test_report.py` only to move its shared helpers out and update imports; leave its parametrisation (item 1) to the redesign and note that in the summary. Item 1 still applies to the other test files.
+
 ## Items
 
 1. **Run once what is the same everywhere.** The stylesheet is identical in every report: check CSS, escaping and structure on one report per language where the property does not depend on sample or profile; keep the matrix only for checks whose result can differ by sample, profile or language.
