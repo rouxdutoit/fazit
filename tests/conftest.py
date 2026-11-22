@@ -1,10 +1,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import sys
 from collections.abc import Iterator
+from tempfile import TemporaryDirectory
 
 import pytest
+from hypothesis import settings
+from hypothesis.configuration import set_hypothesis_home_dir
+
+settings.register_profile(
+    "fazit", derandomize=True, database=None, deadline=None, print_blob=True, max_examples=18
+)
+settings.register_profile("deep", settings.get_profile("fazit"), max_examples=300)
+settings.load_profile("fazit")
 
 _socket_events: list[str] | None = None
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    # Hypothesis caches constants even when its example database is disabled.
+    cache = TemporaryDirectory(prefix="fazit-hypothesis-")
+    set_hypothesis_home_dir(cache.name)
+    config.add_cleanup(cache.cleanup)
 
 
 def _record_socket_event(event: str, args: tuple[object, ...]) -> None:

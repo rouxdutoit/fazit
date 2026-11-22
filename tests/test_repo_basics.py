@@ -72,7 +72,8 @@ def test_dependencies_follow_the_decisions() -> None:
     assert not project.get("optional-dependencies")
     groups = config["dependency-groups"]
     assert groups.keys() == {"dev"}
-    assert _dependency_names(groups["dev"]) == ["pytest", "ruff"]
+    assert _dependency_names(groups["dev"]) == ["hypothesis", "pytest", "ruff"]
+    assert "hypothesis==6.170.15" in groups["dev"]
     (backend,) = config["build-system"]["requires"]
     assert re.fullmatch(r"hatchling==\d+(?:\.\d+)+", backend)
 
@@ -194,6 +195,7 @@ def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
         "uv run ruff check .",
         "uv run ruff format --check .",
         "uv run pytest -q",
+        "uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep",
         "uv run fazit demo --lang de",
         "uv run fazit demo --lang en",
         "uv run python site/check_site.py",

@@ -30,6 +30,7 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest -q
+      - run: uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep
       - run: uv run fazit demo --lang de
       - run: uv run fazit demo --lang en
       - run: uv run python site/check_site.py
