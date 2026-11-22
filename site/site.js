@@ -120,7 +120,7 @@
   root.classList.add("has-js");
 
   if (animate) {
-    const headings = observeOnce("0px 0px -8% 0px", decode);
+    const headings = observeOnce("0px", decode);
     const reveal = observeOnce("0px 0px -6% 0px", (element) => {
       const grid = element.parentElement;
       if (grid.matches(".tiles, .figures")) {

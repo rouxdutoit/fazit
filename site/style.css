@@ -45,6 +45,7 @@
   --link: light-dark(#1d1d1f, #c4f7d0);
   --link-hover: light-dark(#424245, #e1fbe7);
   --link-glow: light-dark(transparent, rgb(196 247 208 / 45%));
+  --link-quiet: light-dark(#424245, #9ec9a8);
   --solid-bg: light-dark(#1d1d1f, #c4f7d0);
   --solid-hover: light-dark(#424245, #e1fbe7);
   --solid-active: light-dark(#000000, #a9e6b8);
@@ -168,7 +169,7 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .icon-heart {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -834,11 +835,12 @@ code {
 }
 
 @media screen and (prefers-reduced-motion: no-preference) {
-  .motion [data-scramble] {
-    &:not(.scramble-started) {
-      opacity: 0;
-    }
+  /* Only the hero waits hidden for its decode; every other heading stays readable until its own starts. */
+  .motion .hero [data-scramble]:not(.scramble-started) {
+    opacity: 0;
+  }
 
+  .motion [data-scramble] {
     .ch {
       position: relative;
     }
@@ -1374,11 +1376,16 @@ code {
   margin-top: 64px;
 }
 
-/* Link symbols centre on the line of text. */
-.more, .download, .copy.done {
+/* Standalone links sit a step back from the text and come forward on hover; the symbol centres on the line. */
+.more, .download {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  color: var(--link-quiet);
+}
+
+.more:hover, .download:hover {
+  color: var(--link);
 }
 
 .more {
@@ -1500,6 +1507,19 @@ code {
       margin-top: -12px;
     }
   }
+}
+
+.foot-made {
+  margin-top: 4px;
+  color: var(--fg-2);
+  font-size: var(--fs-footnote);
+}
+
+.icon-heart {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  --icon: url("icons/favorite.svg");
 }
 
 .foot-cols {
