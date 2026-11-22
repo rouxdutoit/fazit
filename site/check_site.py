@@ -46,6 +46,10 @@ class Reference:
     dimensions: tuple[int, int] | None = None
 
 
+# Generated reports embed their fonts so they open offline; the CSP allows only font-src data:.
+EMBEDDED_FONT = re.compile(r"data:font/woff2;base64,[A-Za-z0-9+/=]+")
+
+
 def css_references(css: str, first_line: int) -> Iterator[Reference]:
     for match in CSS_REFS.finditer(css):
         value = (match[1] or match[2]).strip()
@@ -227,6 +231,8 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
 def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str | None:
     if not ref.value.strip():
         return f"{ref.name} is empty."
+    if ref.name == "CSS URL" and EMBEDDED_FONT.fullmatch(ref.value):
+        return None
     raw = urlsplit(ref.value)
     if raw.scheme in {"https", "mailto", "tel"} and ref.plain_link and raw.netloc != "fazit.dev":
         return None

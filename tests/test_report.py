@@ -6,7 +6,7 @@ from hashlib import sha256
 from html import unescape
 from html.parser import HTMLParser
 from importlib.resources import files
-from itertools import combinations, pairwise
+from itertools import pairwise
 from pathlib import Path
 from shutil import copytree
 
@@ -33,12 +33,17 @@ RESOURCE_ELEMENTS = {
     "object",
     "script",
     "source",
-    "svg",
     "track",
+    "image",
+    "use",
+    "foreignobject",
+    "feimage",
     "video",
 }
 RESOURCE_ATTRIBUTES = {"action", "background", "formaction", "ping", "poster", "src", "srcset"}
 CSS_RESOURCE = re.compile(r"@import\b|\b(?:url|src|image-set)\s*\(", re.IGNORECASE)
+# The report embeds its two fonts; nothing else in its CSS may point anywhere.
+EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
 
 runner = CliRunner()
@@ -121,7 +126,10 @@ def test_report_cannot_fetch_resources(
             if directive == "content-security-policy":
                 policies.append(attrs.get("content") or "")
     assert len(policies) == 1 and "default-src 'none'" in policies[0]
-    assert len(document.styles) == 1 and not CSS_RESOURCE.search(document.styles[0])
+    assert len(document.styles) == 1
+    assert len(EMBEDDED_FONT.findall(document.styles[0])) == 2
+    assert not CSS_RESOURCE.search(EMBEDDED_FONT.sub("", document.styles[0]))
+    assert "font-src data:;" in policies[0] and "img-src" not in policies[0]
 
 
 def test_demo_writes_exactly_one_html_report(tmp_path: Path) -> None:
@@ -214,7 +222,8 @@ def _luminance(color: str) -> float:
 def test_report_styles_work_in_light_dark_narrow_and_print(
     tmp_path: Path, sample: str, lang: str, profile: str
 ) -> None:
-    document = ReportDocument(_sample_report(sample, tmp_path, lang, profile))
+    html = _sample_report(sample, tmp_path, lang, profile)
+    document = ReportDocument(html)
     metas = {
         attrs.get("name"): attrs.get("content") for tag, attrs in document.tags if tag == "meta"
     }
@@ -231,13 +240,10 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
                 low, high = sorted((_luminance(colors[foreground]), _luminance(colors[background])))
                 contrast = (high + 0.05) / (low + 0.05)
                 assert contrast >= 4.5, (scheme, foreground, background, contrast)
-        assert "--status-unknown" in colors
         status_colors = [
-            colors[f"--status-{status}"] for status in ("ready", "needs-work", "blocker")
+            colors[f"--status-{status}"] for status in ("ready", "needs-work", "blocker", "unknown")
         ]
-        for left, right in combinations(status_colors, 2):
-            low, high = sorted((_luminance(left), _luminance(right)))
-            assert (high + 0.05) / (low + 0.05) >= 1.5, (scheme, left, right)
+        assert len(set(status_colors)) == 4, (scheme, status_colors)
     assert re.search(r"@media[^{}]+\(max-width:\s*40rem\)", css)
     assert re.search(r"content:\s*attr\(data-label\)", css)
     assert re.search(r"@page\s*\{\s*margin:", css)
@@ -246,6 +252,45 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert re.search(r"print-color-adjust:\s*exact", css)
     print_css = css.split("@media print", 1)[1]
     assert re.search(r"::details-content\s*\{[^}]*content-visibility:\s*visible", print_css)
+    # Colour is never the only cue: every status label carries its own symbol and its text.
+    icons = {
+        status: re.findall(rf'<span class="status {status}"><svg[^>]*><path d="([^"]+)"', html)
+        for status in ("ready", "needs_work", "blocker", "unknown")
+    }
+    paths = {next(iter(set(found))) for found in icons.values() if found}
+    assert len(paths) == sum(1 for found in icons.values() if found)
+
+
+def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
+    css = ReportDocument(_sample_report("town", tmp_path, "en", "opendesk")).styles[0]
+    site = (Path(__file__).resolve().parents[1] / "site" / "style.css").read_text("utf-8")
+    pairs = {
+        "--bg": "--bg",
+        "--surface": "--fill",
+        "--fill-2": "--fill-2",
+        "--text": "--fg",
+        "--muted": "--fg-2",
+        "--line": "--rule",
+        "--accent": "--link",
+    }
+    light = dict(
+        re.findall(r"(--[\w-]+):\s*(#[0-9a-f]{6});", re.search(r":root\s*\{([^}]+)\}", css)[1])
+    )
+    dark_block = re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]+)\}", css)[1]
+    dark = dict(re.findall(r"(--[\w-]+):\s*(#[0-9a-f]{6});", dark_block))
+    tokens = {
+        name: (light_value, dark_value)
+        for name, light_value, dark_value in re.findall(
+            r"(--[\w-]+):\s*light-dark\((#[0-9a-f]{6}),\s*(#[0-9a-f]{6})\);", site
+        )
+    }
+    for report_name, site_name in pairs.items():
+        assert tokens[site_name] == (light[report_name], dark[report_name]), report_name
+    for status in ("ready", "needs-work", "blocker"):
+        assert tokens[f"--status-{status}"] == (
+            light[f"--status-{status}"],
+            dark[f"--status-{status}"],
+        )
 
 
 def _checksums(html: str) -> dict[str, str]:

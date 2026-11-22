@@ -45,17 +45,19 @@
 
 :root {
   color-scheme: light dark;
-  /* Apple's web neutrals (apple.com) and iOS system colours for status, light and dark. */
-  --bg: light-dark(#ffffff, #000000);
-  --fg: light-dark(#1d1d1f, #f5f5f7);
-  --fg-2: light-dark(#6e6e73, #86868b);
-  --rule: light-dark(#d2d2d7, #424245);
+  /* Light: apple.com neutrals and link blue. Dark: Fazit's green on black.
+     Status: iOS system colours in both. The report uses the same values. */
+  --bg: light-dark(#ffffff, #050906);
+  --fg: light-dark(#1d1d1f, #c4f7d0);
+  --fg-2: light-dark(#6e6e73, #7b9d83);
+  --rule: light-dark(#d2d2d7, #1e2820);
   --line: var(--fg-2);
-  --fill: light-dark(#f5f5f7, #1d1d1f);
-  --fill-2: light-dark(#e8e8ed, #2c2c2e);
-  --link: light-dark(#0066cc, #0a84ff);
-  --solid-bg: #0071e3;
-  --solid-fg: #ffffff;
+  --fill: light-dark(#f5f5f7, #111712);
+  --fill-2: light-dark(#e8e8ed, #1a251c);
+  --link: light-dark(#0066cc, #30d158);
+  --solid-bg: light-dark(#0071e3, #30d158);
+  --solid-hover: light-dark(#0077ed, #4cdb72);
+  --solid-fg: light-dark(#ffffff, #050906);
   --status-ready: light-dark(#34c759, #30d158);
   --status-needs-work: light-dark(#ffcc00, #ffd60a);
   --status-blocker: light-dark(#ff9500, #ff9f0a);
@@ -150,7 +152,7 @@ code {
 }
 
 /* Material Symbols (Apache-2.0), drawn as masks so they take the current colour. */
-.icon, .cov::before, .safeguards li::before, .feature-icon, .status-shape, .section-link a::after, .more-link::after, .rows dt a::after, .report-preview figcaption a::after, .theme::before {
+.icon, .cov::before, .safeguards li::before, .feature-icon, .status-shape, .theme::before {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -205,6 +207,11 @@ code {
   padding: 8px var(--gutter);
 }
 
+.wordmark, .wordmark:hover {
+  color: var(--fg);
+  text-decoration: none;
+}
+
 .wordmark {
   color: var(--fg);
   font-size: var(--fs-body);
@@ -232,6 +239,7 @@ code {
 
 .bar-links a:hover, .bar-links a[aria-current="page"] {
   color: var(--fg);
+  text-decoration: none;
 }
 
 .bar-links .nav-extra {
@@ -443,7 +451,7 @@ code {
 }
 
 .btn-solid:hover {
-  background: color-mix(in srgb, var(--solid-bg) 88%, #000000);
+  background: var(--solid-hover);
 }
 
 .btn-small {
@@ -460,7 +468,7 @@ code {
 }
 
 .btn-secondary:hover {
-  background: color-mix(in srgb, var(--fg) 16%, var(--bg));
+  background: color-mix(in srgb, var(--fg) 14%, var(--bg));
 }
 
 .command {
@@ -877,7 +885,6 @@ code {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  color: var(--fg);
 }
 
 @media (max-width: 600px) {
@@ -1110,20 +1117,7 @@ code {
   background: var(--fill);
 }
 
-/* Standalone links: Apple blue with a chevron. Links inside sentences stay blue without one. */
-.section-link a, .more-link, .rows dt a, .report-preview figcaption a {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.section-link a::after, .more-link::after, .rows dt a::after, .report-preview figcaption a::after {
-  width: 1.1em;
-  height: 1.1em;
-  margin-inline-end: -0.25em;
-  --icon: url("icons/chevron-right.svg");
-  content: "";
-}
+/* Links are blue everywhere and underline on hover; the colour alone marks them. */
 
 .sec-body .section-link {
   margin-top: 24px;
@@ -1229,6 +1223,7 @@ code {
 
 .foot-cols a:hover, .foot-cols a[aria-current="page"] {
   color: var(--fg);
+  text-decoration: none;
 }
 
 .foot-cols a {

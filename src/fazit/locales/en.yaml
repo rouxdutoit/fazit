@@ -39,7 +39,7 @@ licences:
   bundled: Included in the product
   add_on: Separately licensed
   unclassified: 'Unclassified service plans in this product: {count}.'
-  no_workload: 'Service plans without a workload signal: {count}.'
+  no_workload: 'Service plans not linked to an area: {count}.'
   add_on_assigned: 'Separate licence assigned for {workload}'
   bundled_assigned: 'Included licence assigned for {workload}'
 status:
@@ -116,9 +116,9 @@ costs:
     - The five-year total adds running costs and the three change costs. The comparison subtracts the total for staying from each scenario's total.
     - A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.
 readiness:
-  title: Readiness by workload
-  counts: Workload counts by status
-  workload: Workload
+  title: Readiness by area
+  counts: Areas by status
+  workload: Area
   evidence: Evidence
   incomplete: Evidence incomplete
   missing: Evidence still needed
@@ -130,7 +130,7 @@ moves:
   replacement: Target replacement
   coverage: Coverage and check date
   evidence: Readiness evidence
-  workload_status: Workload status and reason
+  workload_status: Area status and reason
   workload_evidence: Evidence for {workload}
   no_function: There is no function to move.
   no_project_check: This row has no project-specific documentation check.
@@ -165,8 +165,8 @@ path:
   ready: Areas where the evidence shows no obstacle
   empty:
     blocker: The evidence identified no blocker.
-    unknown: All workloads have a known status.
-    ready: No workload meets the evidence requirements for Ready.
+    unknown: Every area has a known status.
+    ready: No area meets the evidence requirements for Ready.
   pilot_evidence: The report has no department-level evidence, so it cannot identify a department for a pilot.
   pilot_choice: The people responsible for the move choose the pilot group with the organisation.
   sequence: How a move typically proceeds

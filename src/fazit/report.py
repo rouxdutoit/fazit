@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import base64
+import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date
@@ -366,9 +368,31 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
     )
 
 
+_ICONS = ("check-circle", "warning", "report", "help", "chevron-right")
+_FONTS = ("figtree-latin", "geist-mono-latin")
+_ICON_PATH = re.compile(r'<path d="([^"<>]+)"/>')
+
+
+@lru_cache(maxsize=1)
+def _assets() -> dict[str, dict[str, str]]:
+    """Fonts and Material Symbols shared with the website, embedded so the report stays one file."""
+    package = files("fazit")
+    fonts = {
+        name: base64.b64encode(package.joinpath("fonts", f"{name}.woff2").read_bytes()).decode()
+        for name in _FONTS
+    }
+    icons = {}
+    for name in _ICONS:
+        match = _ICON_PATH.search(package.joinpath("icons", f"{name}.svg").read_text("utf-8"))
+        if match is None:
+            raise RuntimeError(f"Icon {name} has no single path.")
+        icons[name] = match[1]
+    return {"fonts": fonts, "icons": icons}
+
+
 def _render_html(context: dict[str, object]) -> str:
     source = files("fazit").joinpath("templates", "report.html.j2")
-    html = _compile_template(read_text(source)).render(**context).strip()
+    html = _compile_template(read_text(source)).render(**context, **_assets()).strip()
     return "\n".join(line.rstrip(" \t") for line in html.split("\n")) + "\n"
 
 
