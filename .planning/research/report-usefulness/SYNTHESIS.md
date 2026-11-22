@@ -82,6 +82,7 @@ The founder decided all twelve on 2026-11-22, after this synthesis was first wri
 | 9 | A fourth scenario (D23) | **Keep D5's three.** No sovereign-cloud profile; revisit only if pilots ask to price another option. |
 | 10 | Effort | **Effort drivers now.** The report says Fazit gives no effort estimate. Later, an optional input for the integrator's own rates, which Fazit multiplies. |
 | 11 | Outputs for specialists | **Facts plus ready questions for the operator** (logging, access, retention). Never DSFA, tender or agreement templates. |
+| 13 | The status name "Blocker" (raised after the review: the word felt negative) | **Keep "Blocker" / "Hindernis".** Plain words for a council; the negative feel is answered by scoping ("What blocks this move"), a next step on every card and the "Worth doing even if you stay" group, not by a softer label. |
 | 12 | OpenProject | **One plain CSV in 1.2** with column names OpenProject can map, opening in LibreOffice Calc and Excel. A tested OpenProject import only after a pilot import works unaided. |
 
 Still to do outside this folder: amend D21 and RULE-02 (`DECISIONS.md`, `.planning/REQUIREMENTS.md`); add OUTP-03 to the redesign in `.planning/ROADMAP.md`; bring RR-01 to RR-05 in line with the amended spec, and write RR-06 and RR-07.
