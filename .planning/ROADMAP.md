@@ -57,7 +57,11 @@ Plans, run one at a time in this order:
   2. A paid Copilot or Copilot Studio licence in the licence block is measured evidence; Copilot plans bundled in suites prove nothing on their own; agents and connected data sources come from provided answers; incomplete evidence is never Ready.
   3. Each target profile maps the area with a dated source, and no profile claims more than its documentation says.
   4. With a contract end date and notice period in `inputs.yaml`, the report shows the next renewal and the decision date, marked as provided; without them it says what to supply.
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 01.1-01-PLAN.md - AI assistants area from answers, status rules and mappings
+- [ ] 01.1-02-PLAN.md - Copilot licences as evidence, checked against Microsoft's reference
+- [ ] 01.1-03-PLAN.md - decision window from the contract end date and notice period
+- [ ] 01.1-04-PLAN.md - publish: sample reports, screenshots, 16 areas on the site and in the READMEs
 
 ### Phase 1.2: Outputs for Integrators (INSERTED)
 **Goal**: Integrators can move a report's findings into their own project plans, and anyone can check that a report has not been changed since it was written
@@ -136,7 +140,7 @@ Phases execute in numeric order: 1 → 1.1 → 1.2 → 1.3 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Demo and Report | 11/11 | Complete | 2026-11-21 |
-| 1.1. AI Assistants and Decision Window | 0/TBD | Not started | - |
+| 1.1. AI Assistants and Decision Window | 0/4 | Planned | - |
 | 1.2. Outputs for Integrators | 0/TBD | Not started | - |
 | 1.3. Sovereignty Criteria | 0/TBD | Not started | - |
 | 2. Import | 0/TBD | Not started | - |
