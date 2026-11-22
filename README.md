@@ -4,7 +4,7 @@
 
 Fazit is a free, open source command-line tool for assessing a move from Microsoft 365 to an open source setup such as openDesk or Nextcloud. It creates a self-contained HTML report locally in English or German.
 
-Fazit is in early development (alpha). It builds reports from bundled samples or a compatible `scan.json` with your answers and costs in `inputs.yaml`. Measured figures currently come from the samples.
+Fazit is in early development (alpha). It builds reports from bundled samples with your answers and costs in `inputs.yaml`. The measured figures in the samples are simulated; import of your own Microsoft 365 exports comes next.
 
 ## Try it
 
@@ -42,7 +42,7 @@ To try your own answers and costs, copy the example file. Fill in the values you
 cp inputs.example.yaml inputs.yaml
 ```
 
-Rebuild from the same scan using your answers.
+Rebuild from the same scan using your answers. The inventory figures still belong to the fictional town; only your answers and costs change. Do not share such a report as an assessment of your organisation.
 
 ```sh
 uv run fazit report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang de --out ./report/with-answers
@@ -50,37 +50,38 @@ uv run fazit report ./report/scan-2026-11-02-en.json --inputs inputs.yaml --lang
 
 Use `--lang en` or `--lang de` to choose the report language and `--profile opendesk`, `--profile nextcloud` or `--profile generic` to choose the target. With `report`, these flags take precedence over the settings in the inputs file.
 
-Fazit checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
+Fazit checks the structure of its inputs and selected relationships between figures, and labels the source of each figure. It cannot establish that a supplied inventory is true, so a report is only as trustworthy as the tool and the people that produced its evidence.
 
 ## What the report shows
 
 1. Header with the scan date, the source of the data and how the report was made.
 2. What we found in the inventory.
-3. Five-year cost comparison for staying, partial exit and full exit.
-4. Readiness by workload, including what was left unexamined.
+3. Five-year cost comparison for staying, a partial move and a full move, at the prices you enter.
+4. Readiness by area, including what was left unexamined.
 5. What moves where under the chosen target profile.
 6. Needs attention, including functions whose direct transfer to the target profile is unverified.
-7. Suggested path with blockers, questions to resolve and possible pilot areas.
+7. Suggested path with blockers, open questions and the areas that pass the current checks.
 8. Appendix with collectors, rules, mappings and run details.
-9. Footer with the project name.
 
-The report assesses fifteen areas. Each area has a status of Ready, Needs work, Blocker or Unknown, with a reason and its evidence. Figures are marked as measured, provided or unknown. An unknown comes with a reason and a next step. The report provides no overall score or verdict.
+The report assesses fifteen areas. Each area has a status of Ready, Needs work, Blocker or Unknown, with a reason and its evidence. Inventory figures are marked as measured, provided or unknown, and cost figures as entered or calculated. An unknown comes with a reason and a next step. The report provides no overall score or verdict.
 
 Your browser may add the local file path to printed headers and footers. Before saving a PDF to share, open the browser's print settings and turn off **Headers and footers**. Check the preview for the file path.
 
 ## Where the project stands
 
-Fazit runs from a clone and is not yet published on PyPI. Import and live collection are not available yet.
+Fazit runs from a clone and is not yet published on PyPI. Import and live collection are not available yet, and the measured figures in the samples are simulated.
 
-The next steps are coverage of AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Local import of Microsoft 365 admin-centre exports will follow in phase 2. Phase 3 will add `doctor`, browser sign-in and live licence and directory counts. Phase 4 will bring bilingual guides, packaging and a signed Windows build. [Project roadmap](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
+Next come a redesign of the report and local import of Microsoft 365 admin-centre exports (phase 2), then packaging: `uvx fazit` from PyPI and a signed Windows build (phase 2.1). After that come AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Phase 3 adds `doctor`, browser sign-in and live licence and directory counts, and phase 4 the guides for live scans. [Project roadmap](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
 
 ## What Fazit will never do
 
 - Write to a Microsoft tenant or call an endpoint outside the read allowlist.
 - Contact any hosts other than Microsoft sign-in and Microsoft Graph. This version contacts no host.
-- Write tokens, collected person names or email addresses to disk by default. Collected data contains no free text. The only free text from input data shown in the report is the organisation name and the names of Windows-only applications entered in `inputs.yaml`.
+- Write tokens, collected person names or email addresses to disk by default. The only free text from input data shown in the report is the organisation name and the names of Windows-only applications entered in `inputs.yaml`.
 - Load external resources from the report.
-- Invent figures or let a skipped collector improve a status.
+- Present a missing figure as measured, or let a skipped collector improve a status.
+
+Each of these gets a test when the code it guards exists. Today's tests cover offline operation and report output.
 
 Assessment data stays on your computer only when the scan, inputs and `--out` directory are on local storage, since a network share transfers those files over the network.
 
@@ -88,11 +89,11 @@ Assessment data stays on your computer only when the scan, inputs and `--out` di
 
 ## Change the rules
 
-The workload catalogue, status rules, service plans, risky file types and target mappings are YAML files under `src/fazit/rules/`. Edit them in the clone and run the same command again. An option to use a separate rules directory is planned for the first release.
+The workload catalogue, status rules, service plans, risky file types and target mappings are YAML files under `src/fazit/rules/`. Edit them in the clone and run the same command again. A separate rules directory is deferred.
 
 ## How it is made
 
-Fazit is AI-assisted and human-reviewed. A human maintainer directs the work and is responsible for it. Claude Opus 5.5 and Codex GPT-6.2-Sol write the code, both at maximum effort, and every change is tested before it is committed. Before each release, Claude Fable 5.2 and Codex GPT-6.2-Astra, also at maximum effort, review the whole codebase independently and then against each other, including security. Their reviews are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
+Fazit is written with AI tools and directed by a person. Claude and Codex write the code. The maintainer decides what is built and answers for it, without reading every line. CI runs the test suite on Linux, Windows and macOS. Before each release, other models look for faults, including security, and their findings and the fixes are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
 
 ## Licence
 

@@ -41,7 +41,7 @@ Keep the status names short and consistent: they appear in the readiness bar, th
 
 ## How Fazit is made
 
-Fazit is AI-assisted and human-reviewed. A human maintainer directs the work and is responsible for it. Claude Opus 5.5 and Codex GPT-6.2-Sol write the code, both at maximum effort, and every change is tested before it is committed. Before each release, Claude Fable 5.2 and Codex GPT-6.2-Astra, also at maximum effort, review the whole codebase independently and then against each other, including security. Their reviews are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
+Fazit is written with AI tools under the direction of a human maintainer, who decides what is built and answers for it. Claude and Codex write most of the code, and CI runs the test suite on every push. Before each release, other models review the codebase, including security, and their reports are public. [Phase 1 reviews](https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report)
 
 ## Licence and sign-off
 
@@ -49,4 +49,4 @@ Contributions are accepted under AGPL-3.0-or-later. Starting with the first publ
 
 The maintainers attest that they have the right to distribute the contributions in the initial repository history under AGPL-3.0-or-later.
 
-Use an `Assisted-by:` trailer to credit Codex and a `Co-Authored-By:` trailer to credit Claude. Name the model in the trailer.
+If an AI tool wrote part of your change, credit it: an `Assisted-by:` trailer for Codex and a `Co-Authored-By:` trailer for Claude, naming the model. A change written without AI needs neither.

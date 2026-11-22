@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Fazit in wenigen Minuten auf dem eigenen Rechner ausführen: ohne Microsoft-Konto und ohne Datenübertragung.">
+  <meta name="description" content="Das Fazit-Beispiel auf dem eigenen Rechner ausführen, ohne Microsoft-Konto. Nach der Einrichtung läuft es ohne Netzwerkverbindung.">
   <title>Jetzt starten · Fazit</title>
   <link rel="canonical" href="https://fazit.dev/de/start/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/start/">
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
   <meta property="og:title" content="Jetzt starten · Fazit">
-  <meta property="og:description" content="Fazit in wenigen Minuten auf dem eigenen Rechner ausführen: ohne Microsoft-Konto und ohne Datenübertragung.">
+  <meta property="og:description" content="Das Fazit-Beispiel auf dem eigenen Rechner ausführen, ohne Microsoft-Konto. Nach der Einrichtung läuft es ohne Netzwerkverbindung.">
   <meta property="og:url" content="https://fazit.dev/de/start/">
   <meta property="og:locale" content="de_DE">
   <meta property="og:locale:alternate" content="en_GB">
@@ -50,11 +50,11 @@
   <main id="main" tabindex="-1">
     <div class="page-intro">
       <h1>Mit Fazit starten</h1>
-      <p>Führen Sie das Beispiel in wenigen Minuten auf Ihrem eigenen Rechner aus. Sie brauchen kein Microsoft-Konto, und es werden keine Daten übertragen.</p>
+      <p>Führen Sie das Beispiel auf Ihrem eigenen Rechner aus. Sie brauchen kein Microsoft-Konto, und nach der Einrichtung läuft es ohne Netzwerkverbindung.</p>
       <div class="command" role="group" aria-labelledby="command-label">
         <p class="command-label" id="command-label">Im Terminal ausführen</p>
         <div class="command-line">
-          <code id="demo-command">git clone https://github.com/<wbr>rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo --lang de</code>
+          <code id="demo-command"><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
           <button class="copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden></button>
         </div>
         <p class="copy-message" role="status"></p>
@@ -77,7 +77,7 @@
             <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein. <a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">uv installieren</a></p>
           </li>
         </ul>
-        <p class="note-text">Fazit läuft unter Windows, macOS und Linux.</p>
+        <p class="note-text">Fazit wird unter Windows, macOS und Linux getestet.</p>
       </div>
     </section>
 
@@ -100,7 +100,7 @@
     <section class="sec grid" aria-labelledby="start-own">
       <h2 class="sec-label" id="start-own">Mit eigenen Daten</h2>
       <div class="sec-body">
-        <p>Heute erstellt Fazit Berichte aus den Beispieldaten oder aus einer Erhebungsdatei, ergänzt um Ihre eigenen Antworten und Kosten in <code>inputs.yaml</code>. Als Nächstes kann Fazit Exporte aus dem Microsoft 365 Admin Center einlesen. Bis dahin sind die Pilotprüfungen der Weg, Ihre eigene Organisation zu bewerten.</p>
+        <p>Derzeit erstellt Fazit Berichte aus den Beispieldaten, ergänzt um Ihre eigenen Antworten und Kosten in <code>inputs.yaml</code>. Die Bestandszahlen stammen dabei weiter aus der fiktiven Stadtverwaltung. Als Nächstes kommt der Import von Exporten aus dem Microsoft 365 Admin Center; bis dahin können Sie Interesse an einer Pilotprüfung bekunden.</p>
         <p><a class="more" href="/de/pilots/">Pilotprüfungen</a></p>
       </div>
     </section>
@@ -138,10 +138,7 @@
   <footer>
     <div class="foot-in">
       <div class="foot-top">
-        <div class="foot-brand">
-          <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
-          <p class="foot-made">Mit <span class="icon-heart" role="img" aria-label="Liebe"></span> in Deutschland entwickelt</p>
-        </div>
+        <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>

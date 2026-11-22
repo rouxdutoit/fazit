@@ -176,7 +176,7 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .icon-heart, .foot-icons span {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .foot-icons span {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -452,6 +452,12 @@ code {
   text-wrap: balance;
 }
 
+.hero-status {
+  margin-top: 16px;
+  color: var(--fg-2);
+  font-size: var(--fs-subhead);
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -533,7 +539,12 @@ code {
   font-size: var(--fs-subhead);
 }
 
-.command-line code::before {
+/* One command per line, each with a prompt that is never copied. */
+.command-line code span {
+  display: block;
+}
+
+.command-line code span::before {
   margin-right: 0.6em;
   color: var(--fg-2);
   content: "$" / "";
@@ -837,46 +848,6 @@ code {
     font-size: var(--fs-footnote);
     font-weight: 600;
     content: attr(data-label);
-  }
-}
-
-@media screen and (prefers-reduced-motion: no-preference) {
-  /* Only the hero waits hidden for its decode; every other heading stays readable until its own starts. */
-  .motion .hero [data-scramble]:not(.scramble-started) {
-    opacity: 0;
-  }
-
-  .motion [data-scramble] {
-    .ch {
-      position: relative;
-    }
-
-    .ch.wait, .ch.sg {
-      visibility: hidden;
-    }
-
-    .ch.sg::after {
-      position: absolute;
-      inset-block-start: 0;
-      inset-inline-start: 50%;
-      transform: translateX(-50%);
-      visibility: visible;
-      color: var(--fg-2);
-      font-family: var(--mono);
-      font-weight: 400;
-      letter-spacing: 0;
-      content: attr(data-g);
-    }
-  }
-
-  .motion :where(.tiles > li, .figures > li, .finding, .coverage, .timeline-step) {
-    transition: opacity 0.8s var(--ease), translate 0.8s var(--ease);
-    transition-delay: var(--reveal-delay, 0ms);
-
-    &:not(.in, :focus-within) {
-      opacity: 0;
-      translate: 0 20px;
-    }
   }
 }
 
@@ -1236,16 +1207,6 @@ code {
   line-height: 1.35;
 }
 
-.tiles .tile-title span {
-  white-space: nowrap;
-}
-
-.tiles .tile-title small {
-  color: var(--fg-2);
-  font-size: var(--fs-subhead);
-  font-weight: 400;
-}
-
 .tiles .tile-icon {
   width: 28px;
   height: 28px;
@@ -1512,19 +1473,6 @@ code {
       margin-top: -12px;
     }
   }
-}
-
-.foot-made {
-  margin-top: 4px;
-  color: var(--fg-2);
-  font-size: var(--fs-footnote);
-}
-
-.icon-heart {
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.125em;
-  --icon: url("icons/favorite.svg");
 }
 
 .foot-cols {
