@@ -67,15 +67,21 @@ All are "must before build" unless marked "can follow".
 
 ## C. Decisions for the founder
 
-1. **Hold the build until the spec is amended.** Both reviewers mark most of section A as must before build; each item is cheap in the spec and costly after RR-02 and RR-03. *Recommend: amend first, and write RR-06 and RR-07.*
-2. **Who page one is for.** *Recommend: the council on page one, the IT lead and integrator in the working sections, with the same summary on screen and paper* (both).
-3. **The readiness bar.** Drop it from the summary (Fable) or move it below the opening finding (Astra). *Recommend: drop it from the summary and keep it as the visual for the area filters.* Nothing on page one can then be read as a score.
-4. **A scope statement on the first screen.** It adds a new headline number, and it makes the operator review of the mapping files a gate before the redesign ships rather than before launch. *Recommend: add it, as counts with names, after RR-06 and RR-07.*
-5. **Licences without a status.** RR-01 already removes it; D21 and RULE-02 still say fifteen assessed areas. *Recommend: amend D21 and RULE-02 explicitly* (both).
-6. **Finance timing.** Per-year costs, VAT flag and internal staff time after 2.1 and before 1.1 (Fable), or keep them in CONV-06 for v2 (Astra). *Recommend: break-even now; the VAT flag and staff time after 2.1; per-year cash flows stay in v2.*
-7. **Who supplied the answers.** Fable proposes an optional "answers supplied by" organisation or role on page one, because the integrator who supplies the costs may sell the project (D26). Astra warns that the organisation-name validator accepts personal names. *Recommend: fixed source categories per cost input (organisation's accounts, supplier quote, estimate), not free text.*
-8. **Blocker rules.** *Recommend: fix the wording now; promote further rules to Blocker only with the operator review* (Fable; Astra concurs on scoping).
-9. **D23 and a fourth scenario.** Both reject a named sovereign-cloud profile. Fable would allow a user-named fourth cost column after launch; Astra keeps D5's three. *Recommend: keep three and revisit if pilots ask for it.*
-10. **Effort.** *Recommend: effort drivers only, and say in the report that Fazit gives no effort estimate* (both).
-11. **Outputs for specialists.** *Recommend: factual extracts, never tender, DSFA or agreement templates* (both).
-12. **OpenProject.** *Recommend: a neutral CSV in 1.2; a version-tested OpenProject file only after a pilot import works unaided* (both).
+The founder decided all twelve on 2026-11-22, after this synthesis was first written.
+
+| # | Decision | Outcome |
+|---|---|---|
+| 1 | Hold the build until the spec is amended | **Hold.** Amend UI-SPEC.md first; write RR-06 and RR-07 before RR-02. |
+| 2 | Who page one is for | **The council.** Page one has the same content on screen and in print. The working sections are for the IT lead and the integrator. |
+| 3 | The readiness bar | **Count line only in the summary.** No bar, pie or other part-of-whole chart there; a share of areas reads as "how ready are we". The bar stays only as the visual for the area filters. |
+| 4 | Scope statement on the first screen | **Add it, after RR-06 and RR-07.** Counts with names, never a fraction, percentage or bar. The operator review of the mapping files becomes a gate before the redesign ships. |
+| 5 | Licences without a status | **Inventory only.** Amend D21 and RULE-02; derive the area count from the assessed catalogue. |
+| 6 | Finance timing | **Staged.** Break-even now, in the redesign; VAT flag and internal staff time after 2.1; per-year cash flows stay in v2 (CONV-06). |
+| 7 | Where cost figures came from | **Fixed source categories per cost input** (organisation's accounts, supplier quote, estimate). No free text. Timing not decided; proposed: with the VAT and staff-time inputs after 2.1, not in the redesign. |
+| 8 | Blocker rules | **Fix the wording now.** Scope the heading to this move; Needs-work reasons stop saying "blocks". New Blocker rules only with the operator review. |
+| 9 | A fourth scenario (D23) | **Keep D5's three.** No sovereign-cloud profile; revisit only if pilots ask to price another option. |
+| 10 | Effort | **Effort drivers now.** The report says Fazit gives no effort estimate. Later, an optional input for the integrator's own rates, which Fazit multiplies. |
+| 11 | Outputs for specialists | **Facts plus ready questions for the operator** (logging, access, retention). Never DSFA, tender or agreement templates. |
+| 12 | OpenProject | **One plain CSV in 1.2** with column names OpenProject can map, opening in LibreOffice Calc and Excel. A tested OpenProject import only after a pilot import works unaided. |
+
+Still to do outside this folder: amend D21 and RULE-02 (`DECISIONS.md`, `.planning/REQUIREMENTS.md`); add OUTP-03 to the redesign in `.planning/ROADMAP.md`; bring RR-01 to RR-05 in line with the amended spec, and write RR-06 and RR-07.
