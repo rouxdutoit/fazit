@@ -32,41 +32,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar">
+  <header class="bar" data-bar>
     <div class="bar-in">
-      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">Fazit</a>
-      <nav class="bar-links" aria-label="Hauptnavigation">
-        <div class="nav-group">
-          <a href="/de/#example">Beispiel</a>
-          <a href="/de/#coverage">Abdeckung</a>
-          <a href="/de/#how">Ablauf</a>
-          <a href="/de/#safeguards">Daten und Zugriff</a>
-        </div>
-        <div class="nav-group">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
+        <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
           <a href="/de/integrators/">IT-Dienstleister</a>
           <a href="/de/security/">Sicherheit</a>
-          <a href="/demo/de/">Beispielbericht</a>
+          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+          <a class="nav-extra" href="/demo/de/">Beispielbericht</a>
         </div>
       </nav>
-      <a class="language" href="/privacy/" lang="en" hreflang="en">English</a>
-      <details class="menu" data-menu>
-        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
-        <nav class="menu-panel" aria-label="Hauptnavigation">
-          <div class="nav-group">
-            <a href="/de/#example">Beispiel</a>
-            <a href="/de/#coverage">Abdeckung</a>
-            <a href="/de/#how">Ablauf</a>
-            <a href="/de/#safeguards">Daten und Zugriff</a>
-          </div>
-          <div class="nav-group">
-            <a href="/de/pilots/">Pilotprüfungen</a>
-            <a href="/de/integrators/">IT-Dienstleister</a>
-            <a href="/de/security/">Sicherheit</a>
-            <a href="/demo/de/">Beispielbericht</a>
-          </div>
-        </nav>
-      </details>
+      <a class="btn btn-solid btn-small bar-cta" href="/demo/de/">Beispielbericht</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -128,7 +107,7 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/de/">Fazit</a>
+        <a class="wordmark" href="/de/">fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
@@ -152,7 +131,10 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+        <div class="foot-actions">
+          <a class="language" href="/privacy/" lang="en" hreflang="en">English</a>
+          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+        </div>
       </div>
     </div>
   </footer>

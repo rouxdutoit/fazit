@@ -32,41 +32,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="bar">
+  <header class="bar" data-bar>
     <div class="bar-in">
-      <a class="wordmark" href="/" aria-label="Fazit home">Fazit</a>
-      <nav class="bar-links" aria-label="Main navigation">
-        <div class="nav-group">
-          <a href="/#example">Example</a>
-          <a href="/#coverage">Coverage</a>
-          <a href="/#how">How it works</a>
-          <a href="/#safeguards">Safeguards</a>
-        </div>
-        <div class="nav-group">
+      <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Main navigation">
+        <div class="bar-links-in">
           <a href="/pilots/">Pilots</a>
           <a href="/integrators/">Integrators</a>
           <a href="/security/">Security</a>
-          <a href="/demo/en/">Sample report</a>
+          <a href="https://github.com/rouxdutoit/fazit">Source code</a>
+          <a class="nav-extra" href="/demo/en/">Sample report</a>
         </div>
       </nav>
-      <a class="language" href="/de/privacy/" lang="de" hreflang="de">Deutsch</a>
-      <details class="menu" data-menu>
-        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></summary>
-        <nav class="menu-panel" aria-label="Main navigation">
-          <div class="nav-group">
-            <a href="/#example">Example</a>
-            <a href="/#coverage">Coverage</a>
-            <a href="/#how">How it works</a>
-            <a href="/#safeguards">Safeguards</a>
-          </div>
-          <div class="nav-group">
-            <a href="/pilots/">Pilots</a>
-            <a href="/integrators/">Integrators</a>
-            <a href="/security/">Security</a>
-            <a href="/demo/en/">Sample report</a>
-          </div>
-        </nav>
-      </details>
+      <a class="btn btn-solid btn-small bar-cta" href="/demo/en/">Sample report</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
 
@@ -128,7 +107,7 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/">Fazit</a>
+        <a class="wordmark" href="/">fazit</a>
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
@@ -152,7 +131,10 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
-        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+        <div class="foot-actions">
+          <a class="language" href="/de/privacy/" lang="de" hreflang="de">Deutsch</a>
+          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+        </div>
       </div>
     </div>
   </footer>

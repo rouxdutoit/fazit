@@ -3,6 +3,7 @@
   const systemTheme = matchMedia("(prefers-color-scheme: dark)");
   const storageKey = "fazit-theme";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  root.classList.add("has-js");
   const animate = !reducedMotion.matches && "IntersectionObserver" in window;
   if (animate) root.classList.add("js");
 
@@ -100,20 +101,25 @@
       });
     }
 
-    const menu = document.querySelector("[data-menu]");
-    if (menu) {
-      menu.querySelector("nav").addEventListener("click", (event) => {
-        if (event.target.closest("a")) menu.open = false;
+    const bar = document.querySelector("[data-bar]");
+    const menuButton = bar?.querySelector(".menu-button");
+    if (menuButton) {
+      const setOpen = (open) => {
+        menuButton.setAttribute("aria-expanded", String(open));
+        bar.toggleAttribute("data-open", open);
+      };
+      menuButton.hidden = false;
+      menuButton.addEventListener("click", () => setOpen(!bar.hasAttribute("data-open")));
+      bar.querySelector("nav").addEventListener("click", (event) => {
+        if (event.target.closest("a")) setOpen(false);
       });
-      menu.addEventListener("focusout", (event) => {
-        if (event.relatedTarget && !menu.contains(event.relatedTarget)) menu.open = false;
-      });
-      menu.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && menu.open) {
-          menu.open = false;
-          menu.querySelector("summary").focus();
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && bar.hasAttribute("data-open")) {
+          setOpen(false);
+          menuButton.focus();
         }
       });
+      matchMedia("(min-width: 820px)").addEventListener("change", () => setOpen(false));
     }
 
     if (animate) {

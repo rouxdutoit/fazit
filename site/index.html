@@ -32,41 +32,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="bar">
+  <header class="bar" data-bar>
     <div class="bar-in">
-      <a class="wordmark" href="/" aria-label="Fazit home" aria-current="page">Fazit</a>
-      <nav class="bar-links" aria-label="Main navigation">
-        <div class="nav-group">
-          <a href="#example">Example</a>
-          <a href="#coverage">Coverage</a>
-          <a href="#how">How it works</a>
-          <a href="#safeguards">Safeguards</a>
-        </div>
-        <div class="nav-group">
+      <a class="wordmark" href="/" aria-label="Fazit home" aria-current="page">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Main navigation">
+        <div class="bar-links-in">
           <a href="/pilots/">Pilots</a>
           <a href="/integrators/">Integrators</a>
           <a href="/security/">Security</a>
-          <a href="/demo/en/">Sample report</a>
+          <a href="https://github.com/rouxdutoit/fazit">Source code</a>
+          <a class="nav-extra" href="/demo/en/">Sample report</a>
         </div>
       </nav>
-      <a class="language" href="/de/" lang="de" hreflang="de">Deutsch</a>
-      <details class="menu" data-menu>
-        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></summary>
-        <nav class="menu-panel" aria-label="Main navigation">
-          <div class="nav-group">
-            <a href="#example">Example</a>
-            <a href="#coverage">Coverage</a>
-            <a href="#how">How it works</a>
-            <a href="#safeguards">Safeguards</a>
-          </div>
-          <div class="nav-group">
-            <a href="/pilots/">Pilots</a>
-            <a href="/integrators/">Integrators</a>
-            <a href="/security/">Security</a>
-            <a href="/demo/en/">Sample report</a>
-          </div>
-        </nav>
-      </details>
+      <a class="btn btn-solid btn-small bar-cta" href="/demo/en/">Sample report</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
 
@@ -106,6 +85,50 @@
         <p class="lead">Many public bodies and companies are weighing a move away from Microsoft 365, for digital sovereignty, data protection or cost. Few can say exactly what they depend on.</p>
         <p>A project then meets the obstacle nobody counted, such as telephony or hundreds of business-critical macros, halfway through. Fazit is built to answer the question first, from your organisation’s own data. It shows the evidence for every finding and says “unknown” where the evidence is missing.</p>
         <p>It gives no overall score and recommends no supplier. Your organisation decides whether to move, what to move and when.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
+      <h2 class="sec-label" id="privacy-title" data-scramble>Private by design</h2>
+      <div class="sec-body">
+        <p class="lead">Your data stays on your computer. Fazit creates the report locally, and the current version makes no network connections at all.</p>
+        <ul class="features">
+          <li>
+            <span class="feature-icon icon-computer" aria-hidden="true"></span>
+            <h3>Runs on your computer</h3>
+            <p>The report is a single file on your own disk. Nothing is uploaded, and there is no account or cloud service.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-wifi-off" aria-hidden="true"></span>
+            <h3>No network connections</h3>
+            <p>The current version contacts no host. Live collection will talk only to Microsoft sign-in and Graph, and only to read.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-lock" aria-hidden="true"></span>
+            <h3>Read-only</h3>
+            <p>Fazit never writes to Microsoft 365 and keeps no tokens, personal names or email addresses.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-code" aria-hidden="true"></span>
+            <h3>Open to inspection</h3>
+            <p>Every safeguard has a test anyone can run. Disconnect from the network and the demo still works.</p>
+          </li>
+        </ul>
+        <div class="subsection">
+          <h3>What Fazit never does</h3>
+          <ul class="safeguards">
+            <li>Write to a Microsoft tenant or call an endpoint outside the read allowlist.</li>
+            <li>Send assessment data off your computer. The current version contacts no host. Live sign-in and collection will be limited to Microsoft sign-in and Graph.</li>
+            <li>Save tokens or collected names and email addresses to disk. The report can show the organisation and Windows-only application names you enter.</li>
+            <li>Load external resources from the report.</li>
+            <li>Invent results or improve a status when a check is skipped.</li>
+          </ul>
+        </div>
+        <div class="subsection">
+          <h3>Check it yourself</h3>
+          <p>After the first run, disconnect from the network. Run <code>uv run --offline fazit demo</code> and open the report in your browser.</p>
+          <p class="section-link"><a href="/security/#offline">How to verify offline operation</a></p>
+        </div>
       </div>
     </section>
 
@@ -235,24 +258,6 @@
       </div>
     </section>
 
-    <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title" data-scramble>What Fazit never does</h2>
-      <div class="sec-body">
-        <ul class="safeguards">
-          <li>Write to a Microsoft tenant or call an endpoint outside the read allowlist.</li>
-          <li>Send assessment data off your computer. The current version contacts no host. Live sign-in and collection will be limited to Microsoft sign-in and Graph.</li>
-          <li>Save tokens or collected names and email addresses to disk. The report can show the organisation and Windows-only application names you enter.</li>
-          <li>Load external resources from the report.</li>
-          <li>Invent results or improve a status when a check is skipped.</li>
-        </ul>
-        <div class="subsection">
-          <h3>Check it yourself</h3>
-          <p>After the first run, disconnect from the network. Run <code>uv run --offline fazit demo</code> and open the report in your browser.</p>
-          <p class="section-link"><a href="/security/#offline">How to verify offline operation</a></p>
-        </div>
-      </div>
-    </section>
-
     <section class="sec grid" id="claims" aria-labelledby="claims-title">
       <h2 class="sec-label" id="claims-title" data-scramble>Reading the findings</h2>
       <div class="sec-body">
@@ -317,7 +322,7 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/">Fazit</a>
+        <a class="wordmark" href="/">fazit</a>
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
@@ -341,7 +346,10 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
-        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+        <div class="foot-actions">
+          <a class="language" href="/de/" lang="de" hreflang="de">Deutsch</a>
+          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dark mode</button>
+        </div>
       </div>
     </div>
   </footer>

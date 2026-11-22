@@ -32,41 +32,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar">
+  <header class="bar" data-bar>
     <div class="bar-in">
-      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">Fazit</a>
-      <nav class="bar-links" aria-label="Hauptnavigation">
-        <div class="nav-group">
-          <a href="#example">Beispiel</a>
-          <a href="#coverage">Abdeckung</a>
-          <a href="#how">Ablauf</a>
-          <a href="#safeguards">Daten und Zugriff</a>
-        </div>
-        <div class="nav-group">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">fazit</a>
+      <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
+        <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
           <a href="/de/integrators/">IT-Dienstleister</a>
           <a href="/de/security/">Sicherheit</a>
-          <a href="/demo/de/">Beispielbericht</a>
+          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+          <a class="nav-extra" href="/demo/de/">Beispielbericht</a>
         </div>
       </nav>
-      <a class="language" href="/" lang="en" hreflang="en">English</a>
-      <details class="menu" data-menu>
-        <summary><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></summary>
-        <nav class="menu-panel" aria-label="Hauptnavigation">
-          <div class="nav-group">
-            <a href="#example">Beispiel</a>
-            <a href="#coverage">Abdeckung</a>
-            <a href="#how">Ablauf</a>
-            <a href="#safeguards">Daten und Zugriff</a>
-          </div>
-          <div class="nav-group">
-            <a href="/de/pilots/">Pilotprüfungen</a>
-            <a href="/de/integrators/">IT-Dienstleister</a>
-            <a href="/de/security/">Sicherheit</a>
-            <a href="/demo/de/">Beispielbericht</a>
-          </div>
-        </nav>
-      </details>
+      <a class="btn btn-solid btn-small bar-cta" href="/demo/de/">Beispielbericht</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -106,6 +85,50 @@
         <p class="lead">Viele Behörden und Unternehmen erwägen einen Umstieg von Microsoft 365 – aus Gründen der digitalen Souveränität, des Datenschutzes oder der Kosten. Nur wenige können genau sagen, wovon sie abhängen.</p>
         <p>Das Hindernis, mit dem niemand gerechnet hat, etwa die Telefonie oder Hunderte geschäftskritische Makros, zeigt sich dann erst mitten im Projekt. Fazit ist darauf ausgelegt, diese Frage vorab zu beantworten, auf Grundlage der Daten Ihrer Organisation. Es legt für jeden Befund die Nachweise offen und nennt „unbekannt“, wo Nachweise fehlen.</p>
         <p>Fazit vergibt keine Gesamtnote und empfiehlt keinen Anbieter. Ob, was und wann umgestellt wird, entscheidet Ihre Organisation.</p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
+      <h2 class="sec-label" id="privacy-title" data-scramble>Datenschutz von Grund auf</h2>
+      <div class="sec-body">
+        <p class="lead">Ihre Daten bleiben auf Ihrem Rechner. Fazit erstellt den Bericht lokal, und die aktuelle Version baut überhaupt keine Netzwerkverbindung auf.</p>
+        <ul class="features">
+          <li>
+            <span class="feature-icon icon-computer" aria-hidden="true"></span>
+            <h3>Läuft auf Ihrem Rechner</h3>
+            <p>Der Bericht ist eine einzelne Datei auf Ihrem eigenen Laufwerk. Nichts wird hochgeladen, es gibt kein Konto und keinen Clouddienst.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-wifi-off" aria-hidden="true"></span>
+            <h3>Keine Netzwerkverbindungen</h3>
+            <p>Die aktuelle Version kontaktiert keinen Server. Die spätere Direkterhebung spricht nur mit der Microsoft-Anmeldung und Microsoft Graph, und nur lesend.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-lock" aria-hidden="true"></span>
+            <h3>Nur Lesezugriff</h3>
+            <p>Fazit schreibt nie in Microsoft 365 und speichert keine Anmeldetokens, Personennamen oder E-Mail-Adressen.</p>
+          </li>
+          <li>
+            <span class="feature-icon icon-code" aria-hidden="true"></span>
+            <h3>Offen nachprüfbar</h3>
+            <p>Für jede Schutzmaßnahme gibt es einen Test, den jeder ausführen kann. Auch ohne Netzwerkverbindung läuft das Beispiel.</p>
+          </li>
+        </ul>
+        <div class="subsection">
+          <h3>Was Fazit ausschließt</h3>
+          <ul class="safeguards">
+            <li>Schreibzugriffe auf Microsoft 365 sowie Aufrufe außerhalb der Freigabeliste für Lesezugriffe.</li>
+            <li>Eine Übertragung von Prüfdaten. Die aktuelle Version baut keine Netzwerkverbindung auf. Anmeldung und Direkterhebung bleiben später auf die Microsoft-Anmeldung und Microsoft Graph beschränkt.</li>
+            <li>Die Speicherung von Anmeldetokens oder erhobenen Personennamen und E-Mail-Adressen. Der Bericht kann den von Ihnen eingetragenen Namen Ihrer Organisation und die Namen reiner Windows-Anwendungen enthalten.</li>
+            <li>Das Nachladen externer Ressourcen aus dem Bericht.</li>
+            <li>Erfundene Ergebnisse oder eine bessere Einstufung durch ausgelassene Prüfungen.</li>
+          </ul>
+        </div>
+        <div class="subsection">
+          <h3>Selbst nachprüfen</h3>
+          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung. Führen Sie <code>uv run --offline fazit demo --lang de</code> aus und öffnen Sie den Bericht im Browser.</p>
+          <p class="section-link"><a href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
+        </div>
       </div>
     </section>
 
@@ -235,24 +258,6 @@
       </div>
     </section>
 
-    <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
-      <h2 class="sec-label" id="safeguards-title" data-scramble>Was Fazit ausschließt</h2>
-      <div class="sec-body">
-        <ul class="safeguards">
-          <li>Schreibzugriffe auf Microsoft 365 sowie Aufrufe außerhalb der Freigabeliste für Lesezugriffe.</li>
-          <li>Eine Übertragung von Prüfdaten. Die aktuelle Version baut keine Netzwerkverbindung auf. Anmeldung und Direkterhebung bleiben später auf die Microsoft-Anmeldung und Microsoft Graph beschränkt.</li>
-          <li>Die Speicherung von Anmeldetokens oder erhobenen Personennamen und E-Mail-Adressen. Der Bericht kann den von Ihnen eingetragenen Namen Ihrer Organisation und die Namen reiner Windows-Anwendungen enthalten.</li>
-          <li>Das Nachladen externer Ressourcen aus dem Bericht.</li>
-          <li>Erfundene Ergebnisse oder eine bessere Einstufung durch ausgelassene Prüfungen.</li>
-        </ul>
-        <div class="subsection">
-          <h3>Selbst nachprüfen</h3>
-          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung. Führen Sie <code>uv run --offline fazit demo --lang de</code> aus und öffnen Sie den Bericht im Browser.</p>
-          <p class="section-link"><a href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
-        </div>
-      </div>
-    </section>
-
     <section class="sec grid" id="claims" aria-labelledby="claims-title">
       <h2 class="sec-label" id="claims-title" data-scramble>Was die Befunde aussagen</h2>
       <div class="sec-body">
@@ -317,7 +322,7 @@
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/de/">Fazit</a>
+        <a class="wordmark" href="/de/">fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
@@ -341,7 +346,10 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+        <div class="foot-actions">
+          <a class="language" href="/" lang="en" hreflang="en">English</a>
+          <button class="theme" type="button" data-theme-toggle aria-pressed="false" hidden>Dunkle Ansicht</button>
+        </div>
       </div>
     </div>
   </footer>
