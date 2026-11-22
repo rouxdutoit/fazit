@@ -19,11 +19,6 @@ from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text
 from fazit.report import render_report
 
 
-@pytest.fixture
-def catalogue() -> Catalogue:
-    return load_catalogue()
-
-
 def _finding(finding_id: str, **overrides: object) -> dict[str, object]:
     return {
         "id": finding_id,

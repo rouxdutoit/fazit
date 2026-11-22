@@ -84,6 +84,25 @@ class ReportDocument(HTMLParser):
             self.styles.append(data)
 
 
+def offline_policies(document: ReportDocument) -> list[str]:
+    policies = []
+    for tag, attrs in document.tags:
+        assert tag not in RESOURCE_ELEMENTS, tag
+        assert not (RESOURCE_ATTRIBUTES & attrs.keys()), attrs
+        for name, value in attrs.items():
+            if name in {"href", "xlink:href"}:
+                assert (value or "").startswith("#"), value
+            assert not name.startswith("on"), name
+            if name == "style":
+                assert not CSS_RESOURCE.search(value or ""), value
+        if tag == "meta":
+            directive = (attrs.get("http-equiv") or "").strip().lower()
+            assert directive != "refresh"
+            if directive == "content-security-policy":
+                policies.append(attrs.get("content") or "")
+    return policies
+
+
 def readme_code_blocks(readme: str) -> list[str]:
     return re.findall(r"^```[^\n]*\n(.*?)^```[ \t]*$", readme, flags=re.M | re.S)
 

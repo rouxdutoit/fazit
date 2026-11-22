@@ -15,11 +15,10 @@ from helpers import (
     ALL_UNKNOWN_SCAN,
     CSS_RESOURCE,
     PLANTED_SCAN,
-    RESOURCE_ATTRIBUTES,
-    RESOURCE_ELEMENTS,
     ROOT,
     ReportDocument,
     assert_readiness_order,
+    offline_policies,
     readiness_row,
     rebuild_report,
     report_section,
@@ -32,6 +31,7 @@ from report_expectations import DISPLAY_ORDER, SECTION_ORDER
 from fazit import __version__, catalogue, rules
 from fazit import report as report_module
 from fazit.cli import app
+from fazit.fonts.css import CSS_DECLARATION, check_font_families
 from fazit.i18n import Formatter, load_locale
 from fazit.inputs import load_inputs
 from fazit.licences import licence_findings
@@ -42,16 +42,8 @@ from fazit.parsing import read_text
 # The report embeds its two fonts; nothing else in its CSS may point anywhere.
 EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
-CSS_DECLARATION = re.compile(r"(?:^|(?<=[;{]))\s*([-\w]+)\s*:\s*([^;{}]+)(?=[;}]|$)")
 CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
-CSS_FONT_FACE = re.compile(r"@font-face\s*\{([^{}]*)\}", re.I)
 CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
-FONT_FAMILY = re.compile(r"var\(--(?:sans|mono)\)")
-FONT_SHORTHAND = re.compile(
-    r"(?:(?:[1-9]00|normal|bold|italic|oblique|small-caps)\s+)*"
-    r"(?:var\(--fs-[\w-]+\)|[\d.]+(?:px|rem|em|pt|%))"
-    r"(?:\s*/\s*[\d.]+(?:px|rem|em|pt|%)?)?\s+" + FONT_FAMILY.pattern
-)
 
 
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
@@ -114,10 +106,11 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
 
 
 def test_coverage_symbols_match_the_site() -> None:
-    for icon in ("circle", "contrast", "code", "cancel"):
-        site = ROOT / "site" / "icons" / f"{icon}.svg"
-        packaged = ROOT / "src" / "fazit" / "icons" / f"{icon}.svg"
-        assert site.read_bytes() == packaged.read_bytes()
+    icons = sorted((ROOT / "src" / "fazit" / "icons").glob("*.svg"))
+    assert {"circle", "contrast", "code", "cancel"} <= {icon.stem for icon in icons}
+    for icon in icons:
+        shared = ROOT / "site" / "icons" / icon.name
+        assert shared.is_file() and shared.read_bytes() == icon.read_bytes(), icon.name
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
@@ -540,18 +533,6 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
         (strings["mapping_coverage"][code], formatter.integer(count))
         for code, count in scope.by_coverage
     ]
-    moves = unescape(report_section(html, "moves"))
-    replacement_column = re.escape(strings["moves"]["replacement"])
-    labels = re.findall(
-        rf'<td role="cell" data-label="{replacement_column}" data-coverage-label="[^"]+">'
-        r'\s*<span class="cov-cell">\s*'
-        r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
-        moves,
-        re.S,
-    )
-    assert Counter(label.strip() for label in labels) == {
-        strings["mapping_coverage"][code]: count for code, count in scope.by_coverage
-    }
     assert re.findall(r'<a href="#([^"]+)" class="more">([^<]+)<svg', summary) == [
         (f"replacement-{anchor.removeprefix('transfer-gap-')}", name)
         for name, anchor in scope.needed
@@ -813,21 +794,7 @@ def test_report_cannot_fetch_resources(
     )
     document = ReportDocument(html)
 
-    policies = []
-    for tag, attrs in document.tags:
-        assert tag not in RESOURCE_ELEMENTS, tag
-        assert not (RESOURCE_ATTRIBUTES & attrs.keys()), attrs
-        for name, value in attrs.items():
-            if name in {"href", "xlink:href"}:
-                assert (value or "").startswith("#"), value
-            assert not name.startswith("on"), name
-            if name == "style":
-                assert not CSS_RESOURCE.search(value or ""), value
-        if tag == "meta":
-            directive = (attrs.get("http-equiv") or "").strip().lower()
-            assert directive != "refresh"
-            if directive == "content-security-policy":
-                policies.append(attrs.get("content") or "")
+    policies = offline_policies(document)
     assert len(policies) == 1 and "default-src 'none'" in policies[0]
     assert len(document.styles) == 1
     assert len(EMBEDDED_FONT.findall(document.styles[0])) == 2
@@ -973,30 +940,6 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert re.search(r"::details-content\s*\{[^}]*content-visibility:\s*visible", print_css)
 
 
-def _assert_report_font_families(css: str) -> None:
-    faces = CSS_FONT_FACE.findall(css)
-    assert {
-        value.strip().strip("\"'")
-        for face in faces
-        for prop, value in CSS_DECLARATION.findall(face)
-        if prop.lower() == "font-family"
-    } == {"Figtree", "Geist Mono"}
-    expected = {"--sans": "Figtree", "--mono": '"Geist Mono"'}
-    generic = {"ui-sans-serif", "system-ui", "sans-serif", "ui-monospace", "monospace"}
-    tokens = set()
-    for prop, value in CSS_DECLARATION.findall(CSS_FONT_FACE.sub("", css)):
-        value = value.strip()
-        if prop in expected:
-            family, *fallbacks = map(str.strip, value.split(","))
-            assert family == expected[prop] and set(fallbacks) <= generic, (prop, value)
-            tokens.add(prop)
-        if prop.lower() == "font-family":
-            assert value == "inherit" or FONT_FAMILY.fullmatch(value), (prop, value)
-        if prop.lower() == "font":
-            assert value == "inherit" or FONT_SHORTHAND.fullmatch(value), (prop, value)
-    assert tokens == expected.keys(), tokens
-
-
 @pytest.mark.parametrize("lang", ("en", "de"))
 def test_report_styles_follow_the_design_rules(style_references: dict[str, str], lang: str) -> None:
     html = style_references[lang]
@@ -1005,11 +948,7 @@ def test_report_styles_follow_the_design_rules(style_references: dict[str, str],
     for prop, value in CSS_DECLARATION.findall(CSS_ROOT.sub("", css)):
         for colour in CSS_COLOUR.findall(value):
             assert prop.lower() == "box-shadow" and colour == "rgb(0 0 0 / 12%)", (prop, value)
-    _assert_report_font_families(css)
-
-    for icon in sorted((ROOT / "src" / "fazit" / "icons").glob("*.svg")):
-        shared = ROOT / "site" / "icons" / icon.name
-        assert shared.is_file() and shared.read_bytes() == icon.read_bytes(), icon.name
+    assert not (font_errors := list(check_font_families(css))), font_errors
 
     moves = report_section(html, "moves")
     coverage_cells = re.findall(r'<span class="cov-cell">.*?</td>', moves, re.S)

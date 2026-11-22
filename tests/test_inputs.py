@@ -10,7 +10,7 @@ import pytest
 import yaml
 from helpers import report_section, runner, sample_scan_path
 
-from fazit.catalogue import Catalogue, load_catalogue
+from fazit.catalogue import Catalogue
 from fazit.cli import app
 from fazit.errors import InputError
 from fazit.evidence import combine, provided_findings
@@ -36,11 +36,6 @@ DEVICE_COUNT = "device_management.device_count"
 WINDOWS_DEVICE_COUNT = "device_management.windows_device_count"
 CONTRADICTORY_COUNTS = f"provided_counts:\n  {DEVICE_COUNT}: 10\n  {WINDOWS_DEVICE_COUNT}: 20\n"
 ROOT = Path(__file__).resolve().parents[1]
-
-
-@pytest.fixture(scope="module")
-def catalogue() -> Catalogue:
-    return load_catalogue()
 
 
 def test_empty_inputs(catalogue: Catalogue) -> None:

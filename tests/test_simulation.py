@@ -15,16 +15,14 @@ import pytest
 import yaml
 from helpers import (
     ADDRESS,
-    CSS_RESOURCE,
     NAME,
-    RESOURCE_ATTRIBUTES,
-    RESOURCE_ELEMENTS,
     SINGLE_TOKENS,
     TOKEN,
     ReportDocument,
     assert_no_private_text,
     assert_readiness_order,
     audit_environment,
+    offline_policies,
     readiness_row,
     rebuild_report,
     report_section,
@@ -728,17 +726,4 @@ def test_report_costs_reconcile_against_exact_fractions(tenant: Tenant) -> None:
 @given(tenant=tenants())
 def test_generated_reports_keep_the_offline_csp(tenant: Tenant) -> None:
     document = ReportDocument(_render(tenant))
-    policies = []
-    for tag, attrs in document.tags:
-        assert tag not in RESOURCE_ELEMENTS
-        assert not (RESOURCE_ATTRIBUTES & attrs.keys())
-        assert all(not name.startswith("on") for name in attrs)
-        for name in ("href", "xlink:href"):
-            assert name not in attrs or (attrs[name] or "").startswith("#")
-        assert not CSS_RESOURCE.search(attrs.get("style") or "")
-        if tag == "meta":
-            directive = (attrs.get("http-equiv") or "").lower().strip()
-            assert directive != "refresh"
-            if directive == "content-security-policy":
-                policies.append(attrs["content"])
-    assert policies == [CSP]
+    assert offline_policies(document) == [CSP]

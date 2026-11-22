@@ -195,12 +195,8 @@ class _InputsReader:
         }
         for finding_id, parents in subset_parents.items():
             count = counts.get(finding_id)
-            population = [counts.get(parent) for parent in parents]
-            if (
-                count is not None
-                and None not in population
-                and count > sum(part for part in population if part is not None)
-            ):
+            population = [part for parent in parents if (part := counts.get(parent)) is not None]
+            if count is not None and len(population) == len(parents) and count > sum(population):
                 self.validator.fail(
                     f"provided_counts.{finding_id}", "subset_count_exceeds_population"
                 )

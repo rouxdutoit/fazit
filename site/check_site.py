@@ -19,6 +19,7 @@ from typer.testing import CliRunner
 from fazit import REPOSITORY_URL
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
+from fazit.fonts.css import CSS_DECLARATION, CSS_FONT_FACE, check_font_families
 from fazit.i18n import load_locale
 from fazit.mappings import load_mapping
 from fazit.status import STATUSES
@@ -55,19 +56,11 @@ CSS_REFS = re.compile(
 )
 EMBEDDED_SVG = "data:image/svg+xml,"
 CSS_COMMENTS = re.compile(r"/\*.*?\*/", re.S)
-CSS_DECLARATION = re.compile(r"(?:^|(?<=[;{]))\s*([-\w]+)\s*:\s*([^;{}]+)(?=[;}]|$)")
 CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
-CSS_FONT_FACE = re.compile(r"@font-face\s*\{([^{}]*)\}", re.I)
 CSS_COVERAGE = re.compile(r"[^{};]*\.cov(?:-[\w-]+)?(?![\w-])[^{};]*\{([^{}]*)\}")
 CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
 # These neutral shadows give the menu and cards depth in either palette.
 SHADOW_COLOURS = {"rgb(0 0 0 / 4%)", "rgb(0 0 0 / 8%)", "rgb(0 0 0 / 18%)"}
-FONT_FAMILY = re.compile(r"var\(--(?:sans|mono)\)")
-FONT_SHORTHAND = re.compile(
-    r"(?:(?:[1-9]00|normal|bold|italic|oblique|small-caps)\s+)*"
-    r"(?:var\(--fs-[\w-]+\)|[\d.]+(?:px|rem|em|pt|%))"
-    r"(?:\s*/\s*[\d.]+(?:px|rem|em|pt|%)?)?\s+" + FONT_FAMILY.pattern
-)
 
 
 @dataclass(frozen=True)
@@ -616,34 +609,6 @@ def check_assets() -> list[str]:
     return errors
 
 
-def _check_design_fonts(css: str) -> Iterator[str]:
-    names = {
-        value.strip().strip("\"'")
-        for face in CSS_FONT_FACE.findall(css)
-        for prop, value in CSS_DECLARATION.findall(face)
-        if prop.lower() == "font-family"
-    }
-    if names != {"Figtree", "Geist Mono"}:
-        yield f"Unexpected @font-face font-family set {sorted(names)}."
-
-    expected = {"--sans": "Figtree", "--mono": '"Geist Mono"'}
-    generic = {"ui-sans-serif", "system-ui", "sans-serif", "ui-monospace", "monospace"}
-    fonts = {"font-family": FONT_FAMILY, "font": FONT_SHORTHAND}
-    tokens = set()
-    for prop, value in CSS_DECLARATION.findall(CSS_FONT_FACE.sub("", css)):
-        value = value.strip()
-        if prop in expected:
-            family, *fallbacks = map(str.strip, value.split(","))
-            if family != expected[prop] or not set(fallbacks) <= generic:
-                yield f"{prop}: {value} must name the assigned font and only generic fallbacks."
-            tokens.add(prop)
-        if (pattern := fonts.get(prop.lower())) and value != "inherit":
-            if not pattern.fullmatch(value):
-                yield f"{prop}: {value} must use --sans, --mono or inherit for its family."
-    for missing in sorted(expected.keys() - tokens):
-        yield f"Missing font token {missing}."
-
-
 def _check_design_urls(css: str) -> Iterator[str]:
     for face in CSS_FONT_FACE.findall(css):
         for ref in css_references(face, 1):
@@ -708,7 +673,7 @@ def check_design(css: str) -> list[str]:
         for colour in CSS_COLOUR.findall(value):
             if prop.lower() != "box-shadow" or colour not in SHADOW_COLOURS:
                 errors.append(f"{prop}: {value.strip()} uses colour {colour} outside :root.")
-    errors.extend(_check_design_fonts(source))
+    errors.extend(check_font_families(source))
     errors.extend(_check_design_urls(css))
     errors.extend(_check_coverage_symbols(css))
     return [f"style.css: {error}" for error in errors]

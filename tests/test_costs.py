@@ -347,7 +347,7 @@ def test_break_even_matches_the_cost_model(worked_example: Inputs) -> None:
         (full, worked_example.full_exit, 39130, 12000),
     ):
         threshold = report_module._break_even(result, scenario.operations_per_year)
-        assert threshold is not None and not threshold.none
+        assert threshold is not None
         assert threshold.amount == Fraction(amount) and isinstance(threshold.amount, Fraction)
         assert threshold.entered == Fraction(entered)
 
@@ -360,11 +360,21 @@ def test_break_even_matches_the_cost_model(worked_example: Inputs) -> None:
 
 def test_break_even_can_be_below_zero(worked_example: Inputs) -> None:
     target = replace(worked_example.partial_exit, one_time_migration=Decimal("150000"))
-    result = compute_scenarios(replace(worked_example, partial_exit=target))[1]
+    inputs = replace(worked_example, partial_exit=target)
+    result = compute_scenarios(inputs)[1]
     threshold = report_module._break_even(result, target.operations_per_year)
 
-    assert threshold is not None and threshold.none
+    assert threshold is not None
     assert threshold.amount == -6560
+
+    entries = load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    html = report_module.render_report(scan, lang="en", catalogue=entries, inputs=inputs)
+    strings = load_locale("en")["costs"]
+    message = strings["break_even_none"].format(scenario=strings["partial_exit"])
+    assert f'data-break-even="partial_exit">{message}</p>' in unescape(
+        report_section(html, "summary")
+    )
 
 
 def test_break_even_is_absent_without_operations_or_a_known_comparison(

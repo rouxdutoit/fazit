@@ -113,10 +113,6 @@
     p, li, dd, td { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
-    main :where(p, li, dt, dd, td) > a:not([class]) {
-      text-decoration: underline 1px var(--fg-2);
-      text-underline-offset: 0.2em;
-    }
     @media screen and (prefers-color-scheme: dark) {
       a:hover { text-shadow: 0 0 12px var(--link-glow); }
     }
@@ -447,21 +443,9 @@
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
     .table-scroll { overflow-x: auto; margin-block: 12px 24px; }
     table { width: 100%; border-collapse: collapse; font-size: var(--fs-subhead); line-height: 1.43; }
-    th, td {
-      padding: 12px 16px 12px 0;
-      border-bottom: 1px solid var(--line);
-      text-align: start;
-      vertical-align: top;
-    }
-    thead th { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
     tbody th { font-weight: 600; }
     th[scope="rowgroup"] { padding-block-start: 24px; color: var(--text); font-size: var(--fs-body); }
     caption { padding-block-end: 8px; color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
-    .coverage {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-subhead);
-    }
     .coverage th, .coverage td, .cost-table th, .cost-table td {
       padding-block: 16px;
       padding-inline-end: 16px;
@@ -504,17 +488,11 @@
       .file-types thead th:nth-child(3) { width: 22%; }
       .file-types tbody th { width: auto; }
     }
-    .cov {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
     .cov-cell {
       display: grid;
       grid-template-columns: 1.2em minmax(0, 1fr);
       gap: 8px;
     }
-    .cov-cell .cov { display: block; }
     .cov-cell .icon {
       display: block;
       margin-top: calc((1lh - 1.2em) / 2);
@@ -735,111 +713,48 @@
             display: none;
           }
 
-            [data-section=readiness]:has(#f-status-blocker:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="blocker"][data-category="communication"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-needs_work:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="needs_work"][data-category="communication"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-unknown:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="unknown"][data-category="communication"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-ready:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="ready"][data-category="communication"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-
           [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="files"], :target),
           [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="files"], > .finding:target)) {
             display: none;
           }
-
-            [data-section=readiness]:has(#f-status-blocker:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="blocker"][data-category="files"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-needs_work:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="needs_work"][data-category="files"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-unknown:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="unknown"][data-category="files"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-ready:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="ready"][data-category="files"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
 
           [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="identity_devices"], :target),
           [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="identity_devices"], > .finding:target)) {
             display: none;
           }
 
-            [data-section=readiness]:has(#f-status-blocker:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="blocker"][data-category="identity_devices"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-needs_work:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="needs_work"][data-category="identity_devices"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-unknown:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="unknown"][data-category="identity_devices"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-ready:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="ready"][data-category="identity_devices"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-
           [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="automation_ai"], :target),
           [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="automation_ai"], > .finding:target)) {
             display: none;
           }
-
-            [data-section=readiness]:has(#f-status-blocker:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="blocker"][data-category="automation_ai"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-needs_work:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="needs_work"][data-category="automation_ai"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-unknown:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="unknown"][data-category="automation_ai"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-ready:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="ready"][data-category="automation_ai"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
 
           [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="security"], :target),
           [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="security"], > .finding:target)) {
             display: none;
           }
 
-            [data-section=readiness]:has(#f-status-blocker:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="blocker"][data-category="security"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-needs_work:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="needs_work"][data-category="security"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-unknown:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="unknown"][data-category="security"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-            [data-section=readiness]:has(#f-status-ready:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="ready"][data-category="security"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-
-
+        [data-section=readiness]:where(:not(:has(.finding:target, .status-group > h3:target))):is(
+          :has(#f-status-blocker:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="blocker"][data-category="communication"])),
+          :has(#f-status-needs_work:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="needs_work"][data-category="communication"])),
+          :has(#f-status-unknown:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="unknown"][data-category="communication"])),
+          :has(#f-status-ready:checked):has([id='f-category-communication']:checked):not(:has(.finding[data-status="ready"][data-category="communication"])),
+          :has(#f-status-blocker:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="blocker"][data-category="files"])),
+          :has(#f-status-needs_work:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="needs_work"][data-category="files"])),
+          :has(#f-status-unknown:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="unknown"][data-category="files"])),
+          :has(#f-status-ready:checked):has([id='f-category-files']:checked):not(:has(.finding[data-status="ready"][data-category="files"])),
+          :has(#f-status-blocker:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="blocker"][data-category="identity_devices"])),
+          :has(#f-status-needs_work:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="needs_work"][data-category="identity_devices"])),
+          :has(#f-status-unknown:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="unknown"][data-category="identity_devices"])),
+          :has(#f-status-ready:checked):has([id='f-category-identity_devices']:checked):not(:has(.finding[data-status="ready"][data-category="identity_devices"])),
+          :has(#f-status-blocker:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="blocker"][data-category="automation_ai"])),
+          :has(#f-status-needs_work:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="needs_work"][data-category="automation_ai"])),
+          :has(#f-status-unknown:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="unknown"][data-category="automation_ai"])),
+          :has(#f-status-ready:checked):has([id='f-category-automation_ai']:checked):not(:has(.finding[data-status="ready"][data-category="automation_ai"])),
+          :has(#f-status-blocker:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="blocker"][data-category="security"])),
+          :has(#f-status-needs_work:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="needs_work"][data-category="security"])),
+          :has(#f-status-unknown:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="unknown"][data-category="security"])),
+          :has(#f-status-ready:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="ready"][data-category="security"]))
+        ) .areas-empty { display: block; }
       }
     }
     .licence-plan small { margin-block-end: 4px; }
@@ -875,7 +790,6 @@
       }
     }
     .evidence-meta {
-      order: 3;
       margin: 8px 0 0;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
@@ -1110,7 +1024,6 @@
     @media print {
       :root {
         color-scheme: light;
-        --fs-display: 24pt;
         --fs-title: 18pt;
         --fs-headline: 14pt;
         --fs-lead: 12pt;
@@ -1121,7 +1034,6 @@
       .section-index, .index-disclosure, .skip, .filters, .areas-empty { display: none; }
       body {
         display: block;
-        margin: 0;
         print-color-adjust: exact;
       }
       .page-intro, .sec { padding: 16pt 0; }
@@ -1131,8 +1043,7 @@
       .grid { display: block; }
       .report-meta { gap: 4pt 12pt; margin-top: 8pt; }
       .page-intro .note { margin-top: 4pt; padding: 4pt 12pt; }
-      .sec-label { position: static; margin-bottom: 8pt; }
-      .sec::before { inset-inline: 0; }
+      .sec-label { margin-bottom: 8pt; }
       [data-section=path], [data-section=costs], [data-section=appendix] { break-before: page; }
       h1, h2, h3, h4 { break-after: avoid; }
       .sec-body h3 { margin-block: 16pt 4pt; }
@@ -1306,8 +1217,6 @@
               </div>
 
           </dl>
-
-
           <div class="subsection" data-summary="blockers">
             <h3>Was diesem Umstieg entgegensteht</h3>
 
@@ -5100,7 +5009,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Nubus</span>
                     </td>
@@ -5127,7 +5036,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Open-Xchange (OX App Suite)</span>
                     </td>
@@ -5154,7 +5063,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Nextcloud Files</span>
                     </td>
@@ -5181,7 +5090,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gemeinsame Ordner in Nextcloud Files</span>
                     </td>
@@ -5208,7 +5117,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Direkte Übernahme nicht dokumentiert</strong></span>
+                        <strong>Direkte Übernahme nicht dokumentiert</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderte Neugestaltung der Arbeitsabläufe</span>
                     </td>
@@ -5235,7 +5144,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">XWiki</span>
                     </td>
@@ -5262,7 +5171,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Element</span>
                     </td>
@@ -5289,7 +5198,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Jitsi</span>
                     </td>
@@ -5316,7 +5225,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Direkte Übernahme nicht dokumentiert</strong></span>
+                        <strong>Direkte Übernahme nicht dokumentiert</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</span>
                     </td>
@@ -5344,7 +5253,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Collabora Online</span>
                     </td>
@@ -5371,7 +5280,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Direkte Übernahme nicht dokumentiert</strong></span>
+                        <strong>Direkte Übernahme nicht dokumentiert</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderte Konvertierung oder Neuentwicklung</span>
                     </td>
@@ -5398,7 +5307,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Notes</span>
                     </td>
@@ -5425,7 +5334,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">CryptPad mit diagrams.net</span>
                     </td>
@@ -5452,7 +5361,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Nicht verfügbar</strong></span>
+                        <strong>Nicht verfügbar</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderte Lösung zur Geräteverwaltung</span>
                     </td>
@@ -5480,7 +5389,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Nicht verfügbar</strong></span>
+                        <strong>Nicht verfügbar</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Separat verwaltetes Betriebssystem für Arbeitsplatzrechner</span>
                     </td>
@@ -5507,7 +5416,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Nicht verfügbar</strong></span>
+                        <strong>Nicht verfügbar</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen</span>
                     </td>
@@ -5535,7 +5444,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Nicht verfügbar</strong></span>
+                        <strong>Nicht verfügbar</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen</span>
                     </td>
@@ -5563,7 +5472,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov cov-none"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m480-424 116 116q11 11 28 11t28-11q11-11 11-28t-11-28L536-480l116-116q11-11 11-28t-11-28q-11-11-28-11t-28 11L480-536 364-652q-11-11-28-11t-28 11q-11 11-11 28t11 28l116 116-116 116q-11 11-11 28t11 28q11 11 28 11t28-11l116-116Zm0 344q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></span>
-                        <span><strong>Nicht verfügbar</strong></span>
+                        <strong>Nicht verfügbar</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Gesonderter Telefondienst</span>
                     </td>
@@ -5591,7 +5500,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg></span>
-                        <span><strong>In der Suite</strong></span>
+                        <strong>In der Suite</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Keycloak</span>
                     </td>
@@ -5618,7 +5527,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Zugriffssteuerung und Schadsoftware-Prüfung in openDesk</span>
                     </td>
@@ -5645,7 +5554,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">OpenProject und OX App Suite für Aufgaben</span>
                     </td>
@@ -5672,7 +5581,7 @@
                     <td role="cell" data-label="Ersatz im Zielsystem" data-coverage-label="Funktionsabdeckung">
                       <span class="cov-cell">
                         <span class="cov"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm40-83q119-15 199.5-104.5T800-480q0-123-80.5-212.5T520-797v634Z"/></svg></span>
-                        <span><strong>In der Suite mit Einschränkungen</strong></span>
+                        <strong>In der Suite mit Einschränkungen</strong>
                       </span>
                       <span class="replacement-name" data-label="Ersatz im Zielsystem">Schnittstellen der openDesk-Komponenten</span>
                     </td>

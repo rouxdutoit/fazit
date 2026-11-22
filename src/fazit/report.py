@@ -339,15 +339,9 @@ class _SummaryOpenArea:
     fix: str | None
 
 
-@dataclass(frozen=True)
-class _SummaryRows:
-    blockers: tuple[WorkloadStatus, ...]
-    open_areas: tuple[_SummaryOpenArea, ...]
-
-
-def _summary_rows(
+def _summary_open_areas(
     statuses: tuple[WorkloadStatus, ...], catalogue: Catalogue, strings: dict
-) -> _SummaryRows:
+) -> tuple[_SummaryOpenArea, ...]:
     open_areas = []
     for row in statuses:
         if row.status == "unknown" or row.incomplete:
@@ -361,10 +355,7 @@ def _summary_rows(
                 if _finding_input_key(entry):
                     fix = None
             open_areas.append(_SummaryOpenArea(row.workload, finding_id, fix))
-    return _SummaryRows(
-        blockers=tuple(row for row in statuses if row.status == "blocker"),
-        open_areas=tuple(open_areas),
-    )
+    return tuple(open_areas)
 
 
 @dataclass(frozen=True)
@@ -621,13 +612,11 @@ def _evidence_context(
         status_counts=[(status, counts[status]) for status in _DISPLAY_ORDER],
         status_groups=status_groups,
         area_count=len(catalogue.assessed_workload_ids),
-        summary_rows=_summary_rows(statuses, catalogue, strings),
+        blockers=tuple(row for row in statuses if row.status == "blocker"),
+        open_areas=_summary_open_areas(statuses, catalogue, strings),
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
-        mapping_gaps=[
-            (gap.mapping, gap.finding, gap.need, gap.reasons)
-            for gap in _ordered_transfer_gaps(mapping, statuses)
-        ],
+        mapping_gaps=_ordered_transfer_gaps(mapping, statuses),
         scope_statement=scope_statement(mapping, statuses, lang),
         open_points=_open_points(statuses, by_id, alternatives, catalogue, scan.collectors),
         staying_steps=staying_steps,
@@ -677,7 +666,6 @@ def _cost_comparison(difference: Fraction | None) -> _CostComparison:
 class _BreakEven:
     amount: Fraction
     entered: Fraction
-    none: bool
 
 
 def _break_even(result: ScenarioResult, operations_per_year: Decimal | None) -> _BreakEven | None:
@@ -685,7 +673,7 @@ def _break_even(result: ScenarioResult, operations_per_year: Decimal | None) -> 
         return None
     entered = Fraction(operations_per_year)
     amount = entered - result.difference_to_stay / YEARS
-    return _BreakEven(amount, entered, none=amount < 0)
+    return _BreakEven(amount, entered)
 
 
 @dataclass(frozen=True)
@@ -726,7 +714,6 @@ def _cost_tiles(scenarios: tuple[ScenarioResult, ...], inputs: Inputs) -> tuple[
 class _CostChartRow:
     tile: _CostTile
     blocks: tuple[CostGroup, ...]
-    unknown_blocks: tuple[str, ...]
     share: str | None
 
 
@@ -739,12 +726,11 @@ def _cost_chart_rows(tiles: tuple[_CostTile, ...]) -> tuple[_CostChartRow, ...]:
     for tile in tiles:
         result = tile.result
         blocks = (result.running, *result.blocks)
-        unknown = tuple(block.id for block in blocks if block.total is None)
         share = None
         if result.total is not None:
             ratio = result.total / largest if largest else Fraction(0)
             share = f"{ratio:.4f}"
-        rows.append(_CostChartRow(tile, blocks, unknown, share))
+        rows.append(_CostChartRow(tile, blocks, share))
     return tuple(rows)
 
 
@@ -759,8 +745,6 @@ def _cost_context(inputs: Inputs | None) -> dict[str, object]:
     )
     return dict(
         inputs=inputs,
-        sample_inputs=cost_inputs.answers_are_sample,
-        input_source=cost_inputs.answer_source,
         scenarios=scenarios,
         cost_blocks=_cost_table_blocks(scenarios),
         cost_tiles=tiles,

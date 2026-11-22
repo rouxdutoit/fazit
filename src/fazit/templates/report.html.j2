@@ -231,7 +231,7 @@
     <th scope="row" role="rowheader" data-label="{{ costs.input }}">
       {{ costs.input_fields[field] }}
       {% if amounts|reject('none')|list %}
-        {% set origin = 'invented' if prices_invented and not quantity else ('sample_input' if sample_inputs and quantity else 'provided') %}
+        {% set origin = 'invented' if prices_invented and not quantity else ('sample_input' if inputs and inputs.answers_are_sample and quantity else 'provided') %}
         <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
       {% endif %}
     </th>
@@ -277,7 +277,7 @@
       {% set scenario = tile.result.id %}
       {% set threshold = tile.break_even %}
       <p class="note-text" data-break-even="{{ scenario }}">{{
-        costs.break_even_none.format(scenario=costs[scenario]) if threshold.none else
+        costs.break_even_none.format(scenario=costs[scenario]) if threshold.amount < 0 else
         costs.break_even.format(scenario=costs[scenario], amount=cost_amount(threshold.amount, whole=true), entered=cost_amount(threshold.entered, whole=true))
       }}</p>
     {% endfor %}
@@ -314,8 +314,8 @@
           {% if row.tile.known_blocks is not none %}
             <p class="cost-known-blocks">{{ costs.known_blocks.format(amount=cost_amount(row.tile.known_blocks)) }}</p>
             <ul class="cost-chart-values" role="list">
-              {% for block in row.unknown_blocks %}
-                <li>{{ costs.groups[block] }} · <span data-chart-value="{{ block }}">{{ status_label('unknown') }}</span></li>
+              {% for block in row.blocks if block.total is none %}
+                <li>{{ costs.groups[block.id] }} · <span data-chart-value="{{ block.id }}">{{ status_label('unknown') }}</span></li>
               {% endfor %}
             </ul>
           {% endif %}
@@ -451,10 +451,6 @@
     p, li, dd, td { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
-    main :where(p, li, dt, dd, td) > a:not([class]) {
-      text-decoration: underline 1px var(--fg-2);
-      text-underline-offset: 0.2em;
-    }
     @media screen and (prefers-color-scheme: dark) {
       a:hover { text-shadow: 0 0 12px var(--link-glow); }
     }
@@ -773,21 +769,9 @@
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
     .table-scroll { overflow-x: auto; margin-block: 12px 24px; }
     table { width: 100%; border-collapse: collapse; font-size: var(--fs-subhead); line-height: 1.43; }
-    th, td {
-      padding: 12px 16px 12px 0;
-      border-bottom: 1px solid var(--line);
-      text-align: start;
-      vertical-align: top;
-    }
-    thead th { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
     tbody th { font-weight: 600; }
     th[scope="rowgroup"] { padding-block-start: 24px; color: var(--text); font-size: var(--fs-body); }
     caption { padding-block-end: 8px; color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
-    .coverage {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-subhead);
-    }
     .coverage th, .coverage td, .cost-table th, .cost-table td {
       padding-block: 16px;
       padding-inline-end: 16px;
@@ -830,17 +814,11 @@
       .file-types thead th:nth-child(3) { width: 22%; }
       .file-types tbody th { width: auto; }
     }
-    .cov {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
     .cov-cell {
       display: grid;
       grid-template-columns: 1.2em minmax(0, 1fr);
       gap: 8px;
     }
-    .cov-cell .cov { display: block; }
     .cov-cell .icon {
       display: block;
       margin-top: calc((1lh - 1.2em) / 2);
@@ -1045,12 +1023,15 @@
           [data-section=readiness]:has([id='f-category-{{ category.id }}']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="{{ category.id }}"], > .finding:target)) {
             display: none;
           }
-          {% for status, count in status_counts %}
-            [data-section=readiness]:has(#f-status-{{ status }}:checked):has([id='f-category-{{ category.id }}']:checked):not(:has(.finding[data-status="{{ status }}"][data-category="{{ category.id }}"], .finding:target, .status-group > h3:target)) .areas-empty {
-              display: block;
-            }
-          {% endfor %}
         {% endfor %}
+        [data-section=readiness]:where(:not(:has(.finding:target, .status-group > h3:target))):is(
+          {%- for category in categories %}
+            {%- set last_category = loop.last %}
+            {%- for status, count in status_counts %}
+          :has(#f-status-{{ status }}:checked):has([id='f-category-{{ category.id }}']:checked):not(:has(.finding[data-status="{{ status }}"][data-category="{{ category.id }}"])){{ ',' if not (last_category and loop.last) }}
+            {%- endfor %}
+          {%- endfor %}
+        ) .areas-empty { display: block; }
       }
     }
     .licence-plan small { margin-block-end: 4px; }
@@ -1086,7 +1067,6 @@
       }
     }
     .evidence-meta {
-      order: 3;
       margin: 8px 0 0;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
@@ -1321,7 +1301,6 @@
     @media print {
       :root {
         color-scheme: light;
-        --fs-display: 24pt;
         --fs-title: 18pt;
         --fs-headline: 14pt;
         --fs-lead: 12pt;
@@ -1332,7 +1311,6 @@
       .section-index, .index-disclosure, .skip, .filters, .areas-empty { display: none; }
       body {
         display: block;
-        margin: 0;
         print-color-adjust: exact;
       }
       .page-intro, .sec { padding: 16pt 0; }
@@ -1342,8 +1320,7 @@
       .grid { display: block; }
       .report-meta { gap: 4pt 12pt; margin-top: 8pt; }
       .page-intro .note { margin-top: 4pt; padding: 4pt 12pt; }
-      .sec-label { position: static; margin-bottom: 8pt; }
-      .sec::before { inset-inline: 0; }
+      .sec-label { margin-bottom: 8pt; }
       [data-section=path], [data-section=costs], [data-section=appendix] { break-before: page; }
       h1, h2, h3, h4 { break-after: avoid; }
       .sec-body h3 { margin-block: 16pt 4pt; }
@@ -1472,8 +1449,6 @@
               </div>
             {% endfor %}
           </dl>
-          {% set blockers = summary_rows.blockers %}
-          {% set open_areas = summary_rows.open_areas %}
           <div class="subsection" data-summary="blockers">
             <h3>{{ strings.summary.blockers }}</h3>
             {% if blockers %}
@@ -1855,7 +1830,7 @@
                     <td role="cell" data-label="{{ strings.moves.replacement }}" data-coverage-label="{{ strings.moves.coverage }}">
                       <span class="cov-cell">
                         <span class="cov{{ ' cov-none' if symbol == 'cancel' }}">{{ icon(symbol) }}</span>
-                        <span><strong>{{ strings.mapping_coverage[item.coverage] }}</strong></span>
+                        <strong>{{ strings.mapping_coverage[item.coverage] }}</strong>
                       </span>
                       <span class="replacement-name" data-label="{{ strings.moves.replacement }}">{{ item.replacement[lang] }}</span>
                     </td>
@@ -1944,7 +1919,7 @@
                     <tr data-software-entry data-provenance="provided" role="row">
                       <th scope="row" role="rowheader" data-label="{{ strings.attention.software_name }}">
                         {{ item.name }} <span class="prov">{{ strings.provenance.provided }}</span>
-                        <small>{{ code_label('source', input_source) }} · {{ format.date(inputs.as_of) if inputs.as_of else strings.common.date_not_supplied }}</small>
+                        <small>{{ code_label('source', inputs.answer_source) }} · {{ format.date(inputs.as_of) if inputs.as_of else strings.common.date_not_supplied }}</small>
                       </th>
                       <td role="cell" data-label="{{ strings.attention.software_users }}">
                         {% if item.users is none %}{{ missing_answer() }}{% else %}<span>{{ format.integer(item.users) }}</span>{% endif %}
@@ -1963,15 +1938,15 @@
             {% if mapping_gaps %}
               <p>{{ strings.attention.gap_scope }}</p>
               <ul class="mapping-gaps" role="list">
-                {% for item, finding, need, reasons in mapping_gaps %}
-                  <li data-gap="{{ item.function }}" data-need="{{ need }}">
+                {% for gap in mapping_gaps %}{% set item = gap.mapping %}
+                  <li data-gap="{{ item.function }}" data-need="{{ gap.need }}">
                     <strong id="transfer-gap-{{ item.function }}">{{ item.microsoft[lang] }}</strong>
                     <p>{{ item.note[lang] if item.note else strings.mapping_coverage[item.coverage] }}</p>
-                    <p data-provenance="{{ 'unknown' if need == 'unknown' else finding.provenance }}">
-                      <strong>{{ strings.attention.needed_here }}</strong> · {{ strings.status.unknown if need == 'unknown' else strings.common[need] }}
-                      {% if need == 'unknown' %}
-                        {% for reason in reasons %}<small>{{ reason_detail(reason) }}</small>{% endfor %}
-                      {% else %}
+                    <p data-provenance="{{ 'unknown' if gap.need == 'unknown' else gap.finding.provenance }}">
+                      <strong>{{ strings.attention.needed_here }}</strong> · {{ strings.status.unknown if gap.need == 'unknown' else strings.common[gap.need] }}
+                      {% if gap.need == 'unknown' %}
+                        {% for reason in gap.reasons %}<small>{{ reason_detail(reason) }}</small>{% endfor %}
+                      {% else %}{% set finding = gap.finding %}
                         <small>
                           {{ finding_labels[finding.id] }} · <span class="prov">{{ provenance_word(finding.provenance) }}</span>
                           · {{ finding_source(finding) }} · {{ finding_date(finding) }}

@@ -1,8 +1,7 @@
 (() => {
   const COPY_FEEDBACK_MS = 3000;
   const SCRAMBLE_DELAY_MS = 150;
-  const SCRAMBLE_STAGGER_MS = 800;
-  const MAX_CHAR_STEP_MS = 18;
+  const CHAR_STEP_MS = 18;
   const GLYPH_SWAP_MS = 42;
   const GLYPH_SETTLE_MS = 200;
   const GLYPHS = "-_/\\|<>~^*+=:;!?#%&@0123456789";
@@ -25,7 +24,6 @@
       element.replaceChildren(...chars);
       element.classList.add("scramble-started");
 
-      const step = Math.min(MAX_CHAR_STEP_MS, SCRAMBLE_STAGGER_MS / chars.length);
       let lastSwap = 0;
       const frame = (now) => {
         const elapsed = now - start;
@@ -33,7 +31,7 @@
         if (swap) lastSwap = now;
         let done = 0;
         chars.forEach((span, index) => {
-          const from = index * step;
+          const from = index * CHAR_STEP_MS;
           if (elapsed >= from + GLYPH_SETTLE_MS) {
             span.className = "ch";
             done += 1;
@@ -68,7 +66,7 @@
       }).observe(footWordmark);
     }
 
-    const bar = document.querySelector("[data-bar]");
+    const bar = document.querySelector(".bar");
     const menuButton = bar.querySelector(".menu-button");
     const setOpen = (open) => {
       menuButton.setAttribute("aria-expanded", String(open));

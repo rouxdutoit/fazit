@@ -7,6 +7,8 @@ import pytest
 from hypothesis import settings
 from hypothesis.configuration import set_hypothesis_home_dir
 
+from fazit.catalogue import Catalogue, load_catalogue
+
 settings.register_profile(
     "fazit", derandomize=True, database=None, deadline=None, print_blob=True, max_examples=18
 )
@@ -38,6 +40,11 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         path = checkout_files.get((item.path.name, item.name))
         if path is not None and not (config.rootpath / path).exists():
             item.add_marker(pytest.mark.skip(reason=f"The source distribution omits {path}."))
+
+
+@pytest.fixture
+def catalogue() -> Catalogue:
+    return load_catalogue()
 
 
 def _record_socket_event(event: str, args: tuple[object, ...]) -> None:

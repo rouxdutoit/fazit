@@ -127,12 +127,12 @@ costs:
     training_days_per_person: Schulungstage pro Person
     training_day_rate: Schulungskosten pro Person und Tag
     training_staff: Zahl der zu schulenden Personen
-    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
+    productivity_loss: &lost_time Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
     parallel_running_months: Monate mit Parallelbetrieb
   groups:
     running: Laufende Kosten
     direct_project: Direkte Projektkosten
-    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
+    productivity_loss: *lost_time
     parallel_running: Parallelbetrieb
   line_items:
     microsoft_licences: Bisherige Microsoft-Lizenzen
@@ -145,7 +145,7 @@ costs:
     application_adaptation: Anpassung von Anwendungen
     external_advice: Externe Beratung
     training: Schulung
-    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
+    productivity_loss: *lost_time
     parallel_running: Bisherige Microsoft-Lizenzen im Parallelbetrieb
   formulas_title: Berechnung der Kosten
   formulas:

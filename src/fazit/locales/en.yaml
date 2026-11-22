@@ -127,12 +127,12 @@ costs:
     training_days_per_person: Training days per person
     training_day_rate: Training cost per person per day
     training_staff: People to train
-    productivity_loss: Lost working time (internal estimate, not a payment)
+    productivity_loss: &lost_time Lost working time (internal estimate, not a payment)
     parallel_running_months: Months running both systems
   groups:
     running: Running costs
     direct_project: Direct project costs
-    productivity_loss: Lost working time (internal estimate, not a payment)
+    productivity_loss: *lost_time
     parallel_running: Parallel running
   line_items:
     microsoft_licences: Current Microsoft licences
@@ -145,7 +145,7 @@ costs:
     application_adaptation: Application adaptation
     external_advice: External advice
     training: Training
-    productivity_loss: Lost working time (internal estimate, not a payment)
+    productivity_loss: *lost_time
     parallel_running: Current Microsoft licences during parallel running
   formulas_title: How the costs are calculated
   formulas:

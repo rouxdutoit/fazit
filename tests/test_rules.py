@@ -78,11 +78,6 @@ FUNCTION_IDS = (
 )
 
 
-@pytest.fixture
-def catalogue() -> Catalogue:
-    return load_catalogue()
-
-
 def sample_scan(sample: str, catalogue: Catalogue) -> Scan:
     source = files("fazit").joinpath("demo", sample, "scan.json")
     return load_scan_text(read_text(source), source.name, catalogue)
@@ -1969,7 +1964,7 @@ def _rendered_coverage_counts(html: str, lang: str) -> Counter[str]:
     cells = re.findall(
         rf'<td role="cell" data-label="{column}" data-coverage-label="[^"]+">'
         r'\s*<span class="cov-cell">\s*'
-        r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
+        r'<span class="cov(?: cov-none)?">.*?</span>\s*<strong>([^<]+)</strong>',
         section,
         re.S,
     )
