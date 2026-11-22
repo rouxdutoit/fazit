@@ -20,7 +20,6 @@ from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
 from fazit.mappings import load_mapping
-from fazit.status import STATUSES
 
 ROOT = Path(__file__).resolve().parent
 ORIGIN = "https://fazit.dev"
@@ -33,6 +32,7 @@ PAGE_PAIRS = (
         (f"/{page}/", f"/de/{page}/")
         for page in ("start", "pilots", "integrators", "security", "about", "impressum", "privacy")
     ),
+    ("/coverage/", "/de/coverage/"),
     DEMO_ROUTES,
     ERROR_ROUTES,
 )
@@ -509,10 +509,23 @@ def check_coverage(page: Page, lang: str) -> list[str]:
 def check_tally(page: Page, demo: Page, lang: str) -> list[str]:
     labels = load_locale(lang)["status"]
     total = demo.status_counts.total()
-    prefix = {"en": "All {} areas in the sample", "de": "Alle {} Bereiche im Beispiel"}[lang]
-    counts = ", ".join(f"{demo.status_counts[status]} {labels[status]}" for status in STATUSES)
+    prefix = {"en": "Of {} areas in the sample", "de": "Von {} Bereichen im Beispiel"}[lang]
+    order = ("blocker", "needs_work", "unknown", "ready")
+    counts = ", ".join(f"{labels[status]} {demo.status_counts[status]}" for status in order)
     expected = f"{prefix.format(total)}: {counts}."
     return [] if page.tallies == [expected] else [f"Sample tally should read {expected!r}."]
+
+
+def check_area_counts(demo: Page, lang: str) -> list[str]:
+    total = str(demo.status_counts.total())
+    prefix = "/de" if lang == "de" else ""
+    pattern = r'<span(?: class="figure-num")? data-assessed-areas>\s*([0-9]+)\s*</span>'
+    errors = []
+    for route in (f"{prefix}/", f"{prefix}/pilots/"):
+        path = local_path(route)
+        if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != [total]:
+            errors.append(f"{path.relative_to(ROOT)}: Expected {total} assessed areas.")
+    return errors
 
 
 def check_demo_reports() -> list[str]:
@@ -566,10 +579,12 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
             page.check_structure(lang, demo=demo)
             if not demo:
                 page.check_metadata(route, other, pair)
-            if (en, de) == PAGE_PAIRS[0]:
+            if en == "/coverage/":
                 page.errors.extend(check_coverage(page, lang))
+            elif en == "/":
                 if demo_page := pages.get(local_path(f"/demo/{lang}/")):
                     page.errors.extend(check_tally(page, demo_page, lang))
+                    errors.extend(check_area_counts(demo_page, lang))
     for path, page in pages.items():
         if ORIGIN + route_for(path) not in declared:
             errors.append(f"{path.relative_to(ROOT)}: Page has no declared language pair.")

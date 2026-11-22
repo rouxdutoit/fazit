@@ -41,6 +41,16 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>
   </url>
   <url>
+    <loc>https://fazit.dev/coverage/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/coverage/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/coverage/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/coverage/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/coverage/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/coverage/"/>
+  </url>
+  <url>
     <loc>https://fazit.dev/security/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/security/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/"/>
