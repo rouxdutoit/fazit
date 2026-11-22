@@ -162,7 +162,7 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy.done::before {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -508,39 +508,52 @@ code {
   gap: 8px;
   min-height: 50px;
   padding-block: 3px;
-  padding-inline: 16px 4px;
+  padding-inline: 16px 3px;
   border-radius: var(--radius-card);
   background: var(--fill);
-
-  @media (max-width: 600px) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    padding-block: 12px 8px;
-    padding-inline: 12px 8px;
-  }
-}
-
-.command-line code, .copy {
-  font-size: var(--fs-subhead);
 }
 
 .command-line code {
   min-width: 0;
+  padding-block: 8px;
+  font-size: var(--fs-subhead);
+}
+
+.command-line code::before {
+  margin-right: 0.6em;
+  color: var(--fg-2);
+  content: "$" / "";
+  user-select: none;
 }
 
 .copy {
-  min-width: 5.5rem;
-  min-height: var(--hit);
-  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--hit);
+  height: var(--hit);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: 50%;
   background: transparent;
-  font-weight: 600;
+  color: var(--fg-2);
+  transition: color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
 
-  @media (max-width: 600px) {
-    justify-self: end;
-  }
+.copy:hover {
+  background: var(--fill-2);
+  color: var(--fg);
+}
+
+.copy::before {
+  width: 20px;
+  height: 20px;
+  --icon: url("icons/content-copy.svg");
+  content: "";
+}
+
+.copy.done::before {
+  --icon: url("icons/check.svg");
 }
 
 .copy-message {
@@ -1016,6 +1029,10 @@ code {
   overflow-wrap: break-word;
 }
 
+.sec-body > :first-child {
+  margin-top: 0;
+}
+
 .sec-body > p, .sec-body .subsection > p {
   max-width: 40em;
 }
@@ -1379,13 +1396,6 @@ code {
   width: 1.1em;
   height: 1.1em;
   --icon: url("icons/download.svg");
-  content: "";
-}
-
-.copy.done::before {
-  width: 1.1em;
-  height: 1.1em;
-  --icon: url("icons/check.svg");
   content: "";
 }
 

@@ -93,28 +93,24 @@
     if (copy) {
       const command = document.getElementById("demo-command");
       const message = document.querySelector(".copy-message");
-      const label = copy.textContent;
       let reset;
       copy.hidden = false;
       copy.addEventListener("click", async () => {
         clearTimeout(reset);
         try {
           await navigator.clipboard.writeText(command.textContent);
-          copy.textContent = copy.dataset.copied;
           copy.classList.add("done");
-          message.textContent = copy.dataset.copied;
           message.classList.add("sr-only");
+          message.textContent = copy.dataset.copied;
         } catch {
           const range = document.createRange();
           range.selectNodeContents(command);
           getSelection().removeAllRanges();
           getSelection().addRange(range);
-          copy.textContent = label;
           message.classList.remove("sr-only");
           message.textContent = copy.dataset.manual;
         }
         reset = setTimeout(() => {
-          copy.textContent = label;
           copy.classList.remove("done");
           message.textContent = "";
         }, COPY_FEEDBACK_MS);
