@@ -146,13 +146,15 @@ functions:
   - function: telephony
     workload: telephony
     microsoft: {en: Teams Phone and public telephone calling, de: Teams Phone und Anrufe ins öffentliche Telefonnetz}
-    replacement: {en: Nextcloud Talk with a SIP gateway, de: Nextcloud Talk mit einem SIP-Gateway}
+    replacement:
+      en: Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway
+      de: Nextcloud Talk mit SIP-Bridge (Talk-Enterprise-Abonnement) und SIP-Gateway
     coverage: in_suite_with_limits
-    reference_url: https://docs.nextcloud.com/server/stable/user_manual/en/talk/conversations.html
-    checked_on: "2026-11-21"
+    reference_url: https://nextcloud-talk.readthedocs.io/en/stable/quick-install/#introduction
+    checked_on: "2026-11-22"
     note:
-      en: Talk supports incoming and outgoing calls over a SIP gateway. Check the organisation's requirements for number routing and call queues separately.
-      de: Talk unterstützt eingehende und ausgehende Anrufe über ein SIP-Gateway. Prüfen Sie Anforderungen an Rufnummernweiterleitung und Warteschleifen gesondert.
+      en: Public telephone calls require a SIP gateway and the SIP bridge available with a Nextcloud Talk Enterprise subscription. Include the quoted recurring cost in the cost comparison and check call routing and queues against the organisation's requirements.
+      de: Für Anrufe über das öffentliche Telefonnetz sind ein SIP-Gateway und die SIP-Bridge aus dem Nextcloud-Talk-Enterprise-Abonnement erforderlich. Nehmen Sie die angebotenen laufenden Kosten in den Kostenvergleich auf und prüfen Sie, ob Rufnummernweiterleitung und Warteschleifen den Anforderungen der Organisation entsprechen.
   - function: single_sign_on
     workload: identity_access
     microsoft: {en: Microsoft Entra single sign-on, de: Zentrale Anmeldung über Microsoft Entra}
