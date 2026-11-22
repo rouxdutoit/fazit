@@ -7,7 +7,7 @@ kinds:
     note:
       en: The extension alone cannot establish whether a file contains macros or how important they are.
       de: An der Dateiendung allein lässt sich weder erkennen, ob die Datei Makros enthält, noch welche Bedeutung diese haben.
-    extensions: [xlsm, xltm, xlam, docm, dotm, pptm, potm]
+    extensions: [xlsm, xltm, xlam, xlsb, docm, dotm, pptm, potm, ppam, ppsm, sldm]
   - id: access
     label:
       en: Microsoft Access

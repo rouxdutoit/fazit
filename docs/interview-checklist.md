@@ -94,7 +94,7 @@ Enter whole numbers under `provided_counts` and use `true` or `false` under `con
 
 ### Office files
 
-- How many files with extensions that allow macros has the IT lead counted (`.xlsm`, `.xltm`, `.xlam`, `.docm`, `.dotm`, `.pptm`, `.potm`) (`office_files.kind.macro`)?
+- How many files with extensions that allow macros has the IT lead counted (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`) (`office_files.kind.macro`)?
 - How many Access database files for records, forms or queries has the IT lead counted (`.accdb`, `.mdb`) (`office_files.kind.access`)?
 - How many Publisher files used for page layout has the IT lead counted (`.pub`) (`office_files.kind.publisher`)?
 - How many Visio drawing files used for diagrams has the IT lead counted (`.vsdx`) (`office_files.kind.visio`)?

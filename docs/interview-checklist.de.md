@@ -94,7 +94,7 @@ Erfassen Sie die Anzahlen unter `provided_counts` und verwenden Sie unter `confi
 
 ### Office-Dateien
 
-- Wie viele Dateien hat die IT-Stelle mit Endungen erfasst, die Makros zulassen (`.xlsm`, `.xltm`, `.xlam`, `.docm`, `.dotm`, `.pptm`, `.potm`) (`office_files.kind.macro`)?
+- Wie viele Dateien hat die IT-Stelle mit Endungen erfasst, die Makros zulassen (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`) (`office_files.kind.macro`)?
 - Wie viele Access-Datenbankdateien für Daten, Formulare oder Abfragen hat die IT-Stelle erfasst (`.accdb`, `.mdb`) (`office_files.kind.access`)?
 - Wie viele Publisher-Dateien zur Seitengestaltung hat die IT-Stelle erfasst (`.pub`) (`office_files.kind.publisher`)?
 - Wie viele Visio-Zeichnungsdateien für Diagramme hat die IT-Stelle erfasst (`.vsdx`) (`office_files.kind.visio`)?
