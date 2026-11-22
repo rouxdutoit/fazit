@@ -24,6 +24,14 @@ Follow the repository's rules for code, report layout, wording and tests. [AGENT
 - Use fictional data in tests and examples. Keep real tenant data out of the repository.
 - Preserve the safeguard tests. Changes that weaken them cannot be accepted.
 
+## Deploying the website
+
+Pushes to `main` that change files in `site/` deploy the website to fazit.dev through Bunny.net.
+
+Set `BUNNY_STORAGE_PASSWORD` as a repository secret with the storage zone's password. You can also set `BUNNY_API_KEY` to the Bunny.net account API key to enable cache purging.
+
+The **Bunny edge rules** workflow uses `BUNNY_API_KEY` to apply `site/_headers` and the redirect from www.fazit.dev when run manually or when the header file or workflow files change on `main`.
+
 ## Translating Fazit
 
 Fazit is built to be translated. French and Italian come next, for organisations in Switzerland. Other European languages are welcome, ideally together with someone who knows the open source stack that public bodies in that country use.

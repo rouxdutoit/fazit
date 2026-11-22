@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Bunny edge rules
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - site/_headers
+      - .github/workflows/bunny-edge-rules.yml
+      - .github/scripts/bunny-edge-rules.sh
+      - .github/scripts/bunny-edge-rules.jq
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bunny-edge-rules-7064266
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Apply Bunny edge rules
+        env:
+          BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
+        run: bash .github/scripts/bunny-edge-rules.sh
