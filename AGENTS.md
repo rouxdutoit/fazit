@@ -32,7 +32,7 @@ Each of these has a test. A change that weakens one of those tests is rejected.
 
 ## Report
 
-- One HTML file. Inline CSS, system fonts, no JavaScript, nothing fetched at view time.
+- One HTML file. Inline CSS, embedded fonts, no JavaScript, nothing fetched at view time.
 - Semantic HTML: one `h1`, ordered headings, `lang` set, table headers with `scope`, text contrast at WCAG AA in light and dark.
 - Status is never colour alone. Every status has a text label; every figure says whether it was measured, provided or is unknown.
 - It must print cleanly and read well at 360 px.
@@ -56,9 +56,12 @@ uv run ruff format --check .
 uv run pytest -q
 uv run fazit demo --lang de
 uv run fazit demo --lang en
+uv run python site/check_site.py
 ```
 
-All five succeed, and the two reports open with the network off.
+All six succeed, and the two reports open with the network off.
+
+If report output changes, copy the HTML from the two demo runs above to `site/demo/de/index.html` and `site/demo/en/index.html`, using the matching language for each file.
 
 ## Commits
 

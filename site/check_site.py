@@ -16,12 +16,16 @@ from xml.etree import ElementTree
 
 from typer.testing import CliRunner
 
+from fazit.catalogue import load_catalogue
 from fazit.cli import app
+from fazit.i18n import load_locale
+from fazit.rules import STATUSES, load_mapping
 
 ROOT = Path(__file__).resolve().parent
 ORIGIN = "https://fazit.dev"
 LANGUAGES = ("en", "de")
 DEMO_ROUTES = ("/demo/en/", "/demo/de/")
+ERROR_ROUTES = ("/404.html", "/de/404.html")
 PAGE_PAIRS = (
     ("/", "/de/"),
     *(
@@ -29,8 +33,14 @@ PAGE_PAIRS = (
         for page in ("pilots", "integrators", "security", "impressum", "privacy")
     ),
     DEMO_ROUTES,
-    ("/404.html", "/de/404.html"),
+    ERROR_ROUTES,
 )
+COVERAGE_BADGES = {
+    "in_suite": ("cov-full", {"en": "In the suite", "de": "In der Suite"}),
+    "in_suite_with_limits": ("cov-part", {"en": "With limits", "de": "Mit Einschränkungen"}),
+    "open_source_community": ("cov-community", {"en": "Community app", "de": "Community-App"}),
+    "not_available": ("cov-none", {"en": "Not in the suite", "de": "Nicht in der Suite"}),
+}
 SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 XHTML_NS = "http://www.w3.org/1999/xhtml"
 VOID = set("area base br col embed hr img input link meta param source track wbr".split())
@@ -44,6 +54,14 @@ class Reference:
     line: int
     plain_link: bool = False
     dimensions: tuple[int, int] | None = None
+
+
+@dataclass(frozen=True)
+class CoverageCell:
+    workload: str
+    target: str
+    badge: str
+    text: str
 
 
 # Generated reports embed their fonts so they open offline; the CSP allows only font-src data:.
@@ -69,6 +87,15 @@ class Page(HTMLParser):
         self.switches: list[tuple[str, str, str]] = []
         self.meta: dict[str, str] = {}
         self.errors: list[str] = []
+        self.coverage: Counter[CoverageCell] = Counter()
+        self.status_counts: Counter[str] = Counter()
+        self.tallies: list[str] = []
+        self._coverage_table = False
+        self._workload = ""
+        self._target: str | None = None
+        self._badge = ""
+        self._cell_text: list[str] = []
+        self._tally_text: list[str] | None = None
         self.language = ""
         self.doctype = False
         self.feed(path.read_text(encoding="utf-8"))
@@ -97,6 +124,22 @@ class Page(HTMLParser):
             self.errors.append(f"Event handlers and link tracking are disallowed on line {line}.")
         self.record_metadata(tag, values, line)
         self.record_references(tag, values, line)
+
+        classes = values.get("class", "").split()
+        if tag == "table" and "coverage" in classes:
+            self._coverage_table = True
+        elif tag == "tr" and self._coverage_table:
+            self._workload = values.get("data-workload", "")
+        elif tag in {"th", "td"} and self._coverage_table and "tbody" in self.stack:
+            self._target = values.get("data-label", "")
+            self._badge = ""
+            self._cell_text.clear()
+        elif self._target is not None and "cov" in classes:
+            self._badge = " ".join(name for name in classes if name.startswith("cov-"))
+        elif tag == "p" and "tally" in classes:
+            self._tally_text = []
+        if tag == "tr" and values.get("id", "").startswith("readiness-"):
+            self.status_counts[values.get("data-status", "")] += 1
 
     def record_metadata(self, tag: str, attrs: dict[str, str], line: int) -> None:
         href = attrs.get("href", "")
@@ -149,6 +192,10 @@ class Page(HTMLParser):
             self.references.extend(css_references(data, self.getpos()[0]))
         if self.stack and self.stack[-1] == "script" and data.strip():
             self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
+        if self._target is not None:
+            self._cell_text.append(data)
+        if self._tally_text is not None:
+            self._tally_text.append(data)
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.handle_starttag(tag, attrs)
@@ -160,6 +207,15 @@ class Page(HTMLParser):
             self.errors.append(f"Unexpected closing tag </{tag}> on line {self.getpos()[0]}.")
         else:
             self.stack.pop()
+        if tag in {"th", "td"} and self._target is not None:
+            cell = " ".join("".join(self._cell_text).split())
+            self.coverage[CoverageCell(self._workload, self._target, self._badge, cell)] += 1
+            self._target = None
+        elif tag == "table":
+            self._coverage_table = False
+        elif tag == "p" and self._tally_text is not None:
+            self.tallies.append(" ".join("".join(self._tally_text).split()))
+            self._tally_text = None
 
     def check_structure(self, lang: str, *, demo: bool) -> None:
         if not self.doctype or self.language != lang:
@@ -263,7 +319,7 @@ def check_sitemap(expected: dict[str, dict[str, str]]) -> list[str]:
     locations = Counter(node.findtext(f"{{{SITEMAP_NS}}}loc") for node in urls)
     errors = []
     if locations != Counter(expected.keys()):
-        errors.append("sitemap.xml: Expected exactly one canonical URL per page.")
+        errors.append("sitemap.xml: Expected exactly one canonical URL per indexable page.")
     for node in urls:
         location = node.findtext(f"{{{SITEMAP_NS}}}loc", "")
         links = Counter(
@@ -312,7 +368,7 @@ def check_security_txt(now: datetime) -> list[str]:
     return errors
 
 
-def check_demo_links() -> list[str]:
+def check_headers() -> list[str]:
     headers = (ROOT / "_headers").read_text(encoding="utf-8")
     apache = (ROOT / ".htaccess").read_text(encoding="utf-8")
     errors = []
@@ -326,7 +382,64 @@ def check_demo_links() -> list[str]:
             errors.append(f"_headers: Missing canonical and language Link header for {route}.")
         if f"Header always set Link '{header}'" not in apache:
             errors.append(f".htaccess: Missing canonical and language Link header for {route}.")
+    policies = (
+        (
+            "_headers",
+            headers,
+            r"^/\*\n  Content-Security-Policy: ",
+            r"^/demo/\*\n  ! Content-Security-Policy\n  Content-Security-Policy: ",
+        ),
+        (
+            ".htaccess",
+            apache,
+            r'^<Else>\n  Header always set Content-Security-Policy "',
+            r'^<If "%\{REQUEST_URI\} =~ m#\^/demo/#">\n'
+            r'  Header always set Content-Security-Policy "',
+        ),
+    )
+    for name, contents, site_rule, demo_rule in policies:
+        for rule, sources in ((site_rule, "'self'"), (demo_rule, "'self' data:")):
+            if not re.search(rf"{rule}[^\n]*; font-src {sources};", contents, re.M):
+                errors.append(f"{name}: Expected font-src {sources} in the matching CSP rule.")
     return errors
+
+
+def check_coverage(page: Page, lang: str) -> list[str]:
+    catalogue = load_catalogue()
+    labels = load_locale(lang)["workload"]
+    expected: Counter[CoverageCell] = Counter()
+    errors = []
+    for target in ("openDesk", "Nextcloud"):
+        mapping = load_mapping(target.lower(), catalogue)
+        for workload in catalogue.workload_ids:
+            if workload in mapping.no_function:
+                continue
+            expected[CoverageCell(workload, "", "", labels[workload])] = 1
+            functions = [row for row in mapping.functions if row.workload == workload]
+            codes = {row.coverage for row in functions}
+            code = codes.pop() if len(codes) == 1 else "in_suite_with_limits"
+            if code not in COVERAGE_BADGES:
+                errors.append(f"Coverage table {workload} / {target} has no badge for {code}.")
+                continue
+            badge, names = COVERAGE_BADGES[code]
+            replacements = " · ".join(dict.fromkeys(row.replacement[lang] for row in functions))
+            expected[CoverageCell(workload, target, badge, f"{names[lang]}: {replacements}")] = 1
+    for cell in expected - page.coverage:
+        name = f"{cell.workload} / {cell.target}" if cell.target else cell.workload
+        errors.append(f"Coverage table {name} should show {cell.text!r}.")
+    for cell in page.coverage - expected:
+        name = f"{cell.workload} / {cell.target}" if cell.target else cell.workload
+        errors.append(f"Coverage table {name} has an unexpected or duplicate cell {cell.text!r}.")
+    return errors
+
+
+def check_tally(page: Page, demo: Page, lang: str) -> list[str]:
+    labels = load_locale(lang)["status"]
+    total = demo.status_counts.total()
+    prefix = {"en": "All {} areas in the sample", "de": "Alle {} Bereiche im Beispiel"}[lang]
+    counts = ", ".join(f"{demo.status_counts[status]} {labels[status]}" for status in STATUSES)
+    expected = f"{prefix.format(total)}: {counts}."
+    return [] if page.tallies == [expected] else [f"Sample tally should read {expected!r}."]
 
 
 def check_demo_reports() -> list[str]:
@@ -366,12 +479,12 @@ def check_assets() -> list[str]:
 
 def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
     errors = []
-    sitemap = {}
+    declared = {}
     for en, de in PAGE_PAIRS:
         pair = {"en": en, "de": de}
         for lang, other in (("en", "de"), ("de", "en")):
             route = pair[lang]
-            sitemap[ORIGIN + route] = alternates(pair)
+            declared[ORIGIN + route] = alternates(pair)
             page = pages.get(local_path(route))
             if page is None:
                 errors.append(f"{route}: Page is missing.")
@@ -380,11 +493,16 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
             page.check_structure(lang, demo=demo)
             if not demo:
                 page.check_metadata(route, other, pair)
+            if (en, de) == PAGE_PAIRS[0]:
+                page.errors.extend(check_coverage(page, lang))
+                if demo_page := pages.get(local_path(f"/demo/{lang}/")):
+                    page.errors.extend(check_tally(page, demo_page, lang))
     for path, page in pages.items():
-        if ORIGIN + route_for(path) not in sitemap:
+        if ORIGIN + route_for(path) not in declared:
             errors.append(f"{path.relative_to(ROOT)}: Page has no declared language pair.")
         errors.extend(f"{path.relative_to(ROOT)}: {error}" for error in page.errors)
-    return errors, sitemap
+    error_urls = {ORIGIN + route for route in ERROR_ROUTES}
+    return errors, {url: pair for url, pair in declared.items() if url not in error_urls}
 
 
 def main() -> int:
@@ -397,7 +515,7 @@ def main() -> int:
     errors.extend(check_sitemap(sitemap))
     errors.extend(check_security_txt(datetime.now(UTC)))
     errors.extend(check_assets())
-    errors.extend(check_demo_links())
+    errors.extend(check_headers())
     errors.extend(check_demo_reports())
 
     references = [(path, ref) for path, page in pages.items() for ref in page.references]

@@ -2,7 +2,7 @@
 quick_id: 261122-rv4
 slug: promises
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review batch 4, promises, site, docs and packaging

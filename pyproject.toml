@@ -3,14 +3,32 @@
 name = "fazit"
 version = "0.1.0"
 description = "Build local reports on Microsoft 365 exit readiness."
+readme = "README.md"
+authors = [{ name = "roux", email = "hello@rouxdutoit.com" }]
 requires-python = ">=3.12"
-license = "AGPL-3.0-or-later"
-license-files = ["LICENSE"]
+license = "AGPL-3.0-or-later AND OFL-1.1 AND Apache-2.0"
+license-files = ["LICENSE", "src/fazit/fonts/OFL.txt", "src/fazit/icons/LICENSE"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = [
     "jinja2>=3.1.6",
     "pyyaml>=6.0.3",
     "typer>=0.28.0",
 ]
+
+[project.urls]
+Homepage = "https://fazit.dev"
+Source = "https://github.com/rouxdutoit/fazit"
+Issues = "https://github.com/rouxdutoit/fazit/issues"
 
 [project.scripts]
 fazit = "fazit.cli:main"
@@ -19,8 +37,23 @@ fazit = "fazit.cli:main"
 requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
-[tool.hatch.build]
-artifacts = ["src/fazit/demo/*/scan.json"]
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/fazit",
+    "/docs",
+    "/tests",
+    "/AGENTS.md",
+    "/CONTRIBUTING.md",
+    "/DECISIONS.md",
+    "/LICENSE",
+    "/README.md",
+    "/README.de.md",
+    "/SECURITY.md",
+    "/inputs.example.yaml",
+    "/publiccode.yml",
+    "/pyproject.toml",
+    "/uv.lock",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fazit"]

@@ -3,7 +3,7 @@ publiccodeYmlVersion: "0"
 name: Fazit
 url: https://github.com/rouxdutoit/fazit
 landingURL: https://fazit.dev
-developmentStatus: beta
+developmentStatus: development
 softwareType: standalone/desktop
 platforms:
   - linux
@@ -16,13 +16,15 @@ description:
   en:
     shortDescription: Local reports for assessing a move from Microsoft 365 to open source software.
     longDescription: >-
-      Fazit helps administrations and other organisations assess a move from
-      Microsoft 365. It gives a readiness status and supporting evidence for
-      15 areas and compares the five-year costs of staying, moving some areas
-      or moving all areas. It produces a single HTML report that can be opened
-      and printed offline. The current version runs from source and uses
-      bundled samples or an existing scan file. Local import of admin-centre
-      exports is planned next. Read-only sign-in will follow later.
+      Fazit builds reports for administrations and other organisations planning
+      a move from Microsoft 365. Phase 1 runs from source and accepts bundled
+      samples or a compatible scan file with answers and costs in inputs.yaml.
+      Measured figures currently come from the samples. The offline HTML report
+      gives a readiness status and supporting evidence for 15 areas and compares
+      five-year costs. Plans call for AI assistant coverage and renewal deadlines
+      (1.1), CSV export and report integrity checks (1.2), and links to sovereignty
+      criteria (1.3), followed by local import of admin-centre exports (2),
+      read-only sign-in and live counts (3), then guides and release packages (4).
     features:
       - Readiness and supporting evidence by area
       - Function mappings for openDesk, Nextcloud and a generic open source setup
@@ -31,16 +33,17 @@ description:
   de:
     shortDescription: Lokale Berichte zur Prüfung eines Umstiegs von Microsoft 365 auf Open-Source-Software.
     longDescription: >-
-      Fazit unterstützt Verwaltungen und andere Organisationen bei der
-      Prüfung eines Umstiegs von Microsoft 365. Der Bericht bewertet 15
-      Bereiche einzeln und nennt die jeweiligen Nachweise. Er vergleicht
-      die Kosten über fünf Jahre für den Verbleib sowie für einen
-      teilweisen oder vollständigen Umstieg. Die HTML-Datei lässt sich
-      ohne Internetverbindung öffnen und drucken. Die aktuelle Version
-      läuft aus dem Quellcode und verarbeitet Beispieldaten oder eine
-      vorhandene Erhebungsdatei. Als Nächstes soll der lokale Import von
-      Exporten aus dem Admin Center folgen, später die Anmeldung mit
-      reinem Lesezugriff.
+      Fazit erstellt Berichte für Verwaltungen und andere Organisationen, die
+      einen Umstieg von Microsoft 365 prüfen. In Phase 1 läuft Fazit aus dem
+      Quellcode und verarbeitet Beispieldaten oder eine kompatible Erhebungsdatei
+      mit Antworten und Kosten aus inputs.yaml. Messwerte stammen aus den
+      Beispielen. Der offline lesbare HTML-Bericht bewertet 15 Bereiche, nennt
+      die Nachweise und vergleicht die Kosten über fünf Jahre. Geplant sind die
+      Prüfung von KI-Assistenten und Fristen für die Lizenzverlängerung (1.1),
+      der CSV-Export und eine Prüfung auf Berichtsänderungen (1.2) sowie Verweise
+      auf Souveränitätskriterien (1.3). Danach sind der lokale Import aus dem
+      Admin Center (2), die direkte Erhebung mit reinem Lesezugriff (3) und
+      schließlich Anleitungen und Installationspakete (4) vorgesehen.
     features:
       - Einstufung und Nachweise je Prüfbereich
       - Funktionszuordnungen für openDesk, Nextcloud und ein allgemeines Open-Source-Zielprofil

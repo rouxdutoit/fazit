@@ -5,17 +5,17 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 ## Principles
 
 1. **Read-only.** Request read permissions and use an explicit allowlist of read endpoints. Exclude requests that can change the tenant, even if they use `GET`.
-2. **Local processing.** Assessment data stays on the computer. Live collection may contact only `login.microsoftonline.com` and `graph.microsoft.com`. Import usage reports offline. Omit telemetry, analytics, update checks and CDNs.
+2. **Local processing.** Assessment data stays on the computer, provided its input and output files are on local storage (a network share sends them over the network). Live collection may contact only `login.microsoftonline.com` and `graph.microsoft.com`. Import usage reports offline. Omit telemetry, analytics, update checks and CDNs.
 3. **Tokens in memory.** Keep access and refresh tokens in memory.
 4. **Metadata only.** Collect counts, sizes and coded evidence. Leave mail bodies and file contents unopened.
 5. **Privacy by construction.** Exclude collected person names and email addresses. The v1 CLI omits `--include-names`. Reports may show the organisation name and Windows-only application names entered in `inputs.yaml`.
-6. **Offline report.** Produce one self-contained HTML file with inline CSS and system fonts. Omit JavaScript and external resources. The report opens and prints with the network disconnected.
+6. **Offline report.** Produce one self-contained HTML file with inline CSS and embedded fonts. Omit JavaScript and external resources. The report opens and prints with the network disconnected.
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
 ## 2026-11-21 — M0 complete (demo and report)
 
-Fazit builds the nine-section report in German and English from either bundled sample or an existing scan, with all three target profiles. These commands run locally with no Microsoft account and contact no host.
+Fazit builds the nine-section report in German and English with all three target profiles. It accepts bundled samples or a compatible `scan.json` and the organisation's answers and costs in `inputs.yaml`. All measured figures in this milestone come from sample data. These commands run locally with no Microsoft account and contact no host.
 
 - One `as_of` date applies to all answers in `inputs.yaml`. An omitted date is labelled as such. `amounts_are_invented` labels costs independently of the scan and of the origin of the answers.
 - The catalogue uses `provided` values `no`, `answer`, `software_list` and `software_list_without_web_version`. The last two derive counts from the Windows-only software list. A positive lower bound can establish a problem when some application answers are still missing.
@@ -80,6 +80,7 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D27. The tool is called Fazit, finally.** After Befund, a trademark search on 2026-11-21 found the EU application BEFUNDO (019433396, class 9, "downloadable computer software for the management of data", filed 2026-10-08, opposition period to 2027-01-15), one letter from Befund and older than our use. Fazit has no live mark in class 9 or 42 in the EU, Germany, Austria or Switzerland (TMview, 2026-11-21); the only German FAZIT mark in those classes has expired. Package, command and module are `fazit`; the repository is `rouxdutoit/fazit`. The search is not a formal clearance; a trademark attorney's opinion is still advisable before the PyPI release and the announcement.
 - **D26. A report depends on the people and tools that produced its evidence.** Fazit checks the scan and inputs for contradictions and labels where each figure came from. An internally consistent fabrication can pass these checks and produce a report. The appendix records the scan's stated origin, producer and version.
 - **D28. `hypothesis` is added as a test dependency, pinned to 6.170.15.** The two samples prove the rules on two tenants only. Property-based tests generate many synthetic tenants (coverage, provenance, collector status, licence mix, inputs, language) and check that the principles hold on all of them, and Hypothesis shrinks a failure to the smallest tenant that breaks one. Tests run derandomised with no example database, so a run is repeatable and leaves nothing on disk. 6.170.15 was uploaded on 2026-11-06 and is within `exclude-newer` (D17). Its one dependency is `sortedcontainers`. It is a development dependency only and is not in the wheel.
+- **D29. Embed the report fonts.** The report embeds Figtree and Geist Mono, both licensed under the SIL Open Font License, as data URIs so its typography looks the same on every machine. Its content security policy allows only `font-src data:` for fonts. Principle 6 now specifies embedded fonts. The founder may switch to system fonts later, which would save about 69 KB per report.
 
 ### Milestone order
 

@@ -7,10 +7,15 @@ ErrorDocument 404 /404.html
   ErrorDocument 404 /de/404.html
 </If>
 
-Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+<If "%{REQUEST_URI} =~ m#^/demo/#">
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+</If>
+<Else>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+</Else>
 Header always set Referrer-Policy "no-referrer"
 Header always set X-Content-Type-Options "nosniff"
-Header always set Permissions-Policy "interest-cohort=(), camera=(), microphone=(), geolocation=()"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 Header always set Cross-Origin-Opener-Policy "same-origin"
 
 <If "%{REQUEST_URI} =~ m#^/demo/en/(index[.]html)?$#">

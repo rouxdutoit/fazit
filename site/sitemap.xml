@@ -70,14 +70,4 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/privacy/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/privacy/"/>
   </url>
-  <url>
-    <loc>https://fazit.dev/404.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/404.html"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/404.html"/>
-  </url>
-  <url>
-    <loc>https://fazit.dev/de/404.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/404.html"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/404.html"/>
-  </url>
 </urlset>

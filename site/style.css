@@ -18,15 +18,6 @@
 
 @font-face {
   font-family: "Geist Mono";
-  src: url("fonts/geist-mono-cyrillic.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-
-@font-face {
-  font-family: "Geist Mono";
   src: url("fonts/geist-mono-latin-ext.woff2") format("woff2");
   font-style: normal;
   font-weight: 100 900;
@@ -739,6 +730,7 @@ code {
 
 .cov-full::before { --icon: url("icons/check-circle.svg"); }
 .cov-part::before { --icon: url("icons/contrast.svg"); }
+.cov-community::before { --icon: url("icons/code.svg"); }
 .cov-none::before { --icon: url("icons/cancel.svg"); color: var(--fg-2); }
 
 /* Icon and text: the icon centres on the first line; wrapped lines align after it. */
@@ -837,7 +829,7 @@ code {
   position: relative;
 }
 
-.js [data-scramble]:not(.ready), [data-scramble] .ch.wait, [data-scramble] .ch.sg {
+[data-scramble] .ch.wait, [data-scramble] .ch.sg {
   visibility: hidden;
 }
 
@@ -851,6 +843,11 @@ code {
   font-weight: 400;
   letter-spacing: 0;
   content: attr(data-g);
+}
+
+@media print {
+  [data-scramble] .ch.wait, [data-scramble] .ch.sg { visibility: visible; }
+  [data-scramble] .ch.sg::after { content: none; }
 }
 
 .report-preview {

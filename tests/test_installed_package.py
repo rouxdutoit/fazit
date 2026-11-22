@@ -282,7 +282,11 @@ def test_wheel_carries_the_license(installed_package: InstalledPackage) -> None:
     with ZipFile(installed_package.wheel) as wheel:
         (metadata,) = (name for name in wheel.namelist() if name.endswith(".dist-info/METADATA"))
         headers = BytesParser().parsebytes(wheel.read(metadata), headersonly=True)
-        assert headers["License-Expression"] == "AGPL-3.0-or-later"
-        assert headers.get_all("License-File") == ["LICENSE"]
-        licence = wheel.read(f"{metadata.rsplit('/', 1)[0]}/licenses/LICENSE")
+        assert headers["License-Expression"] == "AGPL-3.0-or-later AND OFL-1.1 AND Apache-2.0"
+        asset_licences = ["src/fazit/fonts/OFL.txt", "src/fazit/icons/LICENSE"]
+        assert headers.get_all("License-File") == ["LICENSE", *asset_licences]
+        directory = f"{metadata.rsplit('/', 1)[0]}/licenses"
+        licence = wheel.read(f"{directory}/LICENSE")
+        for asset in asset_licences:
+            assert wheel.read(f"{directory}/{asset}") == (ROOT / asset).read_bytes()
     assert sha256(licence).hexdigest() == LICENSE_SHA256
