@@ -2,7 +2,7 @@
 quick_id: 261122-rev
 slug: release-review
 date: 2026-11-22
-status: in progress
+status: complete
 ---
 
 # Release review: merged findings
@@ -93,3 +93,13 @@ No behaviour change; both demo reports stay byte-identical.
 | R-41 | medium | A-14 | Output writes look the directory up by name again; another writer controlling an ancestor could redirect them. Needs an attacker with write access to the user's path; handle-anchored writes do not exist on Windows. To be confirmed by both reviewers. |
 | R-42 | medium | A-15 | A failure on the second of three demo replacements leaves a mixed set. Demo only; each file is still whole. To be confirmed by both reviewers. |
 | R-43 | low | A, F simplify | Remove the heading scramble effect. The founder asked for it; R-24 fixes the defect either way. |
+
+## Outcome after six rounds
+
+Rounds: 1 at `82d9d8f`, 2 at `1099e49`, 3 at `d39df08`, 4 at `0ae2be2`, 5 at `acf9be9`, 6 at `2e4fae1`. Each review is kept as written (`REVIEW-<reviewer>-<round>.md`). Fixes: quick tasks `261122-sim` and `261122-rv1` to `261122-rv11`.
+
+- **Fixed:** R-01 to R-34, all round-2 to round-5 findings, and R-30 and R-39 from the open list.
+- **Final verdicts at `2e4fae1`:** Claude Fable 5.2, release as is (0 critical, 0 high, 2 medium, 2 low). Codex GPT-6.2-Astra, hold (1 critical, 0 high, 6 medium including three deferred), over one more case of self-contradicting directory counts (20 rows, 19 failed checks).
+- **Agreed by both:** scans edited by hand to avoid a comparison are a phase 2 concern (MODL-05), because today every measured source is a sample source and the report says its measurements are simulated.
+- **Queued after the report redesign:** `261122-rv12-after-redesign` (account bound from first principles, two regressions from rv11, SharePoint from zero sites, 61 published licence names refused, a German plural).
+- **Still open for the founder:** R-35 (domain and PyPI name), R-36 (production headers and hosting claims), R-37 (Typer), R-38 ("Ready"), R-40 (`.planning/` and `.claude/` visibility, placeholders in `.claude/CLAUDE.md`), R-41 and R-42 (both reviewers agree they can wait), R-43 (wordmark and heading effects).
