@@ -610,6 +610,10 @@ code {
   margin-top: 16px;
 }
 
+.sec-body .lead + .rows {
+  margin-top: 24px;
+}
+
 .features {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
