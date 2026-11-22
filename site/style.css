@@ -147,7 +147,7 @@ main :where(p, li, dd, td) > a:not([class]) {
 }
 
 /* Controls that are links keep their own colours: only text links brighten and glow. */
-.btn:hover, .wordmark:hover, .report-card:hover, .language:hover {
+.btn:hover, .wordmark:hover, .language:hover {
   text-shadow: none;
 }
 
@@ -176,7 +176,7 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .foot-icons span {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .copy::before, .foot-icons span {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -893,18 +893,13 @@ code {
   margin: 16px auto clamp(64px, 8vw, 96px);
 }
 
-/* The sample report as a window: real file name on top, fading out at the bottom, all of it a link. */
+/* The sample report as a window: real file name on top, fading out at the bottom. An image, not a link. */
 .report-card {
   display: block;
   overflow: hidden;
   border-radius: var(--radius-card);
   background: var(--bg);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent), 0 2px 4px rgb(0 0 0 / 4%), 0 24px 48px -12px rgb(0 0 0 / 18%);
-}
-
-.report-card:hover {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 8%, transparent), 0 4px 8px rgb(0 0 0 / 5%), 0 32px 64px -12px rgb(0 0 0 / 24%);
-  transform: scale(1.008);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -931,7 +926,7 @@ code {
   background: var(--fill);
 }
 
-.report-card-bar > span:not(.tile-arrow) {
+.report-card-bar > span {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -955,7 +950,7 @@ code {
 .report-preview figcaption {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 4px 24px;
   margin-top: 12px;
@@ -1260,7 +1255,7 @@ code {
   flex: 1;
 }
 
-.tiles li:has(> .tile-link), .report-card {
+.tiles li:has(> .tile-link) {
   transition: transform 0.3s cubic-bezier(0, 0, 0.5, 1), box-shadow 0.3s cubic-bezier(0, 0, 0.5, 1);
 }
 
@@ -1305,15 +1300,7 @@ code {
   content: "";
 }
 
-.report-card-bar .tile-arrow {
-  position: relative;
-  inset: auto;
-  flex: none;
-  width: 22px;
-  height: 22px;
-}
-
-.report-card:hover .tile-arrow, .tile-link:hover .tile-arrow {
+.tile-link:hover .tile-arrow {
   background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 }
 
@@ -1380,19 +1367,15 @@ code {
 }
 
 /* Standalone links sit a step back from the text and come forward on hover; the symbol centres on the line. */
-.more, .download {
+.more {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 1px;
   color: var(--link-quiet);
 }
 
-.more:hover, .download:hover {
+.more:hover {
   color: var(--link);
-}
-
-.more {
-  gap: 1px;
 }
 
 .more::after {
@@ -1405,18 +1388,12 @@ code {
 .caption-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 24px;
-}
-
-.download::before {
-  width: 1.1em;
-  height: 1.1em;
-  --icon: url("icons/download.svg");
-  content: "";
+  align-items: center;
+  gap: 8px 24px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .btn:active, .tile-link:active, .report-card:active {
+  .btn:active, .tile-link:active {
     scale: 0.98;
   }
 
@@ -1596,7 +1573,7 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .report-card:hover, .tiles li:has(> .tile-link:hover) {
+  .tiles li:has(> .tile-link:hover) {
     transform: none;
   }
 
