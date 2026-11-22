@@ -176,7 +176,7 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .icon-heart {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .download::before, .copy::before, .icon-heart, .foot-icons span {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -1555,6 +1555,26 @@ code {
   color: var(--fg-2);
   font-size: var(--fs-footnote);
 }
+
+/* Symbol links keep the footer's 32 px rows; the first symbol lines up with the column heading. */
+.foot-cols .foot-icons {
+  display: flex;
+  margin-inline-start: -10px;
+}
+
+.foot-icons a {
+  justify-content: center;
+  width: 40px;
+  height: 32px;
+}
+
+.foot-icons span {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mail { --icon: url("icons/mail.svg"); }
+.icon-calendar { --icon: url("icons/calendar-month.svg"); }
 
 .foot-fine {
   display: flex;
