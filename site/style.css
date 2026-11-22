@@ -1201,6 +1201,12 @@ code {
   white-space: nowrap;
 }
 
+.tiles .tile-title small {
+  color: var(--fg-2);
+  font-size: var(--fs-subhead);
+  font-weight: 400;
+}
+
 .tiles .tile-icon {
   width: 28px;
   height: 28px;
