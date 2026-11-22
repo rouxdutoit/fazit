@@ -10,21 +10,22 @@ import pytest
 
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
+from fazit.evidence import combine, provided_findings
 from fazit.i18n import error_sentence, load_locale
 from fazit.inputs import (
     CurrentCosts,
     Inputs,
     ScenarioInputs,
     WindowsSoftware,
-    combine,
     load_inputs,
     load_inputs_text,
-    provided_findings,
 )
+from fazit.mappings import PROFILES, load_mapping
 from fazit.model import Coverage, load_scan_text
 from fazit.parsing import parse_yaml, read_text
 from fazit.report import render_report
-from fazit.rules import PROFILES, load_mapping, load_risky_file_types, load_status_rules
+from fazit.risky_files import load_risky_file_types
+from fazit.status import load_status_rules
 
 COUNT_ID = "office_files.kind.macro"
 BOOLEAN_ID = "onedrive.external_sharing_in_use"

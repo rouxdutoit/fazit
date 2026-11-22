@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from copy import deepcopy
 from datetime import date
-from decimal import MAX_EMAX, ROUND_HALF_UP, Context, Decimal, localcontext
+from decimal import Decimal
+from fractions import Fraction
 from functools import lru_cache
 from importlib.resources import files
 
@@ -12,9 +13,14 @@ SUPPORTED_LANGUAGES = ("en", "de")
 DEFAULT_LANGUAGE = "en"
 
 
+def check_language(value: object, *, file: str | None = None, field: str = "--lang") -> str:
+    if not isinstance(value, str) or value not in SUPPORTED_LANGUAGES:
+        raise InputError("unsupported_language", file=file, field=field)
+    return value
+
+
 def load_locale(lang: str) -> dict:
-    if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", field="--lang")
+    check_language(lang)
     locale = files("fazit").joinpath("locales", f"{lang}.yaml")
     return deepcopy(_parse_locale(read_text(locale), locale.name))
 
@@ -74,13 +80,15 @@ class Formatter:
         whole = whole.replace(",", settings["thousands_separator"])
         return f"{whole}{settings['decimal_separator']}{fraction}" if point else whole
 
-    def money(self, amount: Decimal, currency: str) -> str:
-        with localcontext(Context(prec=max(3, amount.adjusted() + 4), Emax=MAX_EMAX)):
-            rounded = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        if rounded == 0:
-            rounded = rounded.copy_abs()
-        template = self.strings["format"]["money"]
-        return template.format(amount=self.number(rounded), currency=currency).strip()
+    def money(self, amount: Fraction | Decimal, currency: str) -> str:
+        cents = int(abs(Fraction(amount)) * 100 + Fraction(1, 2))
+        whole, fraction = divmod(cents, 100)
+        sign = "-" if amount < 0 and cents else ""
+        settings = self.strings["format"]
+        display = (
+            f"{sign}{self.number(Decimal(whole))}{settings['decimal_separator']}{fraction:02d}"
+        )
+        return settings["money"].format(amount=display, currency=currency).strip()
 
     def storage(self, value: int, *, lower_bound: bool = False) -> str:
         settings = self.strings["format"]

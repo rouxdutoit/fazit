@@ -21,6 +21,7 @@ from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 from yaml.tokens import AliasToken, AnchorToken
 
 from .errors import InputError
+from .validation import DATE
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 type FieldNames = Mapping[tuple[str | None, ...], Collection[str]]
@@ -34,7 +35,7 @@ _INPUT_SCALAR_SPELLINGS = {
     _YAML_INTEGER: re.compile(r"0|[1-9][0-9]*"),
     "tag:yaml.org,2002:bool": re.compile(r"true|false", re.IGNORECASE),
     "tag:yaml.org,2002:null": re.compile(r"null|~|", re.IGNORECASE),
-    "tag:yaml.org,2002:timestamp": re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}"),
+    "tag:yaml.org,2002:timestamp": DATE,
 }
 
 
@@ -60,24 +61,16 @@ def read_text(path: Path | Traversable) -> str:
 
 
 def reject_at_signs(value: object, file_name: str, field: str = "$") -> None:
-    seen: set[int] = set()
-
-    def visit(item: object, position: str) -> None:
-        if isinstance(item, str) and "@" in item:
-            raise InputError("contains_at", file=file_name, field=position)
-        if not isinstance(item, (dict, list)) or id(item) in seen:
-            return
-        seen.add(id(item))
-        if isinstance(item, dict):
-            for index, (key, child) in enumerate(item.items()):
-                member = f"{position}[{index}]"
-                visit(key, member)
-                visit(child, member)
-        else:
-            for index, child in enumerate(item):
-                visit(child, f"{position}[{index}]")
-
-    visit(value, field)
+    if isinstance(value, str) and "@" in value:
+        raise InputError("contains_at", file=file_name, field=field)
+    if isinstance(value, dict):
+        for index, (key, child) in enumerate(value.items()):
+            member = f"{field}[{index}]"
+            reject_at_signs(key, file_name, member)
+            reject_at_signs(child, file_name, member)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_at_signs(child, file_name, f"{field}[{index}]")
 
 
 def _schema_path(path: _FieldPath) -> tuple[str | None, ...]:
@@ -112,7 +105,7 @@ def _json_value(value: object) -> object:
 
 
 def _json_location(text: str, code: str, offset: int | None) -> tuple[int, _FieldPath]:
-    # The decoder checks syntax. Walk its accepted prefix to recover positions it omits.
+    # The decoder omits field positions.
     decoder = json.JSONDecoder()
     path: list[str | int | None] = []
     keys: list[set[str]] = []
@@ -200,10 +193,24 @@ def _check_yaml(
             _yaml_error(code, file_name, node, path, fields)
     elif node.tag == _YAML_TEXT and integer_fields and _schema_path(path) in integer_fields:
         _yaml_error("invalid_integer", file_name, node, path, fields)
-    elif node.tag == _YAML_FLOAT:
-        if not isfinite(yaml.safe_load(f"!!float {json.dumps(node.value)}")):
-            _yaml_error("non_finite_number", file_name, node, path, fields)
+    elif node.tag == _YAML_FLOAT and not _finite_yaml_float(node.value):
+        _yaml_error("non_finite_number", file_name, node, path, fields)
     checked[node] = True
+
+
+def _finite_yaml_float(text: str) -> bool:
+    # The previous scalar check rejected digits represented by UTF-16 surrogate pairs.
+    if any(ord(char) > 0xFFFF for char in text):
+        raise ValueError
+    value = text.replace("_", "").lower()
+    number = value[1:] if value[:1] in ("+", "-") else value
+    if number in (".inf", ".nan"):
+        return False
+    # YAML 1.1 also accepts base-60 floats.
+    total = 0.0
+    for power, part in enumerate(reversed(number.split(":"))):
+        total += float(part) * 60**power
+    return isfinite(total)
 
 
 def _yaml_syntax_path(text: str) -> _FieldPath:
@@ -283,5 +290,6 @@ def parse_yaml(
         line = mark.line + 1 if mark else text.count("\n", 0, getattr(error, "position", 0)) + 1
         field = _field_name(_yaml_syntax_path(text), names) if names else None
         raise InputError("invalid_yaml", file=file_name, field=field, line=line) from None
+    # PyYAML constructors can raise LookupError or AttributeError for malformed scalars.
     except (ValueError, OverflowError, RecursionError, LookupError, AttributeError):
         raise InputError("invalid_yaml", file=file_name, line=1) from None

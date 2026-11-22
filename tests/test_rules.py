@@ -10,6 +10,7 @@ from shutil import copytree
 
 import pytest
 import yaml
+from report_expectations import SECTION_ORDER
 from typer.testing import CliRunner
 
 from fazit import rules
@@ -18,6 +19,8 @@ from fazit.cli import app
 from fazit.errors import InputError
 from fazit.i18n import load_locale
 from fazit.inputs import Inputs, WindowsSoftware
+from fazit.licences import classify_product, licence_findings, load_service_plans
+from fazit.mappings import COVERAGE_LADDER, PROFILES, load_mapping
 from fazit.model import (
     Coverage,
     Finding,
@@ -28,22 +31,10 @@ from fazit.model import (
     load_scan_text,
 )
 from fazit.parsing import parse_yaml, read_text
-from fazit.report import SECTION_ORDER, render_report
-from fazit.rules import (
-    COVERAGE_LADDER,
-    PROFILES,
-    MissingEvidence,
-    StatusRuleSet,
-    WorkloadStatus,
-    classify_product,
-    evaluate,
-    licence_findings,
-    load_mapping,
-    load_risky_file_types,
-    load_service_plans,
-    load_status_rules,
-    rules_dir,
-)
+from fazit.report import render_report
+from fazit.risky_files import load_risky_file_types
+from fazit.rules import rules_dir
+from fazit.status import MissingEvidence, StatusRuleSet, WorkloadStatus, evaluate, load_status_rules
 
 LICENSING_REFERENCE = (
     "https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference"

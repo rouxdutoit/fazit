@@ -6,18 +6,18 @@ from hashlib import sha256
 from importlib.resources import files
 from pathlib import Path
 
-from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES, load_locale
 from .parsing import parse_yaml, read_text
+from .validation import IDENTIFIER, Validator
 
 VALUE_TYPES = ("count", "bytes", "boolean")
 _PROVIDED_KINDS = ("no", "answer", "software_list", "software_list_without_web_version")
-_CODE = re.compile(r"[a-z0-9_]+(?:\.[a-z0-9_]+)*")
-_PERMISSION = re.compile(r"[A-Za-z0-9.]+")
-_LABEL = re.compile(r"(?:workload|finding)\.[a-z0-9_]+(?:\.[a-z0-9_]+)*")
-_SKU_IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
+_CODE_LENGTH = r"(?=.{1,64}\Z)"
+_CODE_PATH = r"[a-z0-9_]+(?:\.[a-z0-9_]+)*"
+_CODE = re.compile(_CODE_LENGTH + _CODE_PATH)
+_PERMISSION = re.compile(r"[A-Za-z0-9.]{1,64}")
+_LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}")
 _SKU_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
-_GUID = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
 
 
 def sku_key(part_number: str, guid: str) -> tuple[str, str]:
@@ -66,185 +66,178 @@ class Catalogue:
 
     def accepts_sku_part_number(self, part_number: object, guid: str | None) -> bool:
         return isinstance(part_number, str) and (
-            bool(_SKU_IDENTIFIER.fullmatch(part_number))
+            bool(IDENTIFIER.fullmatch(part_number))
             or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)
         )
 
 
-def _code(value: object, file_name: str, field: str, pattern: re.Pattern[str] = _CODE) -> str:
-    if not isinstance(value, str) or len(value) > 64 or not pattern.fullmatch(value):
-        raise InputError("invalid_field", file=file_name, field=field)
-    return value
-
-
 def _rows(
-    value: object, file_name: str, field: str, keys: set[str], *, optional: tuple[str, ...] = ()
-) -> list[dict]:
-    if not isinstance(value, list):
-        raise InputError("invalid_field", file=file_name, field=field)
-    for index, row in enumerate(value):
-        if not isinstance(row, dict) or not keys <= row.keys() <= keys.union(optional):
-            raise InputError("invalid_field", file=file_name, field=f"{field}[{index}]")
-    return value
+    value: object, reader: Validator, field: str, keys: set[str], *, optional: tuple[str, ...] = ()
+) -> list[tuple[str, dict]]:
+    allowed = keys.union(optional)
+    rows = []
+    for index, row in enumerate(reader.rows(value, field, allow_empty=True)):
+        member = f"{field}[{index}]"
+        if not isinstance(row, dict) or not keys <= row.keys() <= allowed:
+            reader.fail(member)
+        rows.append((member, row))
+    return rows
 
 
-def _workloads(value: object, file_name: str) -> tuple[WorkloadEntry, ...]:
+def _workloads(value: object, reader: Validator) -> tuple[WorkloadEntry, ...]:
     workloads: dict[str, WorkloadEntry] = {}
-    for index, row in enumerate(_rows(value, file_name, "workloads", {"id", "label"})):
-        field = f"workloads[{index}]"
-        workload_id = _code(row["id"], file_name, f"{field}.id")
+    for field, row in _rows(value, reader, "workloads", {"id", "label"}):
+        workload_id = reader.matches(row["id"], f"{field}.id", _CODE)
         if workload_id in workloads:
-            raise InputError("duplicate_id", file=file_name, field=f"{field}.id")
+            reader.fail(f"{field}.id", "duplicate_id")
         workloads[workload_id] = WorkloadEntry(
-            workload_id, _code(row["label"], file_name, f"{field}.label", _LABEL)
+            workload_id, reader.matches(row["label"], f"{field}.label", _LABEL)
         )
     return tuple(workloads.values())
 
 
 def _measurement_pairs(
     value: object,
-    file_name: str,
+    reader: Validator,
     field: str,
     collector_ids: frozenset[str],
     measured_sources: frozenset[str],
 ) -> frozenset[tuple[str, str]]:
-    if not isinstance(value, dict):
-        raise InputError("invalid_field", file=file_name, field=field)
     pairs = set()
-    for index, (collector, values) in enumerate(value.items()):
+    rows = reader.fields(value, field, (), optional=None)
+    for index, (collector, values) in enumerate(rows.items()):
         member = f"{field}[{index}]"
-        sources = _code_set(values, file_name, member)
+        sources = _code_set(values, reader, member)
         if collector not in collector_ids or not sources or not sources <= measured_sources:
-            raise InputError("invalid_field", file=file_name, field=member)
+            reader.fail(member)
         pairs.update((collector, source) for source in sources)
     return frozenset(pairs)
 
 
+def _finding(
+    row: dict,
+    finding_id: str,
+    field: str,
+    reader: Validator,
+    workload_ids: set[str],
+    collector_ids: frozenset[str],
+    measured_sources: frozenset[str],
+) -> FindingEntry:
+    workload = reader.choice(row["workload"], f"{field}.workload", workload_ids, "invalid_field")
+    value_type = reader.choice(row["type"], f"{field}.type", VALUE_TYPES, "invalid_field")
+    provided = reader.choice(row["provided"], f"{field}.provided", _PROVIDED_KINDS, "invalid_field")
+    headline = row["headline"]
+    if not isinstance(headline, bool):
+        reader.fail(f"{field}.headline")
+    unit = row["unit"]
+    if unit is not None:
+        unit = reader.matches(unit, f"{field}.unit", _CODE)
+    total = row.get("coverage_total_from")
+    if total is not None:
+        total = reader.matches(total, f"{field}.coverage_total_from", _CODE)
+    return FindingEntry(
+        finding_id,
+        workload,
+        value_type,
+        unit,
+        reader.matches(row["label"], f"{field}.label", _LABEL),
+        provided,
+        headline,
+        _measurement_pairs(
+            row.get("measured_by", {}),
+            reader,
+            f"{field}.measured_by",
+            collector_ids,
+            measured_sources,
+        ),
+        total,
+    )
+
+
 def _findings(
     value: object,
-    file_name: str,
+    reader: Validator,
     workload_ids: set[str],
     collector_ids: frozenset[str],
     measured_sources: frozenset[str],
 ) -> tuple[FindingEntry, ...]:
     keys = {"id", "workload", "type", "unit", "label", "provided", "headline"}
     findings: dict[str, FindingEntry] = {}
-    for index, row in enumerate(
-        _rows(value, file_name, "findings", keys, optional=("measured_by", "coverage_total_from"))
+    for field, row in _rows(
+        value, reader, "findings", keys, optional=("measured_by", "coverage_total_from")
     ):
-        field = f"findings[{index}]"
-        finding_id = _code(row["id"], file_name, f"{field}.id")
+        finding_id = reader.matches(row["id"], f"{field}.id", _CODE)
         if "." not in finding_id:
-            raise InputError("invalid_field", file=file_name, field=f"{field}.id")
+            reader.fail(f"{field}.id")
         if finding_id in findings:
-            raise InputError("duplicate_id", file=file_name, field=f"{field}.id")
-        workload = _code(row["workload"], file_name, f"{field}.workload")
-        value_type, provided, headline = row["type"], row["provided"], row["headline"]
-        checks = {
-            "workload": workload in workload_ids,
-            "type": value_type in VALUE_TYPES,
-            "provided": provided in _PROVIDED_KINDS,
-            "headline": isinstance(headline, bool),
-        }
-        for name, valid in checks.items():
-            if not valid:
-                raise InputError("invalid_field", file=file_name, field=f"{field}.{name}")
-        unit = row["unit"]
-        if unit is not None:
-            unit = _code(unit, file_name, f"{field}.unit")
-        coverage_total_from = row.get("coverage_total_from")
-        if coverage_total_from is not None:
-            coverage_total_from = _code(
-                coverage_total_from, file_name, f"{field}.coverage_total_from"
-            )
-        findings[finding_id] = FindingEntry(
-            finding_id,
-            workload,
-            value_type,
-            unit,
-            _code(row["label"], file_name, f"{field}.label", _LABEL),
-            provided,
-            headline,
-            _measurement_pairs(
-                row.get("measured_by", {}),
-                file_name,
-                f"{field}.measured_by",
-                collector_ids,
-                measured_sources,
-            ),
-            coverage_total_from,
+            reader.fail(f"{field}.id", "duplicate_id")
+        findings[finding_id] = _finding(
+            row, finding_id, field, reader, workload_ids, collector_ids, measured_sources
         )
     for index, entry in enumerate(findings.values()):
         if entry.coverage_total_from is not None:
             total = findings.get(entry.coverage_total_from)
             if total is None or total.type != "count" or total.id == entry.id:
-                raise InputError(
-                    "invalid_field", file=file_name, field=f"findings[{index}].coverage_total_from"
-                )
+                reader.fail(f"findings[{index}].coverage_total_from")
     return tuple(findings.values())
 
 
 def _code_set(
-    value: object, file_name: str, field: str, pattern: re.Pattern[str] = _CODE
+    value: object, reader: Validator, field: str, pattern: re.Pattern[str] = _CODE
 ) -> frozenset[str]:
-    if not isinstance(value, list):
-        raise InputError("invalid_field", file=file_name, field=field)
     codes: set[str] = set()
-    for index, item in enumerate(value):
+    for index, item in enumerate(reader.rows(value, field, allow_empty=True)):
         member = f"{field}[{index}]"
-        code = _code(item, file_name, member, pattern)
+        code = reader.matches(item, member, pattern)
         if code in codes:
-            raise InputError("duplicate_id", file=file_name, field=member)
+            reader.fail(member, "duplicate_id")
         codes.add(code)
     return frozenset(codes)
 
 
-def _sku_exceptions(value: object, file_name: str) -> frozenset[tuple[str, str]]:
+def _sku_exceptions(value: object, reader: Validator) -> frozenset[tuple[str, str]]:
     field = "codes.sku_exceptions"
-    if not isinstance(value, dict):
-        raise InputError("invalid_field", file=file_name, field=field)
+    rows = reader.fields(value, field, (), optional=None)
     keys = set()
-    for index, (raw_guid, part) in enumerate(value.items()):
+    for index, (raw_guid, part) in enumerate(rows.items()):
         member = f"{field}[{index}]"
-        guid = _code(raw_guid, file_name, member, _GUID)
-        if not isinstance(part, str) or not _SKU_EXCEPTION.fullmatch(part):
-            raise InputError("invalid_field", file=file_name, field=member)
-        keys.add(sku_key(part, guid))
+        guid = reader.guid(raw_guid, member)
+        keys.add(sku_key(reader.matches(part, member, _SKU_EXCEPTION), guid))
     return frozenset(keys)
 
 
-def _require_label(labels: object, key: str, file_name: str, field: str) -> None:
+def _require_label(labels: object, key: str, reader: Validator, field: str) -> None:
     text = labels.get(key) if isinstance(labels, dict) else None
     if not isinstance(text, str) or not text.strip():
-        raise InputError("invalid_label", file=file_name, field=field)
+        reader.fail(field, "invalid_label")
 
 
 def load_catalogue(path: Path | None = None) -> Catalogue:
     source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
-    file_name = source.name
-    catalogue = _parse_catalogue(read_text(source), file_name)
+    reader = Validator(source.name)
+    catalogue = _parse_catalogue(read_text(source), reader)
     sections = (("workloads", catalogue.workloads), ("findings", catalogue.findings))
     for lang in SUPPORTED_LANGUAGES:
         strings = load_locale(lang)
         for group, entries in sections:
             for index, entry in enumerate(entries):
                 section, key = entry.label.split(".", 1)
-                _require_label(strings.get(section), key, file_name, f"{group}[{index}].label")
+                _require_label(strings.get(section), key, reader, f"{group}[{index}].label")
         for index, entry in enumerate(catalogue.findings):
             if entry.unit is not None:
                 for group in ("units", "unit_one"):
                     _require_label(
-                        strings.get(group), entry.unit, file_name, f"findings[{index}].unit"
+                        strings.get(group), entry.unit, reader, f"findings[{index}].unit"
                     )
     return catalogue
 
 
 @lru_cache(maxsize=2)
-def _parse_catalogue(text: str, file_name: str) -> Catalogue:
-    data = parse_yaml(text, file_name)
+def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
+    data = parse_yaml(text, reader.file_name)
     if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:
-        raise InputError("invalid_field", file=file_name, field="$")
-    workloads = _workloads(data["workloads"], file_name)
+        reader.fail("$")
+    workloads = _workloads(data["workloads"], reader)
     codes = data["codes"]
     if not isinstance(codes, dict) or codes.keys() != {
         "collectors",
@@ -255,20 +248,20 @@ def _parse_catalogue(text: str, file_name: str) -> Catalogue:
         "permissions",
         "sku_exceptions",
     }:
-        raise InputError("invalid_field", file=file_name, field="codes")
-    collector_ids = _code_set(codes["collectors"], file_name, "codes.collectors")
-    measured_sources = _code_set(codes["sources"], file_name, "codes.sources")
-    licence_sources = _code_set(codes["licence_sources"], file_name, "codes.licence_sources")
+        reader.fail("codes")
+    collector_ids = _code_set(codes["collectors"], reader, "codes.collectors")
+    measured_sources = _code_set(codes["sources"], reader, "codes.sources")
+    licence_sources = _code_set(codes["licence_sources"], reader, "codes.licence_sources")
     if measured_sources & licence_sources:
-        raise InputError("duplicate_id", file=file_name, field="codes.licence_sources")
+        reader.fail("codes.licence_sources", "duplicate_id")
     measured_sources |= licence_sources
-    provided_sources = _code_set(codes["provided_sources"], file_name, "codes.provided_sources")
+    provided_sources = _code_set(codes["provided_sources"], reader, "codes.provided_sources")
     if measured_sources & provided_sources:
-        raise InputError("duplicate_id", file=file_name, field="codes.provided_sources")
+        reader.fail("codes.provided_sources", "duplicate_id")
     findings = _findings(
         data["findings"],
-        file_name,
-        set(entry.id for entry in workloads),
+        reader,
+        {entry.id for entry in workloads},
         collector_ids,
         measured_sources,
     )
@@ -277,11 +270,11 @@ def _parse_catalogue(text: str, file_name: str) -> Catalogue:
         findings=findings,
         collector_ids=collector_ids,
         source_codes=measured_sources | provided_sources,
-        reason_codes=_code_set(codes["reasons"], file_name, "codes.reasons"),
-        permissions=_code_set(codes["permissions"], file_name, "codes.permissions", _PERMISSION),
-        file_name=file_name,
+        reason_codes=_code_set(codes["reasons"], reader, "codes.reasons"),
+        permissions=_code_set(codes["permissions"], reader, "codes.permissions", _PERMISSION),
+        file_name=reader.file_name,
         checksum=sha256(text.encode("utf-8")).hexdigest(),
         provided_sources=provided_sources,
-        sku_exceptions=_sku_exceptions(codes["sku_exceptions"], file_name),
+        sku_exceptions=_sku_exceptions(codes["sku_exceptions"], reader),
         licence_sources=licence_sources,
     )

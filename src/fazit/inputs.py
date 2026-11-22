@@ -1,19 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 from collections.abc import Collection, Mapping
-from dataclasses import dataclass, field, replace
-from datetime import date
+from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
-from typing import Never
 
-from .catalogue import Catalogue, FindingEntry
-from .errors import InputError
-from .i18n import SUPPORTED_LANGUAGES
-from .model import Coverage, Finding, Scan
+from .catalogue import Catalogue
+from .i18n import check_language
+from .mappings import PROFILES
 from .parsing import FieldNames, parse_yaml, read_text, reject_at_signs
-from .rules import PROFILES, provided_answers_conflict, select_evidence
+from .validation import Validator, non_negative_integer
 
 _INPUT_KEYS = (
     "organisation_name",
@@ -52,6 +49,7 @@ _QUOTED_FIELDS = tuple(f"current_costs.{name}" for name in _CURRENT_AMOUNTS) + t
 )
 _DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
 _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
+_CURRENCY = re.compile(r"[A-Z]{3}")
 
 
 @dataclass(frozen=True)
@@ -107,65 +105,29 @@ class Inputs:
 
 @dataclass(frozen=True)
 class _InputsReader:
-    file_name: str
-
-    def fail(self, field: str, code: str = "invalid_field") -> Never:
-        raise InputError(code, file=self.file_name, field=field or "$")
+    validator: Validator
 
     def fields(self, value: object, field: str, allowed: Collection[str]) -> dict[str, object]:
         if value is None:
             return {}
-        if not isinstance(value, dict):
-            self.fail(field)
-        for index, key in enumerate(value):
+        row = self.validator.fields(value, field, (), optional=None)
+        for index, key in enumerate(row):
             if key not in allowed:
-                self.fail(f"{field or '$'}[{index}]", "unknown_field")
-        return value
+                self.validator.fail(f"{field or '$'}[{index}]", "unknown_field")
+        return row
 
     def name(self, value: object, field: str, limit: int) -> str | None:
         if value is None:
             return None
-        if (
-            not isinstance(value, str)
-            or not value.strip()
-            or len(value) > limit
-            or not value.isprintable()
-        ):
-            self.fail(field)
-        return value
-
-    def choice(self, value: object, field: str, allowed: tuple[str, ...], code: str) -> str | None:
-        if value is not None and (not isinstance(value, str) or value not in allowed):
-            self.fail(field, code)
-        return value
-
-    def currency(self, value: object) -> str | None:
-        if value is not None and (
-            not isinstance(value, str) or not re.fullmatch(r"[A-Z]{3}", value)
-        ):
-            self.fail("currency")
-        return value
-
-    def as_of(self, value: object) -> str | None:
-        if value is None:
-            return None
-        if type(value) is date:
-            return value.isoformat()
-        if not isinstance(value, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
-            self.fail("as_of")
-        try:
-            return date.fromisoformat(value).isoformat()
-        except ValueError:
-            self.fail("as_of")
-
-    def count(self, value: object, field: str) -> int | None:
-        if value is not None and (type(value) is not int or value < 0):
-            self.fail(field)
+        if not isinstance(value, str) or not value.strip() or len(value) > limit:
+            self.validator.fail(field)
+        if not value.isprintable():
+            self.validator.fail(field)
         return value
 
     def boolean(self, value: object, field: str) -> bool | None:
         if value is not None and type(value) is not bool:
-            self.fail(field)
+            self.validator.fail(field)
         return value
 
     def decimal(
@@ -174,10 +136,8 @@ class _InputsReader:
         if value is None:
             return None
         if not isinstance(value, str):
-            self.fail(field, "money_not_quoted")
-        if not pattern.fullmatch(value):
-            self.fail(field)
-        return Decimal(value)
+            self.validator.fail(field, "money_not_quoted")
+        return Decimal(self.validator.matches(value, field, pattern))
 
     def amounts(
         self, row: dict[str, object], field: str, keys: tuple[str, ...], currency: str | None
@@ -186,24 +146,28 @@ class _InputsReader:
             key: self.decimal(row.get(key), f"{field}.{key}", pattern=_AMOUNT) for key in keys
         }
         if currency is None and any(value is not None for value in amounts.values()):
-            self.fail("currency", "missing_field")
+            self.validator.fail("currency", "missing_field")
         return amounts
 
     def scenario(self, value: object, field: str, currency: str | None) -> ScenarioInputs:
         row = self.fields(value, field, _SCENARIO_KEYS)
         amounts = self.amounts(row, field, _SCENARIO_AMOUNTS, currency)
-        months = self.count(row.get("parallel_running_months"), f"{field}.parallel_running_months")
+        months = self.validator.optional_count(
+            row.get("parallel_running_months"), f"{field}.parallel_running_months"
+        )
         if months is not None and months > 60:
-            self.fail(f"{field}.parallel_running_months")
+            self.validator.fail(f"{field}.parallel_running_months")
         days = row.get("training_days_per_person")
         days_field = f"{field}.training_days_per_person"
         return ScenarioInputs(
             **amounts,
-            users=self.count(row.get("users"), f"{field}.users"),
+            users=self.validator.optional_count(row.get("users"), f"{field}.users"),
             training_days_per_person=(
-                Decimal(days) if type(days) is int and days >= 0 else self.decimal(days, days_field)
+                Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field)
             ),
-            training_staff=self.count(row.get("training_staff"), f"{field}.training_staff"),
+            training_staff=self.validator.optional_count(
+                row.get("training_staff"), f"{field}.training_staff"
+            ),
             parallel_running_months=months,
         )
 
@@ -211,20 +175,19 @@ class _InputsReader:
         row = self.fields(value, field, _SOFTWARE_KEYS)
         name = self.name(row.get("name"), f"{field}.name", 80)
         if name is None:
-            self.fail(f"{field}.name", "missing_field")
+            self.validator.fail(f"{field}.name", "missing_field")
         return WindowsSoftware(
             name,
-            self.count(row.get("users"), f"{field}.users"),
+            self.validator.optional_count(row.get("users"), f"{field}.users"),
             self.boolean(row.get("vendor_has_web_version"), f"{field}.vendor_has_web_version"),
         )
 
     def software_list(self, value: object) -> tuple[WindowsSoftware, ...] | None:
         if value is None:
             return None
-        if not isinstance(value, list):
-            self.fail("windows_only_software")
+        rows = self.validator.rows(value, "windows_only_software", allow_empty=True)
         return tuple(
-            self.software_entry(item, f"windows_only_software[{i}]") for i, item in enumerate(value)
+            self.software_entry(item, f"windows_only_software[{i}]") for i, item in enumerate(rows)
         )
 
 
@@ -265,23 +228,32 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
         },
     )
     reject_at_signs(data, file_name)
-    reader = _InputsReader(file_name)
+    return _read_inputs(data, Validator(file_name), count_ids, boolean_ids)
+
+
+def _read_inputs(
+    data: object, validator: Validator, count_ids: set[str], boolean_ids: set[str]
+) -> Inputs:
+    reader = _InputsReader(validator)
     row = reader.fields(data, "", _INPUT_KEYS)
-    currency = reader.currency(row.get("currency"))
+    currency = row.get("currency")
+    if currency is not None:
+        currency = validator.matches(currency, "currency", _CURRENCY)
     current = reader.fields(row.get("current_costs"), "current_costs", _CURRENT_AMOUNTS)
     targets = reader.fields(row.get("target_costs"), "target_costs", _SCENARIOS)
     counts = reader.fields(row.get("provided_counts"), "provided_counts", count_ids)
     confirmations = reader.fields(row.get("confirmations"), "confirmations", boolean_ids)
+    language, profile, as_of = (row.get(name) for name in ("language", "target_profile", "as_of"))
     return Inputs(
         organisation_name=reader.name(row.get("organisation_name"), "organisation_name", 120),
         currency=currency,
-        language=reader.choice(
-            row.get("language"), "language", SUPPORTED_LANGUAGES, "unsupported_language"
-        ),
-        target_profile=reader.choice(
-            row.get("target_profile"), "target_profile", PROFILES, "unsupported_profile"
-        ),
-        as_of=reader.as_of(row.get("as_of")),
+        language=None
+        if language is None
+        else check_language(language, file=validator.file_name, field="language"),
+        target_profile=None
+        if profile is None
+        else validator.choice(profile, "target_profile", PROFILES, "unsupported_profile"),
+        as_of=None if as_of is None else validator.calendar_date(as_of, "as_of").isoformat(),
         answers_are_sample=reader.boolean(row.get("answers_are_sample"), "answers_are_sample")
         is True,
         amounts_are_invented=reader.boolean(row.get("amounts_are_invented"), "amounts_are_invented")
@@ -295,7 +267,10 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
         full_exit=reader.scenario(targets.get("full_exit"), "target_costs.full_exit", currency),
         windows_only_software=reader.software_list(row.get("windows_only_software")),
         provided_counts=MappingProxyType(
-            {key: reader.count(value, f"provided_counts.{key}") for key, value in counts.items()}
+            {
+                key: validator.optional_count(value, f"provided_counts.{key}")
+                for key, value in counts.items()
+            }
         ),
         confirmations=MappingProxyType(
             {
@@ -308,68 +283,3 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
 
 def load_inputs(path: Path, catalogue: Catalogue) -> Inputs:
     return load_inputs_text(read_text(path), path.name, catalogue)
-
-
-def _provided(
-    entry: FindingEntry,
-    value: int | bool | None,
-    inputs: Inputs,
-    coverage: Coverage | None = None,
-) -> Finding:
-    return Finding(
-        id=entry.id,
-        workload=entry.workload,
-        unit=entry.unit,
-        value=value,
-        provenance="unknown" if value is None else "provided",
-        collector=None,
-        source=inputs.answer_source,
-        collected_at=inputs.as_of,
-        period=None,
-        coverage=coverage,
-        missing_reason="answer_not_provided" if value is None else None,
-    )
-
-
-def _without_web_version(
-    software: tuple[WindowsSoftware, ...],
-) -> tuple[int | None, Coverage | None]:
-    confirmed = sum(item.vendor_has_web_version is False for item in software)
-    answered = sum(item.vendor_has_web_version is not None for item in software)
-    if answered == len(software):
-        return confirmed, None
-    return confirmed or None, Coverage("partial", scanned=answered, total=len(software))
-
-
-def provided_findings(inputs: Inputs, catalogue: Catalogue) -> tuple[Finding, ...]:
-    answers = {**inputs.provided_counts, **inputs.confirmations}
-    software = inputs.windows_only_software
-    findings: list[Finding] = []
-    for entry in catalogue.findings:
-        if entry.provided == "answer" and (value := answers.get(entry.id)) is not None:
-            findings.append(_provided(entry, value, inputs))
-        elif software is not None and entry.provided == "software_list":
-            findings.append(_provided(entry, len(software), inputs))
-        elif software is not None and entry.provided == "software_list_without_web_version":
-            lower_bound, coverage = _without_web_version(software)
-            findings.append(_provided(entry, lower_bound, inputs, coverage))
-    return tuple(findings)
-
-
-def combine(scan: Scan, provided: tuple[Finding, ...]) -> tuple[Scan, tuple[Finding, ...]]:
-    if not provided:
-        return scan, ()
-    by_id = {finding.id: finding for finding in scan.findings}
-    skipped = {collector.id for collector in scan.collectors if collector.status == "skipped"}
-    alternatives: list[Finding] = []
-    for supplied in {finding.id: finding for finding in provided}.values():
-        recorded = by_id.get(supplied.id)
-        selected = select_evidence(recorded, supplied)
-        by_id[supplied.id] = selected
-        if recorded and (
-            (recorded.provenance == "measured" and supplied.provenance == "provided")
-            or provided_answers_conflict(recorded, supplied)
-            or (selected is supplied and recorded.collector in skipped)
-        ):
-            alternatives.append(recorded if selected is supplied else supplied)
-    return replace(scan, findings=tuple(by_id.values())), tuple(alternatives)

@@ -19,7 +19,8 @@ from typer.testing import CliRunner
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
-from fazit.rules import STATUSES, load_mapping
+from fazit.mappings import load_mapping
+from fazit.status import STATUSES
 
 ROOT = Path(__file__).resolve().parent
 ORIGIN = "https://fazit.dev"

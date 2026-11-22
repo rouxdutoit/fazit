@@ -13,8 +13,8 @@ from typer.testing import CliRunner, Result
 from fazit import cli
 from fazit.catalogue import load_catalogue
 from fazit.i18n import load_locale
-from fazit.model import ServicePlan, load_scan, load_scan_text, scan_to_json
-from fazit.rules import load_service_plans
+from fazit.licences import load_service_plans, scan_to_json
+from fazit.model import ServicePlan, load_scan, load_scan_text
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 PRIVATE_TEXT = ("Mustermann", "eyJhbGci", "planted-secret")

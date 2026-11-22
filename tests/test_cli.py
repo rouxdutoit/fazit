@@ -17,18 +17,21 @@ from shutil import copyfile, copytree
 
 import pytest
 import yaml
+from report_expectations import SECTION_ORDER
 from test_repo_basics import ROOT, readme_code_blocks
 from typer.testing import CliRunner
 
-from fazit import __version__, i18n, inputs, model, rules
+from fazit import __version__, i18n, model, rules, validation
 from fazit import report as report_module
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.errors import InputError
 from fazit.i18n import SUPPORTED_LANGUAGES, load_locale
+from fazit.mappings import PROFILES, load_mapping
 from fazit.model import Coverage, Scan, load_scan, load_scan_text
 from fazit.parsing import parse_yaml, read_text
-from fazit.report import SECTION_ORDER, render_report, report_file_name
+from fazit.report import render_report, report_file_name
+from fazit.status import STATUSES
 
 runner = CliRunner()
 # Typer colours help on GitHub Actions.
@@ -49,17 +52,7 @@ def test_demo_writes_one_local_report(tmp_path: Path) -> None:
     assert report.is_file()
     html = report.read_text(encoding="utf-8")
     assert html.startswith("<!doctype html>\n")
-    assert re.findall(r'data-section="([^"]+)"', html) == [
-        "header",
-        "found",
-        "costs",
-        "readiness",
-        "moves",
-        "attention",
-        "path",
-        "appendix",
-        "footer",
-    ]
+    assert re.findall(r'data-section="([^"]+)"', html) == list(SECTION_ORDER)
     header = load_locale("en")["header"]
     assert all(header[key] in html for key in ("local", "offline", "sample"))
     assert 'data-finding="directory.user_count"' in html
@@ -172,7 +165,7 @@ def _section(html: str, name: str) -> str:
     return section[0]
 
 
-@pytest.mark.parametrize("profile", rules.PROFILES)
+@pytest.mark.parametrize("profile", PROFILES)
 def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, profile: str) -> None:
     source = files("fazit").joinpath("demo", "town", "scan.json")
     result = runner.invoke(
@@ -183,7 +176,7 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
     report = Path(result.stdout.strip())
     assert report.is_file() and report.parent == tmp_path
     html = report.read_text(encoding="utf-8")
-    mapping = rules.load_mapping(profile, load_catalogue())
+    mapping = load_mapping(profile, load_catalogue())
     strings = load_locale("en")
     moves = _section(html, "moves")
     assert mapping.label["en"] in html.split("</header>", 1)[0]
@@ -359,7 +352,7 @@ def _sample_scan(name: str) -> Scan:
     return load_scan_text(read_text(source), source.name, load_catalogue())
 
 
-@pytest.mark.parametrize("profile", rules.PROFILES)
+@pytest.mark.parametrize("profile", PROFILES)
 @pytest.mark.parametrize("lang", ["en", "de"])
 @pytest.mark.parametrize(("sample", "date"), [("town", "2026-11-02"), ("nonprofit", "2026-11-05")])
 def test_cli_renders_every_profile_in_both_languages_for_both_samples(
@@ -387,7 +380,7 @@ def test_cli_renders_every_profile_in_both_languages_for_both_samples(
     html = report.read_text(encoding="utf-8")
     assert f'<html lang="{lang}">' in html
     assert load_locale(lang)["header"]["sample"] in html
-    mapping = rules.load_mapping(profile, load_catalogue())
+    mapping = load_mapping(profile, load_catalogue())
     assert mapping.label[lang] in html.split("</header>", 1)[0]
     moves = _section(html, "moves")
     assert moves.count("data-function=") == len(mapping.functions)
@@ -481,7 +474,7 @@ def test_scan_only_report_readiness(tmp_path: Path, sample: str, lang: str) -> N
     segments = re.findall(r'data-segment="([^"]+)" data-count="(\d+)"', table)
     assert segments == [
         (status, str(total))
-        for status in rules.STATUSES
+        for status in STATUSES
         if (total := sum(result == status for _, result in rows))
     ]
     assert sum(int(total) for _, total in segments) == len(catalogue.workloads)
@@ -742,7 +735,7 @@ def test_report_resolves_options_and_displays_organisation_from_inputs(
     header = html.split("</header>", 1)[0]
     assert f'<html lang="{lang}">' in html
     assert "West Weir Council" in header and "West Weir Council" not in result.stdout
-    assert rules.load_mapping(profile, load_catalogue()).label[lang] in header
+    assert load_mapping(profile, load_catalogue()).label[lang] in header
     assert answers.name not in html
 
 
@@ -1067,7 +1060,7 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
         def utcnow(cls) -> datetime.datetime:
             return cls.now()
 
-    for module in (datetime, model, i18n, inputs, report_module):
+    for module in (datetime, i18n, report_module, validation):
         patch.setattr(module, "date", SystemDate)
     for module in (datetime, model):
         patch.setattr(module, "datetime", SystemDateTime)
@@ -1081,7 +1074,7 @@ def _set_system_day(patch: pytest.MonkeyPatch, day: date) -> None:
             (sample, lang, profile, True)
             for sample in ("town", "nonprofit")
             for lang in SUPPORTED_LANGUAGES
-            for profile in rules.PROFILES
+            for profile in PROFILES
         ),
     ],
 )

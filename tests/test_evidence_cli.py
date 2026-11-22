@@ -10,7 +10,7 @@ from typer.testing import CliRunner, Result
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
-from fazit.rules import load_service_plans
+from fazit.licences import load_service_plans
 
 NO_TELEPHONY = "confirmations: {telephony.in_use: false, telephony.replacement_available: false}"
 

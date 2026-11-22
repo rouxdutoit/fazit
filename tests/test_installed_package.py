@@ -10,10 +10,10 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
+from report_expectations import SECTION_ORDER
 from test_repo_basics import LICENSE_SHA256, ROOT
 
 from fazit.i18n import load_locale
-from fazit.report import SECTION_ORDER
 
 pytestmark = pytest.mark.slow
 

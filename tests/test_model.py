@@ -2,7 +2,6 @@
 import json
 import re
 import sys
-from collections.abc import ItemsView
 from dataclasses import asdict
 from importlib.resources import files
 from pathlib import Path
@@ -14,7 +13,7 @@ from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
 from fazit.i18n import error_sentence, load_locale
 from fazit.model import Coverage, Scan, load_scan, load_scan_text
-from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text, reject_at_signs
+from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text
 from fazit.report import render_report
 
 
@@ -645,21 +644,6 @@ def test_read_text_checks_size_before_opening(
         with pytest.raises(InputError, match="file_too_large") as caught:
             read_text(path)
     assert (caught.value.file, caught.value.field) == (path.name, "$")
-
-
-def test_privacy_walk_checks_each_shared_container_once() -> None:
-    class CountedMapping(dict[str, object]):
-        visits = 0
-
-        def items(self) -> ItemsView[str, object]:
-            self.visits += 1
-            return super().items()
-
-    mapping = CountedMapping({"name": "Example"})
-    shared = [mapping, mapping]
-    reject_at_signs([shared, shared], "manual.yaml")
-
-    assert mapping.visits == 1
 
 
 def test_report_shows_finding_evidence_and_collector_details(

@@ -4,55 +4,42 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import MAX_EMAX, MIN_EMIN, Context, Decimal
+from fractions import Fraction
 from functools import lru_cache, partial
 from importlib.resources import files
 
 from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
-from .catalogue import Catalogue, load_catalogue, sku_key
-from .costs import CostLine, ScenarioResult, compute_scenarios
-from .errors import InputError
-from .i18n import SUPPORTED_LANGUAGES, Formatter, code_label, reason_text
-from .inputs import Inputs, combine, provided_findings
-from .model import Coverage, Finding, FindingValue, Product, Scan, scan_to_json
-from .parsing import read_text
-from .rules import (
-    STATUSES,
-    FunctionMapping,
-    Mapping,
-    ServicePlan,
-    StatusRuleSet,
-    WorkloadStatus,
-    classify_product,
-    evaluate,
+from .catalogue import Catalogue, load_catalogue
+from .costs import MONTHS_PER_YEAR, CostGroup, CostLine, ScenarioResult, compute_scenarios
+from .evidence import (
+    combine,
     evidence_conflicts,
-    licence_findings,
-    load_mapping,
-    load_risky_file_types,
-    load_service_plans,
-    load_status_rules,
-    mapping_need,
+    is_complete,
     provided_answers_conflict,
+    provided_findings,
 )
-
-SECTION_ORDER = (
-    "header",
-    "found",
-    "costs",
-    "readiness",
-    "moves",
-    "attention",
-    "path",
-    "appendix",
-    "footer",
+from .i18n import Formatter, check_language, code_label, reason_text
+from .inputs import Inputs
+from .licences import (
+    RegisteredPlan,
+    ServicePlans,
+    classify_product,
+    licence_findings,
+    load_service_plans,
+    scan_to_json,
 )
+from .mappings import FunctionMapping, TargetMapping, load_mapping
+from .model import Coverage, Finding, FindingValue, Product, Scan
+from .parsing import read_text
+from .risky_files import load_risky_file_types
+from .status import STATUSES, StatusRuleSet, WorkloadStatus, evaluate, load_status_rules
 
 
 def report_file_name(generated_at: str, *, lang: str) -> str:
-    if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", field="--lang")
+    check_language(lang)
     return f"report-{date.fromisoformat(generated_at[:10]).isoformat()}-{lang}.html"
 
 
@@ -134,7 +121,7 @@ def _finding_labels(
 class _CostTableBlock:
     id: str
     lines: tuple[tuple[str, tuple[CostLine | None, ...]], ...]
-    totals: tuple[Decimal | None, ...]
+    groups: tuple[CostGroup, ...]
 
 
 def _cost_table_blocks(scenarios: tuple[ScenarioResult, ...]) -> tuple[_CostTableBlock, ...]:
@@ -147,16 +134,21 @@ def _cost_table_blocks(scenarios: tuple[ScenarioResult, ...]) -> tuple[_CostTabl
             _CostTableBlock(
                 groups[0].id,
                 tuple((id, tuple(lines.get(id) for lines in scenario_lines)) for id in ids),
-                tuple(group.total for group in groups),
+                groups,
             )
         )
     return tuple(blocks)
 
 
-def _plain_amount(amount: Decimal | None) -> str:
+def _plain_amount(amount: Fraction | None, input_exponent: int) -> str:
     if amount is None:
         return "unknown"
-    whole, _, fraction = f"{amount:f}".partition(".")
+    # Preserve the decimal precision of existing HTML data attributes for prorated amounts.
+    coefficient = int(amount * MONTHS_PER_YEAR * Fraction(10) ** -input_exponent)
+    precision = max(28, len(Decimal(coefficient).as_tuple().digits) + 4)
+    context = Context(prec=precision, Emin=MIN_EMIN, Emax=MAX_EMAX)
+    number = context.divide(Decimal(amount.numerator), Decimal(amount.denominator))
+    whole, _, fraction = f"{number:f}".partition(".")
     fraction = fraction.rstrip("0")
     return f"{whole}.{fraction}" if fraction else whole
 
@@ -189,27 +181,24 @@ class _LicenceRow:
     label: str
     purchased: int
     assigned: int
-    plans: tuple[ServicePlan | None, ...]
+    plans: tuple[RegisteredPlan | None, ...]
 
 
 def _licence_rows(
-    products: tuple[Product, ...], plans: tuple[ServicePlan, ...], formatter: Formatter
+    products: tuple[Product, ...], plans: ServicePlans, formatter: Formatter
 ) -> tuple[_LicenceRow, ...]:
-    registered = {
-        sku_key(plan.sku_part_number, plan.sku_guid): plan.sku_part_number for plan in plans
-    }
     unregistered = 0
     rows = []
     for product in products:
-        code = registered.get(product.key)
-        if code is None:
+        roster = plans.rosters.get(product.key)
+        if roster is None:
             unregistered += 1
             code = f"unregistered-{unregistered}"
             label = formatter.strings["licences"]["unregistered_product"].format(
                 number=formatter.integer(unregistered)
             )
         else:
-            label = code
+            label = code = roster.part_number
         rows.append(
             _LicenceRow(
                 code, label, product.purchased, product.assigned, classify_product(product, plans)
@@ -226,7 +215,7 @@ def _prepare_report(
     inputs: Inputs | None,
     *,
     scan_file_name: str = "scan.json",
-) -> tuple[dict[str, object], tuple[ServicePlan, ...]]:
+) -> tuple[dict[str, object], ServicePlans]:
     formatter = Formatter(lang)
     catalogue = catalogue if catalogue is not None else load_catalogue()
     checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}
@@ -262,7 +251,7 @@ def _prepare_report(
 
 
 def _mapping_gaps(
-    mapping: Mapping, by_id: dict[str, Finding], statuses: tuple[WorkloadStatus, ...]
+    mapping: TargetMapping, by_id: dict[str, Finding], statuses: tuple[WorkloadStatus, ...]
 ) -> list[tuple[FunctionMapping, Finding | None, str, tuple[str, ...]]]:
     missing: dict[str, list[str]] = defaultdict(list)
     for row in statuses:
@@ -273,7 +262,9 @@ def _mapping_gaps(
         if item.coverage != "not_available":
             continue
         finding = by_id.get(item.need_finding) if item.need_finding else None
-        need = mapping_need(finding)
+        need = "unknown"
+        if finding is not None and is_complete(finding):
+            need = "yes" if finding.value else "no"
         reasons = tuple(
             dict.fromkeys(
                 code
@@ -307,7 +298,7 @@ def _evidence_context(
     other_evidence: tuple[Finding, ...],
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
-    mapping: Mapping,
+    mapping: TargetMapping,
 ) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
     statuses = evaluate(
@@ -318,18 +309,11 @@ def _evidence_context(
         alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
-    status_by_workload = {row.workload: row for row in statuses}
+    observations = [(entry, by_id.get(entry.id)) for entry in catalogue.findings]
     by_workload = {workload.id: [] for workload in catalogue.workloads}
-    headlines = []
-    software = []
-    for entry in catalogue.findings:
-        finding = by_id.get(entry.id)
+    for entry, finding in observations:
         if finding is not None:
             by_workload[entry.workload].append((entry, finding))
-        if entry.headline:
-            headlines.append((entry, finding))
-        if entry.provided in ("software_list", "software_list_without_web_version"):
-            software.append((entry, finding))
 
     return dict(
         alternatives=alternatives,
@@ -340,15 +324,19 @@ def _evidence_context(
         statuses=statuses,
         status_counts=[(status, counts[status]) for status in STATUSES],
         status_rules=status_rules,
-        status_by_workload=status_by_workload,
+        status_by_workload={row.workload: row for row in statuses},
         mapping_gaps=_mapping_gaps(mapping, by_id, statuses),
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[
             collector for collector in scan.collectors if collector.status == "skipped"
         ],
-        headlines=headlines,
+        headlines=[row for row in observations if row[0].headline],
         groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
-        software=software,
+        software=[
+            row
+            for row in observations
+            if row[0].provided in ("software_list", "software_list_without_web_version")
+        ],
     )
 
 
@@ -393,7 +381,7 @@ _ICON_PATH = re.compile(r'<path d="([^"<>]+)"/>')
 
 @lru_cache(maxsize=1)
 def _assets() -> dict[str, dict[str, str]]:
-    """Fonts and Material Symbols shared with the website, embedded so the report stays one file."""
+    # Embed the assets so the report stays one file.
     package = files("fazit")
     fonts = {
         name: base64.b64encode(package.joinpath("fonts", f"{name}.woff2").read_bytes()).decode()

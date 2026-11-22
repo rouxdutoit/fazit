@@ -615,16 +615,16 @@
                   {{ cost_heading(costs.line_items[id], lines|reject('none')|rejectattr('amount', 'none')|list) }}
                   {% for line in lines %}
                     {% set result = scenarios[loop.index0] %}
-                    <td role="cell" data-label="{{ costs[result.id] }}"{% if line %} data-amount="{{ plain_amount(line.amount) }}"{% endif %}>
+                    <td role="cell" data-label="{{ costs[result.id] }}"{% if line %} data-amount="{{ plain_amount(line.amount, line.input_exponent) }}"{% endif %}>
                       {{ cost_amount(line.amount) if line else costs.not_applicable }}
                     </td>
                   {% endfor %}
                 </tr>
               {% endfor %}
               <tr class="subtotals" role="row">
-                {{ cost_heading(costs.subtotal, block.totals|reject('none')|list) }}
-                {% for amount in block.totals %}
-                  <td role="cell" data-label="{{ costs[scenarios[loop.index0].id] }}" data-amount="{{ plain_amount(amount) }}">{{ cost_amount(amount) }}</td>
+                {{ cost_heading(costs.subtotal, block.groups|rejectattr('total', 'none')|list) }}
+                {% for group in block.groups %}
+                  <td role="cell" data-label="{{ costs[scenarios[loop.index0].id] }}" data-amount="{{ plain_amount(group.total, group.input_exponent) }}">{{ cost_amount(group.total) }}</td>
                 {% endfor %}
               </tr>
             </tbody>
@@ -633,7 +633,7 @@
             <tr class="totals" role="row">
               {{ cost_heading(costs.total, scenarios|rejectattr('total', 'none')|list) }}
               {% for result in scenarios %}
-                <td data-scenario="{{ result.id }}" data-total="{{ plain_amount(result.total) }}" role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.total) }}</td>
+                <td data-scenario="{{ result.id }}" data-total="{{ plain_amount(result.total, result.input_exponent) }}" role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.total) }}</td>
               {% endfor %}
             </tr>
             <tr role="row">

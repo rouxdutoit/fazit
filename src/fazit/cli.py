@@ -12,17 +12,17 @@ from .catalogue import load_catalogue
 from .errors import InputError
 from .i18n import (
     DEFAULT_LANGUAGE,
-    SUPPORTED_LANGUAGES,
+    check_language,
     error_sentence,
     escape_controls,
     load_locale,
 )
 from .inputs import Inputs, load_inputs, load_inputs_text
+from .mappings import PROFILES
 from .model import load_scan, load_scan_text
 from .output import write_files, write_inside
 from .parsing import read_text
 from .report import render_demo, render_report, report_file_name
-from .rules import PROFILES
 
 app = typer.Typer(
     add_completion=False,
@@ -59,11 +59,6 @@ def options(
     ctx.obj = debug
 
 
-def _check_language(lang: str) -> None:
-    if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", field="--lang")
-
-
 def _printed_path(path: Path, out: str) -> str:
     cwd = Path.cwd()
     if path.is_relative_to(cwd):
@@ -80,7 +75,9 @@ def _printed_path(path: Path, out: str) -> str:
 def _exit_with_error(ctx: typer.Context, lang: str, error: InputError) -> Never:
     if ctx.obj:
         raise error
-    strings = load_locale(lang if lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
+    if error.code == "unsupported_language" and error.file is None:
+        lang = DEFAULT_LANGUAGE
+    strings = load_locale(lang)
     message = error_sentence(strings, error)
     typer.echo(strings["cli"]["error_prefix"].format(message=message), err=True)
     raise typer.Exit(2) from None
@@ -96,7 +93,7 @@ def demo(
 ) -> None:
     """Build a report from bundled sample data."""
     try:
-        _check_language(lang)
+        check_language(lang)
         if sample not in ("town", "nonprofit"):
             raise InputError("unsupported_sample", field="--sample")
         sample_files = files("fazit").joinpath("demo", sample)
@@ -146,7 +143,7 @@ def report(
     """Build a report from an existing scan file."""
     message_lang = lang if lang is not None else DEFAULT_LANGUAGE
     try:
-        _check_language(message_lang)
+        check_language(message_lang)
         catalogue = load_catalogue()
         scan = load_scan(scan_json, catalogue)
         answers = load_inputs(inputs, catalogue) if inputs is not None else Inputs()

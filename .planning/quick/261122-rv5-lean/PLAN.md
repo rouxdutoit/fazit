@@ -2,7 +2,7 @@
 quick_id: 261122-rv5
 slug: lean
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review batch 5, structure and lean code

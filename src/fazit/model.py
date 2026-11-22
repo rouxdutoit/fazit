@@ -1,22 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from __future__ import annotations
-
-import json
 import re
-from collections.abc import Collection
-from dataclasses import asdict, dataclass, replace
-from datetime import date, datetime
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Never
-from uuid import UUID
 
 from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .parsing import FieldNames, parse_json, read_text, reject_at_signs
-
-if TYPE_CHECKING:
-    from .rules import ServicePlan as RegisteredServicePlan
+from .validation import DATE, IDENTIFIER, Validator
 
 SUPPORTED_SCHEMA_MAJOR = 1
 SOURCE_KINDS = ("sample", "import", "live")
@@ -26,14 +18,12 @@ COVERAGE_KINDS = ("complete", "partial", "unknown")
 
 _SCHEMA_VERSION = re.compile(r"[0-9]{1,8}\.[0-9]{1,8}")
 _TOOL_VERSION = re.compile(r"[0-9]{1,8}(?:\.[0-9]{1,8}){1,2}")
-_DATE = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 _TIMESTAMP = re.compile(
-    rf"{_DATE}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]+)?)?"
+    rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]+)?)?"
     r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"
 )
 _FRACTIONAL_SECONDS = re.compile(r"[.,]([0-9]+)")
-_PERIOD = re.compile(rf"{_DATE}/{_DATE}")
-_IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
+_PERIOD = re.compile(rf"{DATE.pattern}/{DATE.pattern}")
 _SCAN_FIELDS = (
     "schema_version",
     "tool",
@@ -216,74 +206,42 @@ class Scan:
 
 class _ScanReader:
     def __init__(self, file_name: str, catalogue: Catalogue) -> None:
-        self.file_name = file_name
+        self.check = Validator(file_name)
         self.catalogue = catalogue
         self.dropped_count = 0
-
-    def fail(self, field: str, code: str = "invalid_field", **details: object) -> Never:
-        raise InputError(code, file=self.file_name, field=field or "$", **details)
 
     def fields(
         self,
         value: object,
         field: str,
-        *,
         required: tuple[str, ...],
         optional: tuple[str, ...] = (),
     ) -> dict:
-        if not isinstance(value, dict):
-            self.fail(field)
-        for name in required:
-            if name not in value:
-                self.fail(f"{field}.{name}" if field else name, "missing_field")
-        self.dropped_count += len(value.keys() - {*required, *optional})
-        return value
-
-    def list(self, value: object, field: str) -> list[object]:
-        if not isinstance(value, list):
-            self.fail(field)
-        return value
-
-    def code(self, value: object, field: str, allowed: Collection[str]) -> str:
-        if not isinstance(value, str) or value not in allowed:
-            self.fail(field, "invalid_code")
-        return value
-
-    def count(self, value: object, field: str) -> int:
-        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-            self.fail(field)
-        return value
-
-    def matches(self, value: object, field: str, pattern: re.Pattern[str]) -> str:
-        if not isinstance(value, str) or not pattern.fullmatch(value):
-            self.fail(field)
-        return value
+        row = self.check.fields(value, field, required, optional=None)
+        self.dropped_count += len(row.keys() - {*required, *optional})
+        return row
 
     def timestamp(self, value: object, field: str) -> str:
-        stamp = self.matches(value, field, _TIMESTAMP)
+        stamp = self.check.matches(value, field, _TIMESTAMP)
         try:
             datetime.fromisoformat(stamp)
         except ValueError:
-            raise InputError("invalid_field", file=self.file_name, field=field) from None
+            self.check.fail(field)
         return stamp
 
     def period(self, value: object, field: str) -> str:
-        interval = self.matches(value, field, _PERIOD)
+        interval = self.check.matches(value, field, _PERIOD)
         start, end = interval.split("/")
-        try:
-            first, last = date.fromisoformat(start), date.fromisoformat(end)
-        except ValueError:
-            raise InputError("invalid_field", file=self.file_name, field=field) from None
-        if last < first:
-            self.fail(field)
+        if self.check.calendar_date(start, field) > self.check.calendar_date(end, field):
+            self.check.fail(field)
         return interval
 
     def schema_version(self, value: object) -> str:
-        version = self.matches(value, "schema_version", _SCHEMA_VERSION)
+        version = self.check.matches(value, "schema_version", _SCHEMA_VERSION)
         if int(version.split(".", 1)[0]) != SUPPORTED_SCHEMA_MAJOR:
             raise InputError(
                 "schema_version",
-                file=self.file_name,
+                file=self.check.file_name,
                 field="schema_version",
                 found=version,
                 supported=f"{SUPPORTED_SCHEMA_MAJOR}.x",
@@ -291,77 +249,78 @@ class _ScanReader:
         return version
 
     def tool(self, value: object) -> ToolInfo:
-        row = self.fields(value, "tool", required=_TOOL_FIELDS)
+        row = self.fields(value, "tool", _TOOL_FIELDS)
         return ToolInfo(
-            name=self.code(row["name"], "tool.name", (PROJECT_NAME,)),
-            version=self.matches(row["version"], "tool.version", _TOOL_VERSION),
+            name=self.check.choice(row["name"], "tool.name", (PROJECT_NAME,)),
+            version=self.check.matches(row["version"], "tool.version", _TOOL_VERSION),
         )
 
     def collectors(self, value: object) -> dict[str, Collector]:
         collectors: dict[str, Collector] = {}
-        for index, item in enumerate(self.list(value, "collectors")):
+        for index, item in enumerate(self.check.rows(value, "collectors", allow_empty=True)):
             field = f"collectors[{index}]"
-            row = self.fields(
-                item, field, required=_COLLECTOR_REQUIRED, optional=_COLLECTOR_OPTIONAL
-            )
-            collector_id = self.code(row["id"], f"{field}.id", self.catalogue.collector_ids)
+            row = self.fields(item, field, _COLLECTOR_REQUIRED, _COLLECTOR_OPTIONAL)
+            collector_id = self.check.choice(row["id"], f"{field}.id", self.catalogue.collector_ids)
             if collector_id in collectors:
-                self.fail(f"{field}.id", "duplicate_id")
-            status = self.code(row["status"], f"{field}.status", COLLECTOR_STATUSES)
+                self.check.fail(f"{field}.id", "duplicate_id")
+            status = self.check.choice(row["status"], f"{field}.status", COLLECTOR_STATUSES)
             reason = row.get("reason")
             if (status == "ok") != (reason is None):
-                self.fail(f"{field}.reason", "collector_reason_mismatch")
+                self.check.fail(f"{field}.reason", "collector_reason_mismatch")
             if reason is not None:
-                reason = self.code(reason, f"{field}.reason", self.catalogue.reason_codes)
-            permissions = self.list(row["permissions_used"], f"{field}.permissions_used")
+                reason = self.check.choice(reason, f"{field}.reason", self.catalogue.reason_codes)
+            permissions = self.check.rows(
+                row["permissions_used"], f"{field}.permissions_used", allow_empty=True
+            )
             collectors[collector_id] = Collector(
                 collector_id,
                 status,
                 reason,
                 tuple(
-                    self.code(code, f"{field}.permissions_used[{i}]", self.catalogue.permissions)
+                    self.check.choice(
+                        code, f"{field}.permissions_used[{i}]", self.catalogue.permissions
+                    )
                     for i, code in enumerate(permissions)
                 ),
             )
         return collectors
 
     def coverage(self, value: object, field: str) -> Coverage:
-        row = self.fields(value, field, required=("kind",), optional=_COVERAGE_COUNTS)
-        kind = self.code(row["kind"], f"{field}.kind", COVERAGE_KINDS)
+        row = self.fields(value, field, ("kind",), _COVERAGE_COUNTS)
+        kind = self.check.choice(row["kind"], f"{field}.kind", COVERAGE_KINDS)
         scanned, failed, total = (
-            None if row.get(name) is None else self.count(row[name], f"{field}.{name}")
-            for name in _COVERAGE_COUNTS
+            self.check.optional_count(row.get(name), f"{field}.{name}") for name in _COVERAGE_COUNTS
         )
         if total is not None and (scanned or 0) + (failed or 0) > total:
-            self.fail(field, "invalid_coverage")
+            self.check.fail(field, "invalid_coverage")
         if kind == "complete" and any(count is not None for count in (scanned, failed, total)):
             if failed != 0 or scanned is None or total is None or scanned != total:
-                self.fail(field, "invalid_coverage")
+                self.check.fail(field, "invalid_coverage")
         return Coverage(kind, scanned, failed, total)
 
     def finding_value(self, value: object, field: str, entry: FindingEntry) -> FindingValue:
         if entry.type == "boolean":
             if not isinstance(value, bool):
-                self.fail(field)
+                self.check.fail(field)
             return value
-        return self.count(value, field)
+        return self.check.count(value, field)
 
     def finding(
         self, item: object, field: str, entry: FindingEntry, collectors: dict[str, Collector]
     ) -> Finding:
-        row = self.fields(item, field, required=_FINDING_FIELDS)
+        row = self.fields(item, field, _FINDING_FIELDS)
         if row["workload"] != entry.workload:
-            self.fail(f"{field}.workload")
+            self.check.fail(f"{field}.workload")
         if row["unit"] != entry.unit:
-            self.fail(f"{field}.unit", "invalid_code")
-        provenance = self.code(row["provenance"], f"{field}.provenance", PROVENANCES)
+            self.check.fail(f"{field}.unit", "invalid_code")
+        provenance = self.check.choice(row["provenance"], f"{field}.provenance", PROVENANCES)
         collector = row["collector"]
         if collector is not None:
-            collector = self.code(collector, f"{field}.collector", collectors)
+            collector = self.check.choice(collector, f"{field}.collector", collectors)
         self.check_evidence(row, field, provenance, collectors.get(collector))
         value, source, reason = row["value"], row["source"], row["missing_reason"]
         if source is not None:
-            source = self.code(source, f"{field}.source", self.catalogue.source_codes)
+            source = self.check.choice(source, f"{field}.source", self.catalogue.source_codes)
         self.check_finding_source(entry, field, collector, source)
         collected_at, period, coverage = row["collected_at"], row["period"], row["coverage"]
         return Finding(
@@ -379,22 +338,22 @@ class _ScanReader:
             coverage=None if coverage is None else self.coverage(coverage, f"{field}.coverage"),
             missing_reason=None
             if reason is None
-            else self.code(reason, f"{field}.missing_reason", self.catalogue.reason_codes),
+            else self.check.choice(reason, f"{field}.missing_reason", self.catalogue.reason_codes),
         )
 
     def check_finding_source(
         self, entry: FindingEntry, field: str, collector: str | None, source: str | None
     ) -> None:
         if source in ("inputs_yaml", "sample.inputs_yaml"):
-            self.fail(f"{field}.source", "inputs_source_in_scan")
+            self.check.fail(f"{field}.source", "inputs_source_in_scan")
         if collector is not None:
             allowed = {code for method, code in entry.measured_by if method == collector}
             if not allowed:
-                self.fail(f"{field}.collector", "invalid_evidence_source", finding=entry.id)
+                self.check.fail(f"{field}.collector", "invalid_evidence_source", finding=entry.id)
         else:
             allowed = self.catalogue.provided_sources if entry.provided != "no" else frozenset()
         if source is not None and source not in allowed:
-            self.fail(f"{field}.source", "invalid_evidence_source", finding=entry.id)
+            self.check.fail(f"{field}.source", "invalid_evidence_source", finding=entry.id)
 
     def check_evidence(
         self, row: dict, field: str, provenance: str, collector: Collector | None
@@ -405,23 +364,23 @@ class _ScanReader:
             required, empty = ("value", "source"), ("collector", "coverage", "missing_reason")
         else:
             if collector is None or collector.status == "skipped":
-                self.fail(f"{field}.collector", "invalid_collector")
+                self.check.fail(f"{field}.collector", "invalid_collector")
             required = ("value", "source", "collected_at", "coverage")
             empty = ("missing_reason",)
         for name in required:
             if row[name] is None:
-                self.fail(f"{field}.{name}", "missing_field")
+                self.check.fail(f"{field}.{name}", "missing_field")
         for name in empty:
             if row[name] is not None:
-                self.fail(f"{field}.{name}")
+                self.check.fail(f"{field}.{name}")
 
     def check_finding_dates(self, finding: Finding, field: str, generated_at: str) -> None:
         if (collected_at := finding.collected_at) is None:
             return
         if finding.period is not None and finding.period[-10:] > collected_at[:10]:
-            self.fail(f"{field}.period", "period_after_collection")
+            self.check.fail(f"{field}.period", "period_after_collection")
         if _timestamp_after(collected_at, generated_at):
-            self.fail(f"{field}.collected_at", "collection_after_scan")
+            self.check.fail(f"{field}.collected_at", "collection_after_scan")
 
     def findings(
         self, value: object, collectors: dict[str, Collector], generated_at: str
@@ -429,13 +388,13 @@ class _ScanReader:
         findings = []
         subsets: list[tuple[str, Finding, str]] = []
         seen: set[str] = set()
-        for index, item in enumerate(self.list(value, "findings")):
+        for index, item in enumerate(self.check.rows(value, "findings", allow_empty=True)):
             field = f"findings[{index}]"
             if not isinstance(item, dict) or not isinstance(item.get("id"), str):
-                self.fail(f"{field}.id")
+                self.check.fail(f"{field}.id")
             finding_id = item["id"]
             if finding_id in seen:
-                self.fail(f"{field}.id", "duplicate_id")
+                self.check.fail(f"{field}.id", "duplicate_id")
             seen.add(finding_id)
             entry = self.catalogue.finding(finding_id)
             if entry is None:
@@ -469,49 +428,44 @@ class _ScanReader:
                 if total is not None and (
                     total < population.value or (exact and total > population.value)
                 ):
-                    self.fail(f"{field}.coverage.total", "coverage_total_conflict", related=related)
+                    self.check.fail(
+                        f"{field}.coverage.total", "coverage_total_conflict", related=related
+                    )
                 if exact:
                     bounds.append(population.value)
             if type(subset.value) is int and any(
                 bound is not None and subset.value > bound for bound in bounds
             ):
-                self.fail(f"{field}.value", "subset_count_exceeds_population")
-
-    def guid(self, value: object, field: str) -> str:
-        if not isinstance(value, str) or len(value) != 36:
-            self.fail(field)
-        try:
-            guid = str(UUID(value))
-        except ValueError:
-            raise InputError("invalid_field", file=self.file_name, field=field) from None
-        if guid != value.lower():
-            self.fail(field)
-        return guid
+                self.check.fail(f"{field}.value", "subset_count_exceeds_population")
 
     def service_plan(self, value: object, field: str) -> ServicePlan:
-        row = self.fields(value, field, required=_SERVICE_PLAN_FIELDS)
+        row = self.fields(value, field, _SERVICE_PLAN_FIELDS)
         name, guid = row["name"], row["guid"]
         return ServicePlan(
-            None if name is None else self.matches(name, f"{field}.name", _IDENTIFIER),
-            None if guid is None else self.guid(guid, f"{field}.guid"),
+            None if name is None else self.check.matches(name, f"{field}.name", IDENTIFIER),
+            None if guid is None else self.check.guid(guid, f"{field}.guid"),
         )
 
     def product(self, value: object, field: str) -> Product:
-        row = self.fields(value, field, required=_PRODUCT_REQUIRED, optional=_PRODUCT_OPTIONAL)
+        row = self.fields(value, field, _PRODUCT_REQUIRED, _PRODUCT_OPTIONAL)
         raw_guid = row.get("sku_guid")
-        sku_guid = None if raw_guid is None else self.guid(raw_guid, f"{field}.sku_guid")
+        sku_guid = None if raw_guid is None else self.check.guid(raw_guid, f"{field}.sku_guid")
         sku_part_number = row.get("sku_part_number")
         if sku_part_number is not None and not self.catalogue.accepts_sku_part_number(
             sku_part_number, sku_guid
         ):
-            self.fail(f"{field}.sku_part_number")
+            self.check.fail(f"{field}.sku_part_number")
         plan_list = row.get("service_plans")
-        plans = [] if plan_list is None else self.list(plan_list, f"{field}.service_plans")
+        plans = (
+            []
+            if plan_list is None
+            else self.check.rows(plan_list, f"{field}.service_plans", allow_empty=True)
+        )
         return Product(
             sku_part_number=sku_part_number,
             sku_guid=sku_guid,
-            purchased=self.count(row["purchased"], f"{field}.purchased"),
-            assigned=self.count(row["assigned"], f"{field}.assigned"),
+            purchased=self.check.count(row["purchased"], f"{field}.purchased"),
+            assigned=self.check.count(row["assigned"], f"{field}.assigned"),
             service_plans=tuple(
                 self.service_plan(item, f"{field}.service_plans[{i}]")
                 for i, item in enumerate(plans)
@@ -521,15 +475,17 @@ class _ScanReader:
     def licences(self, value: object, collectors: dict[str, Collector]) -> Licences | None:
         if value is None:
             return None
-        row = self.fields(value, "licences", required=_LICENCE_FIELDS)
-        collector = self.code(row["collector"], "licences.collector", ("licences",))
+        row = self.fields(value, "licences", _LICENCE_FIELDS)
+        collector = self.check.choice(row["collector"], "licences.collector", ("licences",))
         if collector not in collectors or collectors[collector].status == "skipped":
-            self.fail("licences.collector", "invalid_collector")
-        source = self.code(row["source"], "licences.source", self.catalogue.licence_sources)
+            self.check.fail("licences.collector", "invalid_collector")
+        source = self.check.choice(row["source"], "licences.source", self.catalogue.licence_sources)
         products = []
         parts: set[str] = set()
         guids: set[str] = set()
-        for index, item in enumerate(self.list(row["products"], "licences.products")):
+        for index, item in enumerate(
+            self.check.rows(row["products"], "licences.products", allow_empty=True)
+        ):
             field = f"licences.products[{index}]"
             product = self.product(item, field)
             part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
@@ -537,10 +493,9 @@ class _ScanReader:
                 ("sku_part_number", part_number, parts),
                 ("sku_guid", guid, guids),
             ):
-                if identity:
-                    if identity in seen:
-                        self.fail(f"{field}.{name}", "duplicate_id")
-                    seen.add(identity)
+                if identity and identity in seen:
+                    self.check.fail(f"{field}.{name}", "duplicate_id")
+                seen.add(identity)
             products.append(product)
         licences = Licences(
             collector=collector,
@@ -549,30 +504,30 @@ class _ScanReader:
             coverage=self.coverage(row["coverage"], "licences.coverage"),
             products=tuple(products),
         )
-        licences.check_coverage(self.file_name)
+        licences.check_coverage(self.check.file_name)
         return licences
 
     def scan(self, value: object) -> Scan:
         if not isinstance(value, dict):
-            self.fail("$")
+            self.check.fail("$")
         version = self.schema_version(value.get("schema_version"))
-        row = self.fields(value, "", required=_SCAN_FIELDS)
+        row = self.fields(value, "", _SCAN_FIELDS)
         collectors = self.collectors(row["collectors"])
         generated_at = self.timestamp(row["generated_at"], "generated_at")
         scan = Scan(
             schema_version=version,
             tool=self.tool(row["tool"]),
             generated_at=generated_at,
-            source_kind=self.code(row["source_kind"], "source_kind", SOURCE_KINDS),
+            source_kind=self.check.choice(row["source_kind"], "source_kind", SOURCE_KINDS),
             collectors=tuple(collectors.values()),
             findings=self.findings(row["findings"], collectors, generated_at),
             licences=self.licences(row["licences"], collectors),
             dropped_count=self.dropped_count,
         )
         if scan.source_kind != "sample" and scan.is_sample:
-            self.fail("source_kind", "sample_source_conflict")
+            self.check.fail("source_kind", "sample_source_conflict")
         if scan.licences and _timestamp_after(scan.licences.collected_at, generated_at):
-            self.fail("licences.collected_at", "collection_after_scan")
+            self.check.fail("licences.collected_at", "collection_after_scan")
         return scan
 
 
@@ -587,48 +542,3 @@ def load_scan_text(text: str, file_name: str, catalogue: Catalogue) -> Scan:
 
 def load_scan(path: Path, catalogue: Catalogue) -> Scan:
     return load_scan_text(read_text(path), path.name, catalogue)
-
-
-def _public_products(
-    products: tuple[Product, ...], plans: tuple[RegisteredServicePlan, ...]
-) -> tuple[Product, ...]:
-    registered = {sku_key(plan.sku_part_number, plan.sku_guid): plan for plan in plans}
-    names = {plan.name.casefold(): plan.name for plan in plans}
-    guids = {plan.guid for plan in plans}
-    public = []
-    for product in products:
-        if (identity := registered.get(product.key)) is None:
-            public.append(
-                replace(
-                    product,
-                    sku_part_number=None,
-                    sku_guid=None,
-                    service_plans=(ServicePlan(None, None),) * len(product.service_plans),
-                )
-            )
-            continue
-        # A registered half of a mismatched pair can still identify an affected workload.
-        public.append(
-            replace(
-                product,
-                sku_part_number=identity.sku_part_number,
-                sku_guid=identity.sku_guid,
-                service_plans=tuple(
-                    ServicePlan(
-                        names.get(plan.name.casefold()) if plan.name is not None else None,
-                        plan.guid if plan.guid in guids else None,
-                    )
-                    for plan in product.service_plans
-                ),
-            )
-        )
-    return tuple(public)
-
-
-def scan_to_json(scan: Scan, *, plans: tuple[RegisteredServicePlan, ...]) -> str:
-    if scan.licences is not None:
-        licences = replace(scan.licences, products=_public_products(scan.licences.products, plans))
-        scan = replace(scan, licences=licences)
-    data = asdict(scan)
-    del data["dropped_count"]
-    return json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"

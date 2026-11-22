@@ -11,14 +11,14 @@ from pathlib import Path
 from shutil import copytree
 
 import pytest
+from report_expectations import SECTION_ORDER
 from typer.testing import CliRunner
 
 from fazit import __version__, catalogue, rules
 from fazit import report as report_module
 from fazit.cli import app
 from fazit.i18n import load_locale
-from fazit.report import SECTION_ORDER
-from fazit.rules import PROFILES
+from fazit.mappings import PROFILES
 
 PLANTED_SCAN = Path(__file__).parent / "fixtures" / "planted_scan.json"
 RESOURCE_ELEMENTS = {

@@ -9,6 +9,7 @@ from fazit import PROJECT_NAME, __version__, rules
 from fazit.catalogue import FindingEntry, load_catalogue
 from fazit.i18n import SUPPORTED_LANGUAGES
 from fazit.inputs import CurrentCosts, ScenarioInputs
+from fazit.licences import load_service_plans
 from fazit.model import (
     COLLECTOR_STATUSES,
     COVERAGE_KINDS,
@@ -21,10 +22,11 @@ from fazit.model import (
     ServicePlan,
     ToolInfo,
 )
+from fazit.status import load_status_rules
 
 CATALOGUE = load_catalogue()
-PLANS = rules.load_service_plans(CATALOGUE)
-STATUS_RULES = rules.load_status_rules(CATALOGUE)
+PLANS = load_service_plans(CATALOGUE)
+STATUS_RULES = load_status_rules(CATALOGUE)
 ROSTERS = tuple(tuple(plans) for _, plans in groupby(PLANS, key=attrgetter("sku_guid")))
 PROFILES = sorted(
     path.name.removesuffix(".yaml")

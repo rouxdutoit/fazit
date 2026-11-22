@@ -41,10 +41,12 @@ from test_report import (
 )
 
 from fazit.cli import app
+from fazit.evidence import provided_findings
 from fazit.i18n import load_locale
-from fazit.inputs import load_inputs_text, provided_findings
-from fazit.model import Collector, Coverage, Finding, load_scan, scan_to_json
-from fazit.rules import STATUSES
+from fazit.inputs import load_inputs_text
+from fazit.licences import scan_to_json
+from fazit.model import Collector, Coverage, Finding, load_scan
+from fazit.status import STATUSES
 
 CSP = (
     "default-src 'none'; style-src 'unsafe-inline'; font-src data:; "
