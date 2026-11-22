@@ -49,7 +49,7 @@ workloads:
         next_step:
           kind: replace
           en: The IT team plans a new way for the affected systems to send mail.
-          de: Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für E-Mails.
+          de: "Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für\u00a0E-Mails."
   onedrive:
     ready:
       evidence:
@@ -299,7 +299,7 @@ workloads:
           de: Für die Power Platform sind separate Lizenzen zugewiesen, und die damit genutzten Anwendungen und Abläufe sind zu prüfen.
         next_step:
           kind: clarify
-          en: Licence management identifies the applications and workflows that rely on the assigned add-ons.
+          en: "Licence management checks which applications and workflows need the assigned\u00a0add-ons."
           de: Die Lizenzverwaltung ermittelt, welche Anwendungen und Abläufe auf die zugewiesenen Zusatzlizenzen angewiesen sind.
       - id: power-in-use
         when: [{finding: power_platform.in_use, op: '==', value: true}]
@@ -384,7 +384,7 @@ workloads:
         next_step:
           kind: clarify
           en: The information security officer records the conditions under which the organisation currently grants access.
-          de: Die oder der Informationssicherheitsbeauftragte erfasst, unter welchen Bedingungen die Organisation derzeit Zugriff gewährt.
+          de: Die für Informationssicherheit zuständige Person erfasst, unter welchen Bedingungen die Organisation derzeit Zugriff gewährt.
       - id: identity-add-on
         when: [{finding: identity_access.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
@@ -413,7 +413,7 @@ workloads:
         next_step:
           kind: replace
           en: The information security officer plans how the replacement will meet the protection and retention requirements.
-          de: Die oder der Informationssicherheitsbeauftragte plant, wie die Ersatzlösung die Anforderungen an Schutz und Aufbewahrung erfüllt.
+          de: Die für Informationssicherheit zuständige Person plant, wie die Ersatzlösung die Anforderungen an Schutz und Aufbewahrung erfüllt.
       - id: security-add-on
         when: [{finding: security_compliance.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work

@@ -34,6 +34,7 @@
       --status-needs-work: #ffcc00;
       --status-blocker: #ff9500;
       --status-unknown: #8e8e93;
+      --status-strength: 60%;
       --fs-display: clamp(2.5rem, 5vw, 3.5rem);
       --fs-title: clamp(2rem, 3.6vw, 2.5rem);
       --fs-headline: 1.5rem;
@@ -58,6 +59,7 @@
         --status-needs-work: #ffd60a;
         --status-blocker: #ff9f0a;
         --status-unknown: #8e8e93;
+        --status-strength: 100%;
       }
     }
     :root {
@@ -75,6 +77,8 @@
       --mono: "Geist Mono", ui-monospace, monospace;
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
       --gutter: 20px;
+      --section-space: 48px;
+      --card-padding: 24px;
       --max: 1120px;
       --measure: 42.5rem;
       --hit: 44px;
@@ -89,7 +93,7 @@
       }
     }
     @media (max-width: 600px) {
-      :root { --gutter: 16px; }
+      :root { --gutter: 16px; --section-space: 32px; }
     }
     * { box-sizing: border-box; }
     body {
@@ -104,13 +108,14 @@
     }
     html { scroll-padding-block-start: 24px; hyphens: manual; }
     code {
-      font: 400 0.875em / 1.5 var(--mono);
-      overflow-wrap: anywhere;
+      font-family: var(--mono);
+      overflow-wrap: break-word;
     }
     h1, h2, h3, h4, p { margin: 0; }
-    h3, h4 { font-weight: 600; text-wrap: balance; }
+    h1, h2, h3, h4, strong, b { font-weight: 600; }
+    h1, h2, h3, h4 { text-wrap: balance; }
     h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 12px; }
-    p, li, dd, td { text-wrap: pretty; }
+    p, li, dt, dd, figcaption, td, summary, small { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
     @media screen and (prefers-color-scheme: dark) {
@@ -149,20 +154,22 @@
     .report-layout main { min-width: 0; }
     .section-index { display: none; }
     .index-disclosure {
-      margin-block-start: 24px;
+      margin-block-start: 16px;
       border: 0;
     }
     .index-disclosure > summary {
+      align-items: center;
       width: fit-content;
-      padding: 8px 16px;
+      padding: 0 16px;
       border-radius: var(--radius-pill);
       background: var(--fill);
       font-size: var(--fs-subhead);
       font-weight: 600;
     }
+    .index-disclosure > summary > .icon { margin: 0; }
     .index-disclosure nav { margin-block-start: 8px; }
     .section-index, .index-disclosure nav {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -269,7 +276,7 @@
     }
     .sec {
       position: relative;
-      padding-block: 48px;
+      padding-block: var(--section-space);
     }
     .sec::before {
       position: absolute;
@@ -290,13 +297,10 @@
     }
     .sec-body > :first-child { margin-top: 0; }
     .sec-body > p, .sec-body .subsection > p { max-width: var(--measure); }
-    .sec-body p + p { margin-top: 12px; }
+    .sec-body .subsection > p + p, .sec-body > p + p { margin-top: 12px; }
     .sec-intro { color: var(--fg-2); }
     .subsection { margin-top: 32px; }
     .subsection > :first-child { margin-top: 0; }
-    @media screen and (max-width: 600px) {
-      .sec { padding-block: 32px; }
-    }
     @media screen {
       [data-section=summary] .sec { padding-block-start: 24px; }
     }
@@ -353,12 +357,13 @@
     }
     .rows {
       margin: 0;
-      padding: 8px 24px;
+      padding: 8px var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
     .rows > div {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 4px;
       padding-block: 16px;
       overflow-wrap: anywhere;
@@ -367,12 +372,15 @@
     .rows dt { font-weight: 600; }
     .rows dd { max-width: var(--measure); margin: 0; color: var(--fg-2); }
     [data-summary] .rows > div { gap: 8px; }
-    h3 + .rows, .subsection p + .rows { margin-top: 12px; }
+    h3 + .rows, p + .rows { margin-top: 12px; }
     .summary-links {
       display: flex;
       flex-wrap: wrap;
       gap: 8px 16px;
       margin-top: 12px;
+    }
+    @media screen {
+      .summary-links > a { min-height: var(--hit); }
     }
     .tiles {
       display: grid;
@@ -392,7 +400,7 @@
       display: grid;
       align-content: start;
       gap: 4px;
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -406,11 +414,11 @@
       font-weight: 600;
     }
     .tiles .tile-title {
-      display: grid;
       margin-bottom: 4px;
       color: var(--fg);
       font-size: var(--fs-body);
       font-weight: 600;
+      text-wrap: balance;
       line-height: 1.35;
     }
     .figure-num {
@@ -427,7 +435,13 @@
     .summary-costs .tiles { margin-top: 0; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
     .cost-value { white-space: nowrap; }
-    .cost-notes { max-width: var(--measure); margin-top: 12px; }
+    .cost-notes {
+      display: grid;
+      gap: 8px;
+      max-width: var(--measure);
+      margin-top: 12px;
+    }
+    .cost-notes p { margin: 0; }
     .report-meta {
       display: flex;
       flex-wrap: wrap;
@@ -455,6 +469,7 @@
       vertical-align: top;
     }
     .coverage tbody tr:last-child > * { border-bottom: 0; }
+    .coverage tr > :last-child { padding-inline-end: 0; }
     .coverage thead th, .cost-table thead th {
       padding-block: 8px;
       color: var(--fg-2);
@@ -465,8 +480,8 @@
       width: 28%;
       font-weight: 600;
     }
+    .coverage th > .prov { display: block; margin-block-start: 4px; }
     .replacements :is(th, td) { overflow-wrap: normal; }
-    .replacements td:last-child { padding-inline-end: 0; }
     .replacement-name {
       display: block;
       padding-inline-start: calc(1.2em + 8px);
@@ -507,9 +522,9 @@
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
-    .status .icon { color: var(--status-fill); }
+    .status .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
     .finding {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -519,6 +534,7 @@
       justify-content: space-between;
       gap: 12px;
     }
+    .finding-head > div { min-inline-size: 0; }
     .finding-area {
       margin: 0;
       color: var(--fg);
@@ -553,7 +569,6 @@
     .finding-status .badge { background: var(--fill-2); }
     @media screen and (max-width: 600px) {
       .finding-head { flex-direction: column; }
-      .finding-head > div { max-width: 100%; }
       .finding-status { justify-content: flex-start; }
     }
     .finding-reason {
@@ -567,18 +582,15 @@
       font-size: var(--fs-footnote);
     }
     .finding-target > span { display: block; }
-    .finding-target .more { margin-block-start: 4px; }
+    .finding-target > .more { display: inline-block; margin-block-start: 4px; }
     .more {
-      display: inline-flex;
-      align-items: flex-start;
-      gap: 4px;
       color: var(--link-quiet);
     }
     .more:hover { color: var(--link); }
     .more > .icon {
       width: 1em;
       height: 1em;
-      margin-block-start: calc((1lh - 1em) / 2);
+      vertical-align: -0.2em;
     }
     .table-note, .note-text {
       margin-top: 16px;
@@ -588,7 +600,9 @@
     .finding-next { max-width: var(--measure); margin-top: 16px; }
     .finding-next > strong { display: block; font-size: var(--fs-subhead); }
     .finding-missing { margin-top: 16px; font-size: var(--fs-subhead); }
+    .finding-missing li > strong { display: block; }
     .finding .workload-evidence { margin-top: 12px; }
+    .workload-evidence .table-scroll { margin-block: 24px; }
     .status-group {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -660,7 +674,7 @@
       font-size: var(--fs-subhead);
     }
     .note {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -684,7 +698,7 @@
         .segmented label:has(:disabled) { opacity: 0.4; cursor: default; }
         .segmented label:has(:focus-visible) {
           outline: 2px solid var(--link);
-          outline-offset: 3px;
+          outline-offset: -2px;
         }
 
           [data-section=readiness]:has(#f-status-blocker:checked) .status-group:not([data-status-group="blocker"], :has(> h3:target, > .finding:target)),
@@ -757,6 +771,7 @@
         ) .areas-empty { display: block; }
       }
     }
+    .licence-plans { margin-block-start: 16px; font-size: var(--fs-subhead); }
     .licence-plan small { margin-block-end: 4px; }
     .licence-plan + .licence-plan { margin-block-start: 8px; }
     .finding ul, .rule-details ul { margin: 4px 0; padding-inline-start: 16px; }
@@ -771,6 +786,8 @@
     .mapping-gaps > li > strong { display: block; margin-block-end: 4px; }
     .mapping-gaps > li > small:first-of-type { margin-block-start: 8px; }
     .open-items { margin: 0 0 8px; padding: 0; list-style: none; }
+    .input-field { margin-block-start: 4px; font-size: var(--fs-subhead); }
+    .input-field code { display: block; }
     .path-actions { max-width: var(--measure); margin: 0; padding-inline-start: 16px; }
     .path-actions li + li { margin-block-start: 8px; }
     h4 + .rows { margin-top: 12px; }
@@ -778,19 +795,19 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 24px;
-      margin: 32px 0 0;
+      margin: 24px 0 0;
       padding: 0;
+      font-size: var(--fs-subhead);
       list-style: none;
     }
     .finding .rule-evidence > li { margin-block-start: 0; }
     @media screen and (min-width: 640px) {
       .finding .rule-evidence {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 32px;
       }
     }
     .evidence-meta {
-      margin: 8px 0 0;
+      margin: 4px 0 0;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
       line-height: 1.45;
@@ -832,6 +849,9 @@
       margin-top: calc((1lh - 12px) / 2);
       border-radius: var(--radius-pill);
       background: var(--cost-fill);
+    }
+    @media screen {
+      .cost-swatch { outline: 1px solid var(--fg-2); }
     }
     .cost-chart-row { margin-top: 24px; }
     .cost-chart-heading {
@@ -883,14 +903,25 @@
       font-size: var(--fs-subhead);
       list-style: none;
     }
+    .cost-chart-values li:has(.cost-value) {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
     .cost-table thead th:first-child { width: 34%; }
-    .cost-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .cost-table .subtotals > *, .cost-table .totals > * { background: var(--surface); }
-    .cost-table .totals td { font-weight: 600; }
+    .cost-table thead th:not(:first-child), .cost-table td { text-align: end; }
+    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cost-table .totals { background: var(--fill); }
+    .cost-table :is(.subtotals, .totals) td { font-weight: 600; }
+    .cost-table th:first-child { padding-inline-start: 16px; }
     :is(.run-details, .rule-details, .mapping-details) { margin-block: 16px; }
     :is(.run-details, .rule-details, .mapping-details) dt { font-weight: 600; }
     :is(.run-details, .rule-details, .mapping-details) dd { margin: 4px 0 12px; }
+    .mapping-details dd > :first-child { text-wrap: balance; }
+    .condition-value { white-space: nowrap; }
     [data-section=appendix] ul { margin-block: 8px; padding-inline-start: 16px; }
+    [data-checksum] { display: block; font-size: var(--fs-subhead); }
     footer {
       width: calc(100% - 2 * var(--gutter));
       max-width: calc(var(--max) - 2 * var(--gutter));
@@ -905,6 +936,7 @@
       a, summary > .icon, .segmented label { transition: none; }
     }
     @media screen and (max-width: 600px) {
+      .scope-links li, .replacements tbody th { text-wrap: balance; }
       .coverage thead {
         position: absolute;
         width: 1px;
@@ -914,8 +946,7 @@
       }
       .coverage tr {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 16px;
+        gap: 8px;
         padding-block: 16px;
         border-bottom: 1px solid var(--rule);
       }
@@ -925,9 +956,7 @@
         border-bottom: 0;
       }
       .coverage tbody th {
-        grid-column: 1 / -1;
         width: auto;
-        margin-bottom: 8px;
       }
       .coverage td::before {
         display: block;
@@ -937,10 +966,12 @@
         font-weight: 600;
         content: attr(data-label);
       }
-      .workload-evidence .coverage td { grid-column: 1 / -1; }
-      :is(.file-types, .licence-products .coverage) tbody td:last-child {
+      :is(.file-types, .software-table) tr {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 16px;
+      }
+      :is(.file-types, .software-table) tbody th, .file-types tbody td:last-child {
         grid-column: 1 / -1;
-        margin-block-start: 8px;
       }
     }
     @media screen and (width < 70rem) {
@@ -966,7 +997,7 @@
         border: 0;
       }
       .replacements tbody th { font-size: var(--fs-body); }
-      .replacements tbody :is(th, td:nth-child(-n+3)) { grid-column: 1 / -1; }
+      .replacements tbody :is(th, td:nth-child(2), td:nth-child(3)) { grid-column: 1 / -1; }
       .replacements td::before, .replacement-name::before {
         display: block;
         margin-block-end: 4px;
@@ -977,6 +1008,10 @@
       }
       .replacements td[data-coverage-label]::before { content: attr(data-coverage-label); }
       .replacement-name { margin-block-start: 12px; padding: 0; }
+    }
+    @media screen and (640px <= width < 70rem) {
+      .replacements tbody tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .replacements tbody td:nth-child(3) { grid-column: auto; }
     }
     @media screen and (width < 22.5rem) {
       .replacements tbody tr { grid-template-columns: minmax(0, 1fr); }
@@ -1000,10 +1035,10 @@
       .cost-table tr {
         display: grid;
         gap: 4px;
-        padding-block: 16px;
+        padding: 16px;
         border-bottom: 1px solid var(--rule);
       }
-      .cost-table :is(th, td) { padding: 0; border-bottom: 0; }
+      .cost-table :is(th, td), .cost-table th:first-child { padding: 0; border-bottom: 0; }
       .cost-table tbody th { margin-bottom: 8px; }
       .cost-table td {
         display: grid;
@@ -1090,8 +1125,7 @@
         break-inside: avoid;
         break-after: avoid;
       }
-      [data-section=summary] .cost-notes { margin-top: 4pt; }
-      [data-section=summary] .cost-notes p { margin-top: 0; }
+      [data-section=summary] .cost-notes { gap: 0; margin-top: 4pt; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
       .tiles .figure-num { overflow: visible; }
       .tiles li, .finding { padding: 12pt; }
@@ -1149,26 +1183,6 @@
 
   </ul>
     </nav>
-    <details class="index-disclosure">
-      <summary><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>On this page</summary>
-      <nav aria-label="Report sections"><ul class="index-links" role="list">
-
-      <li><a href="#summary-title">Summary</a></li>
-
-      <li><a href="#path-title">Next steps</a></li>
-
-      <li><a href="#readiness-title">Areas</a></li>
-
-      <li><a href="#costs-title">Costs</a></li>
-
-      <li><a href="#moves-title">Replacements</a></li>
-
-      <li><a href="#attention-title">Closer look</a></li>
-
-      <li><a href="#appendix-title">Appendix</a></li>
-
-  </ul></nav>
-    </details>
   <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
@@ -1187,6 +1201,26 @@
         <div><dt>Target profile</dt><dd>openDesk</dd></div>
       </dl>
       <p class="note">The scan measurements in this report are simulated.</p>
+      <details class="index-disclosure">
+        <summary><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>On this page</summary>
+        <nav aria-label="Report sections"><ul class="index-links" role="list">
+
+      <li><a href="#summary-title">Summary</a></li>
+
+      <li><a href="#path-title">Next steps</a></li>
+
+      <li><a href="#readiness-title">Areas</a></li>
+
+      <li><a href="#costs-title">Costs</a></li>
+
+      <li><a href="#moves-title">Replacements</a></li>
+
+      <li><a href="#attention-title">Closer look</a></li>
+
+      <li><a href="#appendix-title">Appendix</a></li>
+
+  </ul></nav>
+      </details>
     </div>
   </header>
     <section data-section="summary">
@@ -1312,7 +1346,7 @@
                     <dd>
 
 
-                        Do applications, devices or peripherals require Windows workstations?
+                        Do any applications, devices or peripherals need a Windows desktop?
 
 
                     </dd>
@@ -1500,7 +1534,7 @@
         <dt><a href="#readiness-power_platform" class="more">Power Platform<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
         <dd>
           <ul class="path-actions">
-            <li data-step-kind="clarify">Licence management identifies the applications and workflows that rely on the assigned add-ons.</li>
+            <li data-step-kind="clarify">Licence management checks which applications and workflows need the assigned add-ons.</li>
           </ul>
         </dd>
       </div>
@@ -1556,9 +1590,9 @@
       </ul>
       <p>
         <strong>IT team</strong>
-
-         · Ask the mail administrator to check the count separately. It stays Unknown in this report. Find out which source can provide the missing information. It stays Unknown while it is absent from the scan and inputs file.
       </p>
+
+      <p>Ask the mail administrator to check the count separately. It stays Unknown in this report. Find out which source can provide the missing information. It stays Unknown while it is absent from the scan and inputs file.</p>
     </dd>
   </div>
 
@@ -1582,9 +1616,11 @@
       </ul>
       <p>
         <strong>Service lead</strong>
-         · Field in inputs.yaml <code>confirmations.sharepoint.workflows_in_use</code>
-
       </p>
+
+        <p class="input-field">Field in inputs.yaml <code>confirmations.<wbr>sharepoint.<wbr>workflows_in_use</code></p>
+
+
     </dd>
   </div>
 
@@ -1608,15 +1644,17 @@
       </ul>
       <p>
         <strong>Service lead</strong>
-         · Field in inputs.yaml <code>confirmations.office_files.vba_macros_in_use</code>
-
       </p>
+
+        <p class="input-field">Field in inputs.yaml <code>confirmations.<wbr>office_files.<wbr>vba_macros_in_use</code></p>
+
+
     </dd>
   </div>
 
 
   <div>
-    <dt data-open-point="confirmations.device_management.windows_desktops_required">Do applications, devices or peripherals require Windows workstations?</dt>
+    <dt data-open-point="confirmations.device_management.windows_desktops_required">Do any applications, devices or peripherals need a Windows desktop?</dt>
     <dd>
       <ul class="open-items" role="list">
 
@@ -1634,9 +1672,11 @@
       </ul>
       <p>
         <strong>IT team</strong>
-         · Field in inputs.yaml <code>confirmations.device_management.windows_desktops_required</code>
-
       </p>
+
+        <p class="input-field">Field in inputs.yaml <code>confirmations.<wbr>device_management.<wbr>windows_desktops_required</code></p>
+
+
     </dd>
   </div>
 
@@ -1660,9 +1700,11 @@
       </ul>
       <p>
         <strong>Information security officer</strong>
-         · Field in inputs.yaml <code>confirmations.security_compliance.protection_or_retention_in_use</code>
-         · Ask the person responsible for the service for the information.
       </p>
+
+        <p class="input-field">Field in inputs.yaml <code>confirmations.<wbr>security_compliance.<wbr>protection_or_retention_in_use</code></p>
+
+      <p>Ask the person responsible for the service for the information.</p>
     </dd>
   </div>
               </dl>
@@ -1676,7 +1718,7 @@
         <dt><a href="#readiness-telephony" class="more">Telephony<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
         <dd>
           <ul class="path-actions">
-            <li data-step-kind="replace">The IT team plans a replacement that keeps the required phone services running during the move.</li><li data-step-kind="replace">The service lead and IT team decide how to provide the following after the move (Teams Phone and public telephone calling).</li>
+            <li data-step-kind="replace">The IT team plans a replacement that keeps the required phone services running during the move.</li><li data-step-kind="replace">For the functions listed here (Teams Phone and public telephone calling), the service lead and IT team plan how to provide them after the move.</li>
           </ul>
         </dd>
       </div>
@@ -1703,7 +1745,7 @@
         <dt><a href="#readiness-device_management" class="more">Device management<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
         <dd>
           <ul class="path-actions">
-            <li data-step-kind="replace">The IT team plans how to enrol the devices in a replacement management service.</li><li data-step-kind="replace">The service lead and IT team decide how to provide the following after the move (Device management with Microsoft Intune).</li>
+            <li data-step-kind="replace">The IT team plans how to enrol the devices in a replacement management service.</li><li data-step-kind="replace">For the functions listed here (Device management with Microsoft Intune), the service lead and IT team plan how to provide them after the move.</li>
           </ul>
         </dd>
       </div>
@@ -1712,7 +1754,7 @@
         <dt><a href="#readiness-windows_software" class="more">Windows-only software<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
         <dd>
           <ul class="path-actions">
-            <li data-step-kind="replace">The service lead and IT team decide how to provide the following after the move (Running Windows-only applications).</li>
+            <li data-step-kind="replace">For the functions listed here (Running Windows-only applications), the service lead and IT team plan how to provide them after the move.</li>
           </ul>
         </dd>
       </div>
@@ -1721,7 +1763,7 @@
         <dt><a href="#readiness-power_platform" class="more">Power Platform<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
         <dd>
           <ul class="path-actions">
-            <li data-step-kind="replace">The IT team plans a replacement for the applications and workflows needed after the move.</li><li data-step-kind="replace">The service lead and IT team decide how to provide the following after the move (Power Platform automation and low-code applications).</li>
+            <li data-step-kind="replace">The IT team plans a replacement for the applications and workflows needed after the move.</li><li data-step-kind="replace">For the functions listed here (Power Platform automation and low-code applications), the service lead and IT team plan how to provide them after the move.</li>
           </ul>
         </dd>
       </div>
@@ -3047,7 +3089,7 @@
 
                     </div>
 
-                      <p class="finding-next"><strong>Next step</strong> Licence management identifies the applications and workflows that rely on the assigned add-ons.</p>
+                      <p class="finding-next"><strong>Next step</strong> Licence management checks which applications and workflows need the assigned add-ons.</p>
 
 
 
@@ -3981,13 +4023,13 @@
           </div>
           <ul class="cost-chart-values" role="list">
 
-              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 600,000.00</span></li>
+              <li><span>Running costs</span> <span class="cost-value" data-chart-value="running">EUR 600,000.00</span></li>
 
-              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 0.00</span></li>
+              <li><span>Direct project costs</span> <span class="cost-value" data-chart-value="direct_project">EUR 0.00</span></li>
 
-              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 0.00</span></li>
+              <li><span>Lost working time (internal estimate, not a payment)</span> <span class="cost-value" data-chart-value="productivity_loss">EUR 0.00</span></li>
 
-              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 0.00</span></li>
+              <li><span>Parallel running</span> <span class="cost-value" data-chart-value="parallel_running">EUR 0.00</span></li>
 
           </ul>
 
@@ -4026,13 +4068,13 @@
           </div>
           <ul class="cost-chart-values" role="list">
 
-              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 422,800.00</span></li>
+              <li><span>Running costs</span> <span class="cost-value" data-chart-value="running">EUR 422,800.00</span></li>
 
-              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 46,000.00</span></li>
+              <li><span>Direct project costs</span> <span class="cost-value" data-chart-value="direct_project">EUR 46,000.00</span></li>
 
-              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 9,000.00</span></li>
+              <li><span>Lost working time (internal estimate, not a payment)</span> <span class="cost-value" data-chart-value="productivity_loss">EUR 9,000.00</span></li>
 
-              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 50,000.00</span></li>
+              <li><span>Parallel running</span> <span class="cost-value" data-chart-value="parallel_running">EUR 50,000.00</span></li>
 
           </ul>
 
@@ -4071,13 +4113,13 @@
           </div>
           <ul class="cost-chart-values" role="list">
 
-              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 213,350.00</span></li>
+              <li><span>Running costs</span> <span class="cost-value" data-chart-value="running">EUR 213,350.00</span></li>
 
-              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 126,000.00</span></li>
+              <li><span>Direct project costs</span> <span class="cost-value" data-chart-value="direct_project">EUR 126,000.00</span></li>
 
-              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 25,000.00</span></li>
+              <li><span>Lost working time (internal estimate, not a payment)</span> <span class="cost-value" data-chart-value="productivity_loss">EUR 25,000.00</span></li>
 
-              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 100,000.00</span></li>
+              <li><span>Parallel running</span> <span class="cost-value" data-chart-value="parallel_running">EUR 100,000.00</span></li>
 
           </ul>
 
@@ -5762,7 +5804,7 @@
           </dl>
 
             <div class="table-scroll" role="region" aria-labelledby="software-title" tabindex="0">
-              <table class="coverage" role="table">
+              <table class="coverage software-table" role="table">
                 <thead role="rowgroup">
                   <tr role="row">
                     <th scope="col" role="columnheader" data-label="Application">Application</th>
@@ -5831,7 +5873,9 @@
   <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span></small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/dateien/
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5850,7 +5894,9 @@
                         </small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/chat/
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5867,7 +5913,9 @@
   <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span></small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/office/
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5886,7 +5934,9 @@
                         </small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5903,7 +5953,9 @@
   <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span></small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5922,7 +5974,9 @@
                         </small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5941,7 +5995,9 @@
                         </small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -5960,7 +6016,9 @@
                         </small>
 
                     </p>
-                    <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
+                    <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#jitsi-video-conferencing
+  </small>
                     <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -6077,162 +6135,174 @@
             </summary>
 
               <p data-provenance="measured">
-                Licence products found: 3
+
                 <span class="prov">Measured (simulated)</span>
 
                 <small>Sample licence inventory · 2 November 2026 · Complete, 3 of 3 scanned, 0 failed</small>
               </p>
 
 
-                <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
-                  <table class="coverage" role="table">
-                    <caption data-sample>Scan measurements are simulated.</caption>
-                    <thead role="rowgroup">
-                      <tr role="row">
-                        <th scope="col" role="columnheader" data-label="Product code">Product code</th>
-                        <th scope="col" role="columnheader" data-label="Purchased">Purchased</th>
-                        <th scope="col" role="columnheader" data-label="Assigned">Assigned</th>
-                        <th scope="col" role="columnheader" data-label="Service plan classification">Service plan classification</th>
-                      </tr>
-                    </thead>
-                    <tbody role="rowgroup">
+                <p class="table-note" data-sample>Scan measurements are simulated.</p>
+                <dl class="rows">
 
 
-                        <tr data-product="SPE_E3" data-provenance="measured" role="row">
-                          <th scope="row" role="rowheader" data-label="Product code">SPE_E3 <small class="prov">Measured (simulated)</small></th>
-                          <td role="cell" data-label="Purchased">90</td>
-                          <td role="cell" data-label="Assigned">85</td>
-                          <td role="cell" data-label="Service plan classification">
+                    <div data-product="SPE_E3" data-provenance="measured">
+                      <dt>SPE_E3</dt>
+                      <dd>
+                        <small class="prov">Measured (simulated)</small>
+
+                        <dl class="report-meta">
+                          <div><dt>Purchased</dt><dd>90</dd></div>
+                          <div><dt>Assigned</dt><dd>85</dd></div>
+                        </dl>
+
+                        <div class="licence-plans">
+                          <p><strong>Service plan classification</strong></p>
 
 
 
-                                <div class="licence-plan">
-                                  Device management · Included in the product
-                                  <small><code>INTUNE_A</code>, <code>INTUNE_O365</code>, <code>UNIVERSAL_PRINT_01</code>, <code>WIN10_PRO_ENT_SUB</code>, <code>Windows_Autopatch</code>, <code>WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Device management · Included in the product
+                                <small><code>INTUNE_<wbr>A</code>, <code>INTUNE_<wbr>O365</code>, <code>UNIVERSAL_<wbr>PRINT_<wbr>01</code>, <code>WIN10_<wbr>PRO_<wbr>ENT_<wbr>SUB</code>, <code>Windows_<wbr>Autopatch</code>, <code>WINDOWSUPDATEFORBUSINESS_<wbr>DEPLOYMENTSERVICE</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Identity and access · Included in the product
-                                  <small><code>AAD_PREMIUM</code>, <code>MFA_PREMIUM</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Identity and access · Included in the product
+                                <small><code>AAD_<wbr>PREMIUM</code>, <code>MFA_<wbr>PREMIUM</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Integrations · Included in the product
-                                  <small><code>GRAPH_CONNECTORS_SEARCH_INDEX</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Integrations · Included in the product
+                                <small><code>GRAPH_<wbr>CONNECTORS_<wbr>SEARCH_<wbr>INDEX</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Mail · Included in the product
-                                  <small><code>EXCHANGE_S_ENTERPRISE</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Mail · Included in the product
+                                <small><code>EXCHANGE_<wbr>S_<wbr>ENTERPRISE</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Office files · Included in the product
-                                  <small><code>OFFICESUBSCRIPTION</code>, <code>SHAREPOINTWAC</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Office files · Included in the product
+                                <small><code>OFFICESUBSCRIPTION</code>, <code>SHAREPOINTWAC</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Power Platform · Included in the product
-                                  <small><code>CDS_O365_P2</code>, <code>DYN365_CDS_O365_P2</code>, <code>FLOW_O365_P2</code>, <code>POWER_VIRTUAL_AGENTS_O365_P2</code>, <code>POWERAPPS_O365_P2</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Power Platform · Included in the product
+                                <small><code>CDS_<wbr>O365_<wbr>P2</code>, <code>DYN365_<wbr>CDS_<wbr>O365_<wbr>P2</code>, <code>FLOW_<wbr>O365_<wbr>P2</code>, <code>POWER_<wbr>VIRTUAL_<wbr>AGENTS_<wbr>O365_<wbr>P2</code>, <code>POWERAPPS_<wbr>O365_<wbr>P2</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Security and compliance · Included in the product
-                                  <small><code>ADALLOM_S_DISCOVERY</code>, <code>ATP_ENTERPRISE</code>, <code>ContentExplorer_Standard</code>, <code>MDE_LITE</code>, <code>MIP_S_CLP1</code>, <code>RMS_S_ENTERPRISE</code>, <code>RMS_S_PREMIUM</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Security and compliance · Included in the product
+                                <small><code>ADALLOM_<wbr>S_<wbr>DISCOVERY</code>, <code>ATP_<wbr>ENTERPRISE</code>, <code>ContentExplorer_<wbr>Standard</code>, <code>MDE_<wbr>LITE</code>, <code>MIP_<wbr>S_<wbr>CLP1</code>, <code>RMS_<wbr>S_<wbr>ENTERPRISE</code>, <code>RMS_<wbr>S_<wbr>PREMIUM</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  SharePoint · Included in the product
-                                  <small><code>SHAREPOINTENTERPRISE</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                SharePoint · Included in the product
+                                <small><code>SHAREPOINTENTERPRISE</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Small applications · Included in the product
-                                  <small><code>BPOS_S_TODO_2</code>, <code>CLIPCHAMP</code>, <code>FORMS_PLAN_E3</code>, <code>MICROSOFT_LOOP</code>, <code>MICROSOFTBOOKINGS</code>, <code>PROJECT_O365_P2</code>, <code>PROJECTWORKMANAGEMENT</code>, <code>STREAM_O365_E3</code>, <code>SWAY</code>, <code>VIVA_LEARNING_SEEDED</code>, <code>VIVAENGAGE_CORE</code>, <code>WHITEBOARD_PLAN2</code>, <code>YAMMER_ENTERPRISE</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Small applications · Included in the product
+                                <small><code>BPOS_<wbr>S_<wbr>TODO_<wbr>2</code>, <code>CLIPCHAMP</code>, <code>FORMS_<wbr>PLAN_<wbr>E3</code>, <code>MICROSOFT_<wbr>LOOP</code>, <code>MICROSOFTBOOKINGS</code>, <code>PROJECT_<wbr>O365_<wbr>P2</code>, <code>PROJECTWORKMANAGEMENT</code>, <code>STREAM_<wbr>O365_<wbr>E3</code>, <code>SWAY</code>, <code>VIVA_<wbr>LEARNING_<wbr>SEEDED</code>, <code>VIVAENGAGE_<wbr>CORE</code>, <code>WHITEBOARD_<wbr>PLAN2</code>, <code>YAMMER_<wbr>ENTERPRISE</code></small>
+                              </div>
 
 
 
-                                <div class="licence-plan">
-                                  Teams · Included in the product
-                                  <small><code>MCOSTANDARD</code>, <code>MESH_AVATARS_ADDITIONAL_FOR_TEAMS</code>, <code>MESH_AVATARS_FOR_TEAMS</code>, <code>MESH_IMMERSIVE_FOR_TEAMS</code>, <code>TEAMS1</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Teams · Included in the product
+                                <small><code>MCOSTANDARD</code>, <code>MESH_<wbr>AVATARS_<wbr>ADDITIONAL_<wbr>FOR_<wbr>TEAMS</code>, <code>MESH_<wbr>AVATARS_<wbr>FOR_<wbr>TEAMS</code>, <code>MESH_<wbr>IMMERSIVE_<wbr>FOR_<wbr>TEAMS</code>, <code>TEAMS1</code></small>
+                              </div>
 
 
 
 
-                              <div>Service plans not linked to an area: 8.</div>
+                            <div>Service plans not linked to an area: 8.</div>
 
 
 
-                          </td>
-                        </tr>
+                        </div>
+                      </dd>
+                    </div>
 
 
-                        <tr data-product="MCOEV" data-provenance="measured" role="row">
-                          <th scope="row" role="rowheader" data-label="Product code">MCOEV <small class="prov">Measured (simulated)</small></th>
-                          <td role="cell" data-label="Purchased">12</td>
-                          <td role="cell" data-label="Assigned">12</td>
-                          <td role="cell" data-label="Service plan classification">
+                    <div data-product="MCOEV" data-provenance="measured">
+                      <dt>MCOEV</dt>
+                      <dd>
+                        <small class="prov">Measured (simulated)</small>
 
+                        <dl class="report-meta">
+                          <div><dt>Purchased</dt><dd>12</dd></div>
+                          <div><dt>Assigned</dt><dd>12</dd></div>
+                        </dl>
 
-
-                                <div class="licence-plan">
-                                  Telephony · Separately licensed
-                                  <small><code>MCOEV</code></small>
-                                </div>
-
-
-
-
-
-
-                          </td>
-                        </tr>
-
-
-                        <tr data-product="PBI_PREMIUM_PER_USER" data-provenance="measured" role="row">
-                          <th scope="row" role="rowheader" data-label="Product code">PBI_PREMIUM_PER_USER <small class="prov">Measured (simulated)</small></th>
-                          <td role="cell" data-label="Purchased">5</td>
-                          <td role="cell" data-label="Assigned">5</td>
-                          <td role="cell" data-label="Service plan classification">
+                        <div class="licence-plans">
+                          <p><strong>Service plan classification</strong></p>
 
 
 
-                                <div class="licence-plan">
-                                  Power Platform · Separately licensed
-                                  <small><code>BI_AZURE_P2</code>, <code>BI_AZURE_P3</code></small>
-                                </div>
+                              <div class="licence-plan">
+                                Telephony · Separately licensed
+                                <small><code>MCOEV</code></small>
+                              </div>
 
 
 
 
-                              <div>Service plans not linked to an area: 1.</div>
+
+
+                        </div>
+                      </dd>
+                    </div>
+
+
+                    <div data-product="PBI_PREMIUM_PER_USER" data-provenance="measured">
+                      <dt>PBI_PREMIUM_PER_USER</dt>
+                      <dd>
+                        <small class="prov">Measured (simulated)</small>
+
+                        <dl class="report-meta">
+                          <div><dt>Purchased</dt><dd>5</dd></div>
+                          <div><dt>Assigned</dt><dd>5</dd></div>
+                        </dl>
+
+                        <div class="licence-plans">
+                          <p><strong>Service plan classification</strong></p>
 
 
 
-                          </td>
-                        </tr>
+                              <div class="licence-plan">
+                                Power Platform · Separately licensed
+                                <small><code>BI_<wbr>AZURE_<wbr>P2</code>, <code>BI_<wbr>AZURE_<wbr>P3</code></small>
+                              </div>
 
-                    </tbody>
-                  </table>
-                </div>
+
+
+
+                            <div>Service plans not linked to an area: 1.</div>
+
+
+
+                        </div>
+                      </dd>
+                    </div>
+
+                </dl>
 
 
           </details>
@@ -6384,13 +6454,13 @@
 
       <li>
         Guests
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Account list reviewed
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6405,7 +6475,7 @@
 
       <li>
         Guests
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6436,7 +6506,7 @@
 
       <li>
         Other systems send mail through Microsoft
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6451,7 +6521,7 @@
 
       <li>
         Other systems send mail through Microsoft
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6482,7 +6552,7 @@
 
       <li>
         External OneDrive sharing in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6508,13 +6578,13 @@
 
       <li>
         Custom SharePoint solutions in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Workflows on SharePoint sites, lists or libraries in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6529,7 +6599,7 @@
 
       <li>
         Custom SharePoint solutions in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6553,19 +6623,19 @@
 
       <li>
         Teams with guests
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Teams chat history must be kept
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Apps, tabs, bots or connectors added to teams
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6584,31 +6654,31 @@
 
       <li>
         Files that may contain macros
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Access databases
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Publisher files
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Visio files
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         OneNote files
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
@@ -6623,7 +6693,7 @@
 
       <li>
         Files that may contain macros
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6636,7 +6706,7 @@
 
       <li>
         Access databases
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6649,7 +6719,7 @@
 
       <li>
         Publisher files
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6662,7 +6732,7 @@
 
       <li>
         Visio files
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6675,7 +6745,7 @@
 
       <li>
         OneNote files
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6692,19 +6762,19 @@
 
       <li>
         Microsoft device management in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Windows devices
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Separate licence assigned for Device management
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6719,7 +6789,7 @@
 
       <li>
         Microsoft device management in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6732,7 +6802,7 @@
 
       <li>
         Windows devices
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6745,7 +6815,7 @@
 
       <li>
         Microsoft device management in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6762,13 +6832,13 @@
 
       <li>
         Windows-only applications
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Windows-only applications without a web version
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
@@ -6783,7 +6853,7 @@
 
       <li>
         Windows-only applications without a web version
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6796,7 +6866,7 @@
 
       <li>
         Windows-only applications
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6809,7 +6879,7 @@
 
       <li>
         Windows-only applications
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6826,13 +6896,13 @@
 
       <li>
         Power Platform in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Separate licence assigned for Power Platform
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6847,7 +6917,7 @@
 
       <li>
         Separate licence assigned for Power Platform
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6860,7 +6930,7 @@
 
       <li>
         Power Platform in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6873,7 +6943,7 @@
 
       <li>
         Power Platform in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6890,13 +6960,13 @@
 
       <li>
         Separate licence assigned for Telephony
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Telephony runs through Microsoft
-        == No
+        <span class="condition-value">== No</span>
         <span class="prov">Provided</span>
       </li>
 
@@ -6911,13 +6981,13 @@
 
       <li>
         Telephony runs through Microsoft
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
       <li>
         Telephony replacement available
-        == No
+        <span class="condition-value">== No</span>
         <span class="prov">Provided</span>
       </li>
 
@@ -6930,7 +7000,7 @@
 
       <li>
         Telephony runs through Microsoft
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6947,13 +7017,13 @@
 
       <li>
         Applications with Microsoft single sign-on
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
       <li>
         Conditional Access in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -6968,7 +7038,7 @@
 
       <li>
         Applications with Microsoft single sign-on
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -6981,7 +7051,7 @@
 
       <li>
         Conditional Access in use
-        == Yes
+        <span class="condition-value">== Yes</span>
 
       </li>
 
@@ -6998,13 +7068,13 @@
 
       <li>
         Microsoft protection or retention in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
       <li>
         Separate licence assigned for Security and compliance
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -7023,7 +7093,7 @@
 
       <li>
         Small Microsoft applications in use
-        == No
+        <span class="condition-value">== No</span>
 
       </li>
 
@@ -7042,7 +7112,7 @@
 
       <li>
         Applications integrated with Microsoft 365
-        == 0
+        <span class="condition-value">== 0</span>
 
       </li>
 
@@ -7057,7 +7127,7 @@
 
       <li>
         Applications integrated with Microsoft 365
-        &gt; 0
+        <span class="condition-value">&gt; 0</span>
 
       </li>
 
@@ -7078,9 +7148,12 @@
 
                 <dt>Microsoft Entra ID user and group management <small>Directory</small></dt>
                 <dd data-mapping-details="identity_management">
-                  <p>Nubus · In the suite</p>
+                  <p>Nubus</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nubus-identity-and-access-management--portal</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#nubus-identity-and-access-management--portal
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7089,9 +7162,12 @@
 
                 <dt>Exchange Online mail and calendar <small>Mail</small></dt>
                 <dd data-mapping-details="mail_and_calendar">
-                  <p>Open-Xchange (OX App Suite) · In the suite</p>
+                  <p>Open-Xchange (OX App Suite)</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#ox-app-suite-groupware-with-ox-dovecot-mail-backend</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#ox-app-suite-groupware-with-ox-dovecot-mail-backend
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7100,9 +7176,12 @@
 
                 <dt>OneDrive personal file storage and sync <small>OneDrive</small></dt>
                 <dd data-mapping-details="personal_files">
-                  <p>Nextcloud Files · In the suite</p>
+                  <p>Nextcloud Files</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#nextcloud-files
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7111,9 +7190,12 @@
 
                 <dt>SharePoint team file libraries <small>SharePoint</small></dt>
                 <dd data-mapping-details="team_files">
-                  <p>Shared folders in Nextcloud Files · In the suite with limits</p>
+                  <p>Shared folders in Nextcloud Files</p>
+                  <small>In the suite with limits</small>
                   <p>The file module supports shared folders. SharePoint site structure and library rules need a separate review.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/dateien/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7122,9 +7204,12 @@
 
                 <dt>SharePoint workflows <small>SharePoint</small></dt>
                 <dd data-mapping-details="sharepoint_workflows">
-                  <p>Separate redesign of workflows · Direct transfer undocumented</p>
+                  <p>Separate redesign of workflows</p>
+                  <small>Direct transfer undocumented</small>
                   <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/dateien/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7133,9 +7218,12 @@
 
                 <dt>SharePoint pages and intranet sites <small>SharePoint</small></dt>
                 <dd data-mapping-details="intranet_pages">
-                  <p>XWiki · In the suite with limits</p>
+                  <p>XWiki</p>
+                  <small>In the suite with limits</small>
                   <p>The knowledge module documents wiki pages, subpages, further wikis and access rights per page. It names no way to carry over existing SharePoint pages or site structure.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/wissen/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/wissen/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7144,9 +7232,12 @@
 
                 <dt>Microsoft Teams chat <small>Teams</small></dt>
                 <dd data-mapping-details="chat">
-                  <p>Element · In the suite</p>
+                  <p>Element</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#elementsynapse-chat--call</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#elementsynapse-chat--call
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7155,9 +7246,12 @@
 
                 <dt>Microsoft Teams video meetings <small>Teams</small></dt>
                 <dd data-mapping-details="video_meetings">
-                  <p>Jitsi · In the suite</p>
+                  <p>Jitsi</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#jitsi-video-conferencing
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7166,9 +7260,12 @@
 
                 <dt>Teams chat history <small>Teams</small></dt>
                 <dd data-mapping-details="teams_chat_history">
-                  <p>Separate decision on retaining past chats · Direct transfer undocumented</p>
+                  <p>Separate decision on retaining past chats</p>
+                  <small>Direct transfer undocumented</small>
                   <p>The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/chat/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7177,9 +7274,12 @@
 
                 <dt>Editing Microsoft Office documents <small>Office files</small></dt>
                 <dd data-mapping-details="office_editing">
-                  <p>Collabora Online · In the suite with limits</p>
+                  <p>Collabora Online</p>
+                  <small>In the suite with limits</small>
                   <p>The web office edits documents, spreadsheets and presentations. The guide does not establish that complex layouts and features survive conversion.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#collabora-weboffice</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#collabora-weboffice
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7188,9 +7288,12 @@
 
                 <dt>VBA macros in Office files <small>Office files</small></dt>
                 <dd data-mapping-details="vba_macros">
-                  <p>Separate conversion or redevelopment · Direct transfer undocumented</p>
+                  <p>Separate conversion or redevelopment</p>
+                  <small>Direct transfer undocumented</small>
                   <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/office/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7199,9 +7302,12 @@
 
                 <dt>OneNote notebooks <small>Office files</small></dt>
                 <dd data-mapping-details="notes">
-                  <p>Notes · In the suite with limits</p>
+                  <p>Notes</p>
+                  <small>In the suite with limits</small>
                   <p>The component list includes Notes for collaborative notes. Its guide is only available inside the installed application, and no public documentation describes carrying over OneNote notebooks.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7210,9 +7316,12 @@
 
                 <dt>Visio diagrams <small>Office files</small></dt>
                 <dd data-mapping-details="diagrams">
-                  <p>CryptPad with diagrams.net · In the suite with limits</p>
+                  <p>CryptPad with diagrams.net</p>
+                  <small>In the suite with limits</small>
                   <p>The architecture names CryptPad for editing diagrams.net documents. It does not say whether existing Visio files can be opened or converted.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#cryptpad-online-diagrams</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#cryptpad-online-diagrams
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7221,9 +7330,12 @@
 
                 <dt>Device management with Microsoft Intune <small>Device management</small></dt>
                 <dd data-mapping-details="device_management">
-                  <p>Separate device management service · Not available</p>
+                  <p>Separate device management service</p>
+                  <small>Not available</small>
                   <p>The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7232,9 +7344,12 @@
 
                 <dt>Microsoft Windows desktop operating system <small>Device management</small></dt>
                 <dd data-mapping-details="desktop_operating_system">
-                  <p>Separately managed workstation operating system · Not available</p>
+                  <p>Separately managed workstation operating system</p>
+                  <small>Not available</small>
                   <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7243,9 +7358,12 @@
 
                 <dt>Running Windows-only applications <small>Windows-only software</small></dt>
                 <dd data-mapping-details="windows_applications">
-                  <p>Separate hosting or replacement of each application · Not available</p>
+                  <p>Separate hosting or replacement of each application</p>
+                  <small>Not available</small>
                   <p>The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7254,9 +7372,12 @@
 
                 <dt>Power Platform automation and low-code applications <small>Power Platform</small></dt>
                 <dd data-mapping-details="automation_and_low_code">
-                  <p>Separate review and redevelopment of applications and flows · Not available</p>
+                  <p>Separate review and redevelopment of applications and flows</p>
+                  <small>Not available</small>
                   <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/introduction/<wbr>#overview
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7265,9 +7386,12 @@
 
                 <dt>Teams Phone and public telephone calling <small>Telephony</small></dt>
                 <dd data-mapping-details="telephony">
-                  <p>Separate telephone service · Not available</p>
+                  <p>Separate telephone service</p>
+                  <small>Not available</small>
                   <p>Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#jitsi-video-conferencing
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7276,9 +7400,12 @@
 
                 <dt>Microsoft Entra single sign-on <small>Identity and access</small></dt>
                 <dd data-mapping-details="single_sign_on">
-                  <p>Keycloak · In the suite</p>
+                  <p>Keycloak</p>
+                  <small>In the suite</small>
 
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#keycloak</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#keycloak
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7287,9 +7414,12 @@
 
                 <dt>Microsoft 365 protection and retention controls <small>Security and compliance</small></dt>
                 <dd data-mapping-details="security_and_compliance">
-                  <p>Access controls and malware scanning in openDesk · In the suite with limits</p>
+                  <p>Access controls and malware scanning in openDesk</p>
+                  <small>In the suite with limits</small>
                   <p>The architecture documents malware scanning of uploaded files and mail attachments. It does not document organisation-wide retention or legal holds.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#nextcloud-files
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7298,9 +7428,12 @@
 
                 <dt>Microsoft Forms, Planner and Bookings <small>Small applications</small></dt>
                 <dd data-mapping-details="forms_tasks_bookings">
-                  <p>OpenProject and OX App Suite for tasks · In the suite with limits</p>
+                  <p>OpenProject and OX App Suite for tasks</p>
+                  <small>In the suite with limits</small>
                   <p>The task guide covers tasks with reminders, status and members. It describes no general forms or public appointment booking.</p>
-                  <small>Documentation · https://docs.opendesk.eu/user/applications/aufgaben/</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/user/applications/aufgaben/
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7309,9 +7442,12 @@
 
                 <dt>Integrations with Microsoft 365 applications <small>Integrations</small></dt>
                 <dd data-mapping-details="application_integrations">
-                  <p>Interfaces in the openDesk components · In the suite with limits</p>
+                  <p>Interfaces in the openDesk components</p>
+                  <small>In the suite with limits</small>
                   <p>The architecture describes interfaces and integrations within the suite. Existing business application connections need to be checked individually.</p>
-                  <small>Documentation · https://docs.opendesk.eu/operations/architecture/#component-integration</small>
+                  <small>Documentation ·
+    https://docs.opendesk.eu/operations/architecture/<wbr>#component-integration
+  </small>
                   <small>Checked on ·
 
     <time datetime="2026-11-22">22 November 2026</time>
@@ -7368,7 +7504,7 @@
 
                 <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">2c159fb86e78d7aac97913280cd0c9b4fdb964ec0a9fbbacd277a4c612f7e7f9</code></li>
 
-                <li><code>status.yaml</code> · <code data-checksum="status.yaml">c9edae720476d42e3f0fb2356a0d6fb5c4e9b2fe195893a5171c70eff0d62b4f</code></li>
+                <li><code>status.yaml</code> · <code data-checksum="status.yaml">a7b474765a435a94d1b481ac09e3f9e3ad51c27571181e75eff97cd42874a3ea</code></li>
 
                 <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">494ae2aed637f394197a58264f5dde1cb9e1ef99b90d95495620de5c13f159c8</code></li>
 

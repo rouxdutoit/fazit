@@ -149,13 +149,23 @@
     <p data-mapping-review="unreviewed">{{ strings.moves.unreviewed }}</p>
   {% endif %}
 {%- endmacro %}
+{% macro mapping_reference(url) -%}
+  <small>{{ strings.appendix.mapping_reference }} ·
+    {% for part in (url or strings.common.unavailable).split('#', 1) -%}
+      {%- if not loop.first %}<wbr>#{% endif -%}{{ part }}
+    {%- endfor %}
+  </small>
+{%- endmacro %}
+{% macro wrapped_code(value, separator) -%}
+  <code>{% for part in value.split(separator) %}{{ part }}{% if not loop.last %}{{ separator }}<wbr>{% endif %}{% endfor %}</code>
+{%- endmacro %}
 {% macro conditions_list(conditions) -%}
   <ul>
     {% for condition in conditions %}
       <li>
         {{ finding_labels[condition.finding] }}
         {% if condition.op == 'exists' %}{{ strings.appendix.condition_exists }}
-        {% else %}{{ condition.op }} {{ literal_text(condition.value) }}{% endif %}
+        {% else %}<span class="condition-value">{{ condition.op }} {{ literal_text(condition.value) }}</span>{% endif %}
         {% if condition.provenance %}<span class="prov">{{ strings.provenance[condition.provenance] }}</span>{% endif %}
       </li>
     {% endfor %}
@@ -205,9 +215,11 @@
       </ul>
       <p>
         <strong>{% for owner in point.owners %}{{ strings.role[owner] }}{{ ' · ' if not loop.last }}{% endfor %}</strong>
-        {% if point.input_key %} · {{ strings.path.input_field }} <code>{{ point.input_key }}</code>{% endif %}
-        {% if fixes %} · {% for code in fixes %}{{ reason_text(code)[1] }}{{ ' ' if not loop.last }}{% endfor %}{% endif %}
       </p>
+      {% if point.input_key %}
+        <p class="input-field">{{ strings.path.input_field }} {{ wrapped_code(point.input_key, '.') }}</p>
+      {% endif %}
+      {% if fixes %}<p>{% for code in fixes %}{{ reason_text(code)[1] }}{{ ' ' if not loop.last }}{% endfor %}</p>{% endif %}
     </dd>
   </div>
 {%- endmacro %}
@@ -327,7 +339,7 @@
           </div>
           <ul class="cost-chart-values" role="list">
             {% for block in row.blocks %}
-              <li>{{ costs.groups[block.id] }} · <span class="cost-value" data-chart-value="{{ block.id }}">{{ cost_amount(block.total) }}</span></li>
+              <li><span>{{ costs.groups[block.id] }}</span> <span class="cost-value" data-chart-value="{{ block.id }}">{{ cost_amount(block.total) }}</span></li>
             {% endfor %}
           </ul>
         {% endif %}
@@ -372,6 +384,7 @@
       --status-needs-work: #ffcc00;
       --status-blocker: #ff9500;
       --status-unknown: #8e8e93;
+      --status-strength: 60%;
       --fs-display: clamp(2.5rem, 5vw, 3.5rem);
       --fs-title: clamp(2rem, 3.6vw, 2.5rem);
       --fs-headline: 1.5rem;
@@ -396,6 +409,7 @@
         --status-needs-work: #ffd60a;
         --status-blocker: #ff9f0a;
         --status-unknown: #8e8e93;
+        --status-strength: 100%;
       }
     }
     :root {
@@ -413,6 +427,8 @@
       --mono: "Geist Mono", ui-monospace, monospace;
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
       --gutter: 20px;
+      --section-space: 48px;
+      --card-padding: 24px;
       --max: 1120px;
       --measure: 42.5rem;
       --hit: 44px;
@@ -427,7 +443,7 @@
       }
     }
     @media (max-width: 600px) {
-      :root { --gutter: 16px; }
+      :root { --gutter: 16px; --section-space: 32px; }
     }
     * { box-sizing: border-box; }
     body {
@@ -442,13 +458,14 @@
     }
     html { scroll-padding-block-start: 24px; hyphens: manual; }
     code {
-      font: 400 0.875em / 1.5 var(--mono);
-      overflow-wrap: anywhere;
+      font-family: var(--mono);
+      overflow-wrap: break-word;
     }
     h1, h2, h3, h4, p { margin: 0; }
-    h3, h4 { font-weight: 600; text-wrap: balance; }
+    h1, h2, h3, h4, strong, b { font-weight: 600; }
+    h1, h2, h3, h4 { text-wrap: balance; }
     h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 12px; }
-    p, li, dd, td { text-wrap: pretty; }
+    p, li, dt, dd, figcaption, td, summary, small { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
     @media screen and (prefers-color-scheme: dark) {
@@ -487,20 +504,22 @@
     .report-layout main { min-width: 0; }
     .section-index { display: none; }
     .index-disclosure {
-      margin-block-start: 24px;
+      margin-block-start: 16px;
       border: 0;
     }
     .index-disclosure > summary {
+      align-items: center;
       width: fit-content;
-      padding: 8px 16px;
+      padding: 0 16px;
       border-radius: var(--radius-pill);
       background: var(--fill);
       font-size: var(--fs-subhead);
       font-weight: 600;
     }
+    .index-disclosure > summary > .icon { margin: 0; }
     .index-disclosure nav { margin-block-start: 8px; }
     .section-index, .index-disclosure nav {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -595,7 +614,7 @@
     }
     .sec {
       position: relative;
-      padding-block: 48px;
+      padding-block: var(--section-space);
     }
     .sec::before {
       position: absolute;
@@ -616,13 +635,10 @@
     }
     .sec-body > :first-child { margin-top: 0; }
     .sec-body > p, .sec-body .subsection > p { max-width: var(--measure); }
-    .sec-body p + p { margin-top: 12px; }
+    .sec-body .subsection > p + p, .sec-body > p + p { margin-top: 12px; }
     .sec-intro { color: var(--fg-2); }
     .subsection { margin-top: 32px; }
     .subsection > :first-child { margin-top: 0; }
-    @media screen and (max-width: 600px) {
-      .sec { padding-block: 32px; }
-    }
     @media screen {
       [data-section=summary] .sec { padding-block-start: 24px; }
     }
@@ -679,12 +695,13 @@
     }
     .rows {
       margin: 0;
-      padding: 8px 24px;
+      padding: 8px var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
     .rows > div {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 4px;
       padding-block: 16px;
       overflow-wrap: anywhere;
@@ -693,12 +710,15 @@
     .rows dt { font-weight: 600; }
     .rows dd { max-width: var(--measure); margin: 0; color: var(--fg-2); }
     [data-summary] .rows > div { gap: 8px; }
-    h3 + .rows, .subsection p + .rows { margin-top: 12px; }
+    h3 + .rows, p + .rows { margin-top: 12px; }
     .summary-links {
       display: flex;
       flex-wrap: wrap;
       gap: 8px 16px;
       margin-top: 12px;
+    }
+    @media screen {
+      .summary-links > a { min-height: var(--hit); }
     }
     .tiles {
       display: grid;
@@ -718,7 +738,7 @@
       display: grid;
       align-content: start;
       gap: 4px;
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -732,11 +752,11 @@
       font-weight: 600;
     }
     .tiles .tile-title {
-      display: grid;
       margin-bottom: 4px;
       color: var(--fg);
       font-size: var(--fs-body);
       font-weight: 600;
+      text-wrap: balance;
       line-height: 1.35;
     }
     .figure-num {
@@ -753,7 +773,13 @@
     .summary-costs .tiles { margin-top: 0; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
     .cost-value { white-space: nowrap; }
-    .cost-notes { max-width: var(--measure); margin-top: 12px; }
+    .cost-notes {
+      display: grid;
+      gap: 8px;
+      max-width: var(--measure);
+      margin-top: 12px;
+    }
+    .cost-notes p { margin: 0; }
     .report-meta {
       display: flex;
       flex-wrap: wrap;
@@ -781,6 +807,7 @@
       vertical-align: top;
     }
     .coverage tbody tr:last-child > * { border-bottom: 0; }
+    .coverage tr > :last-child { padding-inline-end: 0; }
     .coverage thead th, .cost-table thead th {
       padding-block: 8px;
       color: var(--fg-2);
@@ -791,8 +818,8 @@
       width: 28%;
       font-weight: 600;
     }
+    .coverage th > .prov { display: block; margin-block-start: 4px; }
     .replacements :is(th, td) { overflow-wrap: normal; }
-    .replacements td:last-child { padding-inline-end: 0; }
     .replacement-name {
       display: block;
       padding-inline-start: calc(1.2em + 8px);
@@ -833,9 +860,9 @@
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
-    .status .icon { color: var(--status-fill); }
+    .status .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
     .finding {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -845,6 +872,7 @@
       justify-content: space-between;
       gap: 12px;
     }
+    .finding-head > div { min-inline-size: 0; }
     .finding-area {
       margin: 0;
       color: var(--fg);
@@ -879,7 +907,6 @@
     .finding-status .badge { background: var(--fill-2); }
     @media screen and (max-width: 600px) {
       .finding-head { flex-direction: column; }
-      .finding-head > div { max-width: 100%; }
       .finding-status { justify-content: flex-start; }
     }
     .finding-reason {
@@ -893,18 +920,15 @@
       font-size: var(--fs-footnote);
     }
     .finding-target > span { display: block; }
-    .finding-target .more { margin-block-start: 4px; }
+    .finding-target > .more { display: inline-block; margin-block-start: 4px; }
     .more {
-      display: inline-flex;
-      align-items: flex-start;
-      gap: 4px;
       color: var(--link-quiet);
     }
     .more:hover { color: var(--link); }
     .more > .icon {
       width: 1em;
       height: 1em;
-      margin-block-start: calc((1lh - 1em) / 2);
+      vertical-align: -0.2em;
     }
     .table-note, .note-text {
       margin-top: 16px;
@@ -914,7 +938,9 @@
     .finding-next { max-width: var(--measure); margin-top: 16px; }
     .finding-next > strong { display: block; font-size: var(--fs-subhead); }
     .finding-missing { margin-top: 16px; font-size: var(--fs-subhead); }
+    .finding-missing li > strong { display: block; }
     .finding .workload-evidence { margin-top: 12px; }
+    .workload-evidence .table-scroll { margin-block: 24px; }
     .status-group {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -986,7 +1012,7 @@
       font-size: var(--fs-subhead);
     }
     .note {
-      padding: 24px;
+      padding: var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
     }
@@ -1010,7 +1036,7 @@
         .segmented label:has(:disabled) { opacity: 0.4; cursor: default; }
         .segmented label:has(:focus-visible) {
           outline: 2px solid var(--link);
-          outline-offset: 3px;
+          outline-offset: -2px;
         }
         {% for status, count in status_counts %}
           [data-section=readiness]:has(#f-status-{{ status }}:checked) .status-group:not([data-status-group="{{ status }}"], :has(> h3:target, > .finding:target)),
@@ -1034,6 +1060,7 @@
         ) .areas-empty { display: block; }
       }
     }
+    .licence-plans { margin-block-start: 16px; font-size: var(--fs-subhead); }
     .licence-plan small { margin-block-end: 4px; }
     .licence-plan + .licence-plan { margin-block-start: 8px; }
     .finding ul, .rule-details ul { margin: 4px 0; padding-inline-start: 16px; }
@@ -1048,6 +1075,8 @@
     .mapping-gaps > li > strong { display: block; margin-block-end: 4px; }
     .mapping-gaps > li > small:first-of-type { margin-block-start: 8px; }
     .open-items { margin: 0 0 8px; padding: 0; list-style: none; }
+    .input-field { margin-block-start: 4px; font-size: var(--fs-subhead); }
+    .input-field code { display: block; }
     .path-actions { max-width: var(--measure); margin: 0; padding-inline-start: 16px; }
     .path-actions li + li { margin-block-start: 8px; }
     h4 + .rows { margin-top: 12px; }
@@ -1055,19 +1084,19 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 24px;
-      margin: 32px 0 0;
+      margin: 24px 0 0;
       padding: 0;
+      font-size: var(--fs-subhead);
       list-style: none;
     }
     .finding .rule-evidence > li { margin-block-start: 0; }
     @media screen and (min-width: 640px) {
       .finding .rule-evidence {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 32px;
       }
     }
     .evidence-meta {
-      margin: 8px 0 0;
+      margin: 4px 0 0;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
       line-height: 1.45;
@@ -1109,6 +1138,9 @@
       margin-top: calc((1lh - 12px) / 2);
       border-radius: var(--radius-pill);
       background: var(--cost-fill);
+    }
+    @media screen {
+      .cost-swatch { outline: 1px solid var(--fg-2); }
     }
     .cost-chart-row { margin-top: 24px; }
     .cost-chart-heading {
@@ -1160,14 +1192,25 @@
       font-size: var(--fs-subhead);
       list-style: none;
     }
+    .cost-chart-values li:has(.cost-value) {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
     .cost-table thead th:first-child { width: 34%; }
-    .cost-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .cost-table .subtotals > *, .cost-table .totals > * { background: var(--surface); }
-    .cost-table .totals td { font-weight: 600; }
+    .cost-table thead th:not(:first-child), .cost-table td { text-align: end; }
+    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cost-table .totals { background: var(--fill); }
+    .cost-table :is(.subtotals, .totals) td { font-weight: 600; }
+    .cost-table th:first-child { padding-inline-start: 16px; }
     :is(.run-details, .rule-details, .mapping-details) { margin-block: 16px; }
     :is(.run-details, .rule-details, .mapping-details) dt { font-weight: 600; }
     :is(.run-details, .rule-details, .mapping-details) dd { margin: 4px 0 12px; }
+    .mapping-details dd > :first-child { text-wrap: balance; }
+    .condition-value { white-space: nowrap; }
     [data-section=appendix] ul { margin-block: 8px; padding-inline-start: 16px; }
+    [data-checksum] { display: block; font-size: var(--fs-subhead); }
     footer {
       width: calc(100% - 2 * var(--gutter));
       max-width: calc(var(--max) - 2 * var(--gutter));
@@ -1182,6 +1225,7 @@
       a, summary > .icon, .segmented label { transition: none; }
     }
     @media screen and (max-width: 600px) {
+      .scope-links li, .replacements tbody th { text-wrap: balance; }
       .coverage thead {
         position: absolute;
         width: 1px;
@@ -1191,8 +1235,7 @@
       }
       .coverage tr {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 16px;
+        gap: 8px;
         padding-block: 16px;
         border-bottom: 1px solid var(--rule);
       }
@@ -1202,9 +1245,7 @@
         border-bottom: 0;
       }
       .coverage tbody th {
-        grid-column: 1 / -1;
         width: auto;
-        margin-bottom: 8px;
       }
       .coverage td::before {
         display: block;
@@ -1214,10 +1255,12 @@
         font-weight: 600;
         content: attr(data-label);
       }
-      .workload-evidence .coverage td { grid-column: 1 / -1; }
-      :is(.file-types, .licence-products .coverage) tbody td:last-child {
+      :is(.file-types, .software-table) tr {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 16px;
+      }
+      :is(.file-types, .software-table) tbody th, .file-types tbody td:last-child {
         grid-column: 1 / -1;
-        margin-block-start: 8px;
       }
     }
     @media screen and (width < 70rem) {
@@ -1243,7 +1286,7 @@
         border: 0;
       }
       .replacements tbody th { font-size: var(--fs-body); }
-      .replacements tbody :is(th, td:nth-child(-n+3)) { grid-column: 1 / -1; }
+      .replacements tbody :is(th, td:nth-child(2), td:nth-child(3)) { grid-column: 1 / -1; }
       .replacements td::before, .replacement-name::before {
         display: block;
         margin-block-end: 4px;
@@ -1254,6 +1297,10 @@
       }
       .replacements td[data-coverage-label]::before { content: attr(data-coverage-label); }
       .replacement-name { margin-block-start: 12px; padding: 0; }
+    }
+    @media screen and (640px <= width < 70rem) {
+      .replacements tbody tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .replacements tbody td:nth-child(3) { grid-column: auto; }
     }
     @media screen and (width < 22.5rem) {
       .replacements tbody tr { grid-template-columns: minmax(0, 1fr); }
@@ -1277,10 +1324,10 @@
       .cost-table tr {
         display: grid;
         gap: 4px;
-        padding-block: 16px;
+        padding: 16px;
         border-bottom: 1px solid var(--rule);
       }
-      .cost-table :is(th, td) { padding: 0; border-bottom: 0; }
+      .cost-table :is(th, td), .cost-table th:first-child { padding: 0; border-bottom: 0; }
       .cost-table tbody th { margin-bottom: 8px; }
       .cost-table td {
         display: grid;
@@ -1367,8 +1414,7 @@
         break-inside: avoid;
         break-after: avoid;
       }
-      [data-section=summary] .cost-notes { margin-top: 4pt; }
-      [data-section=summary] .cost-notes p { margin-top: 0; }
+      [data-section=summary] .cost-notes { gap: 0; margin-top: 4pt; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
       .tiles .figure-num { overflow: visible; }
       .tiles li, .finding { padding: 12pt; }
@@ -1410,10 +1456,6 @@
       <p class="index-title">{{ strings.nav.on_this_page }}</p>
       {{ index_links() }}
     </nav>
-    <details class="index-disclosure">
-      <summary>{{ icon('chevron-right') }}{{ strings.nav.on_this_page }}</summary>
-      <nav aria-label="{{ strings.nav.label }}">{{ index_links() }}</nav>
-    </details>
   <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
@@ -1434,6 +1476,10 @@
         <div><dt>{{ strings.header.target_profile }}</dt><dd>{{ mapping.label[lang] }}</dd></div>
       </dl>
       {% if sample_scan %}<p class="note">{{ strings.header.sample }}</p>{% endif %}
+      <details class="index-disclosure">
+        <summary>{{ icon('chevron-right') }}{{ strings.nav.on_this_page }}</summary>
+        <nav aria-label="{{ strings.nav.label }}">{{ index_links() }}</nav>
+      </details>
     </div>
   </header>
     <section data-section="summary">
@@ -1906,7 +1952,7 @@
           </dl>
           {% if inputs and inputs.windows_only_software %}
             <div class="table-scroll" role="region" aria-labelledby="software-title" tabindex="0">
-              <table class="coverage" role="table">
+              <table class="coverage software-table" role="table">
                 <thead role="rowgroup">
                   <tr role="row">
                     {{ column(strings.attention.software_name) }}
@@ -1953,7 +1999,7 @@
                         </small>
                       {% endif %}
                     </p>
-                    <small>{{ strings.appendix.mapping_reference }} · {{ item.reference_url or strings.common.unavailable }}</small>
+                    {{ mapping_reference(item.reference_url) }}
                     <small>{{ strings.appendix.mapping_date }} · {{ mapping_date(item) }}</small>
                   </li>
                 {% endfor %}
@@ -1997,7 +2043,7 @@
             </summary>
             {% if product_count %}
               <p data-provenance="{{ product_count.provenance }}">
-                {% if product_count.value is not none %}{{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}{% endif %}
+                {% if product_count.value is not none and not licences %}{{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}{% endif %}
                 <span class="prov">{{ licence_provenance }}</span>
                 {% if product_count.missing_reason %}
                   <small>{{ reason_detail(product_count.missing_reason) }}</small>
@@ -2010,56 +2056,52 @@
                 <p>{{ reason_detail('licence_plan_list_incomplete') }}</p>
               {% endif %}
               {% if licences %}
-                <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
-                  <table class="coverage" role="table">
-                    {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
-                    <thead role="rowgroup">
-                      <tr role="row">
-                        {{ column(strings.licences.product) }}
-                        {{ column(strings.licences.purchased) }}
-                        {{ column(strings.licences.assigned) }}
-                        {{ column(strings.licences.plans) }}
-                      </tr>
-                    </thead>
-                    <tbody role="rowgroup">
-                      {% for product in licences %}
-                        {% set matches = product.plans %}
-                        <tr data-product="{{ product.id }}" data-provenance="measured" role="row">
-                          <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ licence_provenance }}</small>{% if product.sku_guid %}<small><code>{{ product.sku_guid }}</code></small>{% endif %}</th>
-                          <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
-                          <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}{% if product.assigned > product.purchased %}
-                            <small data-reason="assigned_exceeds_purchased">{{ strings.licences.assigned_exceeds_purchased.format(count=format.integer(product.assigned - product.purchased)) }}</small>
-                          {% endif %}</td>
-                          <td role="cell" data-label="{{ strings.licences.plans }}">
-                            {% set classified = matches|reject('none')|list %}
-                            {% for workload, entries in classified|rejectattr('workload', 'none')|groupby('workload') %}
-                              {% for signal, plans in entries|groupby('signal') %}
-                                <div class="licence-plan">
-                                  {{ workload_labels[workload] }} · {{ strings.licences[signal] }}
-                                  <small>{% for plan in plans %}<code>{{ plan.name }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</small>
-                                </div>
-                              {% endfor %}
+                {% if sample_scan %}<p class="table-note" data-sample>{{ strings.found.sample }}</p>{% endif %}
+                <dl class="rows">
+                  {% for product in licences %}
+                    {% set matches = product.plans %}
+                    <div data-product="{{ product.id }}" data-provenance="measured">
+                      <dt>{{ product.label }}</dt>
+                      <dd>
+                        <small class="prov">{{ licence_provenance }}</small>
+                        {% if product.sku_guid %}<small><code>{{ product.sku_guid }}</code></small>{% endif %}
+                        <dl class="report-meta">
+                          <div><dt>{{ strings.licences.purchased }}</dt><dd>{{ format.integer(product.purchased) }}</dd></div>
+                          <div><dt>{{ strings.licences.assigned }}</dt><dd>{{ format.integer(product.assigned) }}</dd></div>
+                        </dl>
+                        {% if product.assigned > product.purchased %}
+                          <small data-reason="assigned_exceeds_purchased">{{ strings.licences.assigned_exceeds_purchased.format(count=format.integer(product.assigned - product.purchased)) }}</small>
+                        {% endif %}
+                        <div class="licence-plans">
+                          <p><strong>{{ strings.licences.plans }}</strong></p>
+                          {% set classified = matches|reject('none')|list %}
+                          {% for workload, entries in classified|rejectattr('workload', 'none')|groupby('workload') %}
+                            {% for signal, plans in entries|groupby('signal') %}
+                              <div class="licence-plan">
+                                {{ workload_labels[workload] }} · {{ strings.licences[signal] }}
+                                <small>{% for plan in plans %}{{ wrapped_code(plan.name, '_') }}{% if not loop.last %}, {% endif %}{% endfor %}</small>
+                              </div>
                             {% endfor %}
-                            {% set no_workload = classified|selectattr('signal', 'eq', 'no_workload')|list|length %}
-                            {% if no_workload %}
-                              <div>{{ strings.licences.no_workload.format(count=format.integer(no_workload)) }}</div>
-                            {% endif %}
-                            {% set unclassified = matches|select('none')|list|length %}
-                            {% if unclassified %}
-                              {{ strings.licences.unclassified.format(count=format.integer(unclassified)) }}
-                              {% set reason, fix = reason_text('licence_not_classified') %}
-                              <small data-reason="licence_not_classified">{{ reason }} {{ fix }}</small>
-                            {% elif not matches and product.assigned %}
-                              {{ reason_detail('licence_plan_list_missing') }}
-                            {% elif not matches %}
-                              {{ strings.common.unavailable }}
-                            {% endif %}
-                          </td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
+                          {% endfor %}
+                          {% set no_workload = classified|selectattr('signal', 'eq', 'no_workload')|list|length %}
+                          {% if no_workload %}
+                            <div>{{ strings.licences.no_workload.format(count=format.integer(no_workload)) }}</div>
+                          {% endif %}
+                          {% set unclassified = matches|select('none')|list|length %}
+                          {% if unclassified %}
+                            {{ strings.licences.unclassified.format(count=format.integer(unclassified)) }}
+                            {% set reason, fix = reason_text('licence_not_classified') %}
+                            <small data-reason="licence_not_classified">{{ reason }} {{ fix }}</small>
+                          {% elif not matches and product.assigned %}
+                            {{ reason_detail('licence_plan_list_missing') }}
+                          {% elif not matches %}
+                            {{ strings.common.unavailable }}
+                          {% endif %}
+                        </div>
+                      </dd>
+                    </div>
+                  {% endfor %}
+                </dl>
               {% endif %}
             {% else %}
               <p data-provenance="unknown">
@@ -2147,9 +2189,10 @@
               {% for item in mapping.functions %}
                 <dt>{{ item.microsoft[lang] }} <small>{{ workload_labels[item.workload] }}</small></dt>
                 <dd data-mapping-details="{{ item.function }}">
-                  <p>{{ item.replacement[lang] }} · {{ strings.mapping_coverage[item.coverage] }}</p>
+                  <p>{{ item.replacement[lang] }}</p>
+                  <small>{{ strings.mapping_coverage[item.coverage] }}</small>
                   {% if item.note %}<p>{{ item.note[lang] }}</p>{% endif %}
-                  <small>{{ strings.appendix.mapping_reference }} · {{ item.reference_url or strings.common.unavailable }}</small>
+                  {{ mapping_reference(item.reference_url) }}
                   <small>{{ strings.appendix.mapping_date }} · {{ mapping_date(item) }}</small>
                 </dd>
               {% endfor %}

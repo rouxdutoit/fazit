@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
-  <title>Fazit · Wissen, was ein Umstieg von Microsoft 365 erfordert</title>
+  <title>Fazit · Was beim Umstieg von Microsoft 365 nötig ist</title>
   <link rel="canonical" href="https://fazit.dev/de/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/">
   <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
-  <meta property="og:title" content="Fazit · Wissen, was ein Umstieg von Microsoft 365 erfordert">
+  <meta property="og:title" content="Fazit · Was beim Umstieg von Microsoft 365 nötig ist">
   <meta property="og:description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
   <meta property="og:url" content="https://fazit.dev/de/">
   <meta property="og:locale" content="de_DE">
@@ -32,6 +32,7 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,22 +40,20 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
       <p class="eyebrow">Für die öffentliche IT und IT-Dienstleister in Deutschland, Österreich und der Schweiz</p>
-      <h1 id="hero-title">Wissen, was ein Umstieg von Microsoft 365 erfordert</h1>
+      <h1 id="hero-title">Was beim Umstieg von Microsoft&nbsp;365 nötig ist</h1>
       <p class="hero-sub">Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, in einem Bericht, den Fazit auf Ihrem eigenen Rechner erstellt.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-        <a class="btn btn-secondary" href="/demo/de/"><span class="btn-icon icon-description" aria-hidden="true"></span>Beispielbericht ansehen</a>
+        <a class="more" href="/demo/de/">Beispielbericht ansehen</a>
       </div>
       <p class="hero-status">Derzeit mit Beispieldaten. Als Nächstes kommt der Import Ihrer eigenen Microsoft-365-Exporte.</p>
     </section>
@@ -80,7 +79,7 @@
         <span><span data-assessed-areas>14</span> Bereiche, drei Ziele (openDesk, Nextcloud und eine produktneutrale Prüfliste), auf Deutsch und Englisch als offline lesbare HTML-Datei.</span>
         <span class="caption-links">
           <a class="more" href="/demo/de/">Beispielbericht öffnen</a>
-          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html"><span class="btn-icon icon-download" aria-hidden="true"></span>HTML herunterladen, 420 KB</a>
+          <a class="more" href="/demo/de/" download="fazit-sample-report-de.html">HTML herunterladen, 420 KB</a>
         </span>
       </figcaption>
     </figure>
@@ -112,7 +111,7 @@
           <div class="finding-reason">
             Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
           </div>
-          <p class="finding-next"><strong>Nächster Schritt</strong> Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für E-Mails.</p>
+          <p class="finding-next"><strong>Nächster Schritt</strong> Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für&nbsp;E-Mails.</p>
           <div class="finding-missing">
             <p><strong>Noch benötigte Angaben</strong></p>
             <ul>
@@ -291,7 +290,7 @@
     <section class="sec grid" id="how" aria-labelledby="how-title">
       <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
       <div class="sec-body">
-        <p>Installieren Sie Git und uv. Führen Sie anschließend diese Befehle aus. Beim ersten Lauf lädt uv die benötigten Pakete. Danach läuft das Beispiel ohne Netzwerkverbindung und ohne Microsoft-Konto.</p>
+        <p>Installieren Sie Git und uv. Führen Sie anschließend diese Befehle aus. Beim ersten Lauf lädt uv die benötigten Pakete. Danach läuft das Beispiel ohne Microsoft-Konto und ohne Netzwerk.</p>
         <div class="command" role="group" aria-label="Im Terminal ausführen">
           <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
           <div class="command-line">
@@ -320,7 +319,7 @@
         </div>
         <div class="subsection">
           <h3>Selbst nachprüfen</h3>
-          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung, führen Sie <code>uv run --offline fazit demo --lang de</code> aus und öffnen Sie den Bericht. Er braucht nichts aus dem Netz.</p>
+          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung, führen Sie <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus und öffnen Sie den Bericht. Er braucht nichts aus dem Netz.</p>
           <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
         </div>
       </div>
@@ -343,7 +342,7 @@
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Später</p>
-            <p class="timeline-text">Geplant sind die Installation mit einem Befehl und ein signiertes Windows-Programm, das ohne Python läuft. Zu jeder Version gehören Prüfsummen und eine Liste der enthaltenen Komponenten.</p>
+            <p class="timeline-text">Geplant sind die Installation mit einem Befehl und ein signiertes Windows-Programm, das ohne Python läuft. Zu jeder Version gehören Prüfsummen und eine Liste der Komponenten.</p>
             <p class="timeline-text">Der Bericht soll Microsoft 365 Copilot und Copilot Studio als eigenen Bereich abdecken und die Frist für die Entscheidung über die Lizenzverlängerung nennen. Vorgesehen sind außerdem ein CSV-Export für Projektpläne, eine Prüfung auf nachträgliche Änderungen am Bericht und Verweise auf die Souveränitätskriterien des ZenDiS, des Bundeszentrums hinter openDesk.</p>
             <p class="timeline-text">Nach einer Anmeldung mit reinem Lesezugriff soll Fazit Berechtigungen prüfen und Lizenzen und Verzeichniseinträge zählen.</p>
           </li>
@@ -356,7 +355,8 @@
       <h2 class="sec-label" id="free-title">Kostenlos und quelloffen</h2>
       <div class="sec-body">
         <p class="sec-intro">Fazit ist kostenlos und quelloffen unter der AGPL-3.0-or-later. Alle Funktionen und Prüfregeln liegen im offenen Repository. Der Projektverantwortliche will mit Prüfungen und Unterstützung rund um Fazit Geld verdienen.</p>
-        <p>Claude und Codex schreiben den Code unter Leitung des Projektverantwortlichen. <a href="/de/about/#about-made">Wie Fazit entsteht</a></p>
+        <p>Claude und Codex schreiben den Code unter Leitung des Projektverantwortlichen.</p>
+        <p><a class="more" href="/de/about/#about-made">Wie Fazit entsteht</a></p>
         <ul class="tiles">
           <li>
             <a class="tile-link" href="/de/pilots/">

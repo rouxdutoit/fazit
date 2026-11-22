@@ -863,7 +863,8 @@ def test_target_gaps_reach_readiness_and_appendix(
         assert phone_rule is not None and reason in phone_rule[0]
         assert strings["status"]["needs_work"] in phone_rule[0]
         condition = strings["finding"]["telephony.in_use"]
-        assert re.search(rf"{re.escape(condition)}\s+== {strings['common']['yes']}", phone_rule[0])
+        comparator = f'<span class="condition-value">== {strings["common"]["yes"]}</span>'
+        assert re.search(rf"{re.escape(condition)}\s+{re.escape(comparator)}", phone_rule[0])
     else:
         assert phone_rule is None
 
@@ -1866,7 +1867,7 @@ def test_attention_lists_each_transfer_gap_from_the_profile(
         )
         assert row.note and row.note["en"] in unescape(entry[0])
         if row.reference_url and row.checked_on:
-            assert row.reference_url in unescape(entry[0])
+            assert row.reference_url in unescape(entry[0].replace("<wbr>", ""))
             assert row.checked_on.isoformat() in entry[0]
         else:
             assert load_locale("en")["moves"]["no_project_check"] in entry[0]

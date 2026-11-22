@@ -964,7 +964,7 @@ def test_eea_suite_with_published_punctuation_is_classified(
     assert "Unclassified service plans" not in html
     assert re.search(
         r"Mail · Included in the product\s*<small>[^\n]*<code>EXCHANGE_S_ENTERPRISE</code>",
-        html,
+        html.replace("<wbr>", ""),
     )
 
     product["sku_guid"] = "0bcaffc1-5211-41e4-b81e-79a9d25b77e4"

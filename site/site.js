@@ -77,6 +77,9 @@
     bar.querySelector("nav").addEventListener("click", (event) => {
       if (event.target.closest("a")) setOpen(false);
     });
+    bar.addEventListener("focusout", (event) => {
+      if (event.relatedTarget && !bar.contains(event.relatedTarget)) setOpen(false);
+    });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && bar.hasAttribute("data-open")) {
         setOpen(false);

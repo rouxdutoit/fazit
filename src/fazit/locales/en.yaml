@@ -55,7 +55,6 @@ found:
     directory: Internal accounts include shared and service accounts, so there can be more accounts than staff. Guests are counted separately.
 licences:
   title: Licence products
-  product: Product code
   unregistered_product: Unregistered product {number}
   product_count: 'Licence products found: {count}'
   purchased: Purchased
@@ -234,7 +233,7 @@ path:
     device_management.device_count: How many devices does the IT inventory cover?
     device_management.windows_device_count: How many of those devices run Windows?
     device_management.in_use: Does your organisation manage devices through Microsoft?
-    device_management.windows_desktops_required: Do applications, devices or peripherals require Windows workstations?
+    device_management.windows_desktops_required: Do any applications, devices or peripherals need a Windows desktop?
     windows_software.application_count: Which applications run only on Windows?
     windows_software.without_web_version_count: Which Windows-only applications have no web version?
     power_platform.in_use: Does your organisation use Power Platform services?
@@ -246,7 +245,7 @@ path:
     small_apps.in_use: Do departments use smaller Microsoft applications such as Forms, Planner or Bookings?
     integrations.application_count: How many business applications are connected to Microsoft 365?
   transfer_actions:
-    not_available: The service lead and IT team decide how to provide the following after the move ({functions}).
+    not_available: For the functions listed here ({functions}), the service lead and IT team plan how to provide them after the move.
     transfer_undocumented: The service lead and IT team plan and test how to transfer or rebuild the content for {functions}.
   empty:
     blocker: The evidence identified no blocker.

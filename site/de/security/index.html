@@ -32,6 +32,7 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,11 +40,9 @@
           <a href="/de/security/" aria-current="page">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -90,7 +89,7 @@
         </div>
         <div class="subsection">
           <h3>Für die Anmeldung geplant</h3>
-          <p>Für die Anmeldung soll Fazit nur <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> kontaktieren. Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe sind ausgeschlossen.</p>
+          <p>Für die Anmeldung soll Fazit nur <code>login.microsoftonline.com</code> und <code>graph.microsoft.com</code> kontaktieren. Ausgeschlossen sind Telemetrie, Nutzungsanalysen, Update-Abfragen und&nbsp;CDN-Zugriffe.</p>
           <p>Für die Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</p>
           <ul class="tiles tiles-2">
             <li>
@@ -110,7 +109,7 @@
             </li>
           </ul>
         </div>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en">Grundsätze in den Projektentscheidungen lesen</a></p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en">Grundsätze des Projekts</a></p>
       </div>
     </section>
 
@@ -118,11 +117,11 @@
       <h2 class="sec-label" id="offline-title">Betrieb ohne Netzwerk prüfen</h2>
       <div class="sec-body">
         <ol class="steps">
-          <li>Richten Sie Git und uv ein, klonen Sie das <a href="https://github.com/rouxdutoit/fazit">Repository</a> und führen Sie einmal <code>uv run fazit demo --lang de</code> aus. Dabei werden die benötigten Pakete installiert.</li>
-          <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run --offline fazit demo --lang de</code> aus.</li>
+          <li>Richten Sie Git und uv ein, klonen Sie das <a href="https://github.com/rouxdutoit/fazit">Repository</a> und führen Sie einmal <code>uv run fazit demo <span class="code-option">--lang de</span></code> aus. Dabei werden die benötigten Pakete installiert.</li>
+          <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus.</li>
           <li>Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.</li>
         </ol>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Offline-Test des installierten Pakets ansehen</a></p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Offline-Test des installierten Pakets</a></p>
       </div>
     </section>
 

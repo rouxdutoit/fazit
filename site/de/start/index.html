@@ -32,6 +32,7 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,11 +40,9 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -67,14 +66,18 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
-            <span class="tile-icon icon-code" aria-hidden="true"></span>
-            <h3>Git</h3>
-            <p>Lädt den Quellcode von Fazit herunter. <a href="https://git-scm.com/downloads" hreflang="en">Git herunterladen</a></p>
+            <a class="tile-link" href="https://git-scm.com/downloads" hreflang="en">
+              <h3>Git herunterladen</h3>
+              <p>Lädt den Quellcode von Fazit herunter.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
-            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
-            <h3>uv</h3>
-            <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein. <a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">uv installieren</a></p>
+            <a class="tile-link" href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">
+              <h3>uv installieren</h3>
+              <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
         </ul>
         <p class="note-text">Fazit wird unter Windows, macOS und Linux getestet.</p>
@@ -92,7 +95,7 @@
       <h2 class="sec-label" id="start-open">Den Bericht öffnen</h2>
       <div class="sec-body">
         <p>Die letzte Zeile der Ausgabe nennt den Pfad des Berichts. Öffnen Sie die HTML-Datei in Ihrem Browser.</p>
-        <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run --offline fazit demo --lang de</code> aus und öffnen den Bericht erneut.</p>
+        <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus und öffnen den Bericht erneut.</p>
         <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
       </div>
     </section>

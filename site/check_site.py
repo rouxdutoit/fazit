@@ -120,6 +120,7 @@ class Page(HTMLParser):
         self._badge = ""
         self._cell_text: list[str] = []
         self._tally_text: list[str] | None = None
+        self.nav_controls: list[str] = []
         self.language = ""
         self.doctype = False
         self.feed(path.read_text(encoding="utf-8"))
@@ -151,6 +152,12 @@ class Page(HTMLParser):
 
         classes = values.get("class", "").split()
         self.record_button_icon(tag, classes, line)
+        if tag == "button" and values.get("aria-controls") == "site-nav":
+            self.nav_controls.append("toggle")
+        elif tag == "nav" and values.get("id") == "site-nav":
+            self.nav_controls.append("links")
+        elif tag == "a" and "bar-cta" in classes:
+            self.nav_controls.append("action")
         if tag == "table" and "coverage" in classes:
             self._coverage_table = True
         elif tag == "tr" and self._coverage_table:
@@ -276,6 +283,8 @@ class Page(HTMLParser):
         if not demo:
             if not any(ref.plain_link and ref.value == "#main" for ref in self.references):
                 self.errors.append("Missing skip link to #main.")
+            if self.nav_controls != ["toggle", "links", "action"]:
+                self.errors.append("Expected the menu toggle, navigation and one action in order.")
             self.errors.extend(
                 f"Expected a btn-icon span with a matching SVG for the button on line {line}."
                 for line in sorted(self._buttons_without_icons)

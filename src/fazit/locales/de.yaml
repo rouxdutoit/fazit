@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: "Was ein Umstieg von Microsoft\u00a0365 erfordert"
+  title: "Was beim Umstieg von Microsoft\u00a0365 nötig ist"
   unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung (scan.json)
   inputs_date: Stand der Angaben (inputs.yaml)
@@ -55,7 +55,6 @@ found:
     directory: Zu den internen Konten gehören gemeinsam genutzte Konten und Dienstkonten. Deshalb kann es mehr Konten als Beschäftigte geben. Gäste werden getrennt gezählt.
 licences:
   title: Lizenzprodukte
-  product: Produktkennung
   unregistered_product: Nicht registriertes Produkt {number}
   product_count: 'Erfasste Lizenzprodukte: {count}'
   purchased: Erworben
@@ -230,7 +229,7 @@ path:
     office_files.kind.publisher: Wie viele Publisher-Dateien gibt es?
     office_files.kind.visio: Wie viele Visio-Zeichnungsdateien gibt es?
     office_files.kind.onenote: Wie viele OneNote-Dateien gibt es?
-    office_files.vba_macros_in_use: Sind die Beschäftigten auf VBA-Makros in Office-Dateien angewiesen?
+    office_files.vba_macros_in_use: Sind VBA-Makros in Office-Dateien für die Arbeit erforderlich?
     device_management.device_count: Wie viele Geräte umfasst der von der IT-Abteilung erfasste Bestand?
     device_management.windows_device_count: Wie viele dieser Geräte laufen unter Windows?
     device_management.in_use: Verwaltet Ihre Organisation Geräte über Microsoft?
@@ -246,7 +245,7 @@ path:
     small_apps.in_use: Nutzen die Fachbereiche kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings?
     integrations.application_count: Wie viele Fachanwendungen sind an Microsoft 365 angebunden?
   transfer_actions:
-    not_available: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die betreffenden Funktionen nach dem Umstieg bereitgestellt werden ({functions}).
+    not_available: Für die genannten Funktionen ({functions}) planen die fachlich verantwortliche Stelle und die IT-Abteilung den Ersatz nach dem Umstieg.
     transfer_undocumented: Die fachlich verantwortliche Stelle und die IT-Abteilung planen und erproben die Übernahme oder den Neuaufbau der Inhalte für {functions}.
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
@@ -256,7 +255,7 @@ role:
   licence_management: Lizenzverwaltung
   service_owner: Fachlich verantwortliche Stelle
   data_protection: Datenschutzbeauftragte
-  information_security: Informationssicherheitsbeauftragte
+  information_security: Für Informationssicherheit zuständige Person
   procurement: Beschaffung
 appendix:
   title: Wie dieser Bericht entstanden ist

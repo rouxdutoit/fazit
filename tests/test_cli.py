@@ -234,7 +234,8 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
             assert strings["moves"]["no_project_check"] in detail[0]
         else:
             assert row.checked_on.isoformat() in move[0] and row.checked_on.isoformat() in detail[0]
-            assert row.reference_url and row.reference_url in unescape(detail[0])
+            text = unescape(detail[0].replace("<wbr>", ""))
+            assert row.reference_url and row.reference_url in text
         if row.note:
             assert row.note["en"] in unescape(detail[0])
     assert "data-move-evidence=" not in moves and "href=" not in appendix

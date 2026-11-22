@@ -367,7 +367,7 @@ def test_open_points_include_every_gap_unknown_finding_and_skipped_collector(
     gaps = set()
     for key, body in points:
         assert not key.startswith(("confirmations.", "provided_counts.")) or (
-            f"<code>{key}</code>" in body
+            f"<code>{key}</code>" in body.replace("<wbr>", "")
         )
         assert re.search(r"<p>\s*<strong>([^<]+)</strong>", unescape(body))[1] in roles
         for hooks, item in re.findall(r"<li([^>]*)>(.*?)</li>", body, re.S):
@@ -425,7 +425,8 @@ def test_manual_open_points_name_the_actual_question_and_input(tmp_path: Path, l
         question = strings["path"]["questions"][finding_id]
         assert f'<dt data-open-point="{key}">{question}</dt>' in path
         assert question in summary
-        assert f"{strings['path']['input_field']} <code>{key}</code>" in points[key]
+        wrapped_key = key.replace(".", ".<wbr>")
+        assert f"{strings['path']['input_field']} <code>{wrapped_key}</code>" in points[key]
         assert strings["reason"]["answer_not_provided"]["fix"] not in points[key]
 
 
