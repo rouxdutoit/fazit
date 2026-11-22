@@ -42,7 +42,7 @@
           <a class="nav-extra" href="/start/">Get started</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/start/">Get started</a>
+      <a class="btn btn-solid btn-small bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
@@ -51,7 +51,7 @@
     <div class="page-intro">
       <h1>Security and privacy</h1>
       <p>The current version of Fazit runs on your computer and contains no network code. A read-only sign-in to Microsoft is planned.</p>
-      <a class="btn btn-secondary" href="#disclosure">Report a vulnerability</a>
+      <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Report a vulnerability</a>
     </div>
 
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
@@ -118,7 +118,7 @@
     <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
       <h2 class="sec-label" id="evidence-title">Limits of the evidence</h2>
       <div class="sec-body">
-        <p>Fazit checks the scan and inputs for contradictions and labels the source of each figure. An internally consistent fabrication can still produce a report. The report depends on the people and tools that produced its evidence.</p>
+        <p>Fazit rejects a scan whose figures cannot all be true, for example a subset larger than its population or a measurement from zero successful checks (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md">D31 in the decisions</a> lists every check). It shows disagreements between a scan and the answers in <code>inputs.yaml</code>, and labels the source of each figure. A fabrication whose figures fit together can still produce a report: the report depends on the people and tools that produced its evidence.</p>
         <p>The appendix records the scan’s stated origin, producer and version.</p>
       </div>
     </section>
@@ -147,6 +147,7 @@
           <div>
             <p class="foot-heading">Project</p>
             <ul>
+              <li><a href="/about/">About</a></li>
               <li><a href="/demo/en/">Sample report</a></li>
               <li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li>
             </ul>
@@ -158,18 +159,15 @@
               <li><a href="/privacy/">Privacy</a></li>
             </ul>
           </div>
-          <div>
-            <p class="foot-heading">Contact</p>
-            <ul class="foot-icons">
-              <li><a href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="icon-mail" aria-hidden="true"></span></a></li>
-              <li><a href="https://www.linkedin.com/in/rouxdutoit" aria-label="LinkedIn" title="LinkedIn"><span class="icon-linkedin" aria-hidden="true"></span></a></li>
-            </ul>
-          </div>
         </nav>
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
-        <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+        <div class="foot-end">
+          <a href="https://rouxdutoit.com">rouxdutoit.com</a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+        </div>
       </div>
     </div>
   </footer>

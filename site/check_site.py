@@ -31,7 +31,7 @@ PAGE_PAIRS = (
     ("/", "/de/"),
     *(
         (f"/{page}/", f"/de/{page}/")
-        for page in ("start", "pilots", "integrators", "security", "impressum", "privacy")
+        for page in ("start", "pilots", "integrators", "security", "about", "impressum", "privacy")
     ),
     DEMO_ROUTES,
     ERROR_ROUTES,
@@ -91,6 +91,8 @@ class Page(HTMLParser):
         self.coverage: Counter[CoverageCell] = Counter()
         self.status_counts: Counter[str] = Counter()
         self.tallies: list[str] = []
+        self._buttons_needing_icons: dict[int, int] = {}
+        self._buttons_without_icons: list[int] = []
         self._coverage_table = False
         self._workload = ""
         self._target: str | None = None
@@ -127,6 +129,7 @@ class Page(HTMLParser):
         self.record_references(tag, values, line)
 
         classes = values.get("class", "").split()
+        self.record_button_icon(tag, classes, line)
         if tag == "table" and "coverage" in classes:
             self._coverage_table = True
         elif tag == "tr" and self._coverage_table:
@@ -141,6 +144,20 @@ class Page(HTMLParser):
             self._tally_text = []
         if tag == "tr" and values.get("id", "").startswith("readiness-"):
             self.status_counts[values.get("data-status", "")] += 1
+
+    def record_button_icon(self, tag: str, classes: list[str], line: int) -> None:
+        if self._buttons_needing_icons and tag == "span" and "btn-icon" in classes:
+            if any(
+                re.fullmatch(r"icon-[\w-]+", name)
+                and (ROOT / "icons" / f"{name.removeprefix('icon-')}.svg").is_file()
+                for name in classes
+            ):
+                self._buttons_needing_icons.clear()
+        if "btn" in classes:
+            if tag in VOID:
+                self._buttons_without_icons.append(line)
+            else:
+                self._buttons_needing_icons[len(self.stack)] = line
 
     def record_metadata(self, tag: str, attrs: dict[str, str], line: int) -> None:
         href = attrs.get("href", "")
@@ -207,6 +224,8 @@ class Page(HTMLParser):
         if not self.stack or self.stack[-1] != tag:
             self.errors.append(f"Unexpected closing tag </{tag}> on line {self.getpos()[0]}.")
         else:
+            if button_line := self._buttons_needing_icons.pop(len(self.stack), None):
+                self._buttons_without_icons.append(button_line)
             self.stack.pop()
         if tag in {"th", "td"} and self._target is not None:
             cell = " ".join("".join(self._cell_text).split())
@@ -233,8 +252,13 @@ class Page(HTMLParser):
         for element_id, count in self.ids.items():
             if count > 1:
                 self.errors.append(f"Duplicate id {element_id!r}.")
-        if not demo and not any(ref.plain_link and ref.value == "#main" for ref in self.references):
-            self.errors.append("Missing skip link to #main.")
+        if not demo:
+            if not any(ref.plain_link and ref.value == "#main" for ref in self.references):
+                self.errors.append("Missing skip link to #main.")
+            self.errors.extend(
+                f"Expected a btn-icon span with a matching SVG for the button on line {line}."
+                for line in sorted(self._buttons_without_icons)
+            )
 
     def check_metadata(self, route: str, other_lang: str, pair: dict[str, str]) -> None:
         if self.switches != [(pair[other_lang], other_lang, other_lang)]:

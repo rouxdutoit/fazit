@@ -176,7 +176,8 @@ code {
 }
 
 /* Icon masks follow the text colour. */
-.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after, .copy::before, .foot-icons span {
+.cov::before, .safeguards li::before, .tile-icon, .status-shape, .more::after,
+.copy::before, .foot-mail span, .btn-icon {
   display: inline-block;
   flex: none;
   background: currentColor;
@@ -203,6 +204,10 @@ code {
 .icon-handshake { --icon: url("icons/handshake.svg"); }
 .icon-account-balance { --icon: url("icons/account-balance.svg"); }
 .icon-person { --icon: url("icons/person.svg"); }
+.icon-download { --icon: url("icons/download.svg"); }
+.icon-mail { --icon: url("icons/mail.svg"); }
+.icon-shield { --icon: url("icons/shield.svg"); }
+.icon-home { --icon: url("icons/home.svg"); }
 
 .sr-only, .skip:not(:focus) {
   position: absolute;
@@ -507,6 +512,7 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 7px 15px;
   border-radius: var(--radius-pill);
   font-size: 0.9375rem;
@@ -514,6 +520,12 @@ code {
   line-height: 20px;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.btn-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
 }
 
 .btn-solid {
@@ -529,6 +541,7 @@ code {
 }
 
 .btn-small {
+  gap: 4px;
   padding: 3px 10px;
   font-size: var(--fs-footnote);
   line-height: 16px;
@@ -1518,29 +1531,30 @@ code {
   font-size: var(--fs-footnote);
 }
 
-/* Symbol links keep the footer's 32 px rows; the first symbol lines up with the column heading. */
-.foot-cols .foot-icons {
+.foot-end {
   display: flex;
-  margin-inline-start: -10px;
+  align-items: center;
+  gap: 12px;
 }
 
-.foot-icons a {
-  justify-content: center;
-  width: 40px;
+.foot-end a:not(.language) {
+  color: var(--fg-2);
+}
+
+.foot-end a:not(.language):hover {
+  color: var(--fg);
+}
+
+.foot-mail {
+  display: grid;
+  place-items: center;
+  width: 32px;
   height: 32px;
 }
 
-.foot-icons span {
-  width: 20px;
-  height: 20px;
-}
-
-.icon-mail { --icon: url("icons/mail.svg"); }
-/* LinkedIn's mark fills its whole box, so it is drawn smaller to match the symbols' optical size. */
-.foot-icons .icon-linkedin {
-  width: 16px;
-  height: 16px;
-  --icon: url("icons/linkedin.svg");
+.foot-mail span {
+  width: 18px;
+  height: 18px;
 }
 
 .foot-fine {
