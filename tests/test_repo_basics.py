@@ -173,7 +173,9 @@ def test_ci_checks_both_python_versions_with_read_only_permissions() -> None:
     assert set(workflow.get("on", workflow.get(True))) == {"push", "pull_request"}
     assert workflow["permissions"] == {"contents": "read"}
     (job,) = workflow["jobs"].values()
-    assert job["runs-on"] == "ubuntu-latest"
+    assert job["runs-on"] == "${{ matrix.os }}"
+    platforms = {row["os"] for row in job["strategy"]["matrix"]["include"]}
+    assert platforms == {"windows-latest", "macos-latest"}
     assert job["strategy"]["fail-fast"] is False
     assert set(job["strategy"]["matrix"]["python-version"]) == {"3.12", "3.x"}
     assert "services" not in job and "secrets." not in text
