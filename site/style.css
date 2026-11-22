@@ -1262,14 +1262,15 @@ code {
 
 .tile-arrow::before {
   position: absolute;
-  inset: 4px;
+  inset: 4px 3px 4px 5px; /* optical centre: a chevron's weight sits left */
   background: var(--fg);
   mask: url("icons/chevron-right.svg") center / contain no-repeat;
   content: "";
 }
 
 .report-card-bar .tile-arrow {
-  position: static;
+  position: relative;
+  inset: auto;
   flex: none;
   width: 22px;
   height: 22px;
