@@ -121,6 +121,11 @@ Deferred. Tracked but not in the current roadmap.
 - **CONV-04**: User can opt in to per-person detail with `--include-names`, once a collector exists that can supply it
 - **CONV-05**: User can point the tool at their own rule files with `--rules DIR`
 
+### Languages
+
+- **I18N-03**: Report, interview checklist and website in French and Italian for organisations in Switzerland, each reviewed by a native speaker before release (planned with the Swiss pilot)
+- **I18N-04**: Further European languages through the documented process in `CONTRIBUTING.md`, each paired with a target profile for that country's open source stack where it differs from openDesk and Nextcloud
+
 ## Out of Scope
 
 | Feature | Reason |

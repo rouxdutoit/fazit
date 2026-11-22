@@ -90,6 +90,7 @@ Plans, run one at a time in this order:
 - **Standing rules after Phase 1.** CLI-06, REPT-06, SAFE-05, SAFE-07, I18N-01, I18N-02 and DOCS-01 are delivered in Phase 1 and bind every later phase: each new command prints its report path and accepts `--out`; each new data path is private by default and joins the privacy test; each new string goes into both locales; no test needs a tenant; the README and `SECURITY.md` are kept in step as commands and network code arrive.
 - **MODL-01 and DOCS-04.** MODL-01 calls the schema "documented". Phase 1 delivers the versioned schema and the rule that collectors write it while rules and report only read it. The published `docs/schema.md` is DOCS-04 in Phase 4, written once import and live collection have settled the format.
 - **File types and devices have no v1 source.** RULE-05 ships in Phase 1 and is exercised by sample data. No v1 import or collector supplies file-type or device counts (FILE-01 and SRC-02 are v2), so a real v1 report shows those workloads as Unknown unless the user supplies counts through `inputs.yaml`, in which case they are shown as provided by the user (COST-06). The demo report must state plainly that it is built from sample data.
+- **Languages after v1.** French and Italian (I18N-03) are planned with the Swiss pilot, because both are official languages in Switzerland, part of the stated market. A language is released only after review by a native speaker. Other languages follow the contributor process in `CONTRIBUTING.md` (I18N-04) and are not tied to a phase.
 
 ## Progress
 
