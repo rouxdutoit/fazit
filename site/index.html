@@ -333,10 +333,13 @@
     <section class="sec grid" id="development" aria-labelledby="development-title">
       <h2 class="sec-label" id="development-title" data-scramble>How it is made</h2>
       <div class="sec-body">
-        <p>A human maintainer directs the work and is responsible for it. Codex (GPT-6.2-Sol, at maximum reasoning) writes the code, and Claude checks every change and runs the tests before it is committed. Before each release, Claude Fable 5.2 and Codex GPT-6.2-Astra review the whole codebase independently, both at maximum effort, including security. Their reports are public: <a href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report">read the phase 1 reviews</a>.</p>
-        <p>Every safeguard in the current version has a test you can run. Sign-in will ship with its own tests.</p>
-        <p>We work by the principles of the <a href="https://www.slopmanifesto.com/">No AI Slop manifesto</a>: a person owns every change, AI-written work is labelled, and every safeguard has a test.</p>
-        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Browse the tests</a></p>
+        <p class="lead">AI-assisted, human-reviewed.</p>
+        <dl class="rows made">
+          <div><dt>Written with</dt><dd><span class="chips"><span class="chip">Codex GPT-6.2-Sol<span class="chip-note">Max</span></span><span class="chip">Claude Opus 5.5<span class="chip-note">High</span></span></span></dd></div>
+          <div><dt>Reviewed by</dt><dd><span class="chips"><span class="chip">Claude Fable 5.2<span class="chip-note">Max</span></span><span class="chip">Codex GPT-6.2-Astra<span class="chip-note">Max</span></span></span>Independently, before each release, including security. <a href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report">Read the reviews</a></dd></div>
+          <div><dt>Owned by</dt><dd>A human maintainer, who directs the work, signs off every change and is responsible for it. Every safeguard has a test. <a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Browse the tests</a></dd></div>
+        </dl>
+        <p class="table-note">We work by the <a href="https://www.slopmanifesto.com/">No AI Slop manifesto</a>: a person owns every change and AI-written work is labelled.</p>
       </div>
     </section>
   </main>

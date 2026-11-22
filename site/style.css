@@ -1198,6 +1198,42 @@ code {
   margin-top: 24px;
 }
 
+/* Model chips: name, then its setting in a quieter tone. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chips:only-child {
+  margin-bottom: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 980px;
+  background: var(--fill-2);
+  color: var(--fg);
+  font-size: var(--fs-subhead);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip-note {
+  color: var(--fg-2);
+  font-weight: 400;
+}
+
+.rows.made dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .legal-intro {
   padding-bottom: clamp(32px, 4vw, 48px);
 }
