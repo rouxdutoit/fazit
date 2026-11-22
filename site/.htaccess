@@ -13,7 +13,7 @@ ErrorDocument 404 /404.html
 <Else>
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 </Else>
-Header always set Referrer-Policy "no-referrer"
+Header always set Referrer-Policy "same-origin"
 Header always set X-Content-Type-Options "nosniff"
 Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 Header always set Cross-Origin-Opener-Policy "same-origin"
