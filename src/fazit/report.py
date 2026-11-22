@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import base64
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date
 from functools import lru_cache, partial
@@ -15,7 +15,6 @@ from .costs import CostGroup, CostLine, ScenarioResult, compute_scenarios
 from .evidence import (
     combine,
     evidence_conflicts,
-    is_complete,
     provided_answers_conflict,
     provided_findings,
 )
@@ -29,11 +28,18 @@ from .licences import (
     load_service_plans,
     scan_to_json,
 )
-from .mappings import FunctionMapping, TargetMapping, load_mapping
+from .mappings import COVERAGE_LADDER, TargetMapping, load_mapping
 from .model import Coverage, Finding, FindingValue, Product, Scan
 from .parsing import read_text
 from .risky_files import load_risky_file_types
-from .status import STATUSES, StatusRuleSet, WorkloadStatus, evaluate, load_status_rules
+from .status import (
+    STATUSES,
+    StatusRuleSet,
+    TransferGap,
+    WorkloadStatus,
+    evaluate,
+    load_status_rules,
+)
 
 
 def report_file_name(generated_at: str, *, lang: str) -> str:
@@ -230,7 +236,9 @@ def _prepare_report(
     context = dict(
         **_formatting_context(formatter, catalogue),
         **_cost_context(inputs),
-        **_evidence_context(scan, by_id, other_evidence, status_rules, catalogue, mapping),
+        **_evidence_context(
+            scan, by_id, other_evidence, status_rules, catalogue, mapping, lang=lang
+        ),
         lang=lang,
         scan=scan,
         sample_scan=sample_scan,
@@ -250,44 +258,44 @@ def _prepare_report(
     return context, plans
 
 
-def _mapping_gaps(
-    mapping: TargetMapping, by_id: dict[str, Finding], statuses: tuple[WorkloadStatus, ...]
-) -> list[tuple[FunctionMapping, Finding | None, str, tuple[str, ...]]]:
-    missing: dict[str, list[str]] = defaultdict(list)
-    for row in statuses:
-        for gap in row.missing:
-            missing[gap.finding_id].append(gap.reason_code)
-    dispute_codes = ("confirmation_conflict", "provided_answers_conflict")
-    gaps = []
-    for item in mapping.functions:
-        if item.coverage != "not_available":
-            continue
-        finding = by_id.get(item.need_finding) if item.need_finding else None
-        need = "unknown"
-        complete = is_complete(finding)
-        confirmed_use = (
-            finding is not None
-            and finding.value is True
-            and (complete or finding.provenance == "measured")
-        )
-        if confirmed_use or complete:
-            need = "yes" if finding.value else "no"
-        reasons = tuple(
-            dict.fromkeys(
-                code
-                for code in missing.get(item.need_finding, ())
-                if code != "answer_not_provided" or need == "unknown"
-            )
-        )
-        if confirmed_use:
-            reasons = tuple(code for code in reasons if code in dispute_codes)
-        if reasons:
-            need = "unknown"
-        if need == "unknown" and not reasons:
-            default = "answer_not_provided" if item.need_finding else "not_established"
-            reasons = ((finding.missing_reason if finding else None) or default,)
-        gaps.append((item, finding, need, reasons))
-    return gaps
+def _ordered_transfer_gaps(
+    mapping: TargetMapping, statuses: tuple[WorkloadStatus, ...]
+) -> tuple[TransferGap, ...]:
+    by_function = {gap.mapping.function: gap for row in statuses for gap in row.transfer_gaps}
+    return tuple(
+        by_function[item.function] for item in mapping.functions if item.function in by_function
+    )
+
+
+@dataclass(frozen=True)
+class ScopeStatement:
+    profile: str
+    total: int
+    by_coverage: tuple[tuple[str, int], ...]
+    needed: tuple[tuple[str, str], ...]
+    unknown_need: int
+    reviewed_on: date | None
+
+
+def scope_statement(
+    mapping: TargetMapping, statuses: tuple[WorkloadStatus, ...], lang: str
+) -> ScopeStatement | None:
+    if not mapping.product_profile:
+        return None
+    counts = Counter(item.coverage for item in mapping.functions)
+    gaps = _ordered_transfer_gaps(mapping, statuses)
+    return ScopeStatement(
+        profile=mapping.label[lang],
+        total=len(mapping.functions),
+        by_coverage=tuple((code, counts[code]) for code in COVERAGE_LADDER if code in counts),
+        needed=tuple(
+            (gap.mapping.microsoft[lang], f"transfer-gap-{gap.mapping.function}")
+            for gap in gaps
+            if gap.need == "yes"
+        ),
+        unknown_need=sum(gap.need == "unknown" for gap in gaps),
+        reviewed_on=mapping.reviewed_on,
+    )
 
 
 def _evidence_context(
@@ -297,12 +305,15 @@ def _evidence_context(
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
     mapping: TargetMapping,
+    *,
+    lang: str,
 ) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
     statuses = evaluate(
         by_id,
         status_rules,
         catalogue,
+        mapping,
         collectors={item.id: item for item in scan.collectors},
         alternatives=alternatives,
     )
@@ -323,7 +334,11 @@ def _evidence_context(
         status_counts=[(status, counts[status]) for status in STATUSES],
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
-        mapping_gaps=_mapping_gaps(mapping, by_id, statuses),
+        mapping_gaps=[
+            (gap.mapping, gap.finding, gap.need, gap.reasons)
+            for gap in _ordered_transfer_gaps(mapping, statuses)
+        ],
+        scope_statement=scope_statement(mapping, statuses, lang),
         unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
         skipped_collectors=[
             collector for collector in scan.collectors if collector.status == "skipped"

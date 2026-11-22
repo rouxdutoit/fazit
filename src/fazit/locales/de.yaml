@@ -193,6 +193,8 @@ moves:
   workload_evidence: 'Datengrundlage für den Bereich {workload}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
+  unreviewed: Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.
+  reviewed: Diese Zuordnung wurde am {date} von einer Person geprüft, die das Zielsystem betreibt.
 mapping_coverage:
   in_suite: In der Suite
   in_suite_with_limits: In der Suite mit Einschränkungen
@@ -201,6 +203,7 @@ mapping_coverage:
   open_source_community: Open-Source-Lösung der Community
   open_source_third_party: Open-Source-Lösung eines Drittanbieters
   proprietary_third_party: Proprietäre Lösung eines Drittanbieters
+  transfer_undocumented: Direkte Übernahme nicht dokumentiert
   not_available: Nicht verfügbar
 attention:
   title: Was genauer zu prüfen ist

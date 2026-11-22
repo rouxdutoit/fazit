@@ -99,6 +99,14 @@
     <time datetime="{{ day }}">{{ format.date(day) }}</time>
   {% else %}{{ strings.moves.no_project_check }}{% endif %}
 {%- endmacro %}
+{% macro mapping_review() -%}
+  {% if mapping.reviewed_on %}
+    {% set day = mapping.reviewed_on.isoformat() %}
+    <p data-mapping-review="{{ day }}">{{ strings.moves.reviewed.format(date=format.date(day)) }}</p>
+  {% else -%}
+    <p data-mapping-review="unreviewed">{{ strings.moves.unreviewed }}</p>
+  {% endif %}
+{%- endmacro %}
 {% macro conditions_list(conditions) -%}
   <ul>
     {% for condition in conditions %}
@@ -765,6 +773,7 @@
     </section>
     <section data-section="moves">
       <h2 id="moves-title">{{ strings.moves.title }}</h2>
+      {{ mapping_review() }}
       <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
         <table class="moves" role="table">
           {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
@@ -879,8 +888,8 @@
           <ul class="mapping-gaps">
             {% for item, finding, need, reasons in mapping_gaps %}
               <li data-gap="{{ item.function }}" data-need="{{ need }}">
-                <strong>{{ item.microsoft[lang] }}</strong>
-                <p>{{ item.note[lang] if item.note else strings.mapping_coverage.not_available }}</p>
+                <strong id="transfer-gap-{{ item.function }}">{{ item.microsoft[lang] }}</strong>
+                <p>{{ item.note[lang] if item.note else strings.mapping_coverage[item.coverage] }}</p>
                 <p data-provenance="{{ 'unknown' if need == 'unknown' else finding.provenance }}">
                   <strong>{{ strings.attention.needed_here }}</strong> · {{ strings.status.unknown if need == 'unknown' else strings.common[need] }}
                   {% if need == 'unknown' %}
@@ -962,9 +971,13 @@
         {% for row in statuses %}
           <dt>{{ workload_labels[row.workload] }}</dt>
           <dd>
+            {% set block = status_rules.workloads[row.workload] %}
             {{ strings.appendix.ready_evidence }}
-            {{ conditions_list(status_rules.workloads[row.workload].ready) }}
-            {% for rule in status_rules.workloads[row.workload].rules if rule == row.deciding or rule in row.notes %}
+            {{ conditions_list(block.ready) }}
+            {% set fired = ([row.deciding] if row.deciding else []) + row.notes|list %}
+            {% set workload_rules = block.rules|select('in', fired)|list %}
+            {% set target_rules = fired|reject('in', block.rules)|list %}
+            {% for rule in workload_rules + target_rules %}
               <div data-rule="{{ rule.id }}">
                 <code>{{ rule.id }}</code> · {{ status_label(rule.status) }} · {{ rule.reason[lang] }}
                 {{ conditions_list(rule.when) }}
@@ -975,6 +988,7 @@
       </dl>
       <h3>{{ strings.appendix.mapping }}</h3>
       <p>{{ mapping.description[lang] }}</p>
+      {{ mapping_review() }}
       <p>{{ strings.appendix.mapping_file }} · <code>{{ mapping.file_name }}</code></p>
       <dl class="mapping-details">
         {% for item in mapping.functions %}

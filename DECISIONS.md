@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-22 — Target profiles
+
+**D32. Readiness depends on the target profile.**
+
+The evaluator reads the chosen profile's transfer gaps. A needed function that the profile leaves out or has no documented way to transfer makes its area at least Needs work. Only a workload rule can set Blocker. An Unknown need keeps its area from Ready. The target rules live in `src/fazit/rules/status.yaml`. New Blocker rules wait for the operator review.
+
 ## 2026-11-22 — Scan consistency
 
 **D31. Validate the relationships between fields in `scan.json` 1.x at load time.**

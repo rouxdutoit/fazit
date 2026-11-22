@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from collections import defaultdict
 from collections.abc import Collection, Iterator, Mapping, MutableMapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
+from string import Formatter
 from types import MappingProxyType
 
 from .catalogue import Catalogue, FindingEntry
 from .evidence import evidence_conflicts, is_complete, provided_answers_conflict
 from .licences import PLAN_GAP_REASONS, licence_finding_types
+from .mappings import GAP_COVERAGE, FunctionMapping, TargetMapping
 from .model import Collector, Finding, FindingValue
 from .rules import read_rules
 from .validation import RULE_ID, Validator, non_negative_integer
@@ -48,8 +51,17 @@ class WorkloadRules:
 
 
 @dataclass(frozen=True)
+class TargetGapRule:
+    id: str
+    status: str
+    reason: Mapping[str, str]
+    next_step: NextStep
+
+
+@dataclass(frozen=True)
 class StatusRuleSet:
     workloads: Mapping[str, WorkloadRules]
+    target_gaps: Mapping[str, TargetGapRule]
     file_name: str
 
 
@@ -61,6 +73,14 @@ class MissingEvidence:
 
 
 @dataclass(frozen=True)
+class TransferGap:
+    mapping: FunctionMapping
+    finding: Finding | None
+    need: str
+    reasons: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class WorkloadStatus:
     workload: str
     status: str
@@ -69,6 +89,7 @@ class WorkloadStatus:
     deciding: StatusRule | None
     notes: tuple[StatusRule, ...]
     evidence: tuple[Finding, ...]
+    transfer_gaps: tuple[TransferGap, ...] = ()
 
     @property
     def incomplete(self) -> bool:
@@ -116,6 +137,14 @@ def _next_step(value: object, field: str, reader: Validator) -> NextStep:
     return NextStep(kind, reader.bilingual({"en": row["en"], "de": row["de"]}, field))
 
 
+def _rule_id(value: object, field: str, reader: Validator, rule_ids: set[str]) -> str:
+    rule_id = reader.matches(value, field, RULE_ID)
+    if rule_id in rule_ids:
+        reader.fail(field, "duplicate_id")
+    rule_ids.add(rule_id)
+    return rule_id
+
+
 def _workload_rules(
     item: object,
     field: str,
@@ -132,13 +161,9 @@ def _workload_rules(
     for index, item in enumerate(entries):
         member = f"{field}.rules[{index}]"
         row = reader.fields(item, member, ("id", "when", "status", "reason", "next_step"))
-        rule_id = reader.matches(row["id"], f"{member}.id", RULE_ID)
-        if rule_id in rule_ids:
-            reader.fail(f"{member}.id", "duplicate_id")
-        rule_ids.add(rule_id)
         rules.append(
             StatusRule(
-                rule_id,
+                _rule_id(row["id"], f"{member}.id", reader, rule_ids),
                 _conditions(row["when"], f"{member}.when", reader, types),
                 reader.choice(row["status"], f"{member}.status", STATUSES[1:3]),
                 reader.bilingual(row["reason"], f"{member}.reason"),
@@ -148,6 +173,39 @@ def _workload_rules(
     return WorkloadRules(conditions, reason, tuple(rules))
 
 
+def _target_reason(value: object, field: str, reader: Validator) -> Mapping[str, str]:
+    reason = reader.bilingual(value, field)
+    for lang, text in reason.items():
+        try:
+            placeholders = {
+                (name, spec, conversion)
+                for _, name, spec, conversion in Formatter().parse(text)
+                if name is not None
+            }
+        except ValueError:
+            reader.fail(f"{field}.{lang}")
+        if placeholders != {("profile", "", None), ("function", "", None)}:
+            reader.fail(f"{field}.{lang}")
+    return reason
+
+
+def _target_gap_rules(
+    value: object, reader: Validator, rule_ids: set[str]
+) -> Mapping[str, TargetGapRule]:
+    block = reader.fields(value, "target_gaps", GAP_COVERAGE)
+    templates = {}
+    for coverage in GAP_COVERAGE:
+        field = f"target_gaps.{coverage}"
+        row = reader.fields(block[coverage], field, ("id", "status", "reason", "next_step"))
+        templates[coverage] = TargetGapRule(
+            _rule_id(row["id"], f"{field}.id", reader, rule_ids),
+            reader.choice(row["status"], f"{field}.status", ("needs_work",)),
+            _target_reason(row["reason"], f"{field}.reason", reader),
+            _next_step(row["next_step"], f"{field}.next_step", reader),
+        )
+    return MappingProxyType(templates)
+
+
 def load_status_rules(
     catalogue: Catalogue,
     path: Path | None = None,
@@ -155,7 +213,7 @@ def load_status_rules(
     checksums: MutableMapping[str, str] | None = None,
 ) -> StatusRuleSet:
     reader, data = read_rules("status.yaml", path, checksums)
-    root = reader.fields(data, "", ("workloads",))
+    root = reader.fields(data, "", ("workloads", "target_gaps"))
     workload_ids = catalogue.assessed_workload_ids
     blocks = reader.fields(root["workloads"], "workloads", workload_ids)
     types = {entry.id: entry.type for entry in catalogue.findings}
@@ -167,7 +225,8 @@ def load_status_rules(
         )
         for workload in workload_ids
     }
-    return StatusRuleSet(MappingProxyType(workloads), reader.file_name)
+    target_gaps = _target_gap_rules(root["target_gaps"], reader, rule_ids)
+    return StatusRuleSet(MappingProxyType(workloads), target_gaps, reader.file_name)
 
 
 def _skipped_gap(
@@ -391,10 +450,119 @@ def _evaluate_workload(
     return WorkloadStatus(workload, "unknown", code, incomplete, None, (), evidence)
 
 
+def _mapping_gaps(
+    mapping: TargetMapping, findings: Mapping[str, Finding], statuses: tuple[WorkloadStatus, ...]
+) -> dict[str, list[TransferGap]]:
+    missing: dict[str, list[str]] = defaultdict(list)
+    for row in statuses:
+        for gap in row.missing:
+            missing[gap.finding_id].append(gap.reason_code)
+    dispute_codes = ("confirmation_conflict", "provided_answers_conflict")
+    gaps: dict[str, list[TransferGap]] = defaultdict(list)
+    for item in mapping.functions:
+        if item.coverage not in GAP_COVERAGE:
+            continue
+        finding = findings.get(item.need_finding) if item.need_finding else None
+        need = "unknown"
+        complete = is_complete(finding)
+        confirmed_use = (
+            finding is not None
+            and finding.value is True
+            and (complete or finding.provenance == "measured")
+        )
+        if confirmed_use or complete:
+            need = "yes" if finding.value else "no"
+        reasons = tuple(
+            dict.fromkeys(
+                code
+                for code in missing.get(item.need_finding, ())
+                if code != "answer_not_provided" or need == "unknown"
+            )
+        )
+        if confirmed_use:
+            reasons = tuple(code for code in reasons if code in dispute_codes)
+        if reasons:
+            need = "unknown"
+        if need == "unknown" and not reasons:
+            default = "answer_not_provided" if item.need_finding else "not_established"
+            reasons = ((finding.missing_reason if finding else None) or default,)
+        gaps[item.workload].append(TransferGap(item, finding, need, reasons))
+    return gaps
+
+
+def _target_rule(
+    gap: TransferGap, template: TargetGapRule, profile: Mapping[str, str]
+) -> StatusRule:
+    finding = gap.finding
+    assert finding is not None
+    condition = (
+        Condition(finding.id, "==", True)
+        if finding.value is True
+        else Condition(finding.id, ">", 0)
+    )
+    reason = {
+        lang: text.format(profile=profile[lang], function=gap.mapping.microsoft[lang])
+        for lang, text in template.reason.items()
+    }
+    suffix = gap.mapping.function.replace("_", "-")
+    return StatusRule(
+        f"{template.id}-{suffix}",
+        (condition,),
+        template.status,
+        MappingProxyType(reason),
+        template.next_step,
+    )
+
+
+def _apply_transfer_gaps(
+    row: WorkloadStatus,
+    gaps: tuple[TransferGap, ...],
+    mapping: TargetMapping,
+    templates: Mapping[str, TargetGapRule],
+    bundled: Finding | None,
+    provided_ids: Collection[str],
+) -> WorkloadStatus:
+    if not gaps:
+        return row
+    missing = list(row.missing)
+    listed = {gap.finding_id for gap in missing}
+    for gap in gaps:
+        finding_id = gap.mapping.need_finding
+        if gap.need == "unknown" and finding_id is not None and finding_id not in listed:
+            finding = gap.finding
+            collector = (
+                finding.collector
+                if finding is not None and finding.provenance == "measured"
+                else None
+            )
+            missing.append(MissingEvidence(finding_id, gap.reasons[0], collector))
+            listed.add(finding_id)
+    row = replace(row, missing=tuple(missing), transfer_gaps=gaps)
+    fired = tuple(
+        _target_rule(gap, templates[gap.mapping.coverage], mapping.label)
+        for gap in gaps
+        if gap.need == "yes"
+    )
+    # An area's confirmed problem stays the deciding reason when the target adds work.
+    if fired and row.deciding is not None:
+        return replace(row, notes=(*row.notes, *fired))
+    if fired:
+        return replace(
+            row, status=fired[0].status, reason_code=None, deciding=fired[0], notes=fired[1:]
+        )
+    # An unanswered need is missing evidence and cannot leave an area Ready.
+    if row.status == "ready" and row.missing:
+        return replace(
+            row, status="unknown", reason_code=_unknown_code(row.missing, bundled, provided_ids)
+        )
+    return row
+
+
 def evaluate(
     findings: Mapping[str, Finding],
     rule_set: StatusRuleSet,
     catalogue: Catalogue,
+    mapping: TargetMapping,
     *,
     collectors: Mapping[str, Collector] | None = None,
     alternatives: Mapping[str, Finding] | None = None,
@@ -402,7 +570,7 @@ def evaluate(
     entries = {entry.id: entry for entry in catalogue.findings}
     alternatives = {} if alternatives is None else alternatives
     disputes = _observation_disputes(findings, alternatives)
-    return tuple(
+    statuses = tuple(
         _evaluate_workload(
             workload,
             rule_set.workloads[workload],
@@ -413,4 +581,17 @@ def evaluate(
             disputes,
         )
         for workload in catalogue.assessed_workload_ids
+    )
+    gaps = _mapping_gaps(mapping, findings, statuses)
+    provided_ids = {entry.id for entry in catalogue.findings if entry.provided != "no"}
+    return tuple(
+        _apply_transfer_gaps(
+            row,
+            tuple(gaps.get(row.workload, ())),
+            mapping,
+            rule_set.target_gaps,
+            findings.get(f"{row.workload}.licence_bundled_assigned"),
+            provided_ids,
+        )
+        for row in statuses
     )

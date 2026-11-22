@@ -193,6 +193,8 @@ moves:
   workload_evidence: Evidence for {workload}
   no_function: There is no function to move.
   no_project_check: This row has no project-specific documentation check.
+  unreviewed: This mapping has not yet been reviewed by someone who operates the target system.
+  reviewed: This mapping was reviewed on {date} by someone who operates the target system.
 mapping_coverage:
   in_suite: In the suite
   in_suite_with_limits: In the suite with limits
@@ -201,6 +203,7 @@ mapping_coverage:
   open_source_community: Open source community solution
   open_source_third_party: Open source third-party solution
   proprietary_third_party: Proprietary third-party solution
+  transfer_undocumented: Direct transfer undocumented
   not_available: Not available
 attention:
   title: What needs a closer look

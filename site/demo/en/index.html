@@ -3336,11 +3336,11 @@
               </tr>
 
 
-              <tr data-workload="office_files" data-status="needs_work" data-category="files" role="row" id="readiness-office_files">
+              <tr data-workload="office_files" data-status="needs_work" data-incomplete data-category="files" role="row" id="readiness-office_files">
                 <th scope="row" role="rowheader" data-label="Area">Office files · <span class="finding-category">Files and documents</span></th>
                 <td role="cell" data-label="Status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-
+  <small>Evidence incomplete</small>
                 </td>
                 <td role="cell" data-label="Reason and next step">
 
@@ -3355,6 +3355,18 @@
                       <li>Review how the organisation uses its Access databases before planning the move.</li><li>Check how the organisation will open and edit its Publisher files.</li><li>Check how the organisation will open and edit its Visio files.</li><li>Check how the organisation will move its OneNote notebooks.</li>
                     </ul>
 
+
+                    <p><strong>Evidence still needed</strong></p>
+                    <ul>
+
+                        <li data-missing="office_files.vba_macros_in_use">
+                          <strong>VBA macros that staff rely on</strong>
+
+
+  <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span>
+                        </li>
+
+                    </ul>
 
                 </td>
                 <td role="cell" data-label="Evidence">
@@ -3481,11 +3493,11 @@
               </tr>
 
 
-              <tr data-workload="device_management" data-status="needs_work" data-category="identity_devices" role="row" id="readiness-device_management">
+              <tr data-workload="device_management" data-status="needs_work" data-incomplete data-category="identity_devices" role="row" id="readiness-device_management">
                 <th scope="row" role="rowheader" data-label="Area">Device management · <span class="finding-category">Identity and devices</span></th>
                 <td role="cell" data-label="Status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-
+  <small>Evidence incomplete</small>
                 </td>
                 <td role="cell" data-label="Reason and next step">
 
@@ -3497,9 +3509,21 @@
 
 
                     <ul>
-                      <li>Review which of the Windows devices can move to a different operating system.</li>
+                      <li>Review which of the Windows devices can move to a different operating system.</li><li>The openDesk target profile lists no solution for Device management with Microsoft Intune, which this organisation needs.</li>
                     </ul>
 
+
+                    <p><strong>Evidence still needed</strong></p>
+                    <ul>
+
+                        <li data-missing="device_management.windows_desktops_required">
+                          <strong>Windows desktops required for applications, devices or peripherals</strong>
+
+
+  <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span>
+                        </li>
+
+                    </ul>
 
                 </td>
                 <td role="cell" data-label="Evidence">
@@ -3604,7 +3628,7 @@
 
 
                     <ul>
-                      <li>Check how staff will use the Windows-only applications after the move.</li>
+                      <li>Check how staff will use the Windows-only applications after the move.</li><li>The openDesk target profile lists no solution for Running Windows-only applications, which this organisation needs.</li>
                     </ul>
 
 
@@ -3673,7 +3697,7 @@
 
 
                     <ul>
-                      <li>The Power Platform applications and processes in use need a replacement.</li>
+                      <li>The Power Platform applications and processes in use need a replacement.</li><li>The openDesk target profile lists no solution for Power Platform automation and low-code applications, which this organisation needs.</li>
                     </ul>
 
 
@@ -3759,6 +3783,10 @@
 
                     <p class="finding-next"><strong>Next step</strong> The IT team plans a replacement that keeps the required phone services running during the move.</p>
 
+
+                    <ul>
+                      <li>The openDesk target profile lists no solution for Teams Phone and public telephone calling, which this organisation needs.</li>
+                    </ul>
 
 
                 </td>
@@ -4185,6 +4213,8 @@
     </section>
     <section data-section="moves">
       <h2 id="moves-title">What replaces what</h2>
+      <p data-mapping-review="unreviewed">This mapping has not yet been reviewed by someone who operates the target system.</p>
+
       <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
         <table class="moves" role="table">
           <caption data-sample>Scan measurements are simulated.</caption>
@@ -4207,7 +4237,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4229,7 +4259,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4251,7 +4281,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4272,7 +4302,7 @@
                   In the suite with limits
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4291,10 +4321,32 @@
                 <th scope="row" role="rowheader" data-label="Microsoft function">SharePoint workflows</th>
                 <td role="cell" data-label="Target replacement">Separate redesign of workflows</td>
                 <td role="cell" data-label="Coverage and check date">
-                  Not available
+                  Direct transfer undocumented
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-sharepoint">Evidence for SharePoint</a>
+                </td>
+                <td role="cell" data-label="Area status">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
+  <small>Evidence incomplete</small>
+                  <div>Custom SharePoint solutions need to be reviewed before the sites move.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="intranet_pages" data-workload="sharepoint" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">SharePoint pages and intranet sites</th>
+                <td role="cell" data-label="Target replacement">XWiki</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4316,7 +4368,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4337,7 +4389,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4355,10 +4407,10 @@
                 <th scope="row" role="rowheader" data-label="Microsoft function">Teams chat history</th>
                 <td role="cell" data-label="Target replacement">Separate decision on retaining past chats</td>
                 <td role="cell" data-label="Coverage and check date">
-                  Not available
+                  Direct transfer undocumented
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4379,7 +4431,7 @@
                   In the suite with limits
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4387,7 +4439,7 @@
                 </td>
                 <td role="cell" data-label="Area status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-
+  <small>Evidence incomplete</small>
                   <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
   </div>
                 </td>
@@ -4398,10 +4450,10 @@
                 <th scope="row" role="rowheader" data-label="Microsoft function">VBA macros in Office files</th>
                 <td role="cell" data-label="Target replacement">Separate conversion or redevelopment</td>
                 <td role="cell" data-label="Coverage and check date">
-                  Not available
+                  Direct transfer undocumented
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4409,7 +4461,51 @@
                 </td>
                 <td role="cell" data-label="Area status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
+  <small>Evidence incomplete</small>
+                  <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+  </div>
+                </td>
+              </tr>
 
+
+              <tr data-function="notes" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">OneNote notebooks</th>
+                <td role="cell" data-label="Target replacement">Notes</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-office_files">Evidence for Office files</a>
+                </td>
+                <td role="cell" data-label="Area status">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
+  <small>Evidence incomplete</small>
+                  <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="diagrams" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Microsoft function">Visio diagrams</th>
+                <td role="cell" data-label="Target replacement">CryptPad with diagrams.net</td>
+                <td role="cell" data-label="Coverage and check date">
+                  In the suite with limits
+                  <small>
+
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Readiness evidence">
+                  <a href="#readiness-office_files">Evidence for Office files</a>
+                </td>
+                <td role="cell" data-label="Area status">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
+  <small>Evidence incomplete</small>
                   <div>These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
   </div>
                 </td>
@@ -4423,7 +4519,7 @@
                   Not available
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4431,7 +4527,7 @@
                 </td>
                 <td role="cell" data-label="Area status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-
+  <small>Evidence incomplete</small>
                   <div>Devices managed through Microsoft need another management service.
   </div>
                 </td>
@@ -4445,7 +4541,7 @@
                   Not available
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4453,7 +4549,7 @@
                 </td>
                 <td role="cell" data-label="Area status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-
+  <small>Evidence incomplete</small>
                   <div>Devices managed through Microsoft need another management service.
   </div>
                 </td>
@@ -4467,7 +4563,7 @@
                   Not available
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4489,7 +4585,7 @@
                   Not available
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4511,7 +4607,7 @@
                   Not available
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4533,7 +4629,7 @@
                   In the suite
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4555,7 +4651,7 @@
                   In the suite with limits
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4578,7 +4674,7 @@
                   In the suite with limits
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4599,7 +4695,7 @@
                   In the suite with limits
                   <small>
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Readiness evidence">
@@ -4890,7 +4986,7 @@
           <ul class="mapping-gaps">
 
               <li data-gap="sharepoint_workflows" data-need="unknown">
-                <strong>SharePoint workflows</strong>
+                <strong id="transfer-gap-sharepoint_workflows">SharePoint workflows</strong>
                 <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
                 <p data-provenance="unknown">
                   <strong>Needed by this organisation</strong> · Unknown
@@ -4902,12 +4998,12 @@
                 <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="teams_chat_history" data-need="no">
-                <strong>Teams chat history</strong>
+                <strong id="transfer-gap-teams_chat_history">Teams chat history</strong>
                 <p>The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.</p>
                 <p data-provenance="provided">
                   <strong>Needed by this organisation</strong> · No
@@ -4921,12 +5017,12 @@
                 <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="vba_macros" data-need="unknown">
-                <strong>VBA macros in Office files</strong>
+                <strong id="transfer-gap-vba_macros">VBA macros in Office files</strong>
                 <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
                 <p data-provenance="unknown">
                   <strong>Needed by this organisation</strong> · Unknown
@@ -4938,12 +5034,12 @@
                 <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="device_management" data-need="yes">
-                <strong>Device management with Microsoft Intune</strong>
+                <strong id="transfer-gap-device_management">Device management with Microsoft Intune</strong>
                 <p>The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.</p>
                 <p data-provenance="provided">
                   <strong>Needed by this organisation</strong> · Yes
@@ -4954,15 +5050,15 @@
                     </small>
 
                 </p>
-                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="desktop_operating_system" data-need="unknown">
-                <strong>Microsoft Windows desktop operating system</strong>
+                <strong id="transfer-gap-desktop_operating_system">Microsoft Windows desktop operating system</strong>
                 <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
                 <p data-provenance="unknown">
                   <strong>Needed by this organisation</strong> · Unknown
@@ -4971,15 +5067,15 @@
   <span data-reason="answer_not_provided">The answer is missing. Find out the answer and enter it in the inputs file.</span></small>
 
                 </p>
-                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="windows_applications" data-need="yes">
-                <strong>Running Windows-only applications</strong>
+                <strong id="transfer-gap-windows_applications">Running Windows-only applications</strong>
                 <p>The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.</p>
                 <p data-provenance="provided">
                   <strong>Needed by this organisation</strong> · Yes
@@ -4990,15 +5086,15 @@
                     </small>
 
                 </p>
-                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="automation_and_low_code" data-need="yes">
-                <strong>Power Platform automation and low-code applications</strong>
+                <strong id="transfer-gap-automation_and_low_code">Power Platform automation and low-code applications</strong>
                 <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
                 <p data-provenance="provided">
                   <strong>Needed by this organisation</strong> · Yes
@@ -5009,15 +5105,15 @@
                     </small>
 
                 </p>
-                <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
               <li data-gap="telephony" data-need="yes">
-                <strong>Teams Phone and public telephone calling</strong>
+                <strong id="transfer-gap-telephony">Teams Phone and public telephone calling</strong>
                 <p>Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.</p>
                 <p data-provenance="provided">
                   <strong>Needed by this organisation</strong> · Yes
@@ -5028,10 +5124,10 @@
                     </small>
 
                 </p>
-                <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+                <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
                 <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
               </li>
 
@@ -5192,6 +5288,7 @@
 
           <dt>Directory</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5216,6 +5313,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="directory-guests">
                 <code>directory-guests</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Guest accounts require a decision about future access.
                 <ul>
@@ -5233,6 +5333,7 @@
 
           <dt>Mail</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5258,6 +5359,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="mail-other-systems">
                 <code>mail-other-systems</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Other systems send mail through Microsoft and will need another way to send it.
                 <ul>
@@ -5275,6 +5379,7 @@
 
           <dt>OneDrive</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5300,10 +5405,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>SharePoint</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5328,6 +5437,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="sharepoint-custom-solutions">
                 <code>sharepoint-custom-solutions</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Custom SharePoint solutions need to be reviewed before the sites move.
                 <ul>
@@ -5345,6 +5457,7 @@
 
           <dt>Teams</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5375,10 +5488,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Office files</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5413,6 +5530,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="office-macro">
                 <code>office-macro</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
@@ -5483,6 +5603,7 @@
 
           <dt>Device management</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5505,6 +5626,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="devices-managed">
                 <code>devices-managed</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Devices managed through Microsoft need another management service.
@@ -5532,10 +5656,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-device-management">
+                <code>target-not-available-device-management</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · The openDesk target profile lists no solution for Device management with Microsoft Intune, which this organisation needs.
+                <ul>
+
+      <li>
+        Microsoft device management in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Windows-only software</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5552,6 +5690,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="software-no-web-version">
                 <code>software-no-web-version</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · At least one Windows-only application has no web version and needs Windows to run, either on staff workstations or on a separate Windows system. For the move away from Microsoft 365, plan how staff will keep using it or arrange a replacement.
@@ -5579,10 +5720,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-windows-applications">
+                <code>target-not-available-windows-applications</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · The openDesk target profile lists no solution for Running Windows-only applications, which this organisation needs.
+                <ul>
+
+      <li>
+        Windows-only applications
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Power Platform</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5599,6 +5754,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="power-premium-licences">
                 <code>power-premium-licences</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Separate Power Platform licences are assigned and the applications and processes they support need review.
@@ -5626,10 +5784,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-automation-and-low-code">
+                <code>target-not-available-automation-and-low-code</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · The openDesk target profile lists no solution for Power Platform automation and low-code applications, which this organisation needs.
+                <ul>
+
+      <li>
+        Power Platform in use
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Telephony</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5646,6 +5818,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="telephony-no-replacement">
                 <code>telephony-no-replacement</code> · <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Blocker</span> · The organisation uses Microsoft telephony and has confirmed that it has no replacement.
@@ -5666,10 +5841,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-telephony">
+                <code>target-not-available-telephony</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · The openDesk target profile lists no solution for Teams Phone and public telephone calling, which this organisation needs.
+                <ul>
+
+      <li>
+        Telephony runs through Microsoft
+        == Yes
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Identity and access</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5686,6 +5875,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="identity-sso-applications">
                 <code>identity-sso-applications</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
@@ -5717,6 +5909,7 @@
 
           <dt>Security and compliance</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5734,10 +5927,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Small applications</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5749,10 +5946,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Integrations</dt>
           <dd>
+
             Evidence required for Ready
             <ul>
 
@@ -5763,6 +5964,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="integrations-present">
                 <code>integrations-present</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> · Applications connected to Microsoft 365 need their integrations reviewed before the move.
@@ -5782,6 +5986,8 @@
       </dl>
       <h3>Function mapping</h3>
       <p>Functions covered by the documented openDesk suite and gaps that require separate work.</p>
+      <p data-mapping-review="unreviewed">This mapping has not yet been reviewed by someone who operates the target system.</p>
+
       <p>Mapping file · <code>opendesk.yaml</code></p>
       <dl class="mapping-details">
 
@@ -5789,10 +5995,10 @@
           <dd data-mapping-details="identity_management">
             <p>Nubus · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nubus-identity-and-access-management--portal</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5800,10 +6006,10 @@
           <dd data-mapping-details="mail_and_calendar">
             <p>Open-Xchange (OX App Suite) · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#ox-app-suite-groupware-with-ox-dovecot-mail-backend</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5811,10 +6017,10 @@
           <dd data-mapping-details="personal_files">
             <p>Nextcloud Files · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5825,18 +6031,29 @@
             <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
           <dt>SharePoint workflows <small>SharePoint</small></dt>
           <dd data-mapping-details="sharepoint_workflows">
-            <p>Separate redesign of workflows · Not available</p>
+            <p>Separate redesign of workflows · Direct transfer undocumented</p>
             <p>The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.</p>
             <small>Documentation · https://docs.opendesk.eu/user/applications/dateien/</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>SharePoint pages and intranet sites <small>SharePoint</small></dt>
+          <dd data-mapping-details="intranet_pages">
+            <p>XWiki · In the suite with limits</p>
+            <p>The knowledge module documents wiki pages, subpages, further wikis and access rights per page. It names no way to carry over existing SharePoint pages or site structure.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/wissen/</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5844,10 +6061,10 @@
           <dd data-mapping-details="chat">
             <p>Element · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#elementsynapse-chat--call</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5855,21 +6072,21 @@
           <dd data-mapping-details="video_meetings">
             <p>Jitsi · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
           <dt>Teams chat history <small>Teams</small></dt>
           <dd data-mapping-details="teams_chat_history">
-            <p>Separate decision on retaining past chats · Not available</p>
+            <p>Separate decision on retaining past chats · Direct transfer undocumented</p>
             <p>The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.</p>
             <small>Documentation · https://docs.opendesk.eu/user/applications/chat/</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5877,21 +6094,43 @@
           <dd data-mapping-details="office_editing">
             <p>Collabora Online · In the suite with limits</p>
             <p>The web office edits documents, spreadsheets and presentations. The guide does not establish that complex layouts and features survive conversion.</p>
-            <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#collabora-weboffice</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
           <dt>VBA macros in Office files <small>Office files</small></dt>
           <dd data-mapping-details="vba_macros">
-            <p>Separate conversion or redevelopment · Not available</p>
+            <p>Separate conversion or redevelopment · Direct transfer undocumented</p>
             <p>The office guide describes editing imported files. It does not document a way to carry over working VBA automation.</p>
             <small>Documentation · https://docs.opendesk.eu/user/applications/office/</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>OneNote notebooks <small>Office files</small></dt>
+          <dd data-mapping-details="notes">
+            <p>Notes · In the suite with limits</p>
+            <p>The component list includes Notes for collaborative notes. Its guide is only available inside the installed application, and no public documentation describes carrying over OneNote notebooks.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-22">22 November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Visio diagrams <small>Office files</small></dt>
+          <dd data-mapping-details="diagrams">
+            <p>CryptPad with diagrams.net · In the suite with limits</p>
+            <p>The architecture names CryptPad for editing diagrams.net documents. It does not say whether existing Visio files can be opened or converted.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#cryptpad-online-diagrams</small>
+            <small>Checked on ·
+
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5899,10 +6138,10 @@
           <dd data-mapping-details="device_management">
             <p>Separate device management service · Not available</p>
             <p>The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5910,10 +6149,10 @@
           <dd data-mapping-details="desktop_operating_system">
             <p>Separately managed workstation operating system · Not available</p>
             <p>openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5921,10 +6160,10 @@
           <dd data-mapping-details="windows_applications">
             <p>Separate hosting or replacement of each application · Not available</p>
             <p>The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5932,10 +6171,10 @@
           <dd data-mapping-details="automation_and_low_code">
             <p>Separate review and redevelopment of applications and flows · Not available</p>
             <p>The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5943,10 +6182,10 @@
           <dd data-mapping-details="telephony">
             <p>Separate telephone service · Not available</p>
             <p>Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5954,32 +6193,32 @@
           <dd data-mapping-details="single_sign_on">
             <p>Keycloak · In the suite</p>
 
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#keycloak</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
           <dt>Microsoft 365 protection and retention controls <small>Security and compliance</small></dt>
           <dd data-mapping-details="security_and_compliance">
             <p>Access controls and malware scanning in openDesk · In the suite with limits</p>
-            <p>The architecture documents access control and scanning of files and mail. It leaves organisation-wide retention and legal holds unverified.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <p>The architecture documents malware scanning of uploaded files and mail attachments. It does not document organisation-wide retention or legal holds.</p>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
           <dt>Microsoft Forms, Planner and Bookings <small>Small applications</small></dt>
           <dd data-mapping-details="forms_tasks_bookings">
             <p>OpenProject and OX App Suite for tasks · In the suite with limits</p>
-            <p>The suite covers project work and personal tasks. The component list does not establish equivalent general forms or public appointment booking.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <p>The task guide covers tasks with reminders, status and members. It describes no general forms or public appointment booking.</p>
+            <small>Documentation · https://docs.opendesk.eu/user/applications/aufgaben/</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -5987,10 +6226,10 @@
           <dd data-mapping-details="application_integrations">
             <p>Interfaces in the openDesk components · In the suite with limits</p>
             <p>The architecture describes interfaces and integrations within the suite. Existing business application connections need to be checked individually.</p>
-            <small>Documentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Documentation · https://docs.opendesk.eu/operations/architecture/#component-integration</small>
             <small>Checked on ·
 
-    <time datetime="2026-11-21">21 November 2026</time>
+    <time datetime="2026-11-22">22 November 2026</time>
   </small>
           </dd>
 
@@ -6035,13 +6274,13 @@
 
             <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">2c159fb86e78d7aac97913280cd0c9b4fdb964ec0a9fbbacd277a4c612f7e7f9</code></li>
 
-            <li><code>status.yaml</code> · <code data-checksum="status.yaml">0bf31ea9d2178e0b17368292e2e7a6837ee0608397560b08da263ff9c89ae59a</code></li>
+            <li><code>status.yaml</code> · <code data-checksum="status.yaml">c9edae720476d42e3f0fb2356a0d6fb5c4e9b2fe195893a5171c70eff0d62b4f</code></li>
 
             <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">494ae2aed637f394197a58264f5dde1cb9e1ef99b90d95495620de5c13f159c8</code></li>
 
             <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">3447325c97453261fc21324aaf81fe2daf885bbd1a1687a86226c3c1d8740f55</code></li>
 
-            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">d70332245c18b0a49dfa9e38327849a874b3f87eca2df0d10cad84d697ef79ca</code></li>
+            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">56a8ac843aadfaa992a92f370489556b7d570443b00d0783a4a74eb7a169b6eb</code></li>
 
         </ul>
       </div>

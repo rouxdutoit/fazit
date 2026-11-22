@@ -22,7 +22,7 @@ from fazit.errors import InputError
 from fazit.i18n import load_locale
 from fazit.inputs import Inputs, WindowsSoftware, load_inputs
 from fazit.licences import classify_product, licence_findings, load_service_plans
-from fazit.mappings import COVERAGE_LADDER, PROFILES, load_mapping
+from fazit.mappings import COVERAGE_LADDER, GAP_COVERAGE, PROFILES, load_mapping
 from fazit.model import (
     Coverage,
     Finding,
@@ -36,7 +36,15 @@ from fazit.parsing import parse_yaml, read_text
 from fazit.report import render_report
 from fazit.risky_files import load_risky_file_types
 from fazit.rules import rules_dir
-from fazit.status import MissingEvidence, StatusRuleSet, WorkloadStatus, evaluate, load_status_rules
+from fazit.status import (
+    STEP_KINDS,
+    Condition,
+    MissingEvidence,
+    StatusRuleSet,
+    WorkloadStatus,
+    evaluate,
+    load_status_rules,
+)
 
 LICENSING_REFERENCE = (
     "https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference"
@@ -83,14 +91,20 @@ def test_shipped_mapping_covers_every_workload(catalogue: Catalogue, profile: st
     assert read_text(source).startswith("# SPDX-License-Identifier: AGPL-3.0-or-later\n")
     assert mapping.profile == profile and mapping.file_name == f"{profile}.yaml"
     assert mapping.product_profile is (profile != "generic")
-    assert tuple(rows) == FUNCTION_IDS and len(mapping.functions) == len(rows)
+    assert mapping.reviewed_on is None
+    assert tuple(key for key in rows if key in FUNCTION_IDS) == FUNCTION_IDS
+    assert len(mapping.functions) == len(rows)
     assert mapping.no_function == ("licences",)
     assert set(mapping.no_function) | {row.workload for row in rows.values()} == set(
         catalogue.workload_ids
     )
     assert all(row.coverage in COVERAGE_LADDER for row in rows.values())
-    for key in ("teams_chat_history", "vba_macros", "sharepoint_workflows"):
-        assert rows[key].coverage == "not_available"
+    assert {row.function for row in rows.values() if row.coverage == "transfer_undocumented"} == {
+        "teams_chat_history",
+        "vba_macros",
+        "sharepoint_workflows",
+    }
+    assert all(row.need_finding for row in rows.values() if row.coverage in GAP_COVERAGE)
     if mapping.product_profile:
         assert all(
             row.reference_url and row.reference_url.startswith("https://") for row in rows.values()
@@ -102,6 +116,28 @@ def test_shipped_mapping_covers_every_workload(catalogue: Catalogue, profile: st
     if profile == "opendesk":
         assert "Nubus" in rows["identity_management"].replacement["en"]
         assert "Keycloak" in rows["single_sign_on"].replacement["en"]
+        assert tuple(rows) == (
+            *FUNCTION_IDS[:5],
+            "intranet_pages",
+            *FUNCTION_IDS[5:10],
+            "notes",
+            "diagrams",
+            *FUNCTION_IDS[10:],
+        )
+        assert all(row.checked_on == date(2026, 11, 22) for row in rows.values())
+        assert all(
+            row.reference_url != "https://docs.opendesk.eu/operations/architecture/"
+            for row in rows.values()
+        )
+        for function, replacement in (
+            ("intranet_pages", "XWiki"),
+            ("notes", "Notes"),
+            ("diagrams", "CryptPad with diagrams.net"),
+        ):
+            assert rows[function].coverage == "in_suite_with_limits"
+            assert rows[function].replacement["en"] == replacement
+    else:
+        assert tuple(rows) == FUNCTION_IDS
 
 
 def test_generic_mapping_names_no_target_products() -> None:
@@ -121,6 +157,9 @@ def test_generic_mapping_names_no_target_products() -> None:
         "Windmill",
         "Team Folders",
         "OIDC Identity Provider",
+        "XWiki",
+        "Notes",
+        "CryptPad",
     )
     for product in target_products:
         assert not re.search(rf"\b{re.escape(product)}\b", generic, re.IGNORECASE), product
@@ -146,6 +185,9 @@ def test_generic_mapping_names_no_target_products() -> None:
         ("count_as_need", "functions[0].need_finding"),
         ("other_workload_need", "functions[0].need_finding"),
         ("inferred_need", "functions[0]"),
+        ("missing_review", "operator_review"),
+        ("bad_review", "operator_review"),
+        ("gap_without_need", "functions[0].need_finding"),
     ],
 )
 def test_bad_mapping_names_the_file_and_field(
@@ -193,12 +235,68 @@ def test_bad_mapping_names_the_file_and_field(
         case "inferred_need":
             first["need_finding"] = "directory.account_list_reviewed"
             first["need_if_positive"] = "directory.user_count"
+        case "missing_review":
+            data.pop("operator_review", None)
+        case "bad_review":
+            data["operator_review"] = "2026-02-30"
+        case "gap_without_need":
+            first["coverage"] = "not_available"
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
 
     with pytest.raises(InputError) as caught:
         load_mapping("opendesk", catalogue, tmp_path)
 
     assert (caught.value.file, caught.value.field) == (path.name, field)
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+def test_shipped_mappings_show_the_unreviewed_notice(
+    catalogue: Catalogue, profile: str, lang: str
+) -> None:
+    html = render_report(sample_scan("town", catalogue), lang=lang, profile=profile)
+    sentence = {
+        "en": "This mapping has not yet been reviewed by someone who operates the target system.",
+        "de": (
+            "Diese Zuordnung wurde noch nicht von einer Person geprüft, "
+            "die das Zielsystem betreibt."
+        ),
+    }[lang]
+    marker = f'<p data-mapping-review="unreviewed">{sentence}</p>'
+
+    assert report_section(html, "moves").count(marker) == 1
+    assert report_section(html, "appendix").count(marker) == 1
+
+
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+def test_reviewed_mapping_shows_the_date(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, catalogue: Catalogue, lang: str
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules_dir())), copied)
+    path = copied / "mappings" / "opendesk.yaml"
+    source = read_text(path)
+    path.write_text(
+        source.replace("operator_review: unreviewed", 'operator_review: "2026-12-01"'),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+
+    assert load_mapping("opendesk", catalogue).reviewed_on == date(2026, 12, 1)
+    html = render_report(sample_scan("town", catalogue), lang=lang)
+    sentence = {
+        "en": (
+            "This mapping was reviewed on 1 December 2026 by someone who operates "
+            "the target system."
+        ),
+        "de": (
+            "Diese Zuordnung wurde am 1. Dezember 2026 von einer Person geprüft, "
+            "die das Zielsystem betreibt."
+        ),
+    }[lang]
+    marker = f'<p data-mapping-review="2026-12-01">{sentence}</p>'
+    assert report_section(html, "moves").count(marker) == 1
+    assert report_section(html, "appendix").count(marker) == 1
 
 
 def test_shipped_service_plans_cite_the_reference(catalogue: Catalogue) -> None:
@@ -500,8 +598,11 @@ def _status(
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
 ) -> WorkloadStatus:
+    mapping = load_mapping("opendesk", catalogue)
     return next(
-        row for row in evaluate(findings, status_rules, catalogue) if row.workload == workload
+        row
+        for row in evaluate(findings, status_rules, catalogue, mapping)
+        if row.workload == workload
     )
 
 
@@ -606,7 +707,7 @@ def test_sharepoint_and_teams_require_the_new_answers_for_ready(
         (True, False, False, "needs_work", False),
         (True, True, False, "needs_work", False),
         (True, None, False, "needs_work", False),
-        (True, None, True, "unknown", True),
+        (True, None, True, "needs_work", True),
         (True, None, None, "unknown", True),
         (True, False, None, "unknown", True),
         (False, False, False, "ready", False),
@@ -637,7 +738,10 @@ def test_telephony_needs_replacement_or_explicit_non_use(
 
     assert row.status == status and row.incomplete == incomplete
     if assigned and replacement is None and in_use is not False:
-        assert row.deciding is None
+        if in_use is True:
+            assert row.deciding is not None and row.deciding.id == "target-not-available-telephony"
+        else:
+            assert row.deciding is None
         assert findings["telephony.licence_add_on_assigned"] in row.evidence
         assert (
             MissingEvidence("telephony.replacement_available", "answer_not_provided", None)
@@ -657,6 +761,137 @@ def test_measured_non_use_cannot_replace_the_telephony_confirmation(
 
     assert row.status == "unknown"
     assert row.missing == (MissingEvidence(confirmation.id, "answer_not_provided", None),)
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_evaluation_applies_profile_gaps_after_workload_rules(
+    complete_evidence: dict[str, Finding],
+    status_rules: StatusRuleSet,
+    catalogue: Catalogue,
+    profile: str,
+) -> None:
+    _set_value(complete_evidence, "telephony.in_use", True)
+    _set_value(complete_evidence, "teams.chat_history_must_be_kept", True)
+    del complete_evidence["telephony.replacement_available"]
+    del complete_evidence["device_management.windows_desktops_required"]
+    mapping = load_mapping(profile, catalogue)
+    rows = {
+        row.workload: row for row in evaluate(complete_evidence, status_rules, catalogue, mapping)
+    }
+
+    phone = rows["telephony"]
+    assert phone.missing == (
+        MissingEvidence("telephony.replacement_available", "answer_not_provided", None),
+    )
+    if profile == "opendesk":
+        (gap,) = phone.transfer_gaps
+        assert gap.mapping.coverage == "not_available" and gap.mapping.function == "telephony"
+        assert (gap.finding, gap.need, gap.reasons) == (
+            complete_evidence["telephony.in_use"],
+            "yes",
+            (),
+        )
+        assert phone.status == "needs_work" and phone.reason_code is None
+        assert phone.deciding is not None and phone.deciding.id == "target-not-available-telephony"
+        assert phone.deciding.when == (Condition("telephony.in_use", "==", True),)
+    else:
+        assert phone.status == "unknown" and phone.deciding is None and not phone.transfer_gaps
+
+    devices = rows["device_management"]
+    if profile == "generic":
+        assert devices.status == "ready" and not devices.incomplete and not devices.transfer_gaps
+    else:
+        assert [(gap.mapping.function, gap.need) for gap in devices.transfer_gaps] == [
+            ("device_management", "no"),
+            ("desktop_operating_system", "unknown"),
+        ]
+        assert devices.status == "unknown" and devices.reason_code == "answer_not_provided"
+        assert devices.missing == (
+            MissingEvidence(
+                "device_management.windows_desktops_required", "answer_not_provided", None
+            ),
+        )
+
+    teams = rows["teams"]
+    assert teams.status == "needs_work" and not teams.incomplete
+    assert teams.deciding is not None and teams.deciding.id == "teams-chat-history"
+    (note,) = teams.notes
+    assert note.id == "target-transfer-undocumented-teams-chat-history"
+    assert note.when == (Condition("teams.chat_history_must_be_kept", "==", True),)
+    assert note.next_step == status_rules.target_gaps["transfer_undocumented"].next_step
+
+
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+@pytest.mark.parametrize("profile", PROFILES)
+def test_target_gaps_reach_readiness_and_appendix(
+    catalogue: Catalogue, status_rules: StatusRuleSet, lang: str, profile: str
+) -> None:
+    scan = sample_scan("town", catalogue)
+    unanswered = {"device_management.windows_desktops_required", "telephony.replacement_available"}
+    scan = replace(
+        scan, findings=tuple(item for item in scan.findings if item.id not in unanswered)
+    )
+    inputs = Inputs(
+        provided_counts={"device_management.windows_device_count": 0},
+        confirmations={
+            "device_management.in_use": False,
+            "teams.chat_history_must_be_kept": True,
+            "teams.apps_in_use": False,
+            "telephony.in_use": True,
+        },
+    )
+    html = render_report(scan, lang=lang, profile=profile, inputs=inputs)
+    telephony = unescape(readiness_row(html, "telephony"))
+    appendix = unescape(report_section(html, "appendix"))
+    phone_rule = re.search(
+        r'<div data-rule="target-not-available-telephony">.*?</div>', appendix, re.S
+    )
+    strings = load_locale(lang)
+
+    phone_status = "needs_work" if profile == "opendesk" else "unknown"
+    assert f'data-status="{phone_status}" data-incomplete' in telephony
+    assert 'data-missing="telephony.replacement_available"' in telephony
+    if profile == "opendesk":
+        label = {
+            "en": "Teams Phone and public telephone calling",
+            "de": "Teams Phone und Anrufe ins öffentliche Telefonnetz",
+        }[lang]
+        template = status_rules.target_gaps["not_available"]
+        reason = template.reason[lang].format(profile="openDesk", function=label)
+        assert reason in telephony and template.next_step.text[lang] in telephony
+        assert phone_rule is not None and reason in phone_rule[0]
+        assert strings["status"]["needs_work"] in phone_rule[0]
+        condition = strings["finding"]["telephony.in_use"]
+        assert re.search(rf"{re.escape(condition)}\s+== {strings['common']['yes']}", phone_rule[0])
+    else:
+        assert phone_rule is None
+
+    devices = readiness_row(html, "device_management")
+    device_status = "ready" if profile == "generic" else "unknown"
+    assert ("data-incomplete" in devices) is (profile != "generic")
+    assert f'data-status="{device_status}"' in devices
+    assert ('data-missing="device_management.windows_desktops_required"' in devices) is (
+        profile != "generic"
+    )
+
+    teams = unescape(readiness_row(html, "teams"))
+    assert 'data-status="needs_work"' in teams and "data-incomplete" not in teams
+    assert 'data-rule="target-transfer-undocumented-teams-chat-history"' in appendix
+    deciding = next(
+        rule for rule in status_rules.workloads["teams"].rules if rule.id == "teams-chat-history"
+    )
+    mapping = load_mapping(profile, catalogue)
+    gap = next(row for row in mapping.functions if row.function == "teams_chat_history")
+    note = (
+        status_rules.target_gaps[gap.coverage]
+        .reason[lang]
+        .format(profile=mapping.label[lang], function=gap.microsoft[lang])
+    )
+    assert deciding.next_step.text[lang] in teams
+    assert teams.index(deciding.reason[lang]) < teams.index(note)
+    assert appendix.index('data-rule="teams-chat-history"') < appendix.index(
+        'data-rule="target-transfer-undocumented-teams-chat-history"'
+    )
 
 
 @pytest.mark.parametrize("answered", [False, True])
@@ -762,7 +997,11 @@ def test_worst_rule_wins_and_ties_keep_file_order(
     windows = _status("windows_software", findings, edited, catalogue)
     assert windows.status == "blocker"
     assert windows.deciding is not None and windows.deciding.id == "software-no-web-version"
-    assert [rule.id for rule in windows.notes] == ["software-present"]
+    assert [rule.id for rule in windows.notes] == [
+        "software-present",
+        "target-not-available-windows-applications",
+    ]
+    assert windows.notes[-1].when == (Condition("windows_software.application_count", ">", 0),)
 
 
 def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
@@ -969,6 +1208,7 @@ def test_skipped_collector_cannot_make_a_workload_ready(
         complete_evidence,
         status_rules,
         catalogue,
+        load_mapping("opendesk", catalogue),
         collectors={collector.id: collector for collector in scan.collectors},
     )
     row = next(item for item in rows if item.workload == "mail")
@@ -977,17 +1217,27 @@ def test_skipped_collector_cannot_make_a_workload_ready(
     assert row.missing == (MissingEvidence(shared.id, "collector_skipped", "exchange_recipients"),)
 
 
+@pytest.mark.parametrize("profile", PROFILES)
 def test_removing_a_workloads_evidence_never_gives_ready(
-    complete_evidence: dict[str, Finding], status_rules: StatusRuleSet, catalogue: Catalogue
+    complete_evidence: dict[str, Finding],
+    status_rules: StatusRuleSet,
+    catalogue: Catalogue,
+    profile: str,
 ) -> None:
-    rows = evaluate(complete_evidence, status_rules, catalogue)
+    mapping = load_mapping(profile, catalogue)
+    rows = evaluate(complete_evidence, status_rules, catalogue, mapping)
     assert tuple(row.workload for row in rows) == catalogue.assessed_workload_ids
     assert all(row.status == "ready" and not row.incomplete for row in rows)
+    assert all(gap.need == "no" for row in rows for gap in row.transfer_gaps)
     for workload in catalogue.assessed_workload_ids:
         without = {
             key: item for key, item in complete_evidence.items() if item.workload != workload
         }
-        row = _status(workload, without, status_rules, catalogue)
+        row = next(
+            row
+            for row in evaluate(without, status_rules, catalogue, mapping)
+            if row.workload == workload
+        )
         assert row.status == "unknown" and row.missing
 
 
@@ -996,8 +1246,10 @@ def test_shipped_status_rules_define_each_assessed_workload(
 ) -> None:
     path = rules_dir().joinpath("status.yaml")
     data = parse_yaml(read_text(path), path.name)
-    assert set(data) == {"workloads"}
+    assert set(data) == {"workloads", "target_gaps"}
     assert tuple(status_rules.workloads) == catalogue.assessed_workload_ids
+    assert set(status_rules.target_gaps) == set(GAP_COVERAGE)
+    assert sum(len(block.rules) for block in status_rules.workloads.values()) == 32
     assert {
         "telephony-no-replacement",
         "power-premium-licences",
@@ -1028,6 +1280,17 @@ def test_shipped_status_rules_define_each_assessed_workload(
         ("blank_step_text", "workloads.directory.rules[0].next_step.de"),
         ("extra_step_field", "workloads.directory.rules[0].next_step"),
         ("ready_next_step", "workloads.directory.ready"),
+        ("missing_target_gaps", "target_gaps"),
+        ("missing_target_gap", "target_gaps.not_available"),
+        ("extra_target_gap", "target_gaps"),
+        ("target_blocker", "target_gaps.not_available.status"),
+        ("target_without_function", "target_gaps.transfer_undocumented.reason.de"),
+        ("target_extra_placeholder", "target_gaps.not_available.reason.en"),
+        ("target_malformed_placeholder", "target_gaps.not_available.reason.en"),
+        ("target_duplicate_id", "target_gaps.not_available.id"),
+        ("target_duplicate_template_id", "target_gaps.not_available.id"),
+        ("target_invalid_id", "target_gaps.not_available.id"),
+        ("target_missing_step_kind", "target_gaps.not_available.next_step.kind"),
     ],
 )
 def test_bad_status_rule_names_the_file_and_field(
@@ -1077,6 +1340,30 @@ def test_bad_status_rule_names_the_file_and_field(
             rule["next_step"]["extra"] = True
         case "ready_next_step":
             block["ready"]["next_step"] = rule["next_step"].copy()
+        case "missing_target_gaps":
+            del data["target_gaps"]
+        case "missing_target_gap":
+            del data["target_gaps"]["not_available"]
+        case "extra_target_gap":
+            data["target_gaps"]["in_suite"] = data["target_gaps"]["not_available"].copy()
+        case "target_blocker":
+            data["target_gaps"]["not_available"]["status"] = "blocker"
+        case "target_without_function":
+            data["target_gaps"]["transfer_undocumented"]["reason"]["de"] = "{profile}."
+        case "target_extra_placeholder":
+            data["target_gaps"]["not_available"]["reason"]["en"] += " {other}."
+        case "target_malformed_placeholder":
+            data["target_gaps"]["not_available"]["reason"]["en"] += " {"
+        case "target_duplicate_id":
+            data["target_gaps"]["not_available"]["id"] = rule["id"]
+        case "target_duplicate_template_id":
+            data["target_gaps"]["not_available"]["id"] = data["target_gaps"][
+                "transfer_undocumented"
+            ]["id"]
+        case "target_invalid_id":
+            data["target_gaps"]["not_available"]["id"] = "invalid id"
+        case "target_missing_step_kind":
+            del data["target_gaps"]["not_available"]["next_step"]["kind"]
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
 
     with pytest.raises(InputError) as caught:
@@ -1105,14 +1392,16 @@ def test_all_problem_rules_have_bilingual_product_neutral_next_steps(
         "import",
         "export",
     )
-    for block in status_rules.workloads.values():
-        for rule in block.rules:
-            step = rule.next_step.text
-            assert set(step) == set(i18n.SUPPORTED_LANGUAGES), rule.id
-            for lang, text in step.items():
-                assert text.endswith(".") and not re.search(r"[.?!]\s", text), (rule.id, lang)
-                assert text != rule.reason[lang], (rule.id, lang)
-                assert not any(word in text.casefold() for word in banned), (rule.id, lang)
+    workload_rules = [rule for block in status_rules.workloads.values() for rule in block.rules]
+    for rule in (*workload_rules, *status_rules.target_gaps.values()):
+        assert rule.next_step.kind in STEP_KINDS, rule.id
+        step = rule.next_step.text
+        assert set(step) == set(i18n.SUPPORTED_LANGUAGES), rule.id
+        for lang, text in step.items():
+            assert text.endswith(".") and not re.search(r"[.?!]\s", text), (rule.id, lang)
+            assert text != rule.reason[lang], (rule.id, lang)
+            assert not any(word in text.casefold() for word in banned), (rule.id, lang)
+    assert {rule.next_step.kind for rule in status_rules.target_gaps.values()} == {"replace"}
 
 
 @pytest.mark.parametrize(
@@ -1127,6 +1416,9 @@ def test_only_blocker_rules_can_describe_a_blocker(
             if rule.status != "blocker":
                 for text in (rule.reason[lang], rule.next_step.text[lang]):
                     assert not any(word in text.casefold() for word in banned), (rule.id, text)
+    for rule in status_rules.target_gaps.values():
+        for text in (rule.reason[lang], rule.next_step.text[lang]):
+            assert not any(word in text.casefold() for word in banned), (rule.id, text)
 
 
 def test_next_step_kind_reaches_the_town_report_context(
@@ -1549,11 +1841,11 @@ def test_removing_an_extension_changes_the_next_demo(
 
 
 @pytest.mark.parametrize("profile", PROFILES)
-def test_attention_lists_each_unavailable_function_from_the_profile(
+def test_attention_lists_each_transfer_gap_from_the_profile(
     catalogue: Catalogue, profile: str
 ) -> None:
     mapping = load_mapping(profile, catalogue)
-    gaps = [row for row in mapping.functions if row.coverage == "not_available"]
+    gaps = [row for row in mapping.functions if row.coverage in GAP_COVERAGE]
     html = render_report(sample_scan("town", catalogue), lang="en", profile=profile)
     section = report_section(html, "attention")
     details = dict(re.findall(r'<li data-gap="([^"]+)"([^>]*)>.*?</li>', section, re.S))
@@ -1563,7 +1855,10 @@ def test_attention_lists_each_unavailable_function_from_the_profile(
     for row in gaps:
         entry = re.search(rf'<li data-gap="{row.function}".*?</li>', section, re.S)
         assert entry is not None and "data-status=" not in entry[0]
-        assert row.microsoft["en"] in unescape(entry[0])
+        assert (
+            f'<strong id="transfer-gap-{row.function}">{row.microsoft["en"]}</strong>'
+            in unescape(entry[0])
+        )
         assert row.note and row.note["en"] in unescape(entry[0])
         if row.reference_url and row.checked_on:
             assert row.reference_url in unescape(entry[0])
@@ -1590,8 +1885,12 @@ def test_gap_need_uses_only_its_declared_complete_answer(
 ) -> None:
     profile = load_mapping("opendesk", catalogue)
     finding = complete_evidence["teams.chat_history_must_be_kept"]
-    gap = next(row for row in profile.functions if row.need_finding == finding.id)
-    assert gap.coverage == "not_available"
+    gap = next(
+        row
+        for row in profile.functions
+        if row.coverage in GAP_COVERAGE and row.need_finding == finding.id
+    )
+    assert gap.coverage == "transfer_undocumented"
     scan = sample_scan("town", catalogue)
     scan = replace(scan, findings=tuple(item for item in scan.findings if item.id != finding.id))
     inputs = Inputs(confirmations={finding.id: answer})
@@ -1610,9 +1909,7 @@ def test_gap_need_uses_only_its_declared_complete_answer(
         assert "data-reason=" in entry[0]
     else:
         assert 'data-provenance="provided"' in entry[0]
-    for row in profile.functions:
-        if row.coverage == "not_available" and row.need_finding is None:
-            assert f'data-gap="{row.function}" data-need="unknown"' in section
+    assert all(row.need_finding for row in profile.functions if row.coverage in GAP_COVERAGE)
 
 
 @pytest.mark.parametrize("profile", PROFILES)
@@ -1656,25 +1953,137 @@ def test_town_transfer_gap_counts_and_incomplete_sharepoint(catalogue: Catalogue
     assert 'data-missing="sharepoint.workflows_in_use"' in sharepoint
 
 
-def test_marking_a_mapping_unavailable_adds_it_to_the_gap_list(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def _rendered_coverage_counts(html: str, lang: str) -> Counter[str]:
+    section = report_section(html, "moves")
+    column = re.escape(load_locale(lang)["moves"]["coverage"])
+    cells = re.findall(rf'<td role="cell" data-label="{column}">\s*([^<]+)<small>', section)
+    assert len(cells) == section.count("<tr data-function=")
+    return Counter(unescape(cell.strip()) for cell in cells)
+
+
+@pytest.mark.parametrize("sample", ["town", "nonprofit"])
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+@pytest.mark.parametrize("profile", ["opendesk", "nextcloud"])
+def test_scope_statement_matches_the_replacements_and_gap_lists(
+    catalogue: Catalogue, sample: str, lang: str, profile: str
 ) -> None:
+    scan = sample_scan(sample, catalogue)
+    inputs = load_inputs(sample_inputs_path(sample), catalogue)
+    context, _ = report_module._prepare_report(scan, lang, profile, catalogue, inputs)
+    scope = context.get("scope_statement")
+
+    assert scope is not None
+    mapping = context["mapping"]
+    assert scope == report_module.scope_statement(mapping, context["statuses"], lang)
+    assert scope.profile == mapping.label[lang] and scope.reviewed_on is None
+    html = report_module._render_html(context)
+    labels = load_locale(lang)["mapping_coverage"]
+    assert _rendered_coverage_counts(html, lang) == {
+        labels[coverage]: count for coverage, count in scope.by_coverage
+    }
+    assert sum(count for _, count in scope.by_coverage) == scope.total == len(mapping.functions)
+    assert tuple(coverage for coverage, _ in scope.by_coverage) == tuple(
+        key for key in COVERAGE_LADDER if key in dict(scope.by_coverage)
+    )
+
+    attention = report_section(html, "attention")
+    gaps = re.findall(
+        r'<li data-gap="([^"]+)" data-need="([^"]+)">\s*<strong id="([^"]+)">([^<]+)</strong>',
+        attention,
+    )
+    assert len(gaps) == attention.count("<li data-gap=")
+    assert scope.needed == tuple(
+        (unescape(text), anchor) for _, need, anchor, text in gaps if need == "yes"
+    )
+    assert scope.unknown_need == sum(need == "unknown" for _, need, _, _ in gaps)
+    assert all(html.count(f'id="{anchor}"') == 1 for _, anchor in scope.needed)
+
+    if profile == "opendesk":
+        assert scope.total == 22
+        assert scope.by_coverage == (
+            ("in_suite", 6),
+            ("in_suite_with_limits", 8),
+            ("transfer_undocumented", 3),
+            ("not_available", 5),
+        )
+        if sample == "town":
+            assert [anchor for _, anchor in scope.needed] == [
+                "transfer-gap-device_management",
+                "transfer-gap-windows_applications",
+                "transfer-gap-automation_and_low_code",
+                "transfer-gap-telephony",
+            ]
+            assert scope.unknown_need == 3
+            assert [function for function, need, _, _ in gaps if need == "unknown"] == [
+                "sharepoint_workflows",
+                "vba_macros",
+                "desktop_operating_system",
+            ]
+        else:
+            assert scope.needed == ()
+    else:
+        assert ("open_source_community", 1) in scope.by_coverage
+
+
+def test_generic_profile_has_no_scope_statement(catalogue: Catalogue) -> None:
+    scan = sample_scan("town", catalogue)
+    context, _ = report_module._prepare_report(scan, "en", "generic", catalogue, None)
+
+    assert "scope_statement" in context and context["scope_statement"] is None
+    assert report_module.scope_statement(context["mapping"], context["statuses"], "en") is None
+
+
+@pytest.mark.parametrize("coverage", GAP_COVERAGE)
+def test_marking_a_mapping_as_a_transfer_gap_adds_it_to_the_gap_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, catalogue: Catalogue, coverage: str
+) -> None:
+    need_finding = "directory.account_list_reviewed"
+    scan = sample_scan("town", catalogue)
+    scan = replace(scan, findings=tuple(item for item in scan.findings if item.id != need_finding))
+    before, _ = report_module._prepare_report(scan, "en", "opendesk", catalogue, None)
+    before_html = report_module._render_html(before)
+
     copied = tmp_path / "rules"
     copytree(Path(str(rules_dir())), copied)
     path = copied / "mappings" / "opendesk.yaml"
     data = parse_yaml(read_text(path), path.name)
     changed = next(row for row in data["functions"] if row["coverage"] == "in_suite")
-    changed["coverage"] = "not_available"
+    changed["coverage"] = coverage
+    changed["need_finding"] = need_finding
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
     monkeypatch.setattr(rules, "rules_dir", lambda: copied)
 
-    result = runner.invoke(app, ["demo", "--out", str(tmp_path / "out")])
+    context, _ = report_module._prepare_report(scan, "en", "opendesk", catalogue, None)
+    html = report_module._render_html(context)
+    section = report_section(html, "attention")
+    entry = re.search(
+        rf'<li data-gap="{changed["function"]}" data-need="unknown">.*?</li>', section, re.S
+    )
 
-    assert result.exit_code == 0, result.output
-    report = Path(result.stdout.splitlines()[-1])
-    assert report.is_file()
-    section = report_section(report.read_text(encoding="utf-8"), "attention")
-    assert f'data-gap="{changed["function"]}" data-need="unknown"' in section
+    labels = load_locale("en")["mapping_coverage"]
+    assert entry is not None
+    assert f"<p>{labels[coverage]}</p>" in entry[0]
+    assert 'data-reason="answer_not_provided"' in entry[0]
+
+    original = before["scope_statement"]
+    scope = context["scope_statement"]
+    counts = dict(original.by_coverage)
+    counts["in_suite"] -= 1
+    counts[coverage] += 1
+    assert dict(scope.by_coverage) == counts
+    assert (scope.total, scope.needed, scope.unknown_need) == (
+        original.total,
+        original.needed,
+        original.unknown_need + 1,
+    )
+    rendered_counts = _rendered_coverage_counts(before_html, "en")
+    rendered_counts[labels["in_suite"]] -= 1
+    rendered_counts[labels[coverage]] += 1
+    assert (
+        _rendered_coverage_counts(html, "en")
+        == rendered_counts
+        == {labels[code]: count for code, count in scope.by_coverage}
+    )
 
 
 def test_suggested_path_lists_only_the_designated_workload_statuses(

@@ -46,10 +46,11 @@ from tenants import (
 
 from fazit.cli import app
 from fazit.errors import InputError
-from fazit.evidence import provided_findings
+from fazit.evidence import combine, provided_findings
 from fazit.i18n import error_sentence, load_locale
 from fazit.inputs import load_inputs_text
-from fazit.licences import scan_to_json
+from fazit.licences import licence_findings, scan_to_json
+from fazit.mappings import GAP_COVERAGE, PROFILES, load_mapping
 from fazit.model import (
     Collector,
     Coverage,
@@ -59,7 +60,7 @@ from fazit.model import (
     load_scan,
     load_scan_text,
 )
-from fazit.status import STATUSES
+from fazit.status import STATUSES, evaluate
 
 CSP = (
     "default-src 'none'; style-src 'unsafe-inline'; font-src data:; "
@@ -457,6 +458,57 @@ def test_worse_collection_never_improves_status(pair: tuple[Tenant, Tenant]) -> 
                 previous,
                 current,
             )
+
+
+@given(tenant=tenants())
+def test_target_gaps_cannot_improve_readiness(tenant: Tenant) -> None:
+    scan = load_scan_text(scan_to_json(tenant.scan, plans=PLANS), "scan.json", CATALOGUE)
+    inputs = load_inputs_text(yaml.safe_dump(tenant.inputs or {}), "inputs.yaml", CATALOGUE)
+    scan, other = combine(scan, provided_findings(inputs, CATALOGUE))
+    findings = {item.id: item for item in scan.findings + licence_findings(scan, PLANS, CATALOGUE)}
+    collectors = {item.id: item for item in scan.collectors}
+    alternatives = {item.id: item for item in other}
+    possible = {
+        "ready": {"ready", "unknown", "needs_work"},
+        "unknown": {"unknown", "needs_work"},
+        "needs_work": {"needs_work"},
+        "blocker": {"blocker"},
+    }
+    for profile in PROFILES:
+        mapping = load_mapping(profile, CATALOGUE)
+        without_gaps = replace(
+            mapping,
+            functions=tuple(
+                replace(item, coverage="in_suite") if item.coverage in GAP_COVERAGE else item
+                for item in mapping.functions
+            ),
+        )
+        before = evaluate(
+            findings,
+            STATUS_RULES,
+            CATALOGUE,
+            without_gaps,
+            collectors=collectors,
+            alternatives=alternatives,
+        )
+        after = evaluate(
+            findings,
+            STATUS_RULES,
+            CATALOGUE,
+            mapping,
+            collectors=collectors,
+            alternatives=alternatives,
+        )
+        for previous, row in zip(before, after, strict=True):
+            assert row.workload == previous.workload
+            assert row.status in possible[previous.status], (profile, previous.workload)
+            assert not previous.incomplete or row.incomplete
+            if row.status == "ready":
+                assert all(gap.need == "no" for gap in row.transfer_gaps)
+            if row.deciding is not None and row.deciding.id.startswith("target-"):
+                assert row.status == "needs_work"
+            if row.status == "blocker":
+                assert row.deciding == previous.deciding
 
 
 def _plant(node: object, private: tuple[str, ...]) -> None:

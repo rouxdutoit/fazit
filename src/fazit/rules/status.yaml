@@ -458,3 +458,25 @@ workloads:
           kind: clarify
           en: The IT team records what data each integration transfers and what actions it triggers.
           de: Die IT-Abteilung erfasst, welche Daten jede Schnittstelle überträgt und welche Vorgänge sie auslöst.
+
+target_gaps:
+  transfer_undocumented:
+    id: target-transfer-undocumented
+    status: needs_work
+    reason:
+      en: The {profile} target profile documents no direct transfer for {function}, which this organisation needs.
+      de: Für „{function}“ dokumentiert das Zielprofil „{profile}“ keine direkte Übernahme, und die Organisation benötigt diese Funktion.
+    next_step:
+      kind: replace
+      en: The service owner and the IT team plan how the existing content is carried over or rebuilt, and test that method before a move.
+      de: Die fachlich verantwortliche Stelle und die IT-Abteilung planen, wie die bestehenden Inhalte übernommen oder neu aufgebaut werden, und erproben dieses Vorgehen vor einem Umstieg.
+  not_available:
+    id: target-not-available
+    status: needs_work
+    reason:
+      en: The {profile} target profile lists no solution for {function}, which this organisation needs.
+      de: Das Zielprofil „{profile}“ nennt für „{function}“ keine Lösung, und die Organisation benötigt diese Funktion.
+    next_step:
+      kind: replace
+      en: The service owner and the IT team decide how this function is provided after a move.
+      de: Die fachlich verantwortliche Stelle und die IT-Abteilung entscheiden, wie diese Funktion nach einem Umstieg bereitgestellt wird.

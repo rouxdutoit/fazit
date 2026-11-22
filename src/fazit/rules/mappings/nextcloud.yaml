@@ -5,6 +5,7 @@ description:
   en: Functions covered by the documented Nextcloud Hub applications and gaps that require separate work.
   de: Dokumentierte Funktionen der Anwendungen in Nextcloud Hub und Lücken, die gesondert bearbeitet werden müssen.
 product_profile: true
+operator_review: unreviewed
 no_function: [licences]
 functions:
   - function: identity_management
@@ -49,7 +50,7 @@ functions:
     need_finding: sharepoint.workflows_in_use
     microsoft: {en: SharePoint workflows, de: SharePoint-Workflows}
     replacement: {en: Rebuild supported workflows with Nextcloud Flow, de: Unterstützte Arbeitsabläufe mit Nextcloud Flow neu erstellen}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://nextcloud.com/flow/
     checked_on: "2026-11-21"
     note:
@@ -73,7 +74,7 @@ functions:
     workload: teams
     microsoft: {en: Teams chat history, de: Chatverlauf aus Teams}
     replacement: {en: Separate decision on retaining past chats, de: Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://nextcloud.com/migrate/
     checked_on: "2026-11-21"
     need_finding: teams.chat_history_must_be_kept
@@ -95,7 +96,7 @@ functions:
     need_finding: office_files.vba_macros_in_use
     microsoft: {en: VBA macros in Office files, de: VBA-Makros in Office-Dateien}
     replacement: {en: Separate conversion or redevelopment, de: Gesonderte Konvertierung oder Neuentwicklung}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://docs.nextcloud.com/server/stable/admin_manual/office/euro-office/configuration.html
     checked_on: "2026-11-21"
     note:

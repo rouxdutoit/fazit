@@ -3336,11 +3336,11 @@
               </tr>
 
 
-              <tr data-workload="office_files" data-status="needs_work" data-category="files" role="row" id="readiness-office_files">
+              <tr data-workload="office_files" data-status="needs_work" data-incomplete data-category="files" role="row" id="readiness-office_files">
                 <th scope="row" role="rowheader" data-label="Bereich">Office-Dateien · <span class="finding-category">Dateien und Dokumente</span></th>
                 <td role="cell" data-label="Status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-
+  <small>Datengrundlage unvollständig</small>
                 </td>
                 <td role="cell" data-label="Grund und nächster Schritt">
 
@@ -3355,6 +3355,18 @@
                       <li>Prüfen Sie vor der Umstellung, wofür die Organisation ihre Access-Datenbanken nutzt.</li><li>Klären Sie, wie die Organisation ihre Publisher-Dateien künftig öffnet und bearbeitet.</li><li>Klären Sie, wie die Organisation ihre Visio-Dateien künftig öffnet und bearbeitet.</li><li>Klären Sie, wie die Organisation ihre OneNote-Notizbücher übernimmt.</li>
                     </ul>
 
+
+                    <p><strong>Noch benötigte Angaben</strong></p>
+                    <ul>
+
+                        <li data-missing="office_files.vba_macros_in_use">
+                          <strong>VBA-Makros, auf die die Beschäftigten angewiesen sind</strong>
+
+
+  <span data-reason="answer_not_provided">Die Angabe fehlt. Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.</span>
+                        </li>
+
+                    </ul>
 
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -3481,11 +3493,11 @@
               </tr>
 
 
-              <tr data-workload="device_management" data-status="needs_work" data-category="identity_devices" role="row" id="readiness-device_management">
+              <tr data-workload="device_management" data-status="needs_work" data-incomplete data-category="identity_devices" role="row" id="readiness-device_management">
                 <th scope="row" role="rowheader" data-label="Bereich">Geräteverwaltung · <span class="finding-category">Identität und Geräte</span></th>
                 <td role="cell" data-label="Status">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-
+  <small>Datengrundlage unvollständig</small>
                 </td>
                 <td role="cell" data-label="Grund und nächster Schritt">
 
@@ -3497,9 +3509,21 @@
 
 
                     <ul>
-                      <li>Prüfen Sie, welche Windows-Geräte auf ein anderes Betriebssystem umgestellt werden können.</li>
+                      <li>Prüfen Sie, welche Windows-Geräte auf ein anderes Betriebssystem umgestellt werden können.</li><li>Das Zielprofil „openDesk“ nennt für „Geräteverwaltung mit Microsoft Intune“ keine Lösung, und die Organisation benötigt diese Funktion.</li>
                     </ul>
 
+
+                    <p><strong>Noch benötigte Angaben</strong></p>
+                    <ul>
+
+                        <li data-missing="device_management.windows_desktops_required">
+                          <strong>Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie erforderlich</strong>
+
+
+  <span data-reason="answer_not_provided">Die Angabe fehlt. Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.</span>
+                        </li>
+
+                    </ul>
 
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -3604,7 +3628,7 @@
 
 
                     <ul>
-                      <li>Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Wechsel nutzen können.</li>
+                      <li>Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Wechsel nutzen können.</li><li>Das Zielprofil „openDesk“ nennt für „Betrieb reiner Windows-Anwendungen“ keine Lösung, und die Organisation benötigt diese Funktion.</li>
                     </ul>
 
 
@@ -3673,7 +3697,7 @@
 
 
                     <ul>
-                      <li>Die genutzten Anwendungen und Abläufe der Power Platform benötigen eine Alternative.</li>
+                      <li>Die genutzten Anwendungen und Abläufe der Power Platform benötigen eine Alternative.</li><li>Das Zielprofil „openDesk“ nennt für „Automatisierung und Low-Code-Anwendungen mit Power Platform“ keine Lösung, und die Organisation benötigt diese Funktion.</li>
                     </ul>
 
 
@@ -3759,6 +3783,10 @@
 
                     <p class="finding-next"><strong>Nächster Schritt</strong> Die IT-Abteilung plant eine Ersatzlösung, mit der die benötigten Telefondienste beim Umstieg weiterlaufen können.</p>
 
+
+                    <ul>
+                      <li>Das Zielprofil „openDesk“ nennt für „Teams Phone und Anrufe ins öffentliche Telefonnetz“ keine Lösung, und die Organisation benötigt diese Funktion.</li>
+                    </ul>
 
 
                 </td>
@@ -4185,6 +4213,8 @@
     </section>
     <section data-section="moves">
       <h2 id="moves-title">Was wodurch ersetzt wird</h2>
+      <p data-mapping-review="unreviewed">Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.</p>
+
       <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
         <table class="moves" role="table">
           <caption data-sample>Die Messwerte der Erhebung sind simuliert.</caption>
@@ -4207,7 +4237,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4229,7 +4259,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4251,7 +4281,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4272,7 +4302,7 @@
                   In der Suite mit Einschränkungen
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4291,10 +4321,32 @@
                 <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">SharePoint-Workflows</th>
                 <td role="cell" data-label="Ersatz im Zielsystem">Gesonderte Neugestaltung der Arbeitsabläufe</td>
                 <td role="cell" data-label="Abdeckung und Prüfdatum">
-                  Nicht verfügbar
+                  Direkte Übernahme nicht dokumentiert
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Datengrundlage">
+                  <a href="#readiness-sharepoint">Datengrundlage für den Bereich SharePoint</a>
+                </td>
+                <td role="cell" data-label="Status des Bereichs">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+  <small>Datengrundlage unvollständig</small>
+                  <div>Prüfen Sie die individuell angepassten SharePoint-Lösungen, bevor die Websites umziehen.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="intranet_pages" data-workload="sharepoint" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">SharePoint-Seiten und Intranet-Websites</th>
+                <td role="cell" data-label="Ersatz im Zielsystem">XWiki</td>
+                <td role="cell" data-label="Abdeckung und Prüfdatum">
+                  In der Suite mit Einschränkungen
+                  <small>
+
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4316,7 +4368,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4337,7 +4389,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4355,10 +4407,10 @@
                 <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">Chatverlauf aus Teams</th>
                 <td role="cell" data-label="Ersatz im Zielsystem">Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</td>
                 <td role="cell" data-label="Abdeckung und Prüfdatum">
-                  Nicht verfügbar
+                  Direkte Übernahme nicht dokumentiert
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4379,7 +4431,7 @@
                   In der Suite mit Einschränkungen
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4387,7 +4439,7 @@
                 </td>
                 <td role="cell" data-label="Status des Bereichs">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-
+  <small>Datengrundlage unvollständig</small>
                   <div>Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
   </div>
                 </td>
@@ -4398,10 +4450,10 @@
                 <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">VBA-Makros in Office-Dateien</th>
                 <td role="cell" data-label="Ersatz im Zielsystem">Gesonderte Konvertierung oder Neuentwicklung</td>
                 <td role="cell" data-label="Abdeckung und Prüfdatum">
-                  Nicht verfügbar
+                  Direkte Übernahme nicht dokumentiert
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4409,7 +4461,51 @@
                 </td>
                 <td role="cell" data-label="Status des Bereichs">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+  <small>Datengrundlage unvollständig</small>
+                  <div>Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
+  </div>
+                </td>
+              </tr>
 
+
+              <tr data-function="notes" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">OneNote-Notizbücher</th>
+                <td role="cell" data-label="Ersatz im Zielsystem">Notes</td>
+                <td role="cell" data-label="Abdeckung und Prüfdatum">
+                  In der Suite mit Einschränkungen
+                  <small>
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Datengrundlage">
+                  <a href="#readiness-office_files">Datengrundlage für den Bereich Office-Dateien</a>
+                </td>
+                <td role="cell" data-label="Status des Bereichs">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+  <small>Datengrundlage unvollständig</small>
+                  <div>Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
+  </div>
+                </td>
+              </tr>
+
+
+              <tr data-function="diagrams" data-workload="office_files" data-status="needs_work" role="row">
+                <th scope="row" role="rowheader" data-label="Funktion bei Microsoft">Visio-Diagramme</th>
+                <td role="cell" data-label="Ersatz im Zielsystem">CryptPad mit diagrams.net</td>
+                <td role="cell" data-label="Abdeckung und Prüfdatum">
+                  In der Suite mit Einschränkungen
+                  <small>
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+                </td>
+                <td role="cell" data-label="Datengrundlage">
+                  <a href="#readiness-office_files">Datengrundlage für den Bereich Office-Dateien</a>
+                </td>
+                <td role="cell" data-label="Status des Bereichs">
+                  <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
+  <small>Datengrundlage unvollständig</small>
                   <div>Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
   </div>
                 </td>
@@ -4423,7 +4519,7 @@
                   Nicht verfügbar
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4431,7 +4527,7 @@
                 </td>
                 <td role="cell" data-label="Status des Bereichs">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-
+  <small>Datengrundlage unvollständig</small>
                   <div>Über Microsoft verwaltete Geräte benötigen künftig eine andere Geräteverwaltung.
   </div>
                 </td>
@@ -4445,7 +4541,7 @@
                   Nicht verfügbar
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4453,7 +4549,7 @@
                 </td>
                 <td role="cell" data-label="Status des Bereichs">
                   <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span>
-
+  <small>Datengrundlage unvollständig</small>
                   <div>Über Microsoft verwaltete Geräte benötigen künftig eine andere Geräteverwaltung.
   </div>
                 </td>
@@ -4467,7 +4563,7 @@
                   Nicht verfügbar
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4489,7 +4585,7 @@
                   Nicht verfügbar
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4511,7 +4607,7 @@
                   Nicht verfügbar
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4533,7 +4629,7 @@
                   In der Suite
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4555,7 +4651,7 @@
                   In der Suite mit Einschränkungen
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4578,7 +4674,7 @@
                   In der Suite mit Einschränkungen
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4599,7 +4695,7 @@
                   In der Suite mit Einschränkungen
                   <small>
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
                 </td>
                 <td role="cell" data-label="Datengrundlage">
@@ -4890,7 +4986,7 @@
           <ul class="mapping-gaps">
 
               <li data-gap="sharepoint_workflows" data-need="unknown">
-                <strong>SharePoint-Workflows</strong>
+                <strong id="transfer-gap-sharepoint_workflows">SharePoint-Workflows</strong>
                 <p>Das Dateimodul beschreibt gemeinsame Dateien und Ordner. Für SharePoint-Abläufe, Auslöser und Genehmigungsschritte ist keine Übernahme dokumentiert.</p>
                 <p data-provenance="unknown">
                   <strong>Für diese Organisation erforderlich</strong> · Unbekannt
@@ -4902,12 +4998,12 @@
                 <small>Dokumentation · https://docs.opendesk.eu/user/applications/dateien/</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="teams_chat_history" data-need="no">
-                <strong>Chatverlauf aus Teams</strong>
+                <strong id="transfer-gap-teams_chat_history">Chatverlauf aus Teams</strong>
                 <p>Die Anleitung beschreibt neue Unterhaltungen in Element. Ein Import bisheriger Teams-Unterhaltungen mit Angaben zu Absendern und Zeitpunkten ist dort nicht dokumentiert.</p>
                 <p data-provenance="provided">
                   <strong>Für diese Organisation erforderlich</strong> · Nein
@@ -4921,12 +5017,12 @@
                 <small>Dokumentation · https://docs.opendesk.eu/user/applications/chat/</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="vba_macros" data-need="unknown">
-                <strong>VBA-Makros in Office-Dateien</strong>
+                <strong id="transfer-gap-vba_macros">VBA-Makros in Office-Dateien</strong>
                 <p>Die Office-Anleitung beschreibt die Bearbeitung importierter Dateien. Eine Übernahme funktionsfähiger VBA-Automatisierungen ist dort nicht beschrieben.</p>
                 <p data-provenance="unknown">
                   <strong>Für diese Organisation erforderlich</strong> · Unbekannt
@@ -4938,12 +5034,12 @@
                 <small>Dokumentation · https://docs.opendesk.eu/user/applications/office/</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="device_management" data-need="yes">
-                <strong>Geräteverwaltung mit Microsoft Intune</strong>
+                <strong id="transfer-gap-device_management">Geräteverwaltung mit Microsoft Intune</strong>
                 <p>Die Komponentenübersicht umfasst Arbeitsplatzanwendungen und Identitätsverwaltung. Eine Lösung zur Registrierung von Geräten und zur Durchsetzung von Geräterichtlinien ist dort nicht aufgeführt.</p>
                 <p data-provenance="provided">
                   <strong>Für diese Organisation erforderlich</strong> · Ja
@@ -4954,15 +5050,15 @@
                     </small>
 
                 </p>
-                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="desktop_operating_system" data-need="unknown">
-                <strong>Arbeitsplatzbetriebssystem Microsoft Windows</strong>
+                <strong id="transfer-gap-desktop_operating_system">Arbeitsplatzbetriebssystem Microsoft Windows</strong>
                 <p>openDesk stellt serverseitige Arbeitsplatzanwendungen bereit. Ein Betriebssystem für Arbeitsplatzrechner gehört laut Komponentenübersicht nicht zum Paket.</p>
                 <p data-provenance="unknown">
                   <strong>Für diese Organisation erforderlich</strong> · Unbekannt
@@ -4971,15 +5067,15 @@
   <span data-reason="answer_not_provided">Die Angabe fehlt. Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.</span></small>
 
                 </p>
-                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="windows_applications" data-need="yes">
-                <strong>Betrieb reiner Windows-Anwendungen</strong>
+                <strong id="transfer-gap-windows_applications">Betrieb reiner Windows-Anwendungen</strong>
                 <p>Das Paket umfasst Anwendungen für Büroarbeit und Zusammenarbeit im Browser. Eine Umgebung zum Betrieb vorhandener reiner Windows-Anwendungen ist in der Komponentenübersicht nicht enthalten.</p>
                 <p data-provenance="provided">
                   <strong>Für diese Organisation erforderlich</strong> · Ja
@@ -4990,15 +5086,15 @@
                     </small>
 
                 </p>
-                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="automation_and_low_code" data-need="yes">
-                <strong>Automatisierung und Low-Code-Anwendungen mit Power Platform</strong>
+                <strong id="transfer-gap-automation_and_low_code">Automatisierung und Low-Code-Anwendungen mit Power Platform</strong>
                 <p>Die Übersicht nennt weder eine allgemeine Low-Code-Plattform noch einen Weg, vorhandene Power-Platform-Anwendungen und -Abläufe weiterzuverwenden.</p>
                 <p data-provenance="provided">
                   <strong>Für diese Organisation erforderlich</strong> · Ja
@@ -5009,15 +5105,15 @@
                     </small>
 
                 </p>
-                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+                <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
               <li data-gap="telephony" data-need="yes">
-                <strong>Teams Phone und Anrufe ins öffentliche Telefonnetz</strong>
+                <strong id="transfer-gap-telephony">Teams Phone und Anrufe ins öffentliche Telefonnetz</strong>
                 <p>Mit einem externen SIP-Dienst ist die telefonische Einwahl in Jitsi-Besprechungen möglich. Ein Ersatz für Nebenstellen, Rufnummernweiterleitung und ausgehende Anrufe ins öffentliche Telefonnetz ist nicht dokumentiert.</p>
                 <p data-provenance="provided">
                   <strong>Für diese Organisation erforderlich</strong> · Ja
@@ -5028,10 +5124,10 @@
                     </small>
 
                 </p>
-                <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+                <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
                 <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
               </li>
 
@@ -5192,6 +5288,7 @@
 
           <dt>Verzeichnisdienst</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5216,6 +5313,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="directory-guests">
                 <code>directory-guests</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Für Gastkonten ist zu klären, wer künftig Zugriff benötigt.
                 <ul>
@@ -5233,6 +5333,7 @@
 
           <dt>E-Mail</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5258,6 +5359,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="mail-other-systems">
                 <code>mail-other-systems</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
                 <ul>
@@ -5275,6 +5379,7 @@
 
           <dt>OneDrive</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5300,10 +5405,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>SharePoint</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5328,6 +5437,9 @@
 
   </ul>
 
+
+
+
               <div data-rule="sharepoint-custom-solutions">
                 <code>sharepoint-custom-solutions</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Prüfen Sie die individuell angepassten SharePoint-Lösungen, bevor die Websites umziehen.
                 <ul>
@@ -5345,6 +5457,7 @@
 
           <dt>Teams</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5375,10 +5488,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Office-Dateien</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5413,6 +5530,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="office-macro">
                 <code>office-macro</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
@@ -5483,6 +5603,7 @@
 
           <dt>Geräteverwaltung</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5505,6 +5626,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="devices-managed">
                 <code>devices-managed</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Über Microsoft verwaltete Geräte benötigen künftig eine andere Geräteverwaltung.
@@ -5532,10 +5656,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-device-management">
+                <code>target-not-available-device-management</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Das Zielprofil „openDesk“ nennt für „Geräteverwaltung mit Microsoft Intune“ keine Lösung, und die Organisation benötigt diese Funktion.
+                <ul>
+
+      <li>
+        Geräteverwaltung von Microsoft im Einsatz
+        == Ja
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Reine Windows-Anwendungen</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5552,6 +5690,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="software-no-web-version">
                 <code>software-no-web-version</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Mindestens eine reine Windows-Anwendung hat keine Webversion und benötigt Windows, entweder auf den Arbeitsplatzrechnern der Beschäftigten oder auf einem gesonderten Windows-System. Planen Sie für den Umstieg von Microsoft 365 den Weiterbetrieb der Anwendung oder eine Ersatzlösung.
@@ -5579,10 +5720,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-windows-applications">
+                <code>target-not-available-windows-applications</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Das Zielprofil „openDesk“ nennt für „Betrieb reiner Windows-Anwendungen“ keine Lösung, und die Organisation benötigt diese Funktion.
+                <ul>
+
+      <li>
+        Anwendungen, die nur unter Windows laufen
+        &gt; 0
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Power Platform</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5599,6 +5754,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="power-premium-licences">
                 <code>power-premium-licences</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Für die Power Platform sind separate Lizenzen zugewiesen, und die damit genutzten Anwendungen und Abläufe sind zu prüfen.
@@ -5626,10 +5784,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-automation-and-low-code">
+                <code>target-not-available-automation-and-low-code</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Das Zielprofil „openDesk“ nennt für „Automatisierung und Low-Code-Anwendungen mit Power Platform“ keine Lösung, und die Organisation benötigt diese Funktion.
+                <ul>
+
+      <li>
+        Power Platform im Einsatz
+        == Ja
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Telefonie</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5646,6 +5818,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="telephony-no-replacement">
                 <code>telephony-no-replacement</code> · <span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis</span> · Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
@@ -5666,10 +5841,24 @@
   </ul>
               </div>
 
+              <div data-rule="target-not-available-telephony">
+                <code>target-not-available-telephony</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Das Zielprofil „openDesk“ nennt für „Teams Phone und Anrufe ins öffentliche Telefonnetz“ keine Lösung, und die Organisation benötigt diese Funktion.
+                <ul>
+
+      <li>
+        Telefonie läuft über Microsoft
+        == Ja
+
+      </li>
+
+  </ul>
+              </div>
+
           </dd>
 
           <dt>Identitäten und Zugriff</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5686,6 +5875,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="identity-sso-applications">
                 <code>identity-sso-applications</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Anwendungen mit zentraler Anmeldung über Microsoft müssen an einen anderen Identitätsdienst angebunden werden.
@@ -5717,6 +5909,7 @@
 
           <dt>Sicherheit und Regelkonformität</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5734,10 +5927,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Kleinere Anwendungen</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5749,10 +5946,14 @@
 
   </ul>
 
+
+
+
           </dd>
 
           <dt>Anwendungsanbindungen</dt>
           <dd>
+
             Erforderliche Datengrundlage für den Status „Bereit“
             <ul>
 
@@ -5763,6 +5964,9 @@
       </li>
 
   </ul>
+
+
+
 
               <div data-rule="integrations-present">
                 <code>integrations-present</code> · <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf</span> · Prüfen Sie vor der Umstellung die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.
@@ -5782,6 +5986,8 @@
       </dl>
       <h3>Zuordnung der Funktionen</h3>
       <p>Dokumentierte Funktionen von openDesk und Lücken, die gesondert bearbeitet werden müssen.</p>
+      <p data-mapping-review="unreviewed">Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.</p>
+
       <p>Zuordnungsdatei · <code>opendesk.yaml</code></p>
       <dl class="mapping-details">
 
@@ -5789,10 +5995,10 @@
           <dd data-mapping-details="identity_management">
             <p>Nubus · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#nubus-identity-and-access-management--portal</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5800,10 +6006,10 @@
           <dd data-mapping-details="mail_and_calendar">
             <p>Open-Xchange (OX App Suite) · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#ox-app-suite-groupware-with-ox-dovecot-mail-backend</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5811,10 +6017,10 @@
           <dd data-mapping-details="personal_files">
             <p>Nextcloud Files · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5825,18 +6031,29 @@
             <small>Dokumentation · https://docs.opendesk.eu/user/applications/dateien/</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
           <dt>SharePoint-Workflows <small>SharePoint</small></dt>
           <dd data-mapping-details="sharepoint_workflows">
-            <p>Gesonderte Neugestaltung der Arbeitsabläufe · Nicht verfügbar</p>
+            <p>Gesonderte Neugestaltung der Arbeitsabläufe · Direkte Übernahme nicht dokumentiert</p>
             <p>Das Dateimodul beschreibt gemeinsame Dateien und Ordner. Für SharePoint-Abläufe, Auslöser und Genehmigungsschritte ist keine Übernahme dokumentiert.</p>
             <small>Dokumentation · https://docs.opendesk.eu/user/applications/dateien/</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+          </dd>
+
+          <dt>SharePoint-Seiten und Intranet-Websites <small>SharePoint</small></dt>
+          <dd data-mapping-details="intranet_pages">
+            <p>XWiki · In der Suite mit Einschränkungen</p>
+            <p>Das Modul Wissen beschreibt Wikiseiten, Unterseiten, weitere Wikis und Zugriffsrechte für einzelne Seiten. Eine Übernahme vorhandener SharePoint-Seiten oder Website-Strukturen ist dort nicht beschrieben.</p>
+            <small>Dokumentation · https://docs.opendesk.eu/user/applications/wissen/</small>
+            <small>Geprüft am ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5844,10 +6061,10 @@
           <dd data-mapping-details="chat">
             <p>Element · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#elementsynapse-chat--call</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5855,21 +6072,21 @@
           <dd data-mapping-details="video_meetings">
             <p>Jitsi · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
           <dt>Chatverlauf aus Teams <small>Teams</small></dt>
           <dd data-mapping-details="teams_chat_history">
-            <p>Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats · Nicht verfügbar</p>
+            <p>Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats · Direkte Übernahme nicht dokumentiert</p>
             <p>Die Anleitung beschreibt neue Unterhaltungen in Element. Ein Import bisheriger Teams-Unterhaltungen mit Angaben zu Absendern und Zeitpunkten ist dort nicht dokumentiert.</p>
             <small>Dokumentation · https://docs.opendesk.eu/user/applications/chat/</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5877,21 +6094,43 @@
           <dd data-mapping-details="office_editing">
             <p>Collabora Online · In der Suite mit Einschränkungen</p>
             <p>Texte, Tabellen und Präsentationen lassen sich im Browser bearbeiten. Ob aufwendige Layouts und Funktionen bei der Konvertierung erhalten bleiben, geht aus der Anleitung nicht hervor.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/user/applications/office/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#collabora-weboffice</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
           <dt>VBA-Makros in Office-Dateien <small>Office-Dateien</small></dt>
           <dd data-mapping-details="vba_macros">
-            <p>Gesonderte Konvertierung oder Neuentwicklung · Nicht verfügbar</p>
+            <p>Gesonderte Konvertierung oder Neuentwicklung · Direkte Übernahme nicht dokumentiert</p>
             <p>Die Office-Anleitung beschreibt die Bearbeitung importierter Dateien. Eine Übernahme funktionsfähiger VBA-Automatisierungen ist dort nicht beschrieben.</p>
             <small>Dokumentation · https://docs.opendesk.eu/user/applications/office/</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+          </dd>
+
+          <dt>OneNote-Notizbücher <small>Office-Dateien</small></dt>
+          <dd data-mapping-details="notes">
+            <p>Notes · In der Suite mit Einschränkungen</p>
+            <p>Die Komponentenübersicht nennt Notes für gemeinsame Notizen. Die Anleitung ist nur in der installierten Anwendung verfügbar, und eine Übernahme von OneNote-Notizbüchern ist öffentlich nicht dokumentiert.</p>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
+            <small>Geprüft am ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </small>
+          </dd>
+
+          <dt>Visio-Diagramme <small>Office-Dateien</small></dt>
+          <dd data-mapping-details="diagrams">
+            <p>CryptPad mit diagrams.net · In der Suite mit Einschränkungen</p>
+            <p>Laut Architekturdokumentation dient CryptPad zur Bearbeitung von diagrams.net-Dokumenten. Ob vorhandene Visio-Dateien geöffnet oder konvertiert werden können, geht daraus nicht hervor.</p>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#cryptpad-online-diagrams</small>
+            <small>Geprüft am ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5899,10 +6138,10 @@
           <dd data-mapping-details="device_management">
             <p>Gesonderte Lösung zur Geräteverwaltung · Nicht verfügbar</p>
             <p>Die Komponentenübersicht umfasst Arbeitsplatzanwendungen und Identitätsverwaltung. Eine Lösung zur Registrierung von Geräten und zur Durchsetzung von Geräterichtlinien ist dort nicht aufgeführt.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5910,10 +6149,10 @@
           <dd data-mapping-details="desktop_operating_system">
             <p>Separat verwaltetes Betriebssystem für Arbeitsplatzrechner · Nicht verfügbar</p>
             <p>openDesk stellt serverseitige Arbeitsplatzanwendungen bereit. Ein Betriebssystem für Arbeitsplatzrechner gehört laut Komponentenübersicht nicht zum Paket.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5921,10 +6160,10 @@
           <dd data-mapping-details="windows_applications">
             <p>Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen · Nicht verfügbar</p>
             <p>Das Paket umfasst Anwendungen für Büroarbeit und Zusammenarbeit im Browser. Eine Umgebung zum Betrieb vorhandener reiner Windows-Anwendungen ist in der Komponentenübersicht nicht enthalten.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5932,10 +6171,10 @@
           <dd data-mapping-details="automation_and_low_code">
             <p>Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen · Nicht verfügbar</p>
             <p>Die Übersicht nennt weder eine allgemeine Low-Code-Plattform noch einen Weg, vorhandene Power-Platform-Anwendungen und -Abläufe weiterzuverwenden.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/introduction/#overview</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5943,10 +6182,10 @@
           <dd data-mapping-details="telephony">
             <p>Gesonderter Telefondienst · Nicht verfügbar</p>
             <p>Mit einem externen SIP-Dienst ist die telefonische Einwahl in Jitsi-Besprechungen möglich. Ein Ersatz für Nebenstellen, Rufnummernweiterleitung und ausgehende Anrufe ins öffentliche Telefonnetz ist nicht dokumentiert.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5954,32 +6193,32 @@
           <dd data-mapping-details="single_sign_on">
             <p>Keycloak · In der Suite</p>
 
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#keycloak</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
           <dt>Schutz und Aufbewahrung in Microsoft 365 <small>Sicherheit und Regelkonformität</small></dt>
           <dd data-mapping-details="security_and_compliance">
             <p>Zugriffssteuerung und Schadsoftware-Prüfung in openDesk · In der Suite mit Einschränkungen</p>
-            <p>Die Architekturdokumentation beschreibt den Zugriffsschutz und die Prüfung von Dateien und E-Mails. Organisationsweite Aufbewahrung und Sperren für Rechtsverfahren bleiben ungeklärt.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <p>Die Architekturdokumentation beschreibt die Prüfung hochgeladener Dateien und E-Mail-Anhänge auf Schadsoftware. Organisationsweite Aufbewahrung und Sperren für Rechtsverfahren sind dort nicht beschrieben.</p>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#nextcloud-files</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
           <dt>Microsoft Forms, Planner und Bookings <small>Kleinere Anwendungen</small></dt>
           <dd data-mapping-details="forms_tasks_bookings">
             <p>OpenProject und OX App Suite für Aufgaben · In der Suite mit Einschränkungen</p>
-            <p>Das Paket deckt Projektarbeit und persönliche Aufgaben ab. Gleichwertige allgemeine Formulare und eine öffentliche Terminbuchung gehen aus der Komponentenübersicht nicht hervor.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <p>Die Anleitung zu Aufgaben beschreibt Aufgaben mit Erinnerungen, Status und Beteiligten. Allgemeine Formulare und eine öffentliche Terminbuchung sind dort nicht beschrieben.</p>
+            <small>Dokumentation · https://docs.opendesk.eu/user/applications/aufgaben/</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -5987,10 +6226,10 @@
           <dd data-mapping-details="application_integrations">
             <p>Schnittstellen der openDesk-Komponenten · In der Suite mit Einschränkungen</p>
             <p>Die Architekturdokumentation beschreibt Schnittstellen und Anbindungen innerhalb des Pakets. Prüfen Sie vorhandene Anbindungen von Fachanwendungen einzeln.</p>
-            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/</small>
+            <small>Dokumentation · https://docs.opendesk.eu/operations/architecture/#component-integration</small>
             <small>Geprüft am ·
 
-    <time datetime="2026-11-21">21. November 2026</time>
+    <time datetime="2026-11-22">22. November 2026</time>
   </small>
           </dd>
 
@@ -6035,13 +6274,13 @@
 
             <li><code>findings.yaml</code> · <code data-checksum="findings.yaml">2c159fb86e78d7aac97913280cd0c9b4fdb964ec0a9fbbacd277a4c612f7e7f9</code></li>
 
-            <li><code>status.yaml</code> · <code data-checksum="status.yaml">0bf31ea9d2178e0b17368292e2e7a6837ee0608397560b08da263ff9c89ae59a</code></li>
+            <li><code>status.yaml</code> · <code data-checksum="status.yaml">c9edae720476d42e3f0fb2356a0d6fb5c4e9b2fe195893a5171c70eff0d62b4f</code></li>
 
             <li><code>service_plans.yaml</code> · <code data-checksum="service_plans.yaml">494ae2aed637f394197a58264f5dde1cb9e1ef99b90d95495620de5c13f159c8</code></li>
 
             <li><code>risky_file_types.yaml</code> · <code data-checksum="risky_file_types.yaml">3447325c97453261fc21324aaf81fe2daf885bbd1a1687a86226c3c1d8740f55</code></li>
 
-            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">d70332245c18b0a49dfa9e38327849a874b3f87eca2df0d10cad84d697ef79ca</code></li>
+            <li><code>opendesk.yaml</code> · <code data-checksum="opendesk.yaml">56a8ac843aadfaa992a92f370489556b7d570443b00d0783a4a74eb7a169b6eb</code></li>
 
         </ul>
       </div>

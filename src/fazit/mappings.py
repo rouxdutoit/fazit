@@ -19,8 +19,10 @@ COVERAGE_LADDER = (
     "open_source_community",
     "open_source_third_party",
     "proprietary_third_party",
+    "transfer_undocumented",
     "not_available",
 )
+GAP_COVERAGE = ("transfer_undocumented", "not_available")
 _MAPPING_REFERENCE = re.compile(r"https://[^/\s?#]+(?:[/?#][^\s]*)?")
 
 
@@ -43,6 +45,7 @@ class TargetMapping:
     label: Mapping[str, str]
     description: Mapping[str, str]
     product_profile: bool
+    reviewed_on: date | None
     no_function: tuple[str, ...]
     functions: tuple[FunctionMapping, ...]
     file_name: str
@@ -93,6 +96,8 @@ def _function_mapping(
             if row.get(key) is not None:
                 reader.fail(f"{field}.{key}")
     need_finding = _need_conditions(row, field, reader, catalogue, workload)
+    if coverage in GAP_COVERAGE and need_finding is None:
+        reader.fail(f"{field}.need_finding", "missing_field")
     return FunctionMapping(
         function=reader.matches(row["function"], f"{field}.function", RULE_ID),
         workload=workload,
@@ -120,12 +125,24 @@ def load_mapping(
     root = reader.fields(
         data,
         "",
-        ("profile", "label", "description", "product_profile", "no_function", "functions"),
+        (
+            "profile",
+            "label",
+            "description",
+            "product_profile",
+            "operator_review",
+            "no_function",
+            "functions",
+        ),
     )
     reader.choice(root["profile"], "profile", (profile,))
     product_profile = root["product_profile"]
     if type(product_profile) is not bool:
         reader.fail("product_profile")
+    review = root["operator_review"]
+    reviewed_on = (
+        None if review == "unreviewed" else reader.calendar_date(review, "operator_review")
+    )
     workload_ids = catalogue.workload_ids
     no_function = []
     for index, item in enumerate(reader.rows(root["no_function"], "no_function", allow_empty=True)):
@@ -153,6 +170,7 @@ def load_mapping(
         label=reader.bilingual(root["label"], "label"),
         description=reader.bilingual(root["description"], "description"),
         product_profile=product_profile,
+        reviewed_on=reviewed_on,
         no_function=tuple(no_function),
         functions=tuple(functions.values()),
         file_name=reader.file_name,
