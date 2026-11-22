@@ -10,15 +10,16 @@ from shutil import copytree
 
 import pytest
 import yaml
-from helpers import readiness_row, report_section, runner
+from helpers import readiness_row, report_section, runner, sample_inputs_path
 from report_expectations import SECTION_ORDER
 
 from fazit import i18n, rules
+from fazit import report as report_module
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.cli import app
 from fazit.errors import InputError
 from fazit.i18n import load_locale
-from fazit.inputs import Inputs, WindowsSoftware
+from fazit.inputs import Inputs, WindowsSoftware, load_inputs
 from fazit.licences import classify_product, licence_findings, load_service_plans
 from fazit.mappings import COVERAGE_LADDER, PROFILES, load_mapping
 from fazit.model import (
@@ -138,6 +139,7 @@ def test_generic_mapping_names_no_target_products() -> None:
         ("bad_date", "functions[0].checked_on"),
         ("unmapped_workload", "no_function"),
         ("overlap", "no_function"),
+        ("unassessed_workload", "no_function"),
         ("bad_product_flag", "product_profile"),
         ("unknown_need", "functions[0].need_finding"),
         ("count_as_need", "functions[0].need_finding"),
@@ -175,6 +177,9 @@ def test_bad_mapping_names_the_file_and_field(
             data["no_function"] = []
         case "overlap":
             data["no_function"].append(first["workload"])
+        case "unassessed_workload":
+            data["no_function"] = [first["workload"]]
+            first["workload"] = "licences"
         case "bad_product_flag":
             data["product_profile"] = "true"
         case "unknown_need":
@@ -852,6 +857,7 @@ def test_disputed_count_blocks_every_workload_that_uses_it(
                 "when": [{"finding": finding_id, "op": ">", "value": 0, "provenance": "provided"}],
                 "status": "needs_work",
                 "reason": {"en": "Review integrations.", "de": "Prüfen Sie die Schnittstellen."},
+                "next_step": data["workloads"]["integrations"]["rules"][0]["next_step"].copy(),
             }
         )
     path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
@@ -921,9 +927,9 @@ def test_removing_a_workloads_evidence_never_gives_ready(
     complete_evidence: dict[str, Finding], status_rules: StatusRuleSet, catalogue: Catalogue
 ) -> None:
     rows = evaluate(complete_evidence, status_rules, catalogue)
-    assert tuple(row.workload for row in rows) == catalogue.workload_ids
+    assert tuple(row.workload for row in rows) == catalogue.assessed_workload_ids
     assert all(row.status == "ready" and not row.incomplete for row in rows)
-    for workload in catalogue.workload_ids:
+    for workload in catalogue.assessed_workload_ids:
         without = {
             key: item for key, item in complete_evidence.items() if item.workload != workload
         }
@@ -931,13 +937,13 @@ def test_removing_a_workloads_evidence_never_gives_ready(
         assert row.status == "unknown" and row.missing
 
 
-def test_shipped_status_rules_define_each_workload(
+def test_shipped_status_rules_define_each_assessed_workload(
     status_rules: StatusRuleSet, catalogue: Catalogue
 ) -> None:
     path = rules_dir().joinpath("status.yaml")
     data = parse_yaml(read_text(path), path.name)
     assert set(data) == {"workloads"}
-    assert tuple(status_rules.workloads) == catalogue.workload_ids
+    assert tuple(status_rules.workloads) == catalogue.assessed_workload_ids
     assert {
         "telephony-no-replacement",
         "power-premium-licences",
@@ -958,7 +964,16 @@ def test_shipped_status_rules_define_each_workload(
         ("duplicate_id", "workloads.directory.rules[2].id"),
         ("missing_workload", "workloads.directory"),
         ("unknown_workload", "workloads"),
+        ("unassessed_workload", "workloads"),
         ("empty_evidence", "workloads.directory.ready.evidence"),
+        ("missing_next_step", "workloads.directory.rules[0].next_step"),
+        ("missing_next_step_en", "workloads.directory.rules[0].next_step.en"),
+        ("missing_next_step_de", "workloads.directory.rules[0].next_step.de"),
+        ("missing_step_kind", "workloads.directory.rules[0].next_step.kind"),
+        ("invalid_step_kind", "workloads.directory.rules[0].next_step.kind"),
+        ("blank_step_text", "workloads.directory.rules[0].next_step.de"),
+        ("extra_step_field", "workloads.directory.rules[0].next_step"),
+        ("ready_next_step", "workloads.directory.ready"),
     ],
 )
 def test_bad_status_rule_names_the_file_and_field(
@@ -988,8 +1003,26 @@ def test_bad_status_rule_names_the_file_and_field(
             del data["workloads"]["directory"]
         case "unknown_workload":
             data["workloads"]["unlisted"] = block
+        case "unassessed_workload":
+            data["workloads"]["licences"] = {"ready": block["ready"], "rules": []}
         case "empty_evidence":
             block["ready"]["evidence"] = []
+        case "missing_next_step":
+            rule.pop("next_step", None)
+        case "missing_next_step_en":
+            del rule["next_step"]["en"]
+        case "missing_next_step_de":
+            del rule["next_step"]["de"]
+        case "missing_step_kind":
+            del rule["next_step"]["kind"]
+        case "invalid_step_kind":
+            rule["next_step"]["kind"] = "fix"
+        case "blank_step_text":
+            rule["next_step"]["de"] = " "
+        case "extra_step_field":
+            rule["next_step"]["extra"] = True
+        case "ready_next_step":
+            block["ready"]["next_step"] = rule["next_step"].copy()
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
 
     with pytest.raises(InputError) as caught:
@@ -998,10 +1031,108 @@ def test_bad_status_rule_names_the_file_and_field(
     assert (caught.value.file, caught.value.field) == (path.name, field)
 
 
+def test_all_problem_rules_have_bilingual_product_neutral_next_steps(
+    status_rules: StatusRuleSet,
+) -> None:
+    banned = (
+        "opendesk",
+        "nextcloud",
+        "collabora",
+        "keycloak",
+        "nubus",
+        "element",
+        "jitsi",
+        "open-xchange",
+        "openproject",
+        "libreoffice",
+        "univention",
+        "xwiki",
+        "cryptpad",
+        "import",
+        "export",
+    )
+    for block in status_rules.workloads.values():
+        for rule in block.rules:
+            step = rule.next_step.text
+            assert set(step) == set(i18n.SUPPORTED_LANGUAGES), rule.id
+            for lang, text in step.items():
+                assert text.endswith(".") and not re.search(r"[.?!]\s", text), (rule.id, lang)
+                assert text != rule.reason[lang], (rule.id, lang)
+                assert not any(word in text.casefold() for word in banned), (rule.id, lang)
+
+
+def test_next_step_kind_reaches_the_town_report_context(
+    catalogue: Catalogue, status_rules: StatusRuleSet
+) -> None:
+    kinds = {
+        rule.next_step.kind for block in status_rules.workloads.values() for rule in block.rules
+    }
+    assert kinds <= {"clarify", "decide", "replace"}
+
+    scan = sample_scan("town", catalogue)
+    inputs = load_inputs(sample_inputs_path("town"), catalogue)
+    context, _ = report_module._prepare_report(scan, "en", "opendesk", catalogue, inputs)
+    row = next(row for row in context["statuses"] if row.workload == "telephony")
+
+    assert row.deciding is not None and row.deciding.id == "telephony-no-replacement"
+    assert row.deciding.next_step.kind == "replace"
+
+
+@pytest.mark.parametrize(("lang", "label"), [("en", "Next step"), ("de", "Nächster Schritt")])
+def test_town_telephony_shows_deciding_next_step(
+    catalogue: Catalogue, status_rules: StatusRuleSet, lang: str, label: str
+) -> None:
+    scan = sample_scan("town", catalogue)
+    inputs = load_inputs(sample_inputs_path("town"), catalogue)
+    html = render_report(scan, lang=lang, catalogue=catalogue, inputs=inputs)
+    row = unescape(readiness_row(html, "telephony"))
+
+    assert f'<p class="finding-next"><strong>{label}</strong>' in row
+    rule = next(
+        rule
+        for rule in status_rules.workloads["telephony"].rules
+        if rule.id == "telephony-no-replacement"
+    )
+    step = f'<p class="finding-next"><strong>{label}</strong> {rule.next_step.text[lang]}</p>'
+    assert row.index(rule.reason[lang]) < row.index(step)
+    for workload in ("onedrive", "security_compliance"):
+        assert 'class="finding-next"' not in readiness_row(html, workload)
+
+
+def test_next_step_text_is_autoescaped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, catalogue: Catalogue
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules_dir())), copied)
+    path = copied / "status.yaml"
+    data = yaml.safe_load(read_text(path))
+    rule = next(
+        rule
+        for rule in data["workloads"]["telephony"]["rules"]
+        if rule["id"] == "telephony-no-replacement"
+    )
+    rule["next_step"]["en"] = "The IT team tests the <b>replacement</b>."
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+    scan = sample_scan("town", catalogue)
+    inputs = load_inputs(sample_inputs_path("town"), catalogue)
+    html = render_report(scan, lang="en", catalogue=catalogue, inputs=inputs)
+
+    row = readiness_row(html, "telephony")
+    assert "&lt;b&gt;replacement&lt;/b&gt;" in row
+    assert "<b>replacement</b>" not in row
+
+
 @pytest.mark.parametrize(
     ("field", "before", "after", "lang"),
     [
         ("workloads[0].label", "label: workload.licences", "label: workload.licensse", "de"),
+        (
+            "categories[0].label",
+            "label: category.communication",
+            "label: category.communicaton",
+            "de",
+        ),
         (
             "findings[0].label",
             "label: finding.licences.contract_terms_known",
@@ -1038,6 +1169,8 @@ def test_bad_catalogue_label_exits_with_a_localised_sentence(
     ("lang", "prefix", "file", "field"),
     [
         ("de", "  licences: Lizenzen", "findings.yaml", "workloads[0].label"),
+        ("en", "  communication:", "findings.yaml", "categories[0].label"),
+        ("de", "  communication:", "findings.yaml", "categories[0].label"),
         ("en", "  sample.directory:", "en.yaml", "source.sample.directory"),
         ("de", "  sample.licences:", "de.yaml", "source.sample.licences"),
         ("en", "  sample.interview:", "en.yaml", "source.sample.interview"),
@@ -1070,6 +1203,93 @@ def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
     message = strings["errors"]["invalid_label"].format(file=file, field=field)
     assert result.exit_code == 2 and not result.stdout and not out.exists()
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
+
+
+@pytest.mark.parametrize("sample", ["town", "nonprofit"])
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+@pytest.mark.parametrize("profile", PROFILES)
+def test_demo_rows_show_the_categories_of_assessed_workloads(
+    tmp_path: Path, catalogue: Catalogue, sample: str, lang: str, profile: str
+) -> None:
+    members = {
+        "communication": ("mail", "teams", "telephony"),
+        "files": ("onedrive", "sharepoint", "office_files"),
+        "identity_devices": (
+            "directory",
+            "device_management",
+            "windows_software",
+            "identity_access",
+        ),
+        "automation_ai": ("power_platform", "small_apps", "integrations"),
+        "security": ("security_compliance",),
+    }
+    assert [(entry.id, entry.label) for entry in catalogue.categories] == [
+        (category, f"category.{category}") for category in members
+    ]
+    expected = {workload: category for category, group in members.items() for workload in group}
+    assert {entry.id: entry.category for entry in catalogue.workloads if entry.assessed} == expected
+    assert [(entry.id, entry.category) for entry in catalogue.workloads if not entry.assessed] == [
+        ("licences", None)
+    ]
+
+    command = ["demo", "--sample", sample, "--lang", lang, "--profile", profile]
+    result = runner.invoke(app, [*command, "--out", str(tmp_path)])
+    assert result.exit_code == 0 and not result.stderr, result.output
+    path = Path(result.stdout.splitlines()[-1])
+    assert path.is_file()
+    html = path.read_text(encoding="utf-8")
+    table = report_section(html, "readiness")
+    workloads = re.findall(r'<tr data-workload="([^"]+)"', table)
+    assert tuple(workloads) == catalogue.assessed_workload_ids
+    assert 'data-workload="licences" data-status=' not in html
+    labels = load_locale(lang)["category"]
+    for workload, category in expected.items():
+        row = readiness_row(table, workload)
+        assert f'data-category="{category}"' in row
+        assert f'<span class="finding-category">{labels[category]}</span>' in unescape(row)
+
+
+def test_changing_the_catalogue_category_changes_the_rendered_row(tmp_path: Path) -> None:
+    source = rules_dir().joinpath("findings.yaml")
+    path = tmp_path / source.name
+    text = read_text(source).replace(
+        "label: workload.mail\n    category: communication",
+        "label: workload.mail\n    category: files",
+    )
+    path.write_text(text, encoding="utf-8")
+    catalogue = load_catalogue(path)
+
+    html = render_report(sample_scan("town", catalogue), lang="en", catalogue=catalogue)
+
+    row = readiness_row(html, "mail")
+    assert 'data-category="files"' in row
+    assert '<span class="finding-category">Files and documents</span>' in row
+
+
+@pytest.mark.parametrize("lang", i18n.SUPPORTED_LANGUAGES)
+@pytest.mark.parametrize(
+    ("coverage", "reason"),
+    [(None, "not_in_scan"), ("partial", "coverage_partial"), ("unknown", "coverage_unknown")],
+)
+def test_licence_inventory_shows_its_coverage_gap(
+    catalogue: Catalogue, lang: str, coverage: str | None, reason: str
+) -> None:
+    scan = sample_scan("town", catalogue)
+    assert scan.licences is not None
+    inventory = None if coverage is None else replace(scan.licences, coverage=Coverage(coverage))
+    html = render_report(replace(scan, licences=inventory), lang=lang, catalogue=catalogue)
+
+    found = report_section(html, "found")
+    summary = re.search(r'<h3 id="licences-title">.*?</h3>\s*(<p[^>]*>.*?</p>)', found, re.S)
+    assert summary is not None
+    evidence = summary[1]
+    provenance = "unknown" if inventory is None else "measured"
+    strings = load_locale(lang)
+    assert f'data-provenance="{provenance}"' in evidence
+    assert strings["provenance"][provenance] in evidence
+    assert f'data-reason="{reason}"' in evidence
+    assert all(text in unescape(evidence) for text in strings["reason"][reason].values())
+    assert found.count("data-product=") == (0 if inventory is None else len(inventory.products))
 
 
 def test_shipped_risky_extensions(catalogue: Catalogue) -> None:

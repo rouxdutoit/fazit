@@ -173,7 +173,7 @@ def _render(tenant: Tenant) -> str:
 def _statuses(html: str) -> dict[str, str]:
     readiness = report_section(html, "readiness")
     statuses = dict(re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness))
-    assert tuple(statuses) == CATALOGUE.workload_ids
+    assert tuple(statuses) == CATALOGUE.assessed_workload_ids
     assert set(statuses.values()) <= set(STATUSES)
     return statuses
 
@@ -386,10 +386,8 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             reconciled = not contradiction
     if not reconciled:
         if contradiction:
-            assert 'data-reason="licence_assignments_conflict"' in readiness_row(
-                readiness, "licences"
-            )
-        assert statuses["licences"] != "ready"
+            assert 'data-reason="licence_assignments_conflict"' in report_section(html, "found")
+        assert "licences" not in statuses
         signals = re.findall(
             r'<li data-evidence="[^"]+\.licence_(?:add_on|bundled)_assigned">.*?</li>',
             readiness,

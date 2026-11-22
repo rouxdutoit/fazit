@@ -169,6 +169,60 @@ def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
+    ("before", "after", "field", "code"),
+    [
+        ("    category: communication\n", "", "workloads[2].category", "missing_field"),
+        ("category: communication", "category: absent", "workloads[2].category", "invalid_code"),
+        (
+            "assessed: false",
+            "assessed: false\n    category: communication",
+            "workloads[0].category",
+            "invalid_field",
+        ),
+        ("assessed: false", 'assessed: "false"', "workloads[0].assessed", "invalid_field"),
+        (
+            "    label: category.security",
+            "    label: category.security\n  - id: unused\n    label: category.unused",
+            "categories[5].id",
+            "invalid_field",
+        ),
+        ("  - id: security\n", "  - id: files\n", "categories[4].id", "duplicate_id"),
+    ],
+)
+def test_catalogue_rejects_invalid_workload_categories(
+    tmp_path: Path, before: str, after: str, field: str, code: str
+) -> None:
+    source = files("fazit").joinpath("rules", "findings.yaml")
+    path = tmp_path / source.name
+    path.write_text(read_text(source).replace(before, after, 1), encoding="utf-8")
+
+    with pytest.raises(InputError, match=code) as caught:
+        load_catalogue(path)
+
+    assert (caught.value.file, caught.value.field) == (path.name, field)
+
+
+@pytest.mark.parametrize(
+    "owner", [None, "unregistered"], ids=["missing-owner", "unregistered-owner"]
+)
+def test_catalogue_requires_a_registered_finding_owner(tmp_path: Path, owner: str | None) -> None:
+    source = files("fazit").joinpath("rules", "findings.yaml")
+    path = tmp_path / source.name
+    update = "" if owner is None else f"    owner: {owner}\n"
+    path.write_text(
+        read_text(source).replace("    owner: procurement\n", update, 1), encoding="utf-8"
+    )
+
+    with pytest.raises(InputError) as caught:
+        load_catalogue(path)
+
+    assert (caught.value.file, caught.value.field) == (
+        path.name,
+        "findings.licences.contract_terms_known.owner",
+    )
+
+
+@pytest.mark.parametrize(
     "target", ["teams.absent", "teams.chat_history_must_be_kept", "teams.teams_with_guests_count"]
 )
 def test_catalogue_requires_a_distinct_count_as_the_coverage_reference(

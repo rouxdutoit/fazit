@@ -13,6 +13,7 @@ from .validation import RULE_ID, Validator, non_negative_integer
 
 _OPERATORS = ("exists", "==", ">", ">=")
 STATUSES = ("ready", "needs_work", "blocker", "unknown")
+STEP_KINDS = ("clarify", "decide", "replace")
 
 
 @dataclass(frozen=True)
@@ -25,11 +26,18 @@ class Condition:
 
 
 @dataclass(frozen=True)
+class NextStep:
+    kind: str
+    text: Mapping[str, str]
+
+
+@dataclass(frozen=True)
 class StatusRule:
     id: str
     when: tuple[Condition, ...]
     status: str
     reason: Mapping[str, str]
+    next_step: NextStep
 
 
 @dataclass(frozen=True)
@@ -102,6 +110,12 @@ def _conditions(
     return tuple(conditions)
 
 
+def _next_step(value: object, field: str, reader: Validator) -> NextStep:
+    row = reader.fields(value, field, ("kind", "en", "de"))
+    kind = reader.choice(row["kind"], f"{field}.kind", STEP_KINDS)
+    return NextStep(kind, reader.bilingual({"en": row["en"], "de": row["de"]}, field))
+
+
 def _workload_rules(
     item: object,
     field: str,
@@ -117,7 +131,7 @@ def _workload_rules(
     entries = reader.rows(block["rules"], f"{field}.rules", allow_empty=True)
     for index, item in enumerate(entries):
         member = f"{field}.rules[{index}]"
-        row = reader.fields(item, member, ("id", "when", "status", "reason"))
+        row = reader.fields(item, member, ("id", "when", "status", "reason", "next_step"))
         rule_id = reader.matches(row["id"], f"{member}.id", RULE_ID)
         if rule_id in rule_ids:
             reader.fail(f"{member}.id", "duplicate_id")
@@ -128,6 +142,7 @@ def _workload_rules(
                 _conditions(row["when"], f"{member}.when", reader, types),
                 reader.choice(row["status"], f"{member}.status", STATUSES[1:3]),
                 reader.bilingual(row["reason"], f"{member}.reason"),
+                _next_step(row["next_step"], f"{member}.next_step", reader),
             )
         )
     return WorkloadRules(conditions, reason, tuple(rules))
@@ -141,7 +156,7 @@ def load_status_rules(
 ) -> StatusRuleSet:
     reader, data = read_rules("status.yaml", path, checksums)
     root = reader.fields(data, "", ("workloads",))
-    workload_ids = catalogue.workload_ids
+    workload_ids = catalogue.assessed_workload_ids
     blocks = reader.fields(root["workloads"], "workloads", workload_ids)
     types = {entry.id: entry.type for entry in catalogue.findings}
     types.update(licence_finding_types(catalogue))
@@ -397,5 +412,5 @@ def evaluate(
             alternatives,
             disputes,
         )
-        for workload in catalogue.workload_ids
+        for workload in catalogue.assessed_workload_ids
     )

@@ -439,7 +439,7 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
         r'<tr data-workload="([^"]+)" data-status="([^"]+)"[^>]*>.*?</tr>', table, re.S
     )
     catalogue = load_catalogue()
-    assert [workload for workload, _ in rows] == list(catalogue.workload_ids)
+    assert [workload for workload, _ in rows] == list(catalogue.assessed_workload_ids)
     assert "<caption data-sample>" in table
     assert [workload for workload, status in rows if status == "ready"] == (
         ["telephony"] if sample == "nonprofit" else []
@@ -452,7 +452,7 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
         for status in STATUSES
         if (total := sum(result == status for _, result in rows))
     ]
-    assert sum(int(total) for _, total in segments) == len(catalogue.workloads)
+    assert sum(int(total) for _, total in segments) == len(catalogue.assessed_workload_ids)
     assert 'data-subsection="not-examined"' in table
     assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in table} == {
         key for key, status in rows if status == "unknown"
@@ -485,7 +485,9 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
             assert text in onedrive
 
     appendix = html.split('data-section="appendix"', 1)[1]
-    assert appendix.count(strings["appendix"]["ready_evidence"]) == len(catalogue.workloads)
+    assert appendix.count(strings["appendix"]["ready_evidence"]) == len(
+        catalogue.assessed_workload_ids
+    )
     assert "status.yaml" in appendix
 
 

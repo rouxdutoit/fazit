@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: Bestandsaufnahme zu Microsoft 365
+  title: Was ein Umstieg von Microsoft 365 erfordert
   organisation: Organisation
   unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung (scan.json)
@@ -10,8 +10,37 @@ header:
   local: Wer Fazit ausgeführt hat, hat diesen Bericht lokal aus der Datei scan.json erstellt. Bei der Berichtserstellung wurde keine Netzwerkverbindung aufgebaut.
   offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
   sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
+nav:
+  summary: Überblick
+  next_steps: Nächste Schritte
+  areas: Bereiche
+  costs: Kosten
+  replacements: Ersatz
+  closer_look: Prüfbedarf
+  appendix: Anhang
+  label: Abschnitte des Berichts
+  skip: Zum Inhalt springen
+summary:
+  title: Wo die Organisation steht
+  of_areas: 'Von {n} Bereichen:'
+  blockers: Was diesem Umstieg entgegensteht
+  confirmed: 'Bestätigte Hindernisse: {shown} von {total}'
+  all_blockers: Alle Hindernisse
+  caveat: '{n} Bereiche sind unbekannt oder unvollständig belegt; ein Hindernis lässt sich daher nicht ausschließen.'
+  caveat_one: 'Bei {n} Bereich ist der Status unbekannt oder die Nachweise sind unvollständig, sodass sich ein Hindernis nicht ausschließen lässt.'
+  unknown: Was noch unbekannt ist
+  not_examined: Alle offenen Punkte
+  define:
+    blocker: Ein bestätigtes Problem, das vor diesem Umstieg gelöst sein muss.
+    needs_work: Die Prüfungen haben Aufgaben ergeben, die vor einem Umstieg zu erledigen sind.
+    unknown: Es fehlen Nachweise, daher kann diese Version den Bereich nicht bewerten.
+    ready: Die aktuellen Prüfungen haben kein Hindernis und keine fehlenden Nachweise ergeben.
+  scope_title: Was {profile} abdeckt
+  scope_of: 'Von den {n} Funktionen, die Fazit für {profile} prüft:'
+  scope_needed: Nicht in {profile} enthalten und hier benötigt
+  scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob sie hier benötigt werden, ist unbekannt.'
 found:
-  title: Ergebnisse der Bestandsaufnahme
+  title: Was Fazit erfasst hat
   finding: Merkmal
   value: Wert
   provenance: Herkunft des Werts
@@ -49,14 +78,14 @@ status:
   blocker: Hindernis
   unknown: Unbekannt
 costs:
-  title: Kostenvergleich über fünf Jahre
+  title: Was Verbleib und Umstieg in fünf Jahren kosten
   inputs: Kostenangaben
   input: Angabe
   results: Kosten je Szenario
   category: Kostenposition
   stay: Verbleib
-  partial_exit: Teilausstieg
-  full_exit: Vollausstieg
+  partial_exit: Teilweiser Umstieg
+  full_exit: Vollständiger Umstieg
   subtotal: Zwischensumme
   total: Gesamtkosten für fünf Jahre
   difference: Unterschied zum Verbleib
@@ -66,6 +95,23 @@ costs:
   rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
   provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
   missing: 'Fehlende Angaben für das Szenario „{scenario}“'
+  total_label: '{scenario} · Summe über fünf Jahre'
+  stay_basis: Heutige Jahreskosten über fünf Jahre
+  comparison_unknown: Vergleich unbekannt
+  stay_assumption: Für den Verbleib ist keine Preisänderung angenommen.
+  break_even: '{scenario} kostet gleich viel wie der Verbleib, wenn der Betrieb des Zielsystems {amount} pro Jahr kostet (angegeben: {entered}).'
+  break_even_none: '{scenario} kostet auch ohne Betriebskosten mehr als der Verbleib.'
+  vat_note: Beträge wie angegeben. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten.
+  profile_note: Die Kosten stammen aus der Eingabedatei und sind für jedes Zielprofil gleich.
+  less: weniger als beim Verbleib
+  more: mehr als beim Verbleib
+  same: gleich viel wie beim Verbleib
+  sub_cent: weicht um weniger als einen Cent ab
+  total_unknown: Summe unbekannt
+  known_blocks: 'Summe der bekannten Blöcke: {amount}'
+  inputs_missing: '{n} Angaben fehlen'
+  inputs_missing_one: '{n} Angabe fehlt'
+  missing_fix: Tragen Sie die fehlenden Beträge in die Eingabedatei ein und erstellen Sie den Bericht erneut.
   origins:
     invented: Erfunden für das Beispiel
     sample_input: Beispielangabe
@@ -86,12 +132,12 @@ costs:
     training_days_per_person: Schulungstage pro Person
     training_day_rate: Schulungskosten pro Person und Tag
     training_staff: Zahl der zu schulenden Personen
-    productivity_loss: Kosten durch Produktivitätsverluste
+    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
     parallel_running_months: Monate mit Parallelbetrieb
   groups:
     running: Laufende Kosten
     direct_project: Direkte Projektkosten
-    productivity_loss: Produktivitätsverluste
+    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
     parallel_running: Parallelbetrieb
   line_items:
     microsoft_licences: Bisherige Microsoft-Lizenzen
@@ -104,48 +150,59 @@ costs:
     application_adaptation: Anpassung von Anwendungen
     external_advice: Externe Beratung
     training: Schulung
-    productivity_loss: Kosten durch Produktivitätsverluste
+    productivity_loss: Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
     parallel_running: Bisherige Microsoft-Lizenzen im Parallelbetrieb
   formulas_title: Berechnung der Kosten
   formulas:
     - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenblöcke der Umstellung betragen null.
-    - Bei beiden Ausstiegsszenarien ziehen Sie die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
+    - Ziehen Sie bei beiden Umstiegsszenarien die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
     - Multiplizieren Sie den monatlichen Hostingpreis pro Person mit der Zahl der Nutzenden und mit 60. Das Hosting beginnt im ersten Monat. Die Jahreskosten für Betrieb, sonstige Kosten des Zielsystems und sonstige bisherige IT-Kosten werden jeweils mit fünf multipliziert.
     - Die direkten Projektkosten umfassen einmalige Migration, Anpassung von Anwendungen, externe Beratung und Schulung. Die Schulungskosten ergeben sich aus Schulungstagen pro Person mal Tagessatz pro Person mal Zahl der zu schulenden Personen.
-    - Für die Produktivitätsverluste gilt der dafür eingegebene Betrag.
+    - Für verlorene Arbeitszeit wird der angegebene Betrag angesetzt.
     - Für den Parallelbetrieb multiplizieren Sie die bisherigen jährlichen Microsoft-Lizenzkosten mit den Monaten des Parallelbetriebs und teilen das Ergebnis durch 12.
     - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenblöcken der Umstellung. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
     - Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.
 readiness:
-  title: Bereitschaft nach Bereich
+  title: Wo jeder Bereich steht
   counts: Anzahl der Bereiche je Status
   workload: Bereich
   evidence: Datengrundlage
+  next_step: Nächster Schritt
   incomplete: Datengrundlage unvollständig
   missing: Noch benötigte Angaben
   conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
   not_examined: Nicht untersucht
+  evidence_summary: Nachweise · {measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt
+  all_replacements: Alle Ersatzlösungen
+filter:
+  status_legend: Bereiche nach Status anzeigen
+  category_legend: Bereiche nach Kategorie anzeigen
+  all: Alle
+  all_categories: Alle Kategorien
+  empty: Kein Bereich entspricht dieser Auswahl. Wählen Sie „Alle“, um alle Bereiche anzuzeigen.
+  search_hint: Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht.
 moves:
-  title: Funktionen im Zielsystem
+  title: Was wodurch ersetzt wird
   microsoft: Funktion bei Microsoft
   replacement: Ersatz im Zielsystem
   coverage: Abdeckung und Prüfdatum
   evidence: Datengrundlage
-  workload_status: Status und Begründung für den Bereich
+  workload_status: Status des Bereichs
+  status_link: '{area}: {status}'
   workload_evidence: 'Datengrundlage für den Bereich {workload}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
 mapping_coverage:
-  in_suite: Im Paket enthalten
-  in_suite_with_limits: Mit Einschränkungen im Paket enthalten
+  in_suite: In der Suite
+  in_suite_with_limits: In der Suite mit Einschränkungen
   announced: Angekündigt
   component_vendor_solution: Lösung des Komponentenherstellers
-  open_source_community: Open-Source-Lösung aus der Gemeinschaft
+  open_source_community: Open-Source-Lösung der Community
   open_source_third_party: Open-Source-Lösung eines Drittanbieters
   proprietary_third_party: Proprietäre Lösung eines Drittanbieters
   not_available: Nicht verfügbar
 attention:
-  title: Prüfbedarf
+  title: Was genauer zu prüfen ist
   files: Dateitypen für die weitere Prüfung
   file_kind: Dateityp
   extensions: Dateiendungen
@@ -160,7 +217,9 @@ attention:
   needed_here: Für diese Organisation erforderlich
   no_gaps: Das Profil führt keine Funktionen auf, für die eine direkte Übernahme ungeklärt ist.
 path:
-  title: Möglicher Ablauf
+  title: Was als Nächstes zu tun ist
+  even_if_staying: Sinnvoll, auch wenn Sie bleiben
+  for_move: Für einen Umstieg nötig
   blocker: Bestätigte Hindernisse
   unknown: Zuerst zu klärende Fragen
   ready: Bereiche mit dem Status „Bereit“
@@ -176,8 +235,17 @@ path:
     - Dateien, die konvertiert werden müssen, werden vorbereitet und geprüft.
     - Die Organisation stellt schrittweise um und betreibt beide Systeme vorübergehend parallel.
     - Nach Abschluss der Umstellung schaltet die Organisation das bisherige System ab.
+role:
+  it_team: IT-Abteilung
+  licence_management: Lizenzverwaltung
+  service_owner: Fachlich verantwortliche Stelle
+  data_protection: Datenschutzbeauftragte
+  information_security: Informationssicherheitsbeauftragte
+  procurement: Beschaffung
 appendix:
-  title: Anhang
+  title: Wie dieser Bericht entstanden ist
+  not_looked: Was Fazit nicht betrachtet
+  not_looked_text: Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Abteilungen und die Einstellungen des Zielsystems.
   schema_version: Schemaversion
   collectors: Erhebungsverfahren
   status: Status
@@ -252,7 +320,7 @@ coverage:
 reason:
   not_in_export:
     label: Die Angabe fehlt im Export.
-    fix: Prüfen Sie die Exporteinstellungen und stellen Sie einen Export mit dieser Angabe bereit.
+    fix: Erfragen Sie die fehlende Angabe bei der fachlich verantwortlichen Stelle. Tragen Sie sie in die Eingabedatei ein, sofern dort ein Feld dafür vorgesehen ist.
   permission_denied:
     label: Die Leseberechtigung für die Erhebung fehlte.
     fix: Lassen Sie die erforderlichen Berechtigungen durch die Administration prüfen.
@@ -267,10 +335,10 @@ reason:
     fix: Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.
   source_not_supplied:
     label: Die Datenquelle lag nicht vor.
-    fix: Stellen Sie den erforderlichen Export bereit und erstellen Sie den Bericht erneut.
+    fix: Klären Sie, aus welcher Quelle die fehlende Angabe stammt. Fehlt sie in der Erhebungsdatei und in der Eingabedatei, bleibt sie unbekannt.
   needs_recipient_export:
     label: Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor.
-    fix: Stellen Sie einen Export der Exchange-Empfänger mit Angabe des Postfachtyps bereit.
+    fix: Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln. Im Bericht bleibt sie unbekannt.
   collector_skipped:
     label: Das Erhebungsverfahren wurde nicht ausgeführt.
     fix: Prüfen Sie den Grund im Anhang und reichen Sie die fehlenden Daten nach.
@@ -291,7 +359,7 @@ reason:
     fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
   licence_plan_list_incomplete:
     label: Die Dienstplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
-    fix: Prüfen Sie den Export und reichen Sie die vollständige Liste der Dienstpläne für das Produkt nach.
+    fix: Lassen Sie durch die Lizenzverwaltung prüfen, welche Dienstpläne zum Produkt gehören.
   licence_assignments_conflict:
     label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
     fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
@@ -320,7 +388,7 @@ reason:
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
   not_recognised:
     label: Diese Programmversion kennt den Grund nicht.
-    fix: Prüfen Sie den Export und die Programmversion.
+    fix: Prüfen Sie die Version des Erhebungsprogramms und den Grundcode in der Erhebungsdatei.
 units:
   users: Konten
   groups: Gruppen
@@ -365,6 +433,12 @@ workload:
   security_compliance: Sicherheit und Regelkonformität
   small_apps: Kleinere Anwendungen
   integrations: Anwendungsanbindungen
+category:
+  communication: Kommunikation
+  files: Dateien und Dokumente
+  identity_devices: Identität und Geräte
+  automation_ai: Automatisierung und KI
+  security: Sicherheit und Compliance
 finding:
   licences.contract_terms_known: Lizenzbedingungen geprüft
   directory.user_count: Interne Konten

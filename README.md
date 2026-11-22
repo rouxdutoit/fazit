@@ -63,7 +63,7 @@ Fazit checks the structure of its inputs and selected relationships between figu
 7. Suggested path with blockers, open questions and the areas that pass the current checks.
 8. Appendix with collectors, rules, mappings and run details.
 
-The report assesses fifteen areas. Each area has a status of Ready, Needs work, Blocker or Unknown, with a reason and its evidence. Inventory figures are marked as measured, provided or unknown, and cost figures as entered or calculated. An unknown comes with a reason and a next step. The report provides no overall score or verdict.
+The report assesses fourteen areas. Each area has a status of Ready, Needs work, Blocker or Unknown, with a reason and its evidence. Inventory figures are marked as measured, provided or unknown, and cost figures as entered or calculated. An unknown comes with a reason and a next step. The report provides no overall score or verdict.
 
 Your browser may add the local file path to printed headers and footers. Before saving a PDF to share, open the browser's print settings and turn off **Headers and footers**. Check the preview for the file path.
 

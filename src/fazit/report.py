@@ -237,6 +237,9 @@ def _prepare_report(
         scan_periods=scan_periods,
         licences=_licence_rows(products, plans, formatter),
         product_count=derived[0] if derived else None,
+        licence_plan_list_incomplete=any(
+            finding.missing_reason == "licence_plan_list_incomplete" for finding in derived
+        ),
         mapping=mapping,
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         checksums=checksums,
@@ -377,6 +380,11 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
         coverage_text=partial(_coverage_text, formatter=formatter),
         format=formatter,
         workload_labels=workload_labels,
+        workload_categories={
+            entry.id: entry.category for entry in catalogue.workloads if entry.assessed
+        },
+        category_labels={entry.id: _label(strings, entry.label) for entry in catalogue.categories},
+        categories=catalogue.categories,
         finding_labels=_finding_labels(catalogue, strings, workload_labels),
     )
 

@@ -487,14 +487,21 @@
           </li>
         {% endfor %}
       </ul>
+      <h3 id="licences-title">{{ strings.licences.title }}</h3>
       {% if product_count %}
-        <h3 id="licences-title">{{ strings.licences.title }}</h3>
         <p data-provenance="{{ product_count.provenance }}">
           {% if product_count.value is not none %}{{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}{% endif %}
           <span class="prov">{{ strings.provenance[product_count.provenance] }}</span>
-          {% if product_count.missing_reason %}<small>{{ reason_detail(product_count.missing_reason) }}</small>{% endif %}
+          {% if product_count.missing_reason %}
+            <small>{{ reason_detail(product_count.missing_reason) }}</small>
+          {% elif product_count.coverage.kind in ('partial', 'unknown') %}
+            <small>{{ reason_detail('coverage_' ~ product_count.coverage.kind) }}</small>
+          {% endif %}
           <small>{{ code_label('source', product_count.source) }} · {{ format.date(product_count.collected_at) }} · {{ coverage_text(product_count.coverage) }}</small>
         </p>
+        {% if licence_plan_list_incomplete %}
+          <p>{{ reason_detail('licence_plan_list_incomplete') }}</p>
+        {% endif %}
         {% if licences %}
           <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
             <table class="licences" role="table">
@@ -547,6 +554,11 @@
             </table>
           </div>
         {% endif %}
+      {% else %}
+        <p data-provenance="unknown">
+          <span class="prov">{{ strings.provenance.unknown }}</span>
+          <small>{{ reason_detail('not_in_scan') }}</small>
+        </p>
       {% endif %}
       <h3>{{ strings.found.evidence }}</h3>
       {% for workload, rows in groups if rows %}
@@ -684,14 +696,18 @@
           </thead>
           <tbody role="rowgroup">
             {% for row in statuses %}
-              <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} role="row" id="readiness-{{ row.workload }}">
-                <th scope="row" role="rowheader" data-label="{{ strings.readiness.workload }}">{{ workload_labels[row.workload] }}</th>
+              {% set category = workload_categories[row.workload] %}
+              <tr data-workload="{{ row.workload }}" data-status="{{ row.status }}"{% if row.incomplete %} data-incomplete{% endif %} data-category="{{ category }}" role="row" id="readiness-{{ row.workload }}">
+                <th scope="row" role="rowheader" data-label="{{ strings.readiness.workload }}">{{ workload_labels[row.workload] }} · <span class="finding-category">{{ category_labels[category] }}</span></th>
                 <td role="cell" data-label="{{ strings.appendix.status }}">
                   {{ workload_status(row) }}
                 </td>
                 <td role="cell" data-label="{{ strings.appendix.reason }}">
                   {% if not row.reason_code or row.reason_code not in row.missing|map(attribute='reason_code')|list %}
                     {{ status_reason(row) }}
+                  {% endif %}
+                  {% if row.deciding %}
+                    <p class="finding-next"><strong>{{ strings.readiness.next_step }}</strong> {{ row.deciding.next_step.text[lang] }}</p>
                   {% endif %}
                   {% if row.notes %}
                     <ul>

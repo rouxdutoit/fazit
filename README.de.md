@@ -63,7 +63,7 @@ Fazit prüft den Aufbau der Eingaben und ausgewählte Zusammenhänge zwischen Za
 7. Möglicher Ablauf mit Hindernissen, offenen Fragen und den Bereichen, die die aktuellen Prüfungen bestehen.
 8. Anhang mit Datenquellen, Regeln, Zuordnungen und Angaben zum Lauf.
 
-Der Bericht bewertet fünfzehn Bereiche. Die vier Bewertungen lauten „Bereit“, „Handlungsbedarf“, „Hindernis“ und „Unbekannt“. Zu jeder Bewertung nennt der Bericht die Begründung und die Datengrundlage. An den Bestandszahlen erkennen Sie, ob sie gemessen wurden, aus Ihren Angaben stammen oder unbekannt sind, an den Kosten, ob sie eingetragen oder berechnet wurden. Bei fehlenden Informationen erfahren Sie, was fehlt und wie Sie es klären können. Der Bericht enthält weder eine Gesamtnote noch eine Entscheidungsempfehlung.
+Der Bericht bewertet vierzehn Bereiche. Die vier Bewertungen lauten „Bereit“, „Handlungsbedarf“, „Hindernis“ und „Unbekannt“. Zu jeder Bewertung nennt der Bericht die Begründung und die Datengrundlage. An den Bestandszahlen erkennen Sie, ob sie gemessen wurden, aus Ihren Angaben stammen oder unbekannt sind, an den Kosten, ob sie eingetragen oder berechnet wurden. Bei fehlenden Informationen erfahren Sie, was fehlt und wie Sie es klären können. Der Bericht enthält weder eine Gesamtnote noch eine Entscheidungsempfehlung.
 
 Der Browser kann den lokalen Dateipfad in die Kopf- und Fußzeilen des Ausdrucks übernehmen. Deaktivieren Sie in den Druckeinstellungen **Kopf- und Fußzeilen**, bevor Sie eine PDF-Datei zum Weitergeben speichern. Prüfen Sie in der Vorschau, ob der Pfad angezeigt wird.
 

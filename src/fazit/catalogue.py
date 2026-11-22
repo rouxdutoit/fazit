@@ -11,12 +11,20 @@ from .parsing import parse_yaml, read_text
 from .validation import IDENTIFIER, Validator
 
 VALUE_TYPES = ("count", "bytes", "boolean")
+ROLES = (
+    "it_team",
+    "licence_management",
+    "service_owner",
+    "data_protection",
+    "information_security",
+    "procurement",
+)
 _PROVIDED_KINDS = ("no", "answer", "software_list", "software_list_without_web_version")
 _CODE_LENGTH = r"(?=.{1,64}\Z)"
 _CODE_PATH = r"[a-z0-9_]+(?:\.[a-z0-9_]+)*"
 _CODE = re.compile(_CODE_LENGTH + _CODE_PATH)
 _PERMISSION = re.compile(r"[A-Za-z0-9.]{1,64}")
-_LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}")
+_LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding|category)\.{_CODE_PATH}")
 _IDENTIFIER_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
 
 
@@ -26,6 +34,14 @@ def sku_key(part_number: str, guid: str) -> tuple[str, str]:
 
 @dataclass(frozen=True)
 class WorkloadEntry:
+    id: str
+    label: str
+    assessed: bool = True
+    category: str | None = None
+
+
+@dataclass(frozen=True)
+class CategoryEntry:
     id: str
     label: str
 
@@ -39,6 +55,7 @@ class FindingEntry:
     label: str
     provided: str
     headline: bool
+    owner: str
     measured_by: frozenset[tuple[str, str]] = frozenset()
     coverage_total_from: str | None = None
     subset_of: frozenset[str] = frozenset()
@@ -49,6 +66,7 @@ class FindingEntry:
 @dataclass(frozen=True)
 class Catalogue:
     workloads: tuple[WorkloadEntry, ...]
+    categories: tuple[CategoryEntry, ...]
     findings: tuple[FindingEntry, ...]
     collector_ids: frozenset[str]
     source_codes: frozenset[str]
@@ -64,6 +82,10 @@ class Catalogue:
     @property
     def workload_ids(self) -> tuple[str, ...]:
         return tuple(workload.id for workload in self.workloads)
+
+    @property
+    def assessed_workload_ids(self) -> tuple[str, ...]:
+        return tuple(workload.id for workload in self.workloads if workload.assessed)
 
     def finding(self, finding_id: str) -> FindingEntry | None:
         return next((entry for entry in self.findings if entry.id == finding_id), None)
@@ -93,15 +115,46 @@ def _rows(
     return rows
 
 
-def _workloads(value: object, reader: Validator) -> tuple[WorkloadEntry, ...]:
+def _categories(value: object, reader: Validator) -> tuple[CategoryEntry, ...]:
+    categories: dict[str, CategoryEntry] = {}
+    for field, row in _rows(value, reader, "categories", {"id", "label"}):
+        category_id = reader.matches(row["id"], f"{field}.id", _CODE)
+        if category_id in categories:
+            reader.fail(f"{field}.id", "duplicate_id")
+        categories[category_id] = CategoryEntry(
+            category_id, reader.matches(row["label"], f"{field}.label", _LABEL)
+        )
+    return tuple(categories.values())
+
+
+def _workloads(
+    value: object, reader: Validator, categories: tuple[CategoryEntry, ...]
+) -> tuple[WorkloadEntry, ...]:
+    category_ids = {entry.id for entry in categories}
     workloads: dict[str, WorkloadEntry] = {}
-    for field, row in _rows(value, reader, "workloads", {"id", "label"}):
+    for field, row in _rows(
+        value, reader, "workloads", {"id", "label"}, optional=("assessed", "category")
+    ):
         workload_id = reader.matches(row["id"], f"{field}.id", _CODE)
         if workload_id in workloads:
             reader.fail(f"{field}.id", "duplicate_id")
+        assessed = row.get("assessed", True)
+        if type(assessed) is not bool:
+            reader.fail(f"{field}.assessed")
+        category = None
+        if assessed:
+            if "category" not in row:
+                reader.fail(f"{field}.category", "missing_field")
+            category = reader.choice(row["category"], f"{field}.category", category_ids)
+        elif "category" in row:
+            reader.fail(f"{field}.category")
         workloads[workload_id] = WorkloadEntry(
-            workload_id, reader.matches(row["label"], f"{field}.label", _LABEL)
+            workload_id, reader.matches(row["label"], f"{field}.label", _LABEL), assessed, category
         )
+    used = {entry.category for entry in workloads.values()}
+    for index, category in enumerate(categories):
+        if category.id not in used:
+            reader.fail(f"categories[{index}].id")
     return tuple(workloads.values())
 
 
@@ -138,6 +191,10 @@ def _finding(
     headline = row["headline"]
     if not isinstance(headline, bool):
         reader.fail(f"{field}.headline")
+    owner_field = f"findings.{finding_id}.owner"
+    if "owner" not in row:
+        reader.fail(owner_field, "missing_field")
+    owner = reader.choice(row["owner"], owner_field, ROLES)
     unit = row["unit"]
     if unit is not None:
         unit = reader.matches(unit, f"{field}.unit", _CODE)
@@ -163,6 +220,7 @@ def _finding(
         reader.matches(row["label"], f"{field}.label", _LABEL),
         provided,
         headline,
+        owner,
         _measurement_pairs(
             row.get("measured_by", {}),
             reader,
@@ -192,6 +250,7 @@ def _findings(
         "findings",
         keys,
         optional=(
+            "owner",
             "measured_by",
             "coverage_total_from",
             "subset_of",
@@ -262,7 +321,11 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
     source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
     reader = Validator(source.name)
     catalogue = _parse_catalogue(read_text(source), reader)
-    sections = (("workloads", catalogue.workloads), ("findings", catalogue.findings))
+    sections = (
+        ("workloads", catalogue.workloads),
+        ("categories", catalogue.categories),
+        ("findings", catalogue.findings),
+    )
     for lang in SUPPORTED_LANGUAGES:
         strings = load_locale(lang, copy=False)
         for group, entries in sections:
@@ -284,9 +347,15 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
 @lru_cache(maxsize=2)
 def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
     data = parse_yaml(text, reader.file_name)
-    if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:
+    if not isinstance(data, dict) or data.keys() != {
+        "workloads",
+        "categories",
+        "findings",
+        "codes",
+    }:
         reader.fail("", "invalid_field_document")
-    workloads = _workloads(data["workloads"], reader)
+    categories = _categories(data["categories"], reader)
+    workloads = _workloads(data["workloads"], reader, categories)
     codes = data["codes"]
     if not isinstance(codes, dict) or codes.keys() - {"plan_exceptions"} != {
         "collectors",
@@ -316,6 +385,7 @@ def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
     )
     return Catalogue(
         workloads=workloads,
+        categories=categories,
         findings=findings,
         collector_ids=collector_ids,
         source_codes=measured_sources | provided_sources,

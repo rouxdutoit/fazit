@@ -2,45 +2,74 @@
 workloads:
   - id: licences
     label: workload.licences
+    assessed: false
   - id: directory
     label: workload.directory
+    category: identity_devices
   - id: mail
     label: workload.mail
+    category: communication
   - id: onedrive
     label: workload.onedrive
+    category: files
   - id: sharepoint
     label: workload.sharepoint
+    category: files
   - id: teams
     label: workload.teams
+    category: communication
   - id: office_files
     label: workload.office_files
+    category: files
   - id: device_management
     label: workload.device_management
+    category: identity_devices
   - id: windows_software
     label: workload.windows_software
+    category: identity_devices
   - id: power_platform
     label: workload.power_platform
+    category: automation_ai
   - id: telephony
     label: workload.telephony
+    category: communication
   - id: identity_access
     label: workload.identity_access
+    category: identity_devices
   - id: security_compliance
     label: workload.security_compliance
+    category: security
   - id: small_apps
     label: workload.small_apps
+    category: automation_ai
   - id: integrations
     label: workload.integrations
+    category: automation_ai
+
+categories:
+  - id: communication
+    label: category.communication
+  - id: files
+    label: category.files
+  - id: identity_devices
+    label: category.identity_devices
+  - id: automation_ai
+    label: category.automation_ai
+  - id: security
+    label: category.security
 
 findings:
   - id: licences.contract_terms_known
     workload: licences
+    owner: procurement
     type: boolean
     unit: null
     label: finding.licences.contract_terms_known
     provided: answer
-    headline: false
+    headline: true
   - id: directory.user_count
     workload: directory
+    owner: it_team
     type: count
     unit: users
     label: finding.directory.user_count
@@ -49,6 +78,7 @@ findings:
     headline: true
   - id: directory.licensed_user_count
     workload: directory
+    owner: it_team
     type: count
     unit: users
     label: finding.directory.licensed_user_count
@@ -58,6 +88,7 @@ findings:
     headline: false
   - id: directory.guest_count
     workload: directory
+    owner: it_team
     type: count
     unit: users
     label: finding.directory.guest_count
@@ -66,6 +97,7 @@ findings:
     headline: false
   - id: directory.group_count
     workload: directory
+    owner: it_team
     type: count
     unit: groups
     label: finding.directory.group_count
@@ -74,6 +106,7 @@ findings:
     headline: false
   - id: directory.account_list_reviewed
     workload: directory
+    owner: it_team
     type: boolean
     unit: null
     label: finding.directory.account_list_reviewed
@@ -81,6 +114,7 @@ findings:
     headline: false
   - id: mail.mailbox_count
     workload: mail
+    owner: it_team
     type: count
     unit: mailboxes
     label: finding.mail.mailbox_count
@@ -89,6 +123,7 @@ findings:
     headline: true
   - id: mail.shared_mailbox_count
     workload: mail
+    owner: it_team
     type: count
     unit: mailboxes
     label: finding.mail.shared_mailbox_count
@@ -97,6 +132,7 @@ findings:
     headline: false
   - id: mail.storage_bytes
     workload: mail
+    owner: it_team
     type: bytes
     unit: bytes
     label: finding.mail.storage_bytes
@@ -106,6 +142,7 @@ findings:
     headline: true
   - id: mail.item_count
     workload: mail
+    owner: it_team
     type: count
     unit: items
     label: finding.mail.item_count
@@ -116,6 +153,7 @@ findings:
     headline: false
   - id: mail.other_systems_send_mail
     workload: mail
+    owner: it_team
     type: boolean
     unit: null
     label: finding.mail.other_systems_send_mail
@@ -123,6 +161,7 @@ findings:
     headline: false
   - id: onedrive.account_count
     workload: onedrive
+    owner: it_team
     type: count
     unit: accounts
     label: finding.onedrive.account_count
@@ -131,6 +170,7 @@ findings:
     headline: false
   - id: onedrive.storage_bytes
     workload: onedrive
+    owner: it_team
     type: bytes
     unit: bytes
     label: finding.onedrive.storage_bytes
@@ -140,6 +180,7 @@ findings:
     headline: true
   - id: onedrive.external_sharing_in_use
     workload: onedrive
+    owner: service_owner
     type: boolean
     unit: null
     label: finding.onedrive.external_sharing_in_use
@@ -147,6 +188,7 @@ findings:
     headline: false
   - id: sharepoint.site_count
     workload: sharepoint
+    owner: it_team
     type: count
     unit: sites
     label: finding.sharepoint.site_count
@@ -155,6 +197,7 @@ findings:
     headline: true
   - id: sharepoint.storage_bytes
     workload: sharepoint
+    owner: it_team
     type: bytes
     unit: bytes
     label: finding.sharepoint.storage_bytes
@@ -163,6 +206,7 @@ findings:
     headline: true
   - id: sharepoint.file_count
     workload: sharepoint
+    owner: it_team
     type: count
     unit: files
     label: finding.sharepoint.file_count
@@ -172,6 +216,7 @@ findings:
     headline: false
   - id: sharepoint.custom_solutions_in_use
     workload: sharepoint
+    owner: service_owner
     type: boolean
     unit: null
     label: finding.sharepoint.custom_solutions_in_use
@@ -179,6 +224,7 @@ findings:
     headline: false
   - id: teams.team_count
     workload: teams
+    owner: it_team
     type: count
     unit: teams
     label: finding.teams.team_count
@@ -187,6 +233,7 @@ findings:
     headline: true
   - id: teams.channel_count
     workload: teams
+    owner: it_team
     type: count
     unit: channels
     label: finding.teams.channel_count
@@ -197,6 +244,7 @@ findings:
     headline: false
   - id: teams.teams_with_guests_count
     workload: teams
+    owner: it_team
     type: count
     unit: teams
     label: finding.teams.teams_with_guests_count
@@ -206,6 +254,7 @@ findings:
     headline: false
   - id: teams.chat_history_must_be_kept
     workload: teams
+    owner: data_protection
     type: boolean
     unit: null
     label: finding.teams.chat_history_must_be_kept
@@ -213,6 +262,7 @@ findings:
     headline: false
   - id: office_files.kind.macro
     workload: office_files
+    owner: it_team
     type: count
     unit: files
     label: finding.office_files.kind.macro
@@ -221,6 +271,7 @@ findings:
     headline: false
   - id: office_files.kind.access
     workload: office_files
+    owner: it_team
     type: count
     unit: files
     label: finding.office_files.kind.access
@@ -229,6 +280,7 @@ findings:
     headline: false
   - id: office_files.kind.publisher
     workload: office_files
+    owner: it_team
     type: count
     unit: files
     label: finding.office_files.kind.publisher
@@ -237,6 +289,7 @@ findings:
     headline: false
   - id: office_files.kind.visio
     workload: office_files
+    owner: it_team
     type: count
     unit: files
     label: finding.office_files.kind.visio
@@ -245,6 +298,7 @@ findings:
     headline: false
   - id: office_files.kind.onenote
     workload: office_files
+    owner: it_team
     type: count
     unit: files
     label: finding.office_files.kind.onenote
@@ -253,6 +307,7 @@ findings:
     headline: false
   - id: device_management.device_count
     workload: device_management
+    owner: it_team
     type: count
     unit: devices
     label: finding.device_management.device_count
@@ -260,6 +315,7 @@ findings:
     headline: true
   - id: device_management.windows_device_count
     workload: device_management
+    owner: it_team
     type: count
     unit: devices
     label: finding.device_management.windows_device_count
@@ -268,6 +324,7 @@ findings:
     headline: false
   - id: device_management.in_use
     workload: device_management
+    owner: it_team
     type: boolean
     unit: null
     label: finding.device_management.in_use
@@ -275,6 +332,7 @@ findings:
     headline: false
   - id: device_management.windows_desktops_required
     workload: device_management
+    owner: it_team
     type: boolean
     unit: null
     label: finding.device_management.windows_desktops_required
@@ -282,6 +340,7 @@ findings:
     headline: false
   - id: windows_software.application_count
     workload: windows_software
+    owner: it_team
     type: count
     unit: applications
     label: finding.windows_software.application_count
@@ -289,6 +348,7 @@ findings:
     headline: false
   - id: windows_software.without_web_version_count
     workload: windows_software
+    owner: it_team
     type: count
     unit: applications
     label: finding.windows_software.without_web_version_count
@@ -297,6 +357,7 @@ findings:
     headline: false
   - id: power_platform.in_use
     workload: power_platform
+    owner: service_owner
     type: boolean
     unit: null
     label: finding.power_platform.in_use
@@ -304,6 +365,7 @@ findings:
     headline: false
   - id: telephony.in_use
     workload: telephony
+    owner: it_team
     type: boolean
     unit: null
     label: finding.telephony.in_use
@@ -312,6 +374,7 @@ findings:
     headline: false
   - id: telephony.replacement_available
     workload: telephony
+    owner: it_team
     type: boolean
     unit: null
     label: finding.telephony.replacement_available
@@ -319,6 +382,7 @@ findings:
     headline: false
   - id: identity_access.sso_application_count
     workload: identity_access
+    owner: it_team
     type: count
     unit: applications
     label: finding.identity_access.sso_application_count
@@ -326,6 +390,7 @@ findings:
     headline: false
   - id: identity_access.conditional_access_in_use
     workload: identity_access
+    owner: it_team
     type: boolean
     unit: null
     label: finding.identity_access.conditional_access_in_use
@@ -333,6 +398,7 @@ findings:
     headline: false
   - id: security_compliance.protection_or_retention_in_use
     workload: security_compliance
+    owner: information_security
     type: boolean
     unit: null
     label: finding.security_compliance.protection_or_retention_in_use
@@ -340,6 +406,7 @@ findings:
     headline: false
   - id: small_apps.in_use
     workload: small_apps
+    owner: service_owner
     type: boolean
     unit: null
     label: finding.small_apps.in_use
@@ -347,6 +414,7 @@ findings:
     headline: false
   - id: integrations.application_count
     workload: integrations
+    owner: it_team
     type: count
     unit: applications
     label: finding.integrations.application_count

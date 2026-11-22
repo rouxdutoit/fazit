@@ -141,6 +141,10 @@ def load_mapping(
         if workload in no_function:
             reader.fail(field, "duplicate_id")
         no_function.append(workload)
+    if any(
+        not workload.assessed and workload.id not in no_function for workload in catalogue.workloads
+    ):
+        reader.fail("no_function")
     functions: dict[str, FunctionMapping] = {}
     for index, item in enumerate(reader.rows(root["functions"], "functions")):
         field = f"functions[{index}]"

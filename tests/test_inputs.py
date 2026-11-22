@@ -7,6 +7,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
+from helpers import report_section
 
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
@@ -435,7 +436,7 @@ def test_inputs_module_has_no_catalogue_ids(catalogue: Catalogue) -> None:
         (
             "town",
             {
-                "ready": {"licences", "onedrive", "teams", "small_apps"},
+                "ready": {"onedrive", "teams", "small_apps"},
                 "needs_work": {
                     "directory",
                     "mail",
@@ -464,7 +465,6 @@ def test_inputs_module_has_no_catalogue_ids(catalogue: Catalogue) -> None:
                     "security_compliance",
                 },
                 "needs_work": {
-                    "licences",
                     "onedrive",
                     "teams",
                     "office_files",
@@ -496,6 +496,16 @@ def test_sample_inputs_and_rendered_statuses(
     assert statuses == {
         workload: status for status, workloads in expected.items() for workload in workloads
     }
+    found = report_section(html, "found")
+    contract = re.search(
+        r'<tr data-finding="licences\.contract_terms_known" data-provenance="provided".*?</tr>',
+        found,
+        re.S,
+    )
+    assert contract is not None
+    assert 'data-evidence-workload="licences"' in found
+    answer = "Yes" if sample == "town" else "No"
+    assert re.search(rf'data-provenance="provided">\s*{answer}\b', contract[0])
     if sample == "town":
         mail = re.search(r'<tr data-workload="mail".*?</tr>', html, re.S)[0]
         security = re.search(r'<tr data-workload="security_compliance".*?</tr>', html, re.S)[0]
@@ -654,6 +664,8 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
 
 def test_every_provided_finding_is_used_by_the_report(catalogue: Catalogue) -> None:
     rule_set = load_status_rules(catalogue)
+    terms = catalogue.finding("licences.contract_terms_known")
+    assert terms is not None and terms.provided == "answer" and terms.headline
     rule_ids = {
         condition.finding
         for block in rule_set.workloads.values()

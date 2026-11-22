@@ -5,7 +5,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from helpers import readiness_row, runner
+from helpers import readiness_row, report_section, runner
 from typer.testing import Result
 
 from fazit.catalogue import load_catalogue
@@ -105,13 +105,10 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
         (before, "licence_assignments_conflict"),
         (after, "licence_directory_unverified"),
     ):
-        row = readiness_row(html, "licences")
-        assert 'data-status="unknown"' in row and f'data-reason="{code}"' in row
+        assert f'data-reason="{code}"' in report_section(html, "found")
     product["assigned"] = assigned
     positive = _html(_report(tmp_path / "directory-skipped-with-assignments", scan, answers))
-    row = readiness_row(positive, "licences")
-    assert 'data-status="unknown" data-incomplete' in row
-    assert 'data-reason="licence_directory_unverified"' in row
+    assert 'data-reason="licence_directory_unverified"' in report_section(positive, "found")
     for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
         row = readiness_row(positive, workload)
         assert 'data-status="unknown" data-incomplete' in row
@@ -358,22 +355,21 @@ confirmations:
 
     html = _html(_report(tmp_path / "empty-inventory", town_scan, answers))
 
-    row = readiness_row(html, "licences")
-    assert f'data-status="{status}"' in row
-    evidence = re.search(r'<li data-evidence="licences\.product_count">.*?</li>', row, re.S)
+    found = report_section(html, "found")
+    evidence = re.search(r'<h3 id="licences-title">.*?</h3>\s*(<p[^>]*>.*?</p>)', found, re.S)
     assert evidence is not None
     provenance = "measured" if coverage == "complete" else "unknown"
-    assert f'data-provenance="{provenance}"' in evidence[0]
-    assert ("Licence products found: 0" in html) is (coverage == "complete")
+    assert f'data-provenance="{provenance}"' in evidence[1]
+    assert ("Licence products found: 0" in evidence[1]) is (coverage == "complete")
     if reason:
-        assert "data-incomplete" in row and f'data-reason="{reason}"' in row
+        assert f'data-reason="{reason}"' in evidence[1]
     else:
-        assert "data-incomplete" not in row and "0 of 0 scanned" in evidence[0]
+        assert "data-reason=" not in evidence[1] and "0 of 0 scanned" in evidence[1]
     telephony = readiness_row(html, "telephony")
     assert f'data-status="{status}"' in telephony
     if coverage != "complete":
         assert 'data-reason="licence_products_missing"' in telephony
-        assert "No licence products were recorded." in row
+        assert "No licence products were recorded." in evidence[1]
         assert re.search(
             r'<li data-evidence="telephony\.licence_add_on_assigned">\s*<strong>[^<]+</strong>\s*'
             r'<div data-provenance="unknown">',
@@ -547,10 +543,9 @@ confirmations:
     assert "Licence assignments contradict licensed accounts." in row
     for workload in load_catalogue().workload_ids:
         assert f'data-unexamined-finding="{workload}.licence_add_on_assigned"' in html
-    assert f"Licence products found: {len(licences['products'])}" in html
-    row = readiness_row(html, "licences")
-    assert 'data-status="unknown" data-incomplete' in row
-    assert 'data-reason="licence_assignments_conflict"' in row
+    found = report_section(html, "found")
+    assert f"Licence products found: {len(licences['products'])}" in found
+    assert 'data-reason="licence_assignments_conflict"' in found
     pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
     assert pilots is None or 'data-path-workload="licences"' not in pilots[0]
 
@@ -591,9 +586,13 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     html = _html(_report(tmp_path / "unreconciled", scan, answers))
     if reason != "licence_assignments_conflict":
         assert 'data-reason="licence_assignments_conflict"' not in html
+    inventory_reason = (
+        reason if reason == "licence_assignments_conflict" else "licence_directory_unverified"
+    )
+    assert f'data-reason="{inventory_reason}"' in report_section(html, "found")
+    assert 'data-path-workload="licences"' not in baseline_pilots[0]
     pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
     for workload in (
-        "licences",
         "power_platform",
         "telephony",
         "identity_access",
@@ -602,10 +601,7 @@ def test_licence_pilots_require_reconciled_directory_headcount(
         assert f'data-path-workload="{workload}"' in baseline_pilots[0]
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
-        expected = reason
-        if workload == "licences" and reason != "licence_assignments_conflict":
-            expected = "licence_directory_unverified"
-        assert f'data-reason="{expected}"' in row
+        assert f'data-reason="{reason}"' in row
         assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
     assert re.search(
         r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
@@ -655,7 +651,7 @@ def test_report_rejects_date_only_snapshots_that_could_restore_licence_pilots(
     accounts["collected_at"] = "2026-11-05T09:59:59Z"
     licences = scan["licences"]
     baseline = _html(_report(tmp_path / "different-instants", scan))
-    assert 'data-reason="licence_directory_unverified"' in readiness_row(baseline, "licences")
+    assert 'data-reason="licence_directory_unverified"' in report_section(baseline, "found")
 
     if date_only in {"both", "licences"}:
         licences["collected_at"] = licences["collected_at"][:10]
@@ -676,7 +672,7 @@ def test_report_requires_snapshot_offsets_during_the_repeated_hour(
     accounts["collected_at"] = "2026-10-25T02:30:00+02:00"
     licences["collected_at"] = "2026-10-25T02:30:00+01:00"
     html = _html(_report(tmp_path / "different-offsets", town_scan))
-    assert 'data-reason="licence_directory_unverified"' in readiness_row(html, "licences")
+    assert 'data-reason="licence_directory_unverified"' in report_section(html, "found")
 
     if offsetless == "licences":
         licences["collected_at"] = "2026-10-25T02:30:00"
@@ -811,6 +807,7 @@ def test_missing_roster_plan_leaves_add_on_absence_unknown(
 
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
+    assert 'data-reason="licence_plan_list_incomplete"' in report_section(html, "found")
     assert "Plan list incomplete for a known product." in row
     evidence = re.search(
         r'<li data-evidence="telephony\.licence_add_on_assigned">.*?</li>', row, re.S
@@ -838,7 +835,7 @@ def test_assigned_product_without_plans_leaves_licence_evidence_unknown(
     row = readiness_row(html, "telephony")
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
-    assert 'data-reason="licence_plan_list_missing"' in html
+    assert 'data-reason="licence_plan_list_missing"' in report_section(html, "found")
 
 
 def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
@@ -863,7 +860,7 @@ def test_unclassified_phone_plan_leaves_add_on_assignment_unknown(
 
     assert 'data-status="unknown" data-incomplete' in row
     assert 'data-reason="licence_plan_list_incomplete"' in row
-    assert 'data-reason="licence_not_classified"' in html
+    assert 'data-reason="licence_not_classified"' in report_section(html, "found")
     evidence = re.search(
         r'<li data-evidence="telephony\.licence_add_on_assigned">.*?</li>', row, re.S
     )

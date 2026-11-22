@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: Microsoft 365 inventory
+  title: What leaving Microsoft 365 would take
   organisation: Organisation
   unnamed_organisation: This organisation
   scan_date: Evidence date (scan.json)
@@ -10,8 +10,37 @@ header:
   local: The person who ran Fazit created this report locally from scan.json. The command contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
+nav:
+  summary: Summary
+  next_steps: Next steps
+  areas: Areas
+  costs: Costs
+  replacements: Replacements
+  closer_look: Closer look
+  appendix: Appendix
+  label: Report sections
+  skip: Skip to content
+summary:
+  title: Where the organisation stands
+  of_areas: 'Of {n} areas:'
+  blockers: What blocks this move
+  confirmed: 'Confirmed blockers: {shown} of {total}'
+  all_blockers: All blockers
+  caveat: '{n} areas are Unknown or have incomplete evidence, so a Blocker cannot be ruled out.'
+  caveat_one: '{n} area is Unknown or has incomplete evidence, so a Blocker cannot be ruled out.'
+  unknown: What is still unknown
+  not_examined: All open points
+  define:
+    blocker: A confirmed obstacle that must be resolved before this move.
+    needs_work: The checks found work to do before a move.
+    unknown: Evidence is missing, so this version cannot assess the area.
+    ready: The current checks found no blocker and no missing evidence.
+  scope_title: What {profile} covers
+  scope_of: 'Of the {n} functions Fazit checks for {profile}:'
+  scope_needed: Outside {profile} and needed here
+  scope_unknown: '{n} more are outside {profile} and still Unknown here.'
 found:
-  title: What we found
+  title: What Fazit recorded
   finding: Finding
   value: Value
   provenance: How we know
@@ -49,14 +78,14 @@ status:
   blocker: Blocker
   unknown: Unknown
 costs:
-  title: Five-year cost comparison
+  title: What staying and moving cost over five years
   inputs: Cost inputs
   input: Input
   results: Costs by scenario
   category: Cost category
   stay: Stay
-  partial_exit: Partial exit
-  full_exit: Full exit
+  partial_exit: Partial move
+  full_exit: Full move
   subtotal: Subtotal
   total: Five-year total
   difference: Difference from staying
@@ -66,6 +95,23 @@ costs:
   rounding: Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
   provide_inputs: Supply a cost input file with the report command's --inputs option.
   missing: 'Missing inputs for {scenario}'
+  total_label: '{scenario} · five-year total'
+  stay_basis: Today's yearly costs for five years
+  comparison_unknown: Comparison unknown
+  stay_assumption: Staying assumes no price change.
+  break_even: '{scenario} costs the same as staying if target operations cost {amount} a year (entered: {entered}).'
+  break_even_none: '{scenario} costs more than staying even with no operations cost.'
+  vat_note: Amounts are as entered. The inputs file does not say whether they include VAT.
+  profile_note: The costs come from the inputs file and are the same for every target profile.
+  less: less than staying
+  more: more than staying
+  same: the same as staying
+  sub_cent: differs by less than one cent
+  total_unknown: Total unknown
+  known_blocks: Total of known blocks {amount}
+  inputs_missing: '{n} inputs are missing'
+  inputs_missing_one: '{n} input is missing'
+  missing_fix: Enter the missing amounts in the inputs file and build the report again.
   origins:
     invented: Invented amount
     sample_input: Sample input
@@ -86,12 +132,12 @@ costs:
     training_days_per_person: Training days per person
     training_day_rate: Training cost per person per day
     training_staff: People to train
-    productivity_loss: Cost of productivity loss
+    productivity_loss: Lost working time (internal estimate, not a payment)
     parallel_running_months: Months running both systems
   groups:
     running: Running costs
     direct_project: Direct project costs
-    productivity_loss: Productivity loss
+    productivity_loss: Lost working time (internal estimate, not a payment)
     parallel_running: Parallel running
   line_items:
     microsoft_licences: Current Microsoft licences
@@ -104,34 +150,45 @@ costs:
     application_adaptation: Application adaptation
     external_advice: External advice
     training: Training
-    productivity_loss: Cost of productivity loss
+    productivity_loss: Lost working time (internal estimate, not a payment)
     parallel_running: Current Microsoft licences during parallel running
   formulas_title: How the costs are calculated
   formulas:
     - Staying costs five times the annual Microsoft licence cost and five times the annual cost of other existing IT. The three change costs are zero.
-    - In each exit scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.
+    - In each move scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.
     - Multiply the monthly hosting cost per user by the number of users and by 60. Hosting starts in the first month. Multiply each annual cost for operations, other target costs and other existing IT by five.
     - Direct project costs add one-time migration, application adaptation, external advice and training. Training costs are the days per person times the cost per person per day times the number of people to train.
-    - The productivity loss block uses the amount entered for productivity loss.
+    - The amount entered for lost working time forms its own cost block.
     - Parallel running costs the full annual Microsoft licence amount times the number of parallel months, divided by 12.
     - The five-year total adds running costs and the three change costs. The comparison subtracts the total for staying from each scenario's total.
     - A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.
 readiness:
-  title: Readiness by area
+  title: Where each area stands
   counts: Areas by status
   workload: Area
   evidence: Evidence
+  next_step: Next step
   incomplete: Evidence incomplete
   missing: Evidence still needed
   conflict: The report uses the measured minimum because the supplied total is lower.
   not_examined: Not examined
+  evidence_summary: Evidence · {measured} measured, {provided} provided, {unknown} unknown
+  all_replacements: All replacements
+filter:
+  status_legend: Show areas by status
+  category_legend: Show areas by category
+  all: All
+  all_categories: All categories
+  empty: No area matches this selection. Choose "All" to see every area.
+  search_hint: Filtered-out areas and, in some browsers, closed sections are not searched.
 moves:
-  title: What moves where
+  title: What replaces what
   microsoft: Microsoft function
   replacement: Target replacement
   coverage: Coverage and check date
   evidence: Readiness evidence
-  workload_status: Area status and reason
+  workload_status: Area status
+  status_link: '{area}: {status}'
   workload_evidence: Evidence for {workload}
   no_function: There is no function to move.
   no_project_check: This row has no project-specific documentation check.
@@ -145,7 +202,7 @@ mapping_coverage:
   proprietary_third_party: Proprietary third-party solution
   not_available: Not available
 attention:
-  title: Needs attention
+  title: What needs a closer look
   files: File types to review
   file_kind: File type
   extensions: Extensions
@@ -160,7 +217,9 @@ attention:
   needed_here: Needed by this organisation
   no_gaps: This profile lists no functions with unverified direct transfer.
 path:
-  title: Suggested path
+  title: What to do next
+  even_if_staying: Worth doing even if you stay
+  for_move: Needed for a move
   blocker: Confirmed blockers
   unknown: Unknowns to resolve first
   ready: Areas with Ready status
@@ -176,8 +235,17 @@ path:
     - Files that need conversion are prepared and tested.
     - The organisation moves in waves with both systems running side by side.
     - The organisation switches off the old system after the move is complete.
+role:
+  it_team: IT team
+  licence_management: Licence management
+  service_owner: Service owner
+  data_protection: Data protection officer
+  information_security: Information security officer
+  procurement: Procurement
 appendix:
-  title: Appendix
+  title: How this report was made
+  not_looked: What Fazit does not look at
+  not_looked_text: File contents, mail, data about individual people, departments, and the settings of the target system.
   schema_version: Schema version
   collectors: Collection methods
   status: Status
@@ -252,7 +320,7 @@ coverage:
 reason:
   not_in_export:
     label: The export does not contain this figure.
-    fix: Check the export options and supply an export that includes it.
+    fix: Ask the service owner for the missing information. Enter it in the inputs file if there is a matching field.
   permission_denied:
     label: The collection method lacked permission.
     fix: Ask an administrator to check the required read permissions.
@@ -267,10 +335,10 @@ reason:
     fix: Find out the answer and enter it in the inputs file.
   source_not_supplied:
     label: The data source was missing.
-    fix: Supply the required export and rebuild the report.
+    fix: Find out which source can provide the missing information. It stays Unknown while it is absent from the scan and inputs file.
   needs_recipient_export:
     label: Mailbox usage alone cannot establish the number of shared mailboxes.
-    fix: Supply an Exchange recipient export that includes the mailbox type.
+    fix: Ask the mail administrator to check the count separately. It stays Unknown in this report.
   collector_skipped:
     label: The collection method did not run.
     fix: Check the reason in the appendix and supply the missing evidence.
@@ -291,7 +359,7 @@ reason:
     fix: Supply the list of service plans for that product.
   licence_plan_list_incomplete:
     label: Plan list incomplete for a known product.
-    fix: Check the export and supply the complete list of service plans for the product.
+    fix: Ask licence management to check which service plans belong to the product.
   licence_assignments_conflict:
     label: Licence assignments contradict licensed accounts.
     fix: Check the directory count and licence inventory for the same organisation and collect the figures again.
@@ -320,7 +388,7 @@ reason:
     fix: Review the finding with the person responsible for the service.
   not_recognised:
     label: This version does not recognise the reason.
-    fix: Check the export and the tool version.
+    fix: Check the version of the tool that produced the scan and the reason code in the scan file.
 units:
   users: accounts
   groups: groups
@@ -365,6 +433,12 @@ workload:
   security_compliance: Security and compliance
   small_apps: Small applications
   integrations: Integrations
+category:
+  communication: Communication
+  files: Files and documents
+  identity_devices: Identity and devices
+  automation_ai: Automation and AI
+  security: Security and compliance
 finding:
   licences.contract_terms_known: Licence terms reviewed
   directory.user_count: Internal accounts
