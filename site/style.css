@@ -67,6 +67,8 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --gutter: 20px;
   --max: 1120px;
+  /* One line length for all running text, in rem so small type does not wrap early. */
+  --measure: 42.5rem;
   --bar-h: 52px;
   --hit: 44px;
   --radius: 8px;
@@ -119,6 +121,11 @@ h1, h2, h3, p {
 h3 {
   font-size: var(--fs-body);
   font-weight: 600;
+}
+
+/* Running text never ends a paragraph on a lone word; headings balance their lines. */
+p, li, dd, figcaption, td {
+  text-wrap: pretty;
 }
 
 /* Links take the text colour. On hover they lighten; in dark mode they also glow. */
@@ -613,7 +620,6 @@ code {
 .lead {
   font-size: var(--fs-lead);
   line-height: 1.38;
-  text-wrap: pretty;
 }
 
 .sec-body p.lead + p {
@@ -652,7 +658,7 @@ code {
 .status-shape.blocker { --icon: url("icons/report.svg"); color: var(--status-blocker); }
 
 .finding-reason {
-  max-width: 36em;
+  max-width: var(--measure);
   margin-top: 12px;
 }
 
@@ -699,7 +705,7 @@ code {
 }
 
 .finding-target {
-  max-width: 40em;
+  max-width: var(--measure);
   margin-top: 32px;
   color: var(--fg-2);
   font-size: var(--fs-footnote);
@@ -962,7 +968,7 @@ code {
 }
 
 .page-intro p {
-  max-width: 40em;
+  max-width: var(--measure);
   margin-top: 12px;
   color: var(--fg-2);
 }
@@ -1042,7 +1048,7 @@ code {
 }
 
 .sec-body > p, .sec-body .subsection > p {
-  max-width: 40em;
+  max-width: var(--measure);
 }
 
 .sec-body p + p {
@@ -1111,7 +1117,7 @@ code {
 }
 
 .steps p {
-  max-width: 39em;
+  max-width: var(--measure);
   color: var(--fg-2);
 }
 
@@ -1366,10 +1372,9 @@ code {
 }
 
 .timeline-text {
-  max-width: 34em;
+  max-width: var(--measure);
   margin-top: 4px;
   color: var(--fg-2);
-  text-wrap: pretty;
 }
 
 .timeline + .note-text {
@@ -1453,7 +1458,7 @@ code {
 }
 
 .legal-part p, .legal-part address {
-  max-width: 40em;
+  max-width: var(--measure);
   margin-top: 8px;
   color: var(--fg-2);
 }
