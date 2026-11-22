@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
   title: Was ein Umstieg von Microsoft 365 erfordert
-  organisation: Organisation
   unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung (scan.json)
   inputs_date: Stand der Angaben (inputs.yaml)
@@ -44,7 +43,6 @@ found:
   title_sample: Was Fazit für eine fiktive Organisation erfasst hat
   finding: Merkmal
   value: Wert
-  provenance: Herkunft des Werts
   collector: Erhebungsverfahren
   sample: Die Messwerte der Erhebung sind simuliert.
   note: Hinweis
@@ -160,12 +158,10 @@ costs:
     - Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.
 readiness:
   title: Wo jeder Bereich steht
-  counts: Anzahl der Bereiche je Status
   next_step: Nächster Schritt
   incomplete: Datengrundlage unvollständig
   missing: Noch benötigte Angaben
   conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
-  not_examined: Nicht untersucht
   evidence_summary: Nachweise · {measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt
   all_replacements: Alle Ersatzlösungen
 filter:
@@ -179,11 +175,8 @@ moves:
   title: Was wodurch ersetzt wird
   microsoft: Funktion bei Microsoft
   replacement: Ersatz im Zielsystem
-  coverage: Abdeckung und Prüfdatum
-  evidence: Datengrundlage
   workload_status: Status des Bereichs
   status_link: '{area}: {status}'
-  workload_evidence: 'Datengrundlage für den Bereich {workload}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
   unreviewed: Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.
@@ -217,21 +210,9 @@ path:
   title: Was als Nächstes zu tun ist
   even_if_staying: Sinnvoll, auch wenn Sie bleiben
   for_move: Für einen Umstieg nötig
-  blocker: Bestätigte Hindernisse
-  unknown: Zuerst zu klärende Fragen
-  ready: Bereiche mit dem Status „Bereit“
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
     unknown: Der Status ist für alle Bereiche bekannt.
-    ready: Kein Bereich erfüllt die Voraussetzungen für den Status „Bereit“.
-  pilot_evidence: Der Bericht enthält keine Angaben zu einzelnen Abteilungen und kann daher keine Abteilung für einen Pilotbetrieb benennen.
-  pilot_choice: Die für die Umstellung Verantwortlichen wählen die Pilotgruppe gemeinsam mit der Organisation aus.
-  sequence: Typischer Ablauf einer Umstellung
-  steps:
-    - Eine Pilotgruppe erprobt das neue System.
-    - Dateien, die konvertiert werden müssen, werden vorbereitet und geprüft.
-    - Die Organisation stellt schrittweise um und betreibt beide Systeme vorübergehend parallel.
-    - Nach Abschluss der Umstellung schaltet die Organisation das bisherige System ab.
 role:
   it_team: IT-Abteilung
   licence_management: Lizenzverwaltung

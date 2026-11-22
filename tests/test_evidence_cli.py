@@ -232,7 +232,9 @@ def test_supplied_zero_preserves_a_skipped_observation(tmp_path: Path, town_scan
     assert 'data-reason="permission_denied"' in row
     assert load_locale("en")["collector"]["directory"] in row
     assert "0 applications" in row
-    assert 'data-path-status="ready" data-path-workload="integrations"' not in skipped
+    assert 'href="#readiness-integrations" data-unexamined-workload=' in report_section(
+        skipped, "path"
+    )
 
 
 @pytest.mark.parametrize(
@@ -271,7 +273,8 @@ def test_incomplete_bound_collector_is_reported_without_a_scan_finding(
     assert strings["reason"][reason_code]["fix"] in row
     assert strings["collector"]["directory"] in row
     assert f"{answer} applications" in row
-    assert 'data-path-status="ready" data-path-workload="integrations"' not in html
+    open_points = report_section(html, "path").split('id="not-examined"', 1)[1]
+    assert 'href="#readiness-integrations"' in open_points.split("</dl>", 1)[0]
 
 
 def test_shared_mailboxes_require_the_exchange_recipient_export(
@@ -356,7 +359,9 @@ confirmations:
     html = _html(_report(tmp_path / "empty-inventory", town_scan, answers))
 
     found = report_section(html, "found")
-    evidence = re.search(r'<h3 id="licences-title">.*?</h3>\s*(<p[^>]*>.*?</p>)', found, re.S)
+    evidence = re.search(
+        r'<summary id="licences-title">.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
+    )
     assert evidence is not None
     provenance = "measured" if coverage == "complete" else "unknown"
     assert f'data-provenance="{provenance}"' in evidence[1]
@@ -546,8 +551,8 @@ confirmations:
     found = report_section(html, "found")
     assert f"Licence products found: {len(licences['products'])}" in found
     assert 'data-reason="licence_assignments_conflict"' in found
-    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
-    assert pilots is None or 'data-path-workload="licences"' not in pilots[0]
+    assert 'data-workload="licences"' not in report_section(html, "readiness")
+    assert 'href="#readiness-telephony" data-unexamined-workload=' in report_section(html, "path")
 
 
 @pytest.mark.parametrize(
@@ -575,8 +580,7 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     accounts = _finding(scan, "directory.licensed_user_count")
     accounts["collected_at"] = "2026-11-05T11:00:00+01:00"
     baseline = _html(_report(tmp_path / "reconciled", scan, answers))
-    baseline_pilots = re.search(r'<ul data-path-status="ready".*?</ul>', baseline, re.S)
-    assert baseline_pilots is not None
+    assert 'data-workload="licences"' not in report_section(baseline, "readiness")
 
     product["assigned"] = assigned
     if account_update is None:
@@ -590,19 +594,18 @@ def test_licence_pilots_require_reconciled_directory_headcount(
         reason if reason == "licence_assignments_conflict" else "licence_directory_unverified"
     )
     assert f'data-reason="{inventory_reason}"' in report_section(html, "found")
-    assert 'data-path-workload="licences"' not in baseline_pilots[0]
-    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+    open_points = report_section(html, "path")
     for workload in (
         "power_platform",
         "telephony",
         "identity_access",
         "security_compliance",
     ):
-        assert f'data-path-workload="{workload}"' in baseline_pilots[0]
+        assert 'data-status="ready"' in readiness_row(baseline, workload)
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
         assert f'data-reason="{reason}"' in row
-        assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
+        assert f'href="#readiness-{workload}" data-unexamined-workload=' in open_points
     assert re.search(
         r'<li data-evidence="small_apps\.licence_bundled_assigned">\s*<strong>[^<]+</strong>\s*'
         r'<div data-provenance="measured">\s*Yes',
@@ -1158,7 +1161,8 @@ def test_measured_positive_count_cannot_be_overridden_by_zero(
         f"{bounds}3 applications",
         "0 applications",
     ]
-    assert 'data-path-status="ready" data-path-workload="integrations"' not in html
+    open_points = report_section(html, "path").split('id="not-examined"', 1)[1]
+    assert 'href="#readiness-integrations"' in open_points.split("</dl>", 1)[0]
 
     scan_only = readiness_row(_html(_report(tmp_path / "scan-only", town_scan)), "integrations")
     assert 'data-status="needs_work"' in scan_only
@@ -1184,8 +1188,9 @@ def test_headline_qualifies_zero_without_complete_coverage(
     label = strings["finding"]["mail.storage_bytes"]
     figure = zero if coverage == "complete" else strings["found"]["partial_zero"].format(value=zero)
     assert re.search(
-        rf'<li data-provenance="measured">\s*<strong>{re.escape(label)}</strong>\s*'
-        rf'<span class="figure">{re.escape(figure)}</span>',
+        r'<li data-provenance="measured">\s*'
+        rf'<strong class="tile-label">{re.escape(label)}</strong>\s*'
+        rf'<span class="figure-num">{re.escape(figure)}</span>',
         html,
     )
 
@@ -1227,7 +1232,7 @@ def test_disagreeing_provided_answers_remain_visible_and_undecided(
         else strings["common"]["date_not_supplied"]
     )
     assert supplied_date in evidence[0]
-    assert 'data-path-status="ready" data-path-workload="small_apps"' not in html
+    assert 'href="#readiness-small_apps" data-unexamined-workload=' in report_section(html, "path")
 
 
 @pytest.mark.parametrize("source", ["inputs_yaml", "sample.inputs_yaml"])

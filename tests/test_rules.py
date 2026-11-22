@@ -1131,8 +1131,9 @@ def test_complete_counts_must_agree_but_a_partial_count_can_be_consistent(
     if coverage == "complete":
         for source in ("sample.directory", "inputs_yaml"):
             assert strings["source"][source] in row
-        ready = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
-        assert ready is None or 'data-path-workload="integrations"' not in ready[0]
+        assert 'href="#readiness-integrations" data-unexamined-workload=' in report_section(
+            html, "path"
+        )
         assert "need their integrations reviewed" not in row
         assert "shows no applications integrated" not in row
 
@@ -1181,13 +1182,13 @@ def test_disputed_count_blocks_every_workload_that_uses_it(
     )
 
     html = render_report(scan, lang="en", inputs=answers)
-    pilots = re.search(r'<ul data-path-status="ready".*?</ul>', html, re.S)
+    open_points = report_section(html, "path")
     for workload in ("small_apps", "integrations"):
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
         assert 'data-reason="confirmation_conflict"' in row
         assert "0 applications" in row and "3 applications" in row
-        assert pilots is None or f'data-path-workload="{workload}"' not in pilots[0]
+        assert f'href="#readiness-{workload}" data-unexamined-workload=' in open_points
 
 
 def test_when_ready_evidence_is_false_and_no_problem_fires(
@@ -1647,7 +1648,9 @@ def test_licence_inventory_shows_its_coverage_gap(
     html = render_report(replace(scan, licences=inventory), lang=lang, catalogue=catalogue)
 
     found = report_section(html, "found")
-    summary = re.search(r'<h3 id="licences-title">.*?</h3>\s*(<p[^>]*>.*?</p>)', found, re.S)
+    summary = re.search(
+        r'<summary id="licences-title">.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
+    )
     assert summary is not None
     evidence = summary[1]
     provenance = "unknown" if inventory is None else "measured"
@@ -1962,8 +1965,13 @@ def test_town_transfer_gap_counts_and_incomplete_sharepoint(catalogue: Catalogue
 
 def _rendered_coverage_counts(html: str, lang: str) -> Counter[str]:
     section = report_section(html, "moves")
-    column = re.escape(load_locale(lang)["moves"]["coverage"])
-    cells = re.findall(rf'<td role="cell" data-label="{column}">\s*([^<]+)<small>', section)
+    column = re.escape(load_locale(lang)["moves"]["replacement"])
+    cells = re.findall(
+        rf'<td role="cell" data-label="{column}">\s*<span class="cov-cell">\s*'
+        r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
+        section,
+        re.S,
+    )
     assert len(cells) == section.count("<tr data-function=")
     return Counter(unescape(cell.strip()) for cell in cells)
 
@@ -2093,8 +2101,8 @@ def test_marking_a_mapping_as_a_transfer_gap_adds_it_to_the_gap_list(
     )
 
 
-def test_suggested_path_lists_only_the_designated_workload_statuses(
-    catalogue: Catalogue, complete_evidence: dict[str, Finding]
+def test_next_steps_and_open_evidence_follow_the_findings(
+    catalogue: Catalogue, complete_evidence: dict[str, Finding], status_rules: StatusRuleSet
 ) -> None:
     scan = sample_scan("town", catalogue)
     mail_gap = scan.finding("mail.shared_mailbox_count")
@@ -2121,30 +2129,48 @@ def test_suggested_path_lists_only_the_designated_workload_statuses(
         scan, findings=tuple(complete_evidence[entry.id] for entry in catalogue.findings)
     )
     html = render_report(scan, lang="en")
-    path = re.search(r'<section data-section="path">.*?</section>', html, re.S)
+    path = unescape(report_section(html, "path"))
+    rule = next(
+        rule for rule in status_rules.workloads["telephony"].rules if rule.status == "blocker"
+    )
+    assert re.search(
+        rf'<dt><a href="#readiness-telephony">[^<]+</a></dt>\s*'
+        rf'<dd data-step-kind="{rule.next_step.kind}">{re.escape(rule.next_step.text["en"])}</dd>',
+        path,
+    )
+    staying, moving = path.split('id="not-examined"')
+    assert set(re.findall(r'data-step-kind="([^"]+)"', staying)) == {"clarify", "decide"}
+    assert set(re.findall(r'data-step-kind="([^"]+)"', moving)) == {"replace"}
+    assert re.search(
+        rf'<li [^>]*data-unexamined-gap="{re.escape(mail_gap.id)}"[^>]*>'
+        r'[^<]*<a href="#readiness-mail"[^>]*>',
+        moving,
+    )
+    assert load_locale("en")["reason"]["needs_recipient_export"]["fix"] in moving
+    for workload in re.findall(r'href="#readiness-([^"]+)"', path):
+        assert 'data-status="ready"' not in readiness_row(html, workload)
+    assert "%" not in path and "<ol" not in path and "pilot" not in path.casefold()
 
-    assert path is not None and "%" not in path[0]
-    matches = re.findall(r'<ul data-path-status="([^"]+)"[^>]*>(.*?)</ul>', path[0], re.S)
-    assert [
-        (status, re.findall(r'data-path-workload="([^"]+)"', items)) for status, items in matches
-    ] == [("blocker", ["telephony"]), ("unknown", ["mail"]), ("ready", ["onedrive"])]
-    assert "no replacement" in matches[0][1]
-    assert load_locale("en")["reason"]["needs_recipient_export"]["fix"] in matches[1][1]
-    strings = load_locale("en")["path"]
-    for key in ("blocker", "unknown", "ready", "pilot_evidence", "pilot_choice"):
-        assert strings[key] in unescape(path[0])
-    assert re.findall(r"<li>(.*?)</li>", unescape(path[0]), re.S) == strings["steps"]
 
-
-def test_suggested_path_explains_empty_lists(catalogue: Catalogue) -> None:
-    html = render_report(sample_scan("town", catalogue), lang="en")
-    path = re.search(r'<section data-section="path">.*?</section>', html, re.S)
+def test_next_steps_explain_the_empty_state(
+    catalogue: Catalogue, complete_evidence: dict[str, Finding]
+) -> None:
+    sample = sample_scan("town", catalogue)
+    scan = replace(
+        sample,
+        collectors=tuple(replace(item, status="ok", reason=None) for item in sample.collectors),
+        findings=tuple(complete_evidence.values()),
+        licences=None,
+    )
+    html = render_report(scan, lang="en")
+    path = report_section(html, "path")
     strings = load_locale("en")["path"]["empty"]
-
-    assert path is not None
-    for status in ("blocker", "ready"):
-        assert strings[status] in path[0]
-        assert f'data-path-status="{status}"' not in path[0]
+    assert all(
+        'data-status="ready"' in readiness_row(html, workload)
+        for workload in catalogue.assessed_workload_ids
+    )
+    assert strings["unknown"] in path and strings["blocker"] in path
+    assert "data-open-point" not in path and "data-step-kind" not in path
 
 
 def test_summary_explains_empty_lists_with_complete_evidence(

@@ -488,17 +488,18 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
     counts = tuple(sum(result == status for _, result in rows) for status in DISPLAY_ORDER)
     assert counts == ((0, 3, 11, 0) if sample == "town" else (0, 1, 12, 1))
     assert sum(counts) == len(catalogue.assessed_workload_ids)
-    assert 'data-subsection="not-examined"' in table
-    assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in table} == {
+    open_points = report_section(html, "path")
+    assert 'data-subsection="not-examined"' in open_points
+    assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in open_points} == {
         key for key, status in rows if status == "unknown"
     }
     scan = _sample_scan(sample)
     for finding in scan.findings:
         if finding.provenance == "unknown":
-            assert f'data-unexamined-finding="{finding.id}"' in table
+            assert f'data-unexamined-finding="{finding.id}"' in open_points
     for collector in scan.collectors:
         if collector.status == "skipped":
-            assert f'data-unexamined-collector="{collector.id}"' in table
+            assert f'data-unexamined-collector="{collector.id}"' in open_points
     if sample == "town":
         mail = readiness_row(table, "mail")
         assert 'data-status="needs_work" data-incomplete' in mail

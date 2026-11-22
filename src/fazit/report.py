@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import base64
 import re
-from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections import Counter, defaultdict
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -14,7 +14,7 @@ from typing import Literal
 from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
-from .catalogue import Catalogue, load_catalogue
+from .catalogue import ROLES, Catalogue, FindingEntry, load_catalogue
 from .costs import YEARS, CostGroup, CostLine, ScenarioResult, compute_scenarios
 from .evidence import (
     combine,
@@ -28,15 +28,18 @@ from .licences import (
     RegisteredPlan,
     ServicePlans,
     classify_product,
+    licence_finding_types,
     licence_findings,
     load_service_plans,
     scan_to_json,
 )
 from .mappings import COVERAGE_LADDER, FunctionMapping, TargetMapping, load_mapping
-from .model import Coverage, Finding, FindingValue, Product, Scan
+from .model import Collector, Coverage, Finding, FindingValue, Product, Scan
 from .parsing import read_text
 from .risky_files import load_risky_file_types
 from .status import (
+    MissingEvidence,
+    NextStep,
     StatusRuleSet,
     TransferGap,
     WorkloadStatus,
@@ -349,6 +352,190 @@ def _summary_rows(statuses: tuple[WorkloadStatus, ...], strings: dict) -> _Summa
     )
 
 
+@dataclass(frozen=True)
+class _OpenItem:
+    id: str
+    kind: Literal["finding", "area", "collector"]
+    areas: tuple[str, ...]
+    owner: str | None
+    reasons: tuple[str, ...]
+    unknown: bool = False
+    gap: bool = False
+
+
+@dataclass(frozen=True)
+class _OpenPoint:
+    key: str
+    collector: str | None
+    input_key: str | None
+    items: tuple[_OpenItem, ...]
+    owners: tuple[str, ...]
+    reasons: tuple[str, ...]
+
+
+def _finding_input_key(entry: FindingEntry | None) -> str | None:
+    if entry is None or entry.provided == "no":
+        return None
+    if entry.provided in ("software_list", "software_list_without_web_version"):
+        return "windows_only_software"
+    if entry.type in ("boolean", "count"):
+        group = "confirmations" if entry.type == "boolean" else "provided_counts"
+        return f"{group}.{entry.id}"
+    return None
+
+
+def _open_finding_items(
+    finding_id: str,
+    entry: FindingEntry | None,
+    unknown: Finding | None,
+    gaps: list[tuple[str, MissingEvidence]],
+    open_areas: set[str],
+) -> Iterator[tuple[str, _OpenItem]]:
+    input_key = _finding_input_key(entry)
+    finding_key = f"finding.{finding_id}"
+    requests: dict[str, list[tuple[str, MissingEvidence]]] = defaultdict(list)
+    unknown_key = None
+    if unknown is not None:
+        unknown_key = input_key or (
+            f"collector.{unknown.collector}" if unknown.collector else finding_key
+        )
+        requests[unknown_key] = []
+    for area, gap in gaps:
+        key = input_key or (f"collector.{gap.collector}" if gap.collector else finding_key)
+        requests[key].append((area, gap))
+
+    for key, missing in requests.items():
+        areas = dict.fromkeys(area for area, _ in missing)
+        reasons = dict.fromkeys(gap.reason_code for _, gap in missing)
+        is_unknown = unknown is not None and key == unknown_key
+        if unknown is not None and is_unknown:
+            reasons.setdefault(unknown.missing_reason or "not_established", None)
+            if not areas and unknown.workload in open_areas:
+                areas[unknown.workload] = None
+        yield (
+            key,
+            _OpenItem(
+                finding_id,
+                "finding",
+                tuple(areas),
+                entry.owner if entry else "licence_management",
+                tuple(reasons),
+                unknown=is_unknown,
+                gap=bool(missing),
+            ),
+        )
+
+
+def _open_point(key: str, items: list[_OpenItem], catalogue: Catalogue) -> _OpenPoint:
+    group, _, name = key.partition(".")
+    collector = name if group == "collector" else None
+    input_key = None if group in ("area", "collector", "finding") else key
+    owners = {item.owner for item in items if item.owner}
+    if collector and not owners:
+        owners = {
+            entry.owner
+            for entry in catalogue.findings
+            if any(method == collector for method, _ in entry.measured_by)
+        }
+        if not owners:
+            owners.add("licence_management" if collector == "licences" else "it_team")
+    return _OpenPoint(
+        key,
+        collector,
+        input_key,
+        tuple(items),
+        tuple(role for role in ROLES if role in owners),
+        tuple(dict.fromkeys(code for item in items for code in item.reasons)),
+    )
+
+
+def _open_points(
+    statuses: tuple[WorkloadStatus, ...],
+    by_id: Mapping[str, Finding],
+    alternatives: Mapping[str, Finding],
+    catalogue: Catalogue,
+    collectors: tuple[Collector, ...],
+) -> tuple[_OpenPoint, ...]:
+    entries = {entry.id: entry for entry in catalogue.findings}
+    first_in_area = {}
+    for entry in entries.values():
+        first_in_area.setdefault(entry.workload, entry)
+    unknown = {
+        finding.id: finding
+        for finding in (*alternatives.values(), *by_id.values())
+        if finding.provenance == "unknown"
+    }
+    gaps: dict[str, list[tuple[str, MissingEvidence]]] = defaultdict(list)
+    for row in statuses:
+        for gap in row.missing:
+            gaps[gap.finding_id].append((row.workload, gap))
+
+    groups: dict[str, list[_OpenItem]] = defaultdict(list)
+    order = {}
+    finding_ids = (*entries, *licence_finding_types(catalogue))
+    positions = {finding_id: index for index, finding_id in enumerate(finding_ids)}
+    open_areas = {row.workload for row in statuses if row.status != "ready"}
+    for finding_id in finding_ids:
+        for key, item in _open_finding_items(
+            finding_id,
+            entries.get(finding_id),
+            unknown.get(finding_id),
+            gaps[finding_id],
+            open_areas,
+        ):
+            groups[key].append(item)
+            order.setdefault(key, positions[finding_id])
+    for index, row in enumerate(statuses):
+        if row.status == "unknown" and not row.missing:
+            key = f"area.{row.workload}"
+            first = first_in_area.get(row.workload)
+            groups[key].append(
+                _OpenItem(
+                    row.workload,
+                    "area",
+                    (row.workload,),
+                    first.owner if first else "it_team",
+                    (row.reason_code or "not_established",),
+                )
+            )
+            order[key] = positions[first.id] if first else len(finding_ids) + index
+    for collector in collectors:
+        if collector.status == "skipped":
+            groups[f"collector.{collector.id}"].append(
+                _OpenItem(
+                    collector.id,
+                    "collector",
+                    (),
+                    None,
+                    (collector.reason or "collector_skipped",),
+                )
+            )
+    last = len(finding_ids) + len(statuses)
+    return tuple(
+        _open_point(key, groups[key], catalogue)
+        for key in sorted(groups, key=lambda key: order.get(key, last))
+    )
+
+
+def _next_steps(
+    status_groups: list[tuple[str, tuple[WorkloadStatus, ...]]],
+) -> tuple[tuple[tuple[str, NextStep], ...], tuple[tuple[str, NextStep], ...]]:
+    steps = []
+    for status, rows in status_groups:
+        if status not in ("blocker", "needs_work"):
+            continue
+        for row in rows:
+            seen = set()
+            for rule in (row.deciding, *row.notes):
+                if rule is not None and rule.id not in seen:
+                    steps.append((row.workload, rule.next_step))
+                    seen.add(rule.id)
+    return (
+        tuple(step for step in steps if step[1].kind != "replace"),
+        tuple(step for step in steps if step[1].kind == "replace"),
+    )
+
+
 def _evidence_context(
     scan: Scan,
     by_id: dict[str, Finding],
@@ -370,6 +557,12 @@ def _evidence_context(
         alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
+    status_groups = [
+        (status, tuple(row for row in statuses if row.status == status))
+        for status in _DISPLAY_ORDER
+        if counts[status]
+    ]
+    staying_steps, move_steps = _next_steps(status_groups)
     observations = [(entry, by_id.get(entry.id)) for entry in catalogue.findings]
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     for entry, finding in observations:
@@ -384,11 +577,7 @@ def _evidence_context(
         },
         statuses=statuses,
         status_counts=[(status, counts[status]) for status in _DISPLAY_ORDER],
-        status_groups=[
-            (status, tuple(row for row in statuses if row.status == status))
-            for status in _DISPLAY_ORDER
-            if counts[status]
-        ],
+        status_groups=status_groups,
         area_count=len(catalogue.assessed_workload_ids),
         summary_rows=_summary_rows(statuses, strings),
         status_rules=status_rules,
@@ -398,10 +587,9 @@ def _evidence_context(
             for gap in _ordered_transfer_gaps(mapping, statuses)
         ],
         scope_statement=scope_statement(mapping, statuses, lang),
-        unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
-        skipped_collectors=[
-            collector for collector in scan.collectors if collector.status == "skipped"
-        ],
+        open_points=_open_points(statuses, by_id, alternatives, catalogue, scan.collectors),
+        staying_steps=staying_steps,
+        move_steps=move_steps,
         headlines=[row for row in observations if row[0].headline],
         catalogue_evidence=by_workload,
         inventory_workloads=tuple(
@@ -566,7 +754,17 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
     )
 
 
-_ICONS = ("check-circle", "warning", "report", "help", "chevron-right")
+_ICONS = (
+    "check-circle",
+    "warning",
+    "report",
+    "help",
+    "chevron-right",
+    "circle",
+    "contrast",
+    "code",
+    "cancel",
+)
 _FONTS = ("figtree-latin", "geist-mono-latin")
 _ICON_PATH = re.compile(r'<path d="([^"<>]+)"/>')
 

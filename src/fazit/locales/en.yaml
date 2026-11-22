@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
   title: What leaving Microsoft 365 would take
-  organisation: Organisation
   unnamed_organisation: This organisation
   scan_date: Evidence date (scan.json)
   inputs_date: Inputs as of (inputs.yaml)
@@ -44,7 +43,6 @@ found:
   title_sample: What Fazit recorded for a fictional organisation
   finding: Finding
   value: Value
-  provenance: How we know
   collector: Collection method
   sample: Scan measurements are simulated.
   note: Note
@@ -160,12 +158,10 @@ costs:
     - A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.
 readiness:
   title: Where each area stands
-  counts: Areas by status
   next_step: Next step
   incomplete: Evidence incomplete
   missing: Evidence still needed
   conflict: The report uses the measured minimum because the supplied total is lower.
-  not_examined: Not examined
   evidence_summary: Evidence · {measured} measured, {provided} provided, {unknown} unknown
   all_replacements: All replacements
 filter:
@@ -179,11 +175,8 @@ moves:
   title: What replaces what
   microsoft: Microsoft function
   replacement: Target replacement
-  coverage: Coverage and check date
-  evidence: Readiness evidence
   workload_status: Area status
   status_link: '{area}: {status}'
-  workload_evidence: Evidence for {workload}
   no_function: There is no function to move.
   no_project_check: This row has no project-specific documentation check.
   unreviewed: This mapping has not yet been reviewed by someone who operates the target system.
@@ -217,25 +210,13 @@ path:
   title: What to do next
   even_if_staying: Worth doing even if you stay
   for_move: Needed for a move
-  blocker: Confirmed blockers
-  unknown: Unknowns to resolve first
-  ready: Areas with Ready status
   empty:
     blocker: The evidence identified no blocker.
     unknown: Every area has a known status.
-    ready: No area meets the evidence requirements for Ready.
-  pilot_evidence: The report has no department-level evidence, so it cannot identify a department for a pilot.
-  pilot_choice: The people responsible for the move choose the pilot group with the organisation.
-  sequence: How a move typically proceeds
-  steps:
-    - A pilot group tries the new system.
-    - Files that need conversion are prepared and tested.
-    - The organisation moves in waves with both systems running side by side.
-    - The organisation switches off the old system after the move is complete.
 role:
   it_team: IT team
   licence_management: Licence management
-  service_owner: Service owner
+  service_owner: Service lead
   data_protection: Data protection officer
   information_security: Information security officer
   procurement: Procurement

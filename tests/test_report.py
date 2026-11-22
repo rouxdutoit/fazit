@@ -17,6 +17,7 @@ from helpers import (
     PLANTED_SCAN,
     RESOURCE_ATTRIBUTES,
     RESOURCE_ELEMENTS,
+    ROOT,
     ReportDocument,
     assert_readiness_order,
     readiness_row,
@@ -33,6 +34,7 @@ from fazit import report as report_module
 from fazit.cli import app
 from fazit.i18n import Formatter, load_locale
 from fazit.inputs import load_inputs
+from fazit.licences import licence_findings
 from fazit.mappings import PROFILES, load_mapping
 from fazit.model import load_scan
 from fazit.parsing import read_text
@@ -46,6 +48,103 @@ def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
     return rebuild_report(
         sample_scan_path(sample), out, lang, profile=profile, inputs=sample_inputs_path(sample)
     )
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_report_navigation_resolves_and_appendix_explains_scope(
+    tmp_path: Path, sample: str, lang: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, "opendesk")
+    tags = ReportDocument(html).tags
+    strings = load_locale(lang)
+    ids = Counter(attrs["id"] for _, attrs in tags if "id" in attrs)
+    for _, attrs in tags:
+        if "href" in attrs:
+            href = attrs["href"]
+            assert href.startswith("#") and ids[href[1:]] == 1
+
+    assert tags[tags.index(("body", {})) + 1] == ("a", {"class": "skip", "href": "#main"})
+    assert [attrs["id"] for tag, attrs in tags if tag == "main"] == ["main"]
+    nav = re.search(r'<nav class="bar-links" aria-label="([^"]+)">(.*?)</nav>', html, re.S)
+    assert nav and unescape(nav[1]) == strings["nav"]["label"]
+    links = re.findall(r'<a href="#([^"]+)">([^<]+)</a>', nav[2])
+    assert links == [
+        (f"{section}-title", strings["nav"][key])
+        for section, key in (
+            ("summary", "summary"),
+            ("path", "next_steps"),
+            ("readiness", "areas"),
+            ("costs", "costs"),
+            ("moves", "replacements"),
+            ("attention", "closer_look"),
+            ("appendix", "appendix"),
+        )
+    ]
+    appendix = unescape(report_section(html, "appendix"))
+    for key in ("not_looked", "not_looked_text"):
+        assert strings["appendix"][key] in appendix
+    before, run_details = unescape(html).split('data-subsection="run-details"', 1)
+    for key in ("local", "offline"):
+        assert strings["header"][key] in run_details and strings["header"][key] not in before
+
+
+def test_coverage_symbols_match_the_site() -> None:
+    for icon in ("circle", "contrast", "code", "cancel"):
+        site = ROOT / "site" / "icons" / f"{icon}.svg"
+        packaged = ROOT / "src" / "fazit" / "icons" / f"{icon}.svg"
+        assert site.read_bytes() == packaged.read_bytes()
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+@pytest.mark.parametrize("profile", PROFILES)
+def test_replacements_use_coverage_symbols_distinct_from_status(
+    tmp_path: Path, sample: str, lang: str, profile: str
+) -> None:
+    html = _sample_report(sample, tmp_path, lang, profile)
+    strings = load_locale(lang)
+    mapping = load_mapping(profile, catalogue.load_catalogue())
+    moves = report_section(html, "moves")
+    rows = dict(re.findall(r'<tr data-function="([^"]+)"(.*?)</tr>', moves, re.S))
+    assert list(rows) == [item.function for item in mapping.functions]
+    symbols = {
+        coverage: icon
+        for icon, codes in (
+            ("circle", ("in_suite",)),
+            ("contrast", ("in_suite_with_limits",)),
+            ("code", ("open_source_community", "open_source_third_party")),
+            (
+                "cancel",
+                (
+                    "announced",
+                    "component_vendor_solution",
+                    "proprietary_third_party",
+                    "not_available",
+                    "transfer_undocumented",
+                ),
+            ),
+        )
+        for coverage in codes
+    }
+    status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
+    for item in mapping.functions:
+        row = rows[item.function]
+        status = re.search(r'data-status="([^"]+)"', row)[1]
+        assert row.count("<td ") == 3
+        coverage = re.search(r'<span class="cov-cell">.*?</td>', row, re.S)
+        assert coverage is not None
+        source = ROOT / "site" / "icons" / f"{symbols[item.coverage]}.svg"
+        path = re.search(r'<path d="([^"]+)"', source.read_text(encoding="utf-8"))[1]
+        assert re.findall(r'<path d="([^"]+)"', coverage[0]) == [path]
+        assert path not in status_paths
+        assert strings["mapping_coverage"][item.coverage] in unescape(coverage[0])
+        link = re.search(r'<a href="#readiness-([^"]+)" aria-label="([^"]+)">(.*?)</a>', row, re.S)
+        assert link and link[1] == item.workload
+        assert unescape(link[2]) == strings["moves"]["status_link"].format(
+            area=strings["workload"][item.workload], status=strings["status"][status]
+        )
+        assert f'<span class="status {status}">' in link[3]
+        for _, attrs in ReportDocument(row.replace(link[0], "")).tags:
+            assert not ({"status", *DISPLAY_ORDER} & set(attrs.get("class", "").split()))
 
 
 def _assert_status_summary(summary: str, counts: Counter[str], formatter: Formatter) -> None:
@@ -184,6 +283,112 @@ def test_summary_keeps_all_unknown_areas_unknown(tmp_path: Path, lang: str) -> N
     assert "#status-blocker" not in summary
 
 
+def _open_point_rows(path: str) -> list[tuple[str, str]]:
+    return re.findall(r'<dt data-open-point="([^"]+)">.*?</dt>\s*<dd>(.*?)</dd>', path, re.S)
+
+
+@pytest.mark.parametrize(
+    ("sample", "lang"), [*SAMPLES, ("all-unknown", "en"), ("all-unknown", "de")]
+)
+def test_open_points_include_every_gap_unknown_finding_and_skipped_collector(
+    sample: str, lang: str
+) -> None:
+    entries = catalogue.load_catalogue()
+    if sample == "all-unknown":
+        scan, inputs = load_scan(ALL_UNKNOWN_SCAN, entries), None
+    else:
+        scan = load_scan(sample_scan_path(sample), entries)
+        inputs = load_inputs(sample_inputs_path(sample), entries)
+    context, plans = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
+    html = report_module._render_html(context)
+    path = report_section(html, "path")
+    points = _open_point_rows(path)
+    statuses = context["statuses"]
+    unknown_areas = {row.workload for row in statuses if row.status == "unknown"}
+    roles = set(load_locale(lang)["role"].values())
+
+    assert points and len(dict(points)) == len(points)
+    assert html.count('id="not-examined"') == 1 and '<h4 id="not-examined">' in path
+    assert "not-examined" not in report_section(html, "readiness")
+    assert "<ol" not in path and not re.search(r"\bdata-path-(?:status|workload)\b", path)
+    assert Counter(re.findall(r'data-unexamined-collector="([^"]+)"', path)) == {
+        collector.id: 1 for collector in scan.collectors if collector.status == "skipped"
+    }
+    merged = context["scan"]
+    findings = (*merged.findings, *licence_findings(merged, plans, entries))
+    assert Counter(re.findall(r'data-unexamined-finding="([^"]+)"', path)) == {
+        finding.id: 1 for finding in findings if finding.provenance == "unknown"
+    }
+    assert set(re.findall(r'data-unexamined-workload="([^"]+)"', path)) == unknown_areas
+    gaps = set()
+    for key, body in points:
+        assert not key.startswith(("confirmations.", "provided_counts.")) or (
+            f"<code>{key}</code>" in body
+        )
+        assert re.search(r"<p>\s*<strong>([^<]+)</strong>", unescape(body))[1] in roles
+        for hooks, item in re.findall(r"<li([^>]*)>(.*?)</li>", body, re.S):
+            gap = re.search(r'data-unexamined-gap="([^"]+)"', hooks)
+            if gap and "data-unexamined-finding" in hooks:
+                assert hooks.startswith(f' data-unexamined-finding="{gap[1]}"')
+            for link in ReportDocument(item).tags:
+                tag, attrs = link
+                if tag == "a":
+                    workload = attrs["href"].removeprefix("#readiness-")
+                    assert attrs.get("data-unexamined-workload") == (
+                        workload if workload in unknown_areas else None
+                    )
+                    if gap:
+                        gaps.add((workload, gap[1]))
+    assert gaps == {(row.workload, gap.finding_id) for row in statuses for gap in row.missing}
+    if sample == "town":
+        recipients = dict(points)["collector.exchange_recipients"]
+        assert 'data-unexamined-collector="exchange_recipients"' in recipients
+        assert 'data-unexamined-finding="mail.shared_mailbox_count"' in recipients
+        assert 'href="#readiness-mail"' in recipients
+    if sample == "nonprofit":
+        sharepoint = unescape(dict(points)["collector.sharepoint_site_usage"])
+        reasons = load_locale(lang)["reason"]
+        fixes = [reasons[code]["fix"] for code in ("collector_skipped", "source_not_supplied")]
+        assert " ".join(fixes) in sharepoint
+        assert all(sharepoint.count(fix) == 1 for fix in fixes)
+
+
+def test_open_points_group_both_software_counts_by_the_input_list(tmp_path: Path) -> None:
+    html = rebuild_report(sample_scan_path("town"), tmp_path, "en")
+    points = dict(_open_point_rows(report_section(html, "path")))
+    software = points["windows_only_software"]
+    assert re.findall(r'data-unexamined-gap="([^"]+)"', software) == [
+        "windows_software.application_count",
+        "windows_software.without_web_version_count",
+    ]
+    assert software.count('href="#readiness-windows_software"') == 2
+    assert "<code>windows_only_software</code>" in software
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_next_steps_render_every_fired_rule_in_display_order(sample: str, lang: str) -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path(sample), entries)
+    inputs = load_inputs(sample_inputs_path(sample), entries)
+    context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
+    path = unescape(report_section(report_module._render_html(context), "path"))
+    before, after = path.split('id="not-examined"')
+    expected = [
+        (row.workload, rule.next_step.kind, rule.next_step.text[lang])
+        for status in ("blocker", "needs_work")
+        for row in context["statuses"]
+        if row.status == status
+        for rule in (row.deciding, *row.notes)
+    ]
+    row_pattern = (
+        r'<dt><a href="#readiness-([^"]+)">[^<]+</a></dt>\s*'
+        r'<dd data-step-kind="(clarify|decide|replace)">([^<]+)</dd>'
+    )
+    assert re.findall(row_pattern, before) == [step for step in expected if step[1] != "replace"]
+    assert re.findall(row_pattern, after) == [step for step in expected if step[1] == "replace"]
+    assert path.count("data-step-kind=") == len(expected)
+
+
 @pytest.mark.parametrize("lang", ["en", "de"])
 def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: str) -> None:
     entries = catalogue.load_catalogue()
@@ -206,10 +411,12 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
     )
     assert " ".join(blocks[2].split()) == f"{intro} {coverage}"
     moves = unescape(report_section(html, "moves"))
-    coverage_column = re.escape(strings["moves"]["coverage"])
+    replacement_column = re.escape(strings["moves"]["replacement"])
     labels = re.findall(
-        rf'<td role="cell" data-label="{coverage_column}">\s*([^<]+)<small>',
+        rf'<td role="cell" data-label="{replacement_column}">\s*<span class="cov-cell">\s*'
+        r'<span class="cov(?: cov-none)?">.*?</span>\s*<span><strong>([^<]+)</strong>',
         moves,
+        re.S,
     )
     assert Counter(label.strip() for label in labels) == {
         strings["mapping_coverage"][code]: count for code, count in scope.by_coverage
@@ -624,6 +831,29 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     }
     paths = {next(iter(set(found))) for found in icons.values() if found}
     assert len(paths) == sum(1 for found in icons.values() if found)
+
+
+def test_print_hides_controls_opens_disclosures_and_starts_working_sections_on_new_pages(
+    tmp_path: Path,
+) -> None:
+    html = _sample_report("town", tmp_path, "en", "opendesk")
+    (css,) = ReportDocument(html).styles
+    print_css = css.split("@media print", 1)[1]
+    rules = re.findall(r"([^{}]+)\{([^{}]+)\}", print_css)
+    hidden = set()
+    page_starts = set()
+    for selectors, declarations in rules:
+        names = {selector.strip() for selector in selectors.split(",")}
+        if re.search(r"display:\s*none", declarations):
+            hidden.update(names)
+        if re.search(r"break-before:\s*page", declarations):
+            page_starts.update(names)
+    assert {".bar", ".skip", ".filters", ".areas-empty"} <= hidden
+    assert page_starts == {"[data-section=path]", "[data-section=costs]", "[data-section=appendix]"}
+    disclosure = re.search(r"details::details-content\s*\{([^}]+)\}", print_css)
+    assert disclosure
+    for declaration in ("content-visibility: visible", "display: block", "block-size: auto"):
+        assert declaration in disclosure[1]
 
 
 def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
