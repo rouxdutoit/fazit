@@ -31,6 +31,8 @@ from fazit.parsing import parse_yaml, read_text
 from fazit.report import SECTION_ORDER, render_report, report_file_name
 
 runner = CliRunner()
+# Typer colours help on GitHub Actions.
+ANSI_STYLE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def test_demo_writes_one_local_report(tmp_path: Path) -> None:
@@ -636,9 +638,10 @@ def test_version_works_without_a_command() -> None:
 @pytest.mark.parametrize("arguments", [[], ["--debug"]])
 def test_missing_command_shows_help(arguments: list[str]) -> None:
     result = runner.invoke(app, arguments)
+    output = ANSI_STYLE.sub("", result.output)
     assert result.exit_code == 2
-    assert "Usage:" in result.output and "COMMAND [ARGS]..." in result.output
-    assert all(option in result.output for option in ("--debug", "demo", "report"))
+    assert "Usage:" in output and "COMMAND [ARGS]..." in output
+    assert all(option in output for option in ("--debug", "demo", "report"))
 
 
 def test_module_entry_point() -> None:
@@ -675,7 +678,7 @@ def test_report_usage_uses_the_documented_argument_name_in_english() -> None:
 
     assert failure.exit_code == 2 and "Missing argument" in failure.stderr
     assert help_result.exit_code == 0
-    for output in (failure.stderr, help_result.stdout):
+    for output in (ANSI_STYLE.sub("", failure.stderr), ANSI_STYLE.sub("", help_result.stdout)):
         usage = next(line for line in output.splitlines() if "Usage:" in line)
         assert usage.rstrip().endswith("[OPTIONS] SCAN_JSON")
 
