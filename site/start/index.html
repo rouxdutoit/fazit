@@ -51,6 +51,15 @@
     <div class="page-intro">
       <h1>Get started with Fazit</h1>
       <p>Run the demo on your own computer in a few minutes. It needs no Microsoft account and sends nothing anywhere.</p>
+      <div class="command" role="group" aria-labelledby="command-label">
+        <p class="command-label" id="command-label">Run in a terminal</p>
+        <div class="command-line">
+          <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
+          <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden>Copy</button>
+        </div>
+        <p class="copy-message" role="status"></p>
+      </div>
+      <p class="note-text">Needs Git and uv. <a href="#start-need">What you need</a></p>
     </div>
 
     <section class="sec grid" aria-labelledby="start-need">
@@ -75,14 +84,6 @@
     <section class="sec grid" aria-labelledby="start-run">
       <h2 class="sec-label" id="start-run">Run the demo</h2>
       <div class="sec-body">
-        <div class="command" role="group" aria-labelledby="command-label">
-          <p class="command-label" id="command-label">Run in a terminal</p>
-          <div class="command-line">
-            <code id="demo-command">git clone https://github.com/rouxdutoit/fazit &amp;&amp; cd fazit &amp;&amp; uv run fazit demo</code>
-            <button class="copy" type="button" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden>Copy</button>
-          </div>
-          <p class="copy-message" role="status"></p>
-        </div>
         <p>This builds the sample report for a fictional town administration, in English. For German, run <code>uv run fazit demo --lang de</code> in the same folder.</p>
       </div>
     </section>

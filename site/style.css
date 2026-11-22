@@ -950,6 +950,14 @@ code {
   margin-top: 16px;
 }
 
+.page-intro .command {
+  margin: 32px 0 8px;
+}
+
+.page-intro .command p {
+  margin-top: 0;
+}
+
 .page-intro .btn {
   margin-top: 24px;
 }
