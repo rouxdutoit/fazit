@@ -3,6 +3,7 @@ import json
 import re
 from collections import Counter
 from dataclasses import replace
+from datetime import date
 from hashlib import sha256
 from html import unescape
 from itertools import pairwise
@@ -11,6 +12,7 @@ from shutil import copytree
 
 import pytest
 from helpers import (
+    ALL_UNKNOWN_SCAN,
     CSS_RESOURCE,
     PLANTED_SCAN,
     RESOURCE_ATTRIBUTES,
@@ -33,6 +35,7 @@ from fazit.i18n import Formatter, load_locale
 from fazit.inputs import load_inputs
 from fazit.mappings import PROFILES, load_mapping
 from fazit.model import load_scan
+from fazit.parsing import read_text
 
 # The report embeds its two fonts; nothing else in its CSS may point anywhere.
 EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
@@ -43,6 +46,188 @@ def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
     return rebuild_report(
         sample_scan_path(sample), out, lang, profile=profile, inputs=sample_inputs_path(sample)
     )
+
+
+def _assert_status_summary(summary: str, counts: Counter[str], formatter: Formatter) -> None:
+    strings = formatter.strings
+    status_list = re.search(r'<dl class="status-summary">(.*?)</dl>', summary, re.S)
+    assert status_list is not None
+    rows = re.findall(
+        r'<dt><span class="status ([a-z_]+)"><svg[^>]*>.*?</svg> ([^<]+)</span> ([^<]+)</dt>'
+        r"\s*<dd>([^<]+)</dd>",
+        unescape(status_list[1]),
+    )
+    assert rows == [
+        (
+            status,
+            strings["status"][status],
+            formatter.integer(counts[status]),
+            strings["summary"]["define"][status],
+        )
+        for status in DISPLAY_ORDER
+    ]
+    total = len(catalogue.load_catalogue().assessed_workload_ids)
+    assert sum(counts.values()) == total
+    assert strings["summary"]["of_areas"].format(n=formatter.integer(total)) in summary
+
+
+def _summary_area_rows(part: str) -> list[tuple[str, str, str]]:
+    return re.findall(
+        r'<dt>(<a href="#readiness-([^"]+)".*?</dt>)\s*<dd>\s*(.*?)\s*</dd>', part, re.S
+    )
+
+
+def test_summary_caps_blockers_and_open_areas_in_catalogue_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    copied = tmp_path / "rules"
+    copytree(Path(str(rules.rules_dir())), copied)
+    path = copied / "status.yaml"
+    amended = re.sub(
+        r"^(        status: )needs_work$", r"\g<1>blocker", read_text(path), flags=re.M
+    )
+    path.write_text(amended, encoding="utf-8")
+    monkeypatch.setattr(rules, "rules_dir", lambda: copied)
+
+    html = _sample_report("town", tmp_path / "out", "en", "opendesk")
+    summary = unescape(report_section(html, "summary"))
+    blockers, open_part = summary.split('data-summary="unknown"', 1)
+    readiness = report_section(html, "readiness")
+    assessed = catalogue.load_catalogue().assessed_workload_ids
+    blocker_ids = [
+        workload
+        for workload in assessed
+        if 'data-status="blocker"' in readiness_row(readiness, workload)
+    ]
+    assert len(blocker_ids) > 3
+    rows = _summary_area_rows(blockers)
+    assert [workload for _, workload, _ in rows] == blocker_ids[:3]
+    strings = load_locale("en")
+    assert strings["summary"]["confirmed"].format(shown=3, total=len(blocker_ids)) in blockers
+    assert f'href="#status-blocker">{strings["summary"]["all_blockers"]}' in blockers
+
+    for term, workload, detail in rows:
+        card = readiness_row(readiness, workload)
+        reason = re.search(r'<div class="finding-reason">\s*([^<]+)', unescape(card))[1].strip()
+        assert detail == reason
+        assert (strings["readiness"]["incomplete"] in term) == (" data-incomplete" in card)
+
+    open_ids = [
+        workload
+        for workload in assessed
+        if re.search(
+            r'<article [^>]*(data-status="unknown"|data-incomplete)',
+            readiness_row(readiness, workload),
+        )
+    ]
+    assert len(open_ids) > 4
+    open_rows = _summary_area_rows(open_part)
+    assert [workload for _, workload, _ in open_rows] == open_ids[:4]
+    for _, workload, fix in open_rows:
+        card = readiness_row(readiness, workload)
+        if 'data-status="unknown"' in card:
+            reason_part = card.split('<div class="finding-reason">', 1)[1].split("</div>", 1)[0]
+        else:
+            reason_part = re.search(r'<li data-missing="[^"]+">.*?</li>', card, re.S)[0]
+        reason_code = re.search(r'data-reason="([^"]+)"', reason_part)[1]
+        assert fix == strings["reason"][reason_code]["fix"]
+
+
+@pytest.mark.parametrize(("sample", "lang"), SAMPLES)
+def test_summary_counts_and_links_match_the_report(tmp_path: Path, sample: str, lang: str) -> None:
+    html = _sample_report(sample, tmp_path, lang, "opendesk")
+    summary = report_section(html, "summary")
+    document = ReportDocument(html)
+    formatter = Formatter(lang)
+    strings = formatter.strings
+    counts = Counter(attrs["data-status"] for tag, attrs in document.tags if tag == "article")
+    _assert_status_summary(summary, counts, formatter)
+
+    assert counts["blocker"] <= 3
+    assert strings["summary"]["confirmed"].split("{shown}")[0] not in summary
+    assert (f'href="#status-blocker">{strings["summary"]["all_blockers"]}' in summary) == bool(
+        counts["blocker"]
+    )
+    assert not any(text in summary for text in ("data-segment", "readiness-bar", "%"))
+    ids = {attrs.get("id") for _, attrs in document.tags}
+    links = re.findall(r'href="#([^"]+)"', summary)
+    assert "not-examined" in links and set(links) <= ids
+    missing = set(re.findall(r'data-missing-cost="([^"]+)"', report_section(html, "costs")))
+    assert ("costs-missing" in links) == bool(missing)
+    if missing:
+        assert strings["costs"]["inputs_missing_one"].format(n=len(missing)) in summary
+        assert strings["costs"]["missing_fix"] in summary
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_summary_keeps_all_unknown_areas_unknown(tmp_path: Path, lang: str) -> None:
+    html = rebuild_report(ALL_UNKNOWN_SCAN, tmp_path, lang)
+    summary = report_section(html, "summary")
+    readiness = report_section(html, "readiness")
+    formatter = Formatter(lang)
+    strings = formatter.strings
+    unknown_areas = re.findall(r'<article data-workload="([^"]+)" data-status="unknown"', readiness)
+    assert len(unknown_areas) == readiness.count("<article ")
+    _assert_status_summary(summary, Counter(unknown=len(unknown_areas)), formatter)
+    assert strings["path"]["empty"]["blocker"] in unescape(summary)
+    assert strings["summary"]["caveat"].format(n=formatter.integer(len(unknown_areas))) in summary
+    assert [workload for _, workload, _ in _summary_area_rows(summary)] == unknown_areas[:4]
+    assert f'href="#not-examined">{strings["summary"]["not_examined"]}' in summary
+    costs = report_section(html, "costs")
+    missing = re.findall(r'data-missing-cost="([^"]+)"', costs)
+    assert 0 < len(set(missing)) < len(missing)
+    missing_label = strings["costs"]["inputs_missing"].format(
+        n=formatter.integer(len(set(missing)))
+    )
+    assert f'href="#costs-missing">{missing_label}' in summary
+    assert 'id="costs-missing">' in costs and strings["costs"]["missing_fix"] in costs
+    assert "#status-blocker" not in summary
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: str) -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    inputs = load_inputs(sample_inputs_path("town"), entries)
+    context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
+    scope = context["scope_statement"]
+    assert isinstance(scope, report_module.ScopeStatement)
+    html = report_module._render_html(context)
+    summary = unescape(report_section(html, "summary")).split('data-summary="scope"', 1)[1]
+    formatter = Formatter(lang)
+    strings = formatter.strings
+    blocks = re.search(r"<h3>([^<]+)</h3>\s*<p>([^<]+)</p>", summary)
+    assert blocks is not None
+    assert blocks[1] == strings["summary"]["scope_title"].format(profile=scope.profile)
+    intro = strings["summary"]["scope_of"].format(n=scope.total, profile=scope.profile)
+    coverage = " · ".join(
+        f"{strings['mapping_coverage'][code]} {formatter.integer(count)}"
+        for code, count in scope.by_coverage
+    )
+    assert " ".join(blocks[2].split()) == f"{intro} {coverage}"
+    moves = unescape(report_section(html, "moves"))
+    coverage_column = re.escape(strings["moves"]["coverage"])
+    labels = re.findall(
+        rf'<td role="cell" data-label="{coverage_column}">\s*([^<]+)<small>',
+        moves,
+    )
+    assert Counter(label.strip() for label in labels) == {
+        strings["mapping_coverage"][code]: count for code, count in scope.by_coverage
+    }
+    assert re.findall(r'<a href="#([^"]+)">([^<]+)</a>', summary) == [
+        (anchor, name) for name, anchor in scope.needed
+    ]
+    assert (
+        strings["summary"]["scope_unknown"].format(n=scope.unknown_need, profile=scope.profile)
+        in summary
+    )
+    assert summary.count(strings["moves"]["unreviewed"]) == 1
+
+    reviewed_context = context | {"scope_statement": replace(scope, reviewed_on=date(2026, 11, 22))}
+    reviewed = report_section(report_module._render_html(reviewed_context), "summary")
+    assert strings["moves"]["unreviewed"] not in reviewed
+    generic = _sample_report("town", tmp_path, lang, "generic")
+    assert 'data-summary="scope"' not in report_section(generic, "summary")
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)

@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 SECTION_ORDER = (
     "header",
-    "found",
-    "costs",
+    "summary",
+    "path",
     "readiness",
+    "costs",
     "moves",
     "attention",
-    "path",
+    "found",
     "appendix",
     "footer",
 )

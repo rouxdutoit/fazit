@@ -113,7 +113,7 @@
     p, li, dd, td { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
-    main :where(p, li, dd, td) > a:not([class]) {
+    main :where(p, li, dt, dd, td) > a:not([class]) {
       text-decoration: underline 1px var(--fg-2);
       text-underline-offset: 0.2em;
     }
@@ -196,6 +196,89 @@
     .sec-intro { color: var(--fg-2); }
     .subsection { margin-top: 48px; }
     .sec-body h3 + p { margin-top: 8px; }
+    .status-summary { margin: 12px 0 0; }
+    .status-summary > div {
+      display: grid;
+      align-items: baseline;
+      gap: 4px 24px;
+    }
+    .status-summary > div + div { margin-top: 4px; }
+    .status-summary dt { font-size: var(--fs-lead); }
+    .status-summary dd {
+      margin: 0;
+      color: var(--fg-2);
+      font-size: var(--fs-footnote);
+    }
+    @media (min-width: 640px) {
+      .status-summary > div { grid-template-columns: auto minmax(0, 1fr); }
+    }
+    .rows {
+      margin: 0;
+      padding: 0 24px;
+      border-radius: var(--radius-card);
+      background: var(--fill);
+    }
+    @media (max-width: 480px) {
+      .rows { padding-inline: 16px; }
+    }
+    .rows > div {
+      display: grid;
+      gap: 4px;
+      padding-block: 16px;
+      overflow-wrap: anywhere;
+    }
+    .rows > div + div { border-top: 1px solid var(--rule); }
+    .rows dt { font-weight: 600; }
+    .rows dd { margin: 0; color: var(--fg-2); }
+    h3 + .rows, .subsection p + .rows { margin-top: 12px; }
+    .subsection p:has(> .more) { margin-top: 24px; }
+    .rows dt .note-text { margin-top: 0; font-weight: 400; }
+    .tiles {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      margin: 24px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    @media (min-width: 1180px) {
+      .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .tiles li {
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      padding: 24px;
+      border-radius: var(--radius-card);
+      background: var(--fill);
+    }
+    .tiles p {
+      color: var(--fg-2);
+      font-size: var(--fs-subhead);
+      line-height: 1.43;
+    }
+    .tiles .tile-label {
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .tiles .tile-title {
+      display: grid;
+      margin-bottom: 4px;
+      color: var(--fg);
+      font-size: var(--fs-body);
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .tiles .figure-num {
+      color: var(--fg);
+      font: 600 var(--fs-headline) / 1.1 var(--sans);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .cost-value { white-space: nowrap; }
+    .cost-notes { max-width: var(--measure); }
     .report-meta {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
@@ -255,7 +338,7 @@
       border-collapse: collapse;
       font-size: var(--fs-subhead);
     }
-    .coverage th, .coverage td {
+    .coverage th, .coverage td, .cost-table th, .cost-table td {
       padding-block: 16px;
       padding-inline-end: 16px;
       padding-inline-start: 0;
@@ -264,7 +347,7 @@
       vertical-align: top;
     }
     .coverage tbody tr:last-child > * { border-bottom: 0; }
-    .coverage thead th {
+    .coverage thead th, .cost-table thead th {
       padding-block: 8px;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
@@ -594,10 +677,74 @@
     summary::-webkit-details-marker { display: none; }
     summary .icon { transition: transform 0.3s var(--ease); }
     details[open] > summary .icon { transform: rotate(90deg); }
-    .cost-inputs { margin-block-end: 16px; }
-    .cost-table { table-layout: fixed; }
+    .cost-inputs { margin-block: 24px 16px; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      margin: 24px 0 8px;
+      padding: 0;
+      color: var(--fg-2);
+      font-size: var(--fs-subhead);
+      list-style: none;
+    }
+    .cost-bars .legend li { display: flex; gap: 8px; }
+    .cost-swatch {
+      flex: none;
+      width: 12px;
+      height: 12px;
+      margin-top: calc((1lh - 12px) / 2);
+      border-radius: var(--radius-pill);
+      background: var(--cost-fill);
+    }
+    .cost-chart-row { margin-top: 24px; }
+    .cost-chart-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 16px;
+    }
+    .cost-chart-heading h3, .cost-chart-heading h3 + p { margin: 0; }
+    .cost-chart-heading small { display: inline-block; margin-inline-start: 8px; }
+    .cost-bar {
+      display: flex;
+      width: calc(var(--share) * (100% - 56px));
+      height: 24px;
+      gap: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: var(--radius-pill);
+    }
+    .cost-segment { min-width: 2px; background: var(--cost-fill); }
+    .cost-running { --cost-fill: var(--fg); }
+    .cost-direct_project { --cost-fill: var(--fg-2); }
+    .cost-productivity_loss { --cost-fill: color-mix(in srgb, var(--fg-2) 55%, var(--bg)); }
+    .cost-parallel_running { --cost-fill: color-mix(in srgb, var(--fg-2) 25%, var(--bg)); }
+    .cost-segment.is-unknown {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 24px;
+      margin-top: 8px;
+      border: 1px dashed var(--fg-2);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--fg-2);
+    }
+    .cost-known-blocks { margin-top: 8px; }
+    .cost-chart-values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 24px;
+      margin: 8px 0 0;
+      padding: 0;
+      color: var(--fg-2);
+      font-size: var(--fs-subhead);
+      list-style: none;
+    }
     .cost-table thead th:first-child { width: 34%; }
-    .cost-table td { font-variant-numeric: tabular-nums; }
+    .cost-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
     .cost-table .subtotals > *, .cost-table .totals > * { background: var(--surface); }
     .cost-table .totals td { font-weight: 600; }
     .run-details dt { font-weight: 600; }
@@ -657,7 +804,7 @@
       .headlines { grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr)); }
       table:not(.cost-table, .coverage), table:not(.cost-table, .coverage) :is(caption, tbody, tr, th, td) { display: block; }
       table:not(.cost-table, .coverage) { font-size: var(--fs-body); }
-      table:not(.cost-table, .coverage) thead, .cost-table thead th:first-child {
+      table:not(.cost-table, .coverage) thead, .cost-table thead {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -681,12 +828,31 @@
         font-size: var(--fs-footnote);
         font-weight: 600;
       }
-      .cost-table, .cost-table :is(caption, thead, tbody) { display: block; }
-      .cost-table { font-size: var(--fs-subhead); }
-      .cost-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .cost-table :is(th, td) { padding: 8px 8px 8px 0; }
-      .cost-table tbody th { grid-column: 1 / -1; }
-      .cost-table th[scope="row"] { border-bottom: 0; padding-block-end: 0; }
+      .cost-chart-values { display: grid; }
+      .cost-table, .cost-table :is(caption, tbody) { display: block; }
+      .cost-table tr {
+        display: grid;
+        gap: 4px;
+        padding-block: 16px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .cost-table :is(th, td) { padding: 0; border-bottom: 0; }
+      .cost-table tbody th { margin-bottom: 8px; }
+      .cost-table td {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        align-items: baseline;
+        gap: 8px;
+        text-align: end;
+      }
+      .cost-table td::before {
+        content: attr(data-label);
+        color: var(--fg-2);
+        font-size: var(--fs-footnote);
+        font-weight: 600;
+        text-align: start;
+        white-space: normal;
+      }
     }
     @page { margin: 15mm; }
     @media print {
@@ -709,8 +875,9 @@
       .table-scroll { overflow: visible; }
       table { font-size: .9em; }
       thead { break-after: avoid; }
-      th, td { padding: 4pt 6pt 4pt 0; }
-      tr, .headlines li, .mapping-gaps li, .path-workloads li { break-inside: avoid; }
+      th, td, .cost-table th, .cost-table td { padding: 4pt 6pt 4pt 0; }
+      tr, .headlines li, .mapping-gaps li, .path-workloads li, .cost-chart-row { break-inside: avoid; }
+      .cost-bar .cost-segment { border: 0.5pt solid var(--rule); }
       tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
       .workload-evidence summary, .cost-inputs summary { break-after: avoid; }
       summary .icon { display: none; }
@@ -748,1200 +915,241 @@
     </div>
   </header>
   <main>
-    <section data-section="found">
+    <section data-section="summary">
       <div class="sec grid">
-        <h2 class="sec-label">What Fazit recorded for a fictional organisation</h2>
+        <h2 class="sec-label" id="summary-title">Where the organisation stands</h2>
         <div class="sec-body">
-          <ul class="headlines" role="list">
+          <p class="sec-intro">Of 14 areas:</p>
+          <dl class="status-summary">
+
+              <div>
+                <dt><span class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Blocker</span> 1</dt>
+                <dd>A confirmed obstacle that must be resolved before this move.</dd>
+              </div>
+
+              <div>
+                <dt><span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span> 9</dt>
+                <dd>The checks found work to do before a move.</dd>
+              </div>
+
+              <div>
+                <dt><span class="status unknown"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> Unknown</span> 1</dt>
+                <dd>Evidence is missing, so this version cannot assess the area.</dd>
+              </div>
+
+              <div>
+                <dt><span class="status ready"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> Ready</span> 3</dt>
+                <dd>The current checks found no blocker and no missing evidence.</dd>
+              </div>
+
+          </dl>
 
 
-              <li data-provenance="provided">
-                <strong>Licence terms reviewed</strong>
-                <span class="figure">Yes</span>
-                <span class="prov">Provided</span>
+          <div class="subsection" data-summary="blockers">
+            <h3>What blocks this move</h3>
 
-                  <small>Sample input · 10 November 2026</small>
 
+
+              <dl class="rows">
+
+                  <div>
+                    <dt><a href="#readiness-telephony">Telephony</a></dt>
+                    <dd>The organisation uses Microsoft telephony and has confirmed that it has no replacement.
+  </dd>
+                  </div>
+
+              </dl>
+              <p><a class="more" href="#status-blocker">All blockers<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+
+          </div>
+          <div class="subsection" data-summary="unknown">
+            <h3>What is still unknown</h3>
+
+              <dl class="rows">
+
+                  <div>
+                    <dt><a href="#readiness-mail">Mail</a></dt>
+                    <dd>Ask the mail administrator to check the count separately. It stays Unknown in this report.</dd>
+                  </div>
+
+                  <div>
+                    <dt><a href="#readiness-sharepoint">SharePoint</a></dt>
+                    <dd>Find out the answer and enter it in the inputs file.</dd>
+                  </div>
+
+                  <div>
+                    <dt><a href="#readiness-office_files">Office files</a></dt>
+                    <dd>Find out the answer and enter it in the inputs file.</dd>
+                  </div>
+
+                  <div>
+                    <dt><a href="#readiness-device_management">Device management</a></dt>
+                    <dd>Find out the answer and enter it in the inputs file.</dd>
+                  </div>
+
+              </dl>
+
+            <p>
+              <a class="more" href="#not-examined">All open points<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+
+            </p>
+
+          </div>
+
+
+            <div class="subsection" data-summary="scope">
+              <h3>What openDesk covers</h3>
+              <p>Of the 22 functions Fazit checks for openDesk:
+
+                  In the suite 6 ·
+
+                  In the suite with limits 8 ·
+
+                  Direct transfer undocumented 3 ·
+
+                  Not available 5
+
+              </p>
+
+                <dl class="rows">
+                  <div>
+                    <dt>Outside openDesk and needed here</dt>
+                    <dd><a href="#transfer-gap-device_management">Device management with Microsoft Intune</a> · <a href="#transfer-gap-windows_applications">Running Windows-only applications</a> · <a href="#transfer-gap-automation_and_low_code">Power Platform automation and low-code applications</a> · <a href="#transfer-gap-telephony">Teams Phone and public telephone calling</a></dd>
+                  </div>
+                </dl>
+
+
+                <p>3 more are outside openDesk and still Unknown here.</p>
+
+              <p class="note-text">This mapping has not yet been reviewed by someone who operates the target system.</p>
+            </div>
+
+          <ul class="tiles tiles-3" role="list">
+
+
+              <li data-cost-tile="stay">
+                <p class="tile-label">Stay · five-year total</p>
+
+                  <span class="figure-num">EUR 600,000</span>
+
+                    <p class="tile-title">Today&#39;s yearly costs for five years</p>
+
+                  <p data-cost-origin="calculated_with_examples">Calculated from sample inputs</p>
 
               </li>
 
 
-              <li data-provenance="measured">
-                <strong>Internal accounts</strong>
-                <span class="figure">91 accounts</span>
-                <span class="prov">Measured (simulated)</span>
+              <li data-cost-tile="partial_exit">
+                <p class="tile-label">Partial move · five-year total</p>
 
+                  <span class="figure-num">EUR 527,800</span>
 
-              </li>
+                    <p class="tile-title" data-comparison="less"><span>
 
+      <span class="cost-value">EUR 72,200</span>
 
-              <li data-provenance="measured">
-                <strong>Mailboxes</strong>
-                <span class="figure">91 mailboxes</span>
-                <span class="prov">Measured (simulated)</span>
+    less than staying
+  </span></p>
 
-
-              </li>
-
-
-              <li data-provenance="measured">
-                <strong>Mail storage</strong>
-                <span class="figure">312.4 GB</span>
-                <span class="prov">Measured (simulated)</span>
-
+                  <p data-cost-origin="calculated_with_examples">Calculated from sample inputs</p>
 
               </li>
 
 
-              <li data-provenance="measured">
-                <strong>OneDrive storage</strong>
-                <span class="figure">264.8 GB</span>
-                <span class="prov">Measured (simulated)</span>
+              <li data-cost-tile="full_exit">
+                <p class="tile-label">Full move · five-year total</p>
 
+                  <span class="figure-num">EUR 464,350</span>
 
-              </li>
+                    <p class="tile-title" data-comparison="less"><span>
 
+      <span class="cost-value">EUR 135,650</span>
 
-              <li data-provenance="measured">
-                <strong>SharePoint sites</strong>
-                <span class="figure">24 sites</span>
-                <span class="prov">Measured (simulated)</span>
+    less than staying
+  </span></p>
 
-
-              </li>
-
-
-              <li data-provenance="measured">
-                <strong>SharePoint storage</strong>
-                <span class="figure">481.5 GB</span>
-                <span class="prov">Measured (simulated)</span>
-
-
-              </li>
-
-
-              <li data-provenance="measured">
-                <strong>Teams</strong>
-                <span class="figure">31 teams</span>
-                <span class="prov">Measured (simulated)</span>
-
-
-              </li>
-
-
-              <li data-provenance="provided">
-                <strong>Devices</strong>
-                <span class="figure">92 devices</span>
-                <span class="prov">Provided</span>
-
-                  <small>Sample interview answer · 28 October 2026</small>
-
+                  <p data-cost-origin="calculated_with_examples">Calculated from sample inputs</p>
 
               </li>
 
           </ul>
-          <h3 id="licences-title">Licence products</h3>
+          <div class="cost-notes">
+    <p class="note-text">Staying assumes no price change.</p>
 
 
-            <p data-provenance="measured">
-              Licence products found: 3
-              <span class="prov">Measured (simulated)</span>
 
-              <small>Sample licence inventory · 2 November 2026 · Complete, 3 of 3 scanned, 0 failed</small>
-            </p>
+      <p class="note-text" data-break-even="partial_exit">Partial move costs the same as staying if target operations cost EUR 20,440 a year (entered: EUR 6,000).</p>
 
 
-              <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
-                <table class="licences" role="table">
-                  <caption data-sample>Scan measurements are simulated.</caption>
-                  <thead role="rowgroup">
-                    <tr role="row">
-                      <th scope="col" role="columnheader" data-label="Product code">Product code</th>
-                      <th scope="col" role="columnheader" data-label="Purchased">Purchased</th>
-                      <th scope="col" role="columnheader" data-label="Assigned">Assigned</th>
-                      <th scope="col" role="columnheader" data-label="Service plan classification">Service plan classification</th>
-                    </tr>
-                  </thead>
-                  <tbody role="rowgroup">
 
+      <p class="note-text" data-break-even="full_exit">Full move costs the same as staying if target operations cost EUR 39,130 a year (entered: EUR 12,000).</p>
 
-                      <tr data-product="SPE_E3" data-provenance="measured" role="row">
-                        <th scope="row" role="rowheader" data-label="Product code">SPE_E3 <small class="prov">Measured (simulated)</small></th>
-                        <td role="cell" data-label="Purchased">90</td>
-                        <td role="cell" data-label="Assigned">85</td>
-                        <td role="cell" data-label="Service plan classification">
-
-
-
-                              <div class="licence-plan">
-                                Device management · Included in the product
-                                <small><code>INTUNE_A</code>, <code>INTUNE_O365</code>, <code>UNIVERSAL_PRINT_01</code>, <code>WIN10_PRO_ENT_SUB</code>, <code>Windows_Autopatch</code>, <code>WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Identity and access · Included in the product
-                                <small><code>AAD_PREMIUM</code>, <code>MFA_PREMIUM</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Integrations · Included in the product
-                                <small><code>GRAPH_CONNECTORS_SEARCH_INDEX</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Mail · Included in the product
-                                <small><code>EXCHANGE_S_ENTERPRISE</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Office files · Included in the product
-                                <small><code>OFFICESUBSCRIPTION</code>, <code>SHAREPOINTWAC</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Power Platform · Included in the product
-                                <small><code>CDS_O365_P2</code>, <code>DYN365_CDS_O365_P2</code>, <code>FLOW_O365_P2</code>, <code>POWER_VIRTUAL_AGENTS_O365_P2</code>, <code>POWERAPPS_O365_P2</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Security and compliance · Included in the product
-                                <small><code>ADALLOM_S_DISCOVERY</code>, <code>ATP_ENTERPRISE</code>, <code>ContentExplorer_Standard</code>, <code>MDE_LITE</code>, <code>MIP_S_CLP1</code>, <code>RMS_S_ENTERPRISE</code>, <code>RMS_S_PREMIUM</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                SharePoint · Included in the product
-                                <small><code>SHAREPOINTENTERPRISE</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Small applications · Included in the product
-                                <small><code>BPOS_S_TODO_2</code>, <code>CLIPCHAMP</code>, <code>FORMS_PLAN_E3</code>, <code>MICROSOFT_LOOP</code>, <code>MICROSOFTBOOKINGS</code>, <code>PROJECT_O365_P2</code>, <code>PROJECTWORKMANAGEMENT</code>, <code>STREAM_O365_E3</code>, <code>SWAY</code>, <code>VIVA_LEARNING_SEEDED</code>, <code>VIVAENGAGE_CORE</code>, <code>WHITEBOARD_PLAN2</code>, <code>YAMMER_ENTERPRISE</code></small>
-                              </div>
-
-
-
-                              <div class="licence-plan">
-                                Teams · Included in the product
-                                <small><code>MCOSTANDARD</code>, <code>MESH_AVATARS_ADDITIONAL_FOR_TEAMS</code>, <code>MESH_AVATARS_FOR_TEAMS</code>, <code>MESH_IMMERSIVE_FOR_TEAMS</code>, <code>TEAMS1</code></small>
-                              </div>
-
-
-
-
-                            <div>Service plans not linked to an area: 8.</div>
-
-
-
-                        </td>
-                      </tr>
-
-
-                      <tr data-product="MCOEV" data-provenance="measured" role="row">
-                        <th scope="row" role="rowheader" data-label="Product code">MCOEV <small class="prov">Measured (simulated)</small></th>
-                        <td role="cell" data-label="Purchased">12</td>
-                        <td role="cell" data-label="Assigned">12</td>
-                        <td role="cell" data-label="Service plan classification">
-
-
-
-                              <div class="licence-plan">
-                                Telephony · Separately licensed
-                                <small><code>MCOEV</code></small>
-                              </div>
-
-
-
-
-
-
-                        </td>
-                      </tr>
-
-
-                      <tr data-product="PBI_PREMIUM_PER_USER" data-provenance="measured" role="row">
-                        <th scope="row" role="rowheader" data-label="Product code">PBI_PREMIUM_PER_USER <small class="prov">Measured (simulated)</small></th>
-                        <td role="cell" data-label="Purchased">5</td>
-                        <td role="cell" data-label="Assigned">5</td>
-                        <td role="cell" data-label="Service plan classification">
-
-
-
-                              <div class="licence-plan">
-                                Power Platform · Separately licensed
-                                <small><code>BI_AZURE_P2</code>, <code>BI_AZURE_P3</code></small>
-                              </div>
-
-
-
-
-                            <div>Service plans not linked to an area: 1.</div>
-
-
-
-                        </td>
-                      </tr>
-
-                  </tbody>
-                </table>
-              </div>
-
-
-
-            <details class="workload-evidence" data-evidence-workload="licences">
-              <summary id="evidence-licences"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Licences</summary>
-              <div class="table-scroll" role="region" aria-labelledby="evidence-licences" tabindex="0">
-    <table class="coverage" role="table">
-      <caption data-sample>Scan measurements are simulated.</caption>
-      <thead role="rowgroup">
-        <tr role="row">
-          <th scope="col" role="columnheader" data-label="Finding">Finding</th>
-          <th scope="col" role="columnheader" data-label="Value">Value</th>
-        </tr>
-      </thead>
-      <tbody role="rowgroup">
-
-          <tr data-finding="licences.contract_terms_known" data-provenance="provided" role="row">
-            <th scope="row" role="rowheader" data-label="Finding">Licence terms reviewed</th>
-            <td role="cell" data-label="Value">
-              <div data-provenance="provided">
-    Yes
-
-    <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10 November 2026</small>
   </div>
-
-
-
-            </td>
-          </tr>
-
-
-
-      </tbody>
-    </table>
-  </div>
-            </details>
-
         </div>
       </div>
     </section>
-    <section data-section="costs">
+    <section data-section="path">
       <div class="sec grid">
-        <h2 class="sec-label">What staying and moving cost over five years</h2>
+        <h2 class="sec-label">What to do next</h2>
         <div class="sec-body">
 
-          <details class="cost-inputs">
-            <summary id="cost-inputs-title"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Cost inputs</summary>
-            <div class="table-scroll" role="region" aria-labelledby="cost-inputs-title" tabindex="0">
-              <table class="cost-table" role="table">
-                <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
-                <thead role="rowgroup">
-    <tr role="row">
-      <th scope="col" role="columnheader" data-label="Input">Input</th>
-      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial move">Partial move</th><th scope="col" role="columnheader" data-label="Full move">Full move</th>
-    </tr>
-  </thead>
-                <tbody role="rowgroup">
+            <h3>Confirmed blockers</h3>
 
 
-  <tr data-cost-input="microsoft_licences_per_year" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Current Microsoft licences per year
+              <ul data-path-status="blocker" class="path-workloads">
 
+                  <li data-path-workload="telephony">
+                    <strong>Telephony</strong> · The organisation uses Microsoft telephony and has confirmed that it has no replacement.
 
-        <small data-cost-origin="invented">Invented amount</small>
 
-    </th>
+                  </li>
 
+              </ul>
 
-      <td role="cell" data-label="Stay">
-        EUR 100,000.00
-      </td>
 
+            <h3>Unknowns to resolve first</h3>
 
-      <td role="cell" data-label="Partial move">
-        EUR 100,000.00
-      </td>
 
+              <ul data-path-status="unknown" class="path-workloads">
 
-      <td role="cell" data-label="Full move">
-        EUR 100,000.00
-      </td>
+                  <li data-path-workload="security_compliance">
+                    <strong>Security and compliance</strong> ·
+  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span>
 
-  </tr>
+                    <small>Evidence incomplete</small>
+                  </li>
 
+              </ul>
 
-  <tr data-cost-input="other_it_per_year" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Existing other IT costs per year
 
+            <h3>Areas with Ready status</h3>
 
-        <small data-cost-origin="invented">Invented amount</small>
 
-    </th>
+              <ul data-path-status="ready" class="path-workloads">
 
+                  <li data-path-workload="onedrive">
+                    <strong>OneDrive</strong> · OneDrive accounts and storage have been inventoried, and there is no external sharing.
 
-      <td role="cell" data-label="Stay">
-        EUR 20,000.00
-      </td>
+                  </li>
 
+                  <li data-path-workload="teams">
+                    <strong>Teams</strong> · The teams have no guests and no added apps, tabs, bots or connectors, and the chat history does not need to be kept.
 
-      <td role="cell" data-label="Partial move">
-        EUR 20,000.00
-      </td>
+                  </li>
 
+                  <li data-path-workload="small_apps">
+                    <strong>Small applications</strong> · The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.
 
-      <td role="cell" data-label="Full move">
-        EUR 20,000.00
-      </td>
+                  </li>
 
-  </tr>
+              </ul>
 
 
-
-  <tr data-cost-input="users" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Users on the target system
-
-
-        <small data-cost-origin="sample_input">Sample input</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        30
-
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        85
-
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="retained_microsoft_licences_per_year" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Retained Microsoft licences per year
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 60,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 0.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="hosting_per_user_per_month" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Hosting per user per month
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 8.50
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 8.50
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="operations_per_year" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Target system operations per year
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 6,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 12,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="other_recurring_per_year" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Other target costs per year
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 1,500.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 2,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="one_time_migration" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      One-time migration
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 15,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 40,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="application_adaptation" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Application adaptation
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 4,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 10,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="external_advice" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      External advice
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 3,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 8,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="training_days_per_person" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Training days per person
-
-
-        <small data-cost-origin="sample_input">Sample input</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        2
-
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        2
-
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="training_day_rate" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Training cost per person per day
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 400.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 400.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="training_staff" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      People to train
-
-
-        <small data-cost-origin="sample_input">Sample input</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        30
-
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        85
-
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="productivity_loss" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Lost working time (internal estimate, not a payment)
-
-
-        <small data-cost-origin="invented">Invented amount</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        EUR 9,000.00
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        EUR 25,000.00
-      </td>
-
-  </tr>
-
-
-  <tr data-cost-input="parallel_running_months" role="row">
-    <th scope="row" role="rowheader" data-label="Input">
-      Months running both systems
-
-
-        <small data-cost-origin="sample_input">Sample input</small>
-
-    </th>
-
-
-      <td role="cell" data-label="Stay">
-        Not applicable
-
-      </td>
-
-
-      <td role="cell" data-label="Partial move">
-        6
-
-      </td>
-
-
-      <td role="cell" data-label="Full move">
-        12
-
-      </td>
-
-  </tr>
-
-                </tbody>
-              </table>
-            </div>
-          </details>
-          <h3 id="cost-results-title">Costs by scenario</h3>
-          <div class="table-scroll" role="region" aria-labelledby="cost-results-title" tabindex="0">
-            <table class="cost-table" role="table">
-              <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
-              <thead role="rowgroup">
-    <tr role="row">
-      <th scope="col" role="columnheader" data-label="Cost category">Cost category</th>
-      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial move">Partial move</th><th scope="col" role="columnheader" data-label="Full move">Full move</th>
-    </tr>
-  </thead>
-
-                <tbody data-block="running" role="rowgroup">
-                  <tr role="row">
-                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Running costs</th>
-                  </tr>
-
-                    <tr role="row" data-cost-line="microsoft_licences">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Current Microsoft licences
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay" data-amount="500000.00">
-                          EUR 500,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Full move">
-                          Not applicable
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="other_it">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Existing other IT costs
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay" data-amount="100000.00">
-                          EUR 100,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="100000.00">
-                          EUR 100,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="100000.00">
-                          EUR 100,000.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="retained_licences">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Retained Microsoft licences
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="270000.00">
-                          EUR 270,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="0.00">
-                          EUR 0.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="hosting">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Hosting
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="15300.00">
-                          EUR 15,300.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="43350.00">
-                          EUR 43,350.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="operations">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Target system operations
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="30000.00">
-                          EUR 30,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="60000.00">
-                          EUR 60,000.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="other_recurring">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Other recurring target costs
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="7500.00">
-                          EUR 7,500.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="10000.00">
-                          EUR 10,000.00
-                        </td>
-
-                    </tr>
-
-                  <tr class="subtotals" role="row">
-                    <th scope="row" role="rowheader" data-label="Cost category">
-    Subtotal
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                      <td role="cell" data-label="Stay" data-amount="600000.00">EUR 600,000.00</td>
-
-                      <td role="cell" data-label="Partial move" data-amount="422800.00">EUR 422,800.00</td>
-
-                      <td role="cell" data-label="Full move" data-amount="213350.00">EUR 213,350.00</td>
-
-                  </tr>
-                </tbody>
-
-                <tbody data-block="direct_project" role="rowgroup">
-                  <tr role="row">
-                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Direct project costs</th>
-                  </tr>
-
-                    <tr role="row" data-cost-line="one_time_migration">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    One-time migration
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="15000.00">
-                          EUR 15,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="40000.00">
-                          EUR 40,000.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="application_adaptation">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Application adaptation
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="4000.00">
-                          EUR 4,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="10000.00">
-                          EUR 10,000.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="external_advice">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    External advice
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="3000.00">
-                          EUR 3,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="8000.00">
-                          EUR 8,000.00
-                        </td>
-
-                    </tr>
-
-                    <tr role="row" data-cost-line="training">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Training
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="24000.00">
-                          EUR 24,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="68000.00">
-                          EUR 68,000.00
-                        </td>
-
-                    </tr>
-
-                  <tr class="subtotals" role="row">
-                    <th scope="row" role="rowheader" data-label="Cost category">
-    Subtotal
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
-
-                      <td role="cell" data-label="Partial move" data-amount="46000.00">EUR 46,000.00</td>
-
-                      <td role="cell" data-label="Full move" data-amount="126000.00">EUR 126,000.00</td>
-
-                  </tr>
-                </tbody>
-
-                <tbody data-block="productivity_loss" role="rowgroup">
-                  <tr role="row">
-                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Lost working time (internal estimate, not a payment)</th>
-                  </tr>
-
-                    <tr role="row" data-cost-line="productivity_loss">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Lost working time (internal estimate, not a payment)
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="9000.00">
-                          EUR 9,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="25000.00">
-                          EUR 25,000.00
-                        </td>
-
-                    </tr>
-
-                  <tr class="subtotals" role="row">
-                    <th scope="row" role="rowheader" data-label="Cost category">
-    Subtotal
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
-
-                      <td role="cell" data-label="Partial move" data-amount="9000.00">EUR 9,000.00</td>
-
-                      <td role="cell" data-label="Full move" data-amount="25000.00">EUR 25,000.00</td>
-
-                  </tr>
-                </tbody>
-
-                <tbody data-block="parallel_running" role="rowgroup">
-                  <tr role="row">
-                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Parallel running</th>
-                  </tr>
-
-                    <tr role="row" data-cost-line="parallel_running">
-                      <th scope="row" role="rowheader" data-label="Cost category">
-    Current Microsoft licences during parallel running
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-
-                        <td role="cell" data-label="Stay">
-                          Not applicable
-                        </td>
-
-
-                        <td role="cell" data-label="Partial move" data-amount="50000.00">
-                          EUR 50,000.00
-                        </td>
-
-
-                        <td role="cell" data-label="Full move" data-amount="100000.00">
-                          EUR 100,000.00
-                        </td>
-
-                    </tr>
-
-                  <tr class="subtotals" role="row">
-                    <th scope="row" role="rowheader" data-label="Cost category">
-    Subtotal
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
-
-                      <td role="cell" data-label="Partial move" data-amount="50000.00">EUR 50,000.00</td>
-
-                      <td role="cell" data-label="Full move" data-amount="100000.00">EUR 100,000.00</td>
-
-                  </tr>
-                </tbody>
-
-              <tbody role="rowgroup">
-                <tr class="totals" role="row">
-                  <th scope="row" role="rowheader" data-label="Cost category">
-    Five-year total
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                    <td data-scenario="stay" data-total="600000.00" role="cell" data-label="Stay">EUR 600,000.00</td>
-
-                    <td data-scenario="partial_exit" data-total="527800.00" role="cell" data-label="Partial move">EUR 527,800.00</td>
-
-                    <td data-scenario="full_exit" data-total="464350.00" role="cell" data-label="Full move">EUR 464,350.00</td>
-
-                </tr>
-                <tr role="row">
-                  <th scope="row" role="rowheader" data-label="Cost category">
-    Difference from staying
-
-
-      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
-
-  </th>
-
-                    <td role="cell" data-label="Stay">EUR 0.00</td>
-
-                    <td role="cell" data-label="Partial move">EUR -72,200.00</td>
-
-                    <td role="cell" data-label="Full move">EUR -135,650.00</td>
-
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="muted">Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.</p>
-
+          <p>The report has no department-level evidence, so it cannot identify a department for a pilot. The people responsible for the move choose the pilot group with the organisation.</p>
+          <h3>How a move typically proceeds</h3>
+          <ol>
+            <li>A pilot group tries the new system.</li><li>Files that need conversion are prepared and tested.</li><li>The organisation moves in waves with both systems running side by side.</li><li>The organisation switches off the old system after the move is complete.</li>
+          </ol>
         </div>
       </div>
     </section>
@@ -4048,7 +3256,7 @@
 
           </div>
           <p class="areas-empty note">No area matches this selection. Choose &#34;All&#34; to see every area.</p>
-          <div data-subsection="not-examined">
+          <div data-subsection="not-examined" id="not-examined">
             <h3>Not examined</h3>
             <ul class="not-examined">
 
@@ -4077,6 +3285,1051 @@
 
             </ul>
           </div>
+        </div>
+      </div>
+    </section>
+    <section data-section="costs">
+      <div class="sec grid">
+        <h2 class="sec-label">What staying and moving cost over five years</h2>
+        <div class="sec-body">
+          <p class="sec-intro">
+            Stadtverwaltung Musterstadt
+            · Evidence date (scan.json) <time datetime="2026-11-02T09:00:00Z">2 November 2026</time>
+            · Inputs as of (inputs.yaml)
+            <time datetime="2026-11-10">10 November 2026</time>
+
+            · Invented amount
+          </p>
+          <p class="note-text">The costs come from the inputs file and are the same for every target profile.</p>
+          <div class="cost-bars">
+    <ul class="legend" role="list">
+
+        <li><span class="cost-swatch cost-running" aria-hidden="true"></span>Running costs</li>
+
+        <li><span class="cost-swatch cost-direct_project" aria-hidden="true"></span>Direct project costs</li>
+
+        <li><span class="cost-swatch cost-productivity_loss" aria-hidden="true"></span>Lost working time (internal estimate, not a payment)</li>
+
+        <li><span class="cost-swatch cost-parallel_running" aria-hidden="true"></span>Parallel running</li>
+
+    </ul>
+
+
+      <div class="cost-chart-row" data-chart-scenario="stay">
+        <div class="cost-chart-heading">
+          <h3>Stay</h3>
+
+            <p>
+              <strong class="cost-value">EUR 600,000.00</strong>
+
+              <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+            </p>
+
+        </div>
+
+          <div class="cost-bar" aria-hidden="true" style="--share: 1.0000">
+
+              <span class="cost-segment cost-running" data-chart-block="running" style="flex-grow: 600000.00"></span>
+
+          </div>
+          <ul class="cost-chart-values" role="list">
+
+              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 600,000.00</span></li>
+
+              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 0.00</span></li>
+
+              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 0.00</span></li>
+
+              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 0.00</span></li>
+
+          </ul>
+
+      </div>
+
+
+      <div class="cost-chart-row" data-chart-scenario="partial_exit">
+        <div class="cost-chart-heading">
+          <h3>Partial move</h3>
+
+            <p>
+              <strong class="cost-value">EUR 527,800.00</strong>
+
+                · <span>
+
+      <span class="cost-value">EUR 72,200.00</span>
+
+    less than staying
+  </span>
+
+              <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+            </p>
+
+        </div>
+
+          <div class="cost-bar" aria-hidden="true" style="--share: 0.8797">
+
+              <span class="cost-segment cost-running" data-chart-block="running" style="flex-grow: 422800.00"></span>
+
+              <span class="cost-segment cost-direct_project" data-chart-block="direct_project" style="flex-grow: 46000.00"></span>
+
+              <span class="cost-segment cost-productivity_loss" data-chart-block="productivity_loss" style="flex-grow: 9000.00"></span>
+
+              <span class="cost-segment cost-parallel_running" data-chart-block="parallel_running" style="flex-grow: 50000.00"></span>
+
+          </div>
+          <ul class="cost-chart-values" role="list">
+
+              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 422,800.00</span></li>
+
+              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 46,000.00</span></li>
+
+              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 9,000.00</span></li>
+
+              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 50,000.00</span></li>
+
+          </ul>
+
+      </div>
+
+
+      <div class="cost-chart-row" data-chart-scenario="full_exit">
+        <div class="cost-chart-heading">
+          <h3>Full move</h3>
+
+            <p>
+              <strong class="cost-value">EUR 464,350.00</strong>
+
+                · <span>
+
+      <span class="cost-value">EUR 135,650.00</span>
+
+    less than staying
+  </span>
+
+              <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+            </p>
+
+        </div>
+
+          <div class="cost-bar" aria-hidden="true" style="--share: 0.7739">
+
+              <span class="cost-segment cost-running" data-chart-block="running" style="flex-grow: 213350.00"></span>
+
+              <span class="cost-segment cost-direct_project" data-chart-block="direct_project" style="flex-grow: 126000.00"></span>
+
+              <span class="cost-segment cost-productivity_loss" data-chart-block="productivity_loss" style="flex-grow: 25000.00"></span>
+
+              <span class="cost-segment cost-parallel_running" data-chart-block="parallel_running" style="flex-grow: 100000.00"></span>
+
+          </div>
+          <ul class="cost-chart-values" role="list">
+
+              <li>Running costs · <span class="cost-value" data-chart-value="running">EUR 213,350.00</span></li>
+
+              <li>Direct project costs · <span class="cost-value" data-chart-value="direct_project">EUR 126,000.00</span></li>
+
+              <li>Lost working time (internal estimate, not a payment) · <span class="cost-value" data-chart-value="productivity_loss">EUR 25,000.00</span></li>
+
+              <li>Parallel running · <span class="cost-value" data-chart-value="parallel_running">EUR 100,000.00</span></li>
+
+          </ul>
+
+      </div>
+
+  </div>
+
+          <div class="cost-notes">
+    <p class="note-text">Staying assumes no price change.</p>
+
+
+
+      <p class="note-text" data-break-even="partial_exit">Partial move costs the same as staying if target operations cost EUR 20,440 a year (entered: EUR 6,000).</p>
+
+
+
+      <p class="note-text" data-break-even="full_exit">Full move costs the same as staying if target operations cost EUR 39,130 a year (entered: EUR 12,000).</p>
+
+  </div>
+          <h3 id="cost-results-title">Costs by scenario</h3>
+          <div class="table-scroll" role="region" aria-labelledby="cost-results-title" tabindex="0">
+            <table class="cost-table" role="table">
+              <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
+              <thead role="rowgroup">
+    <tr role="row">
+      <th scope="col" role="columnheader" data-label="Cost category">Cost category</th>
+      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial move">Partial move</th><th scope="col" role="columnheader" data-label="Full move">Full move</th>
+    </tr>
+  </thead>
+
+                <tbody data-block="running" role="rowgroup">
+                  <tr role="row">
+                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Running costs</th>
+                  </tr>
+
+                    <tr role="row" data-cost-line="microsoft_licences">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Current Microsoft licences
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay" data-amount="500000.00">
+                          EUR 500,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Full move">
+                          Not applicable
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="other_it">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Existing other IT costs
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay" data-amount="100000.00">
+                          EUR 100,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="100000.00">
+                          EUR 100,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="100000.00">
+                          EUR 100,000.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="retained_licences">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Retained Microsoft licences
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="270000.00">
+                          EUR 270,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="0.00">
+                          EUR 0.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="hosting">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Hosting
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="15300.00">
+                          EUR 15,300.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="43350.00">
+                          EUR 43,350.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="operations">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Target system operations
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="30000.00">
+                          EUR 30,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="60000.00">
+                          EUR 60,000.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="other_recurring">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Other recurring target costs
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="7500.00">
+                          EUR 7,500.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="10000.00">
+                          EUR 10,000.00
+                        </td>
+
+                    </tr>
+
+                  <tr class="subtotals" role="row">
+                    <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                      <td role="cell" data-label="Stay" data-amount="600000.00">EUR 600,000.00</td>
+
+                      <td role="cell" data-label="Partial move" data-amount="422800.00">EUR 422,800.00</td>
+
+                      <td role="cell" data-label="Full move" data-amount="213350.00">EUR 213,350.00</td>
+
+                  </tr>
+                </tbody>
+
+                <tbody data-block="direct_project" role="rowgroup">
+                  <tr role="row">
+                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Direct project costs</th>
+                  </tr>
+
+                    <tr role="row" data-cost-line="one_time_migration">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    One-time migration
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="15000.00">
+                          EUR 15,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="40000.00">
+                          EUR 40,000.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="application_adaptation">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Application adaptation
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="4000.00">
+                          EUR 4,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="10000.00">
+                          EUR 10,000.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="external_advice">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    External advice
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="3000.00">
+                          EUR 3,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="8000.00">
+                          EUR 8,000.00
+                        </td>
+
+                    </tr>
+
+                    <tr role="row" data-cost-line="training">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Training
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="24000.00">
+                          EUR 24,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="68000.00">
+                          EUR 68,000.00
+                        </td>
+
+                    </tr>
+
+                  <tr class="subtotals" role="row">
+                    <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
+
+                      <td role="cell" data-label="Partial move" data-amount="46000.00">EUR 46,000.00</td>
+
+                      <td role="cell" data-label="Full move" data-amount="126000.00">EUR 126,000.00</td>
+
+                  </tr>
+                </tbody>
+
+                <tbody data-block="productivity_loss" role="rowgroup">
+                  <tr role="row">
+                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Lost working time (internal estimate, not a payment)</th>
+                  </tr>
+
+                    <tr role="row" data-cost-line="productivity_loss">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Lost working time (internal estimate, not a payment)
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="9000.00">
+                          EUR 9,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="25000.00">
+                          EUR 25,000.00
+                        </td>
+
+                    </tr>
+
+                  <tr class="subtotals" role="row">
+                    <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
+
+                      <td role="cell" data-label="Partial move" data-amount="9000.00">EUR 9,000.00</td>
+
+                      <td role="cell" data-label="Full move" data-amount="25000.00">EUR 25,000.00</td>
+
+                  </tr>
+                </tbody>
+
+                <tbody data-block="parallel_running" role="rowgroup">
+                  <tr role="row">
+                    <th scope="rowgroup" role="rowheader" colspan="4" data-label="Cost category">Parallel running</th>
+                  </tr>
+
+                    <tr role="row" data-cost-line="parallel_running">
+                      <th scope="row" role="rowheader" data-label="Cost category">
+    Current Microsoft licences during parallel running
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+
+                        <td role="cell" data-label="Stay">
+                          Not applicable
+                        </td>
+
+
+                        <td role="cell" data-label="Partial move" data-amount="50000.00">
+                          EUR 50,000.00
+                        </td>
+
+
+                        <td role="cell" data-label="Full move" data-amount="100000.00">
+                          EUR 100,000.00
+                        </td>
+
+                    </tr>
+
+                  <tr class="subtotals" role="row">
+                    <th scope="row" role="rowheader" data-label="Cost category">
+    Subtotal
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                      <td role="cell" data-label="Stay" data-amount="0.00">EUR 0.00</td>
+
+                      <td role="cell" data-label="Partial move" data-amount="50000.00">EUR 50,000.00</td>
+
+                      <td role="cell" data-label="Full move" data-amount="100000.00">EUR 100,000.00</td>
+
+                  </tr>
+                </tbody>
+
+              <tbody role="rowgroup">
+                <tr class="totals" role="row">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Five-year total
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                    <td data-scenario="stay" data-total="600000.00" role="cell" data-label="Stay">EUR 600,000.00</td>
+
+                    <td data-scenario="partial_exit" data-total="527800.00" role="cell" data-label="Partial move">EUR 527,800.00</td>
+
+                    <td data-scenario="full_exit" data-total="464350.00" role="cell" data-label="Full move">EUR 464,350.00</td>
+
+                </tr>
+                <tr role="row">
+                  <th scope="row" role="rowheader" data-label="Cost category">
+    Difference from staying
+
+      <small data-cost-origin="calculated_with_examples">Calculated from sample inputs</small>
+
+  </th>
+
+                    <td role="cell" data-label="Stay">EUR 0.00</td>
+
+                    <td role="cell" data-label="Partial move">EUR -72,200.00</td>
+
+                    <td role="cell" data-label="Full move">EUR -135,650.00</td>
+
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.</p>
+          <p class="note-text">Amounts are as entered. The inputs file does not say whether they include VAT.</p>
+
+          <details class="cost-inputs">
+            <summary id="cost-inputs-title"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Cost inputs</summary>
+            <div class="table-scroll" role="region" aria-labelledby="cost-inputs-title" tabindex="0">
+              <table class="cost-table" role="table">
+                <caption data-invented-amounts>Amounts in this table are based on invented prices for the demonstration.</caption>
+                <thead role="rowgroup">
+    <tr role="row">
+      <th scope="col" role="columnheader" data-label="Input">Input</th>
+      <th scope="col" role="columnheader" data-label="Stay">Stay</th><th scope="col" role="columnheader" data-label="Partial move">Partial move</th><th scope="col" role="columnheader" data-label="Full move">Full move</th>
+    </tr>
+  </thead>
+                <tbody role="rowgroup">
+
+
+  <tr data-cost-input="microsoft_licences_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Current Microsoft licences per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        EUR 100,000.00
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 100,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 100,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="other_it_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Existing other IT costs per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        EUR 20,000.00
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 20,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 20,000.00
+      </td>
+
+  </tr>
+
+
+
+  <tr data-cost-input="users" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Users on the target system
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        30
+
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        85
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="retained_microsoft_licences_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Retained Microsoft licences per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 60,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 0.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="hosting_per_user_per_month" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Hosting per user per month
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 8.50
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 8.50
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="operations_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Target system operations per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 6,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 12,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="other_recurring_per_year" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Other target costs per year
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 1,500.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 2,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="one_time_migration" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      One-time migration
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 15,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 40,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="application_adaptation" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Application adaptation
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 4,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 10,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="external_advice" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      External advice
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 3,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 8,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_days_per_person" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Training days per person
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        2
+
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        2
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_day_rate" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Training cost per person per day
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 400.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 400.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="training_staff" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      People to train
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        30
+
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        85
+
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="productivity_loss" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Lost working time (internal estimate, not a payment)
+
+
+        <small data-cost-origin="invented">Invented amount</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        EUR 9,000.00
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        EUR 25,000.00
+      </td>
+
+  </tr>
+
+
+  <tr data-cost-input="parallel_running_months" role="row">
+    <th scope="row" role="rowheader" data-label="Input">
+      Months running both systems
+
+
+        <small data-cost-origin="sample_input">Sample input</small>
+
+    </th>
+
+
+      <td role="cell" data-label="Stay">
+        Not applicable
+
+      </td>
+
+
+      <td role="cell" data-label="Partial move">
+        6
+
+      </td>
+
+
+      <td role="cell" data-label="Full move">
+        12
+
+      </td>
+
+  </tr>
+
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -4949,68 +5202,295 @@
         </div>
       </div>
     </section>
-    <section data-section="path">
+    <section data-section="found">
       <div class="sec grid">
-        <h2 class="sec-label">What to do next</h2>
+        <h2 class="sec-label">What Fazit recorded for a fictional organisation</h2>
         <div class="sec-body">
-
-            <h3>Confirmed blockers</h3>
-
-
-              <ul data-path-status="blocker" class="path-workloads">
-
-                  <li data-path-workload="telephony">
-                    <strong>Telephony</strong> · The organisation uses Microsoft telephony and has confirmed that it has no replacement.
+          <ul class="headlines" role="list">
 
 
-                  </li>
+              <li data-provenance="provided">
+                <strong>Licence terms reviewed</strong>
+                <span class="figure">Yes</span>
+                <span class="prov">Provided</span>
 
-              </ul>
-
-
-            <h3>Unknowns to resolve first</h3>
-
-
-              <ul data-path-status="unknown" class="path-workloads">
-
-                  <li data-path-workload="security_compliance">
-                    <strong>Security and compliance</strong> ·
-  <span data-reason="licensed_use_not_measured">The licence includes this service, and its use is unverified. Ask the service owner how the organisation uses it.</span>
-
-                    <small>Evidence incomplete</small>
-                  </li>
-
-              </ul>
+                  <small>Sample input · 10 November 2026</small>
 
 
-            <h3>Areas with Ready status</h3>
+              </li>
 
 
-              <ul data-path-status="ready" class="path-workloads">
-
-                  <li data-path-workload="onedrive">
-                    <strong>OneDrive</strong> · OneDrive accounts and storage have been inventoried, and there is no external sharing.
-
-                  </li>
-
-                  <li data-path-workload="teams">
-                    <strong>Teams</strong> · The teams have no guests and no added apps, tabs, bots or connectors, and the chat history does not need to be kept.
-
-                  </li>
-
-                  <li data-path-workload="small_apps">
-                    <strong>Small applications</strong> · The organisation confirms it does not use smaller Microsoft applications such as Forms, Planner or Bookings.
-
-                  </li>
-
-              </ul>
+              <li data-provenance="measured">
+                <strong>Internal accounts</strong>
+                <span class="figure">91 accounts</span>
+                <span class="prov">Measured (simulated)</span>
 
 
-          <p>The report has no department-level evidence, so it cannot identify a department for a pilot. The people responsible for the move choose the pilot group with the organisation.</p>
-          <h3>How a move typically proceeds</h3>
-          <ol>
-            <li>A pilot group tries the new system.</li><li>Files that need conversion are prepared and tested.</li><li>The organisation moves in waves with both systems running side by side.</li><li>The organisation switches off the old system after the move is complete.</li>
-          </ol>
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>Mailboxes</strong>
+                <span class="figure">91 mailboxes</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>Mail storage</strong>
+                <span class="figure">312.4 GB</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>OneDrive storage</strong>
+                <span class="figure">264.8 GB</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>SharePoint sites</strong>
+                <span class="figure">24 sites</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>SharePoint storage</strong>
+                <span class="figure">481.5 GB</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="measured">
+                <strong>Teams</strong>
+                <span class="figure">31 teams</span>
+                <span class="prov">Measured (simulated)</span>
+
+
+              </li>
+
+
+              <li data-provenance="provided">
+                <strong>Devices</strong>
+                <span class="figure">92 devices</span>
+                <span class="prov">Provided</span>
+
+                  <small>Sample interview answer · 28 October 2026</small>
+
+
+              </li>
+
+          </ul>
+          <h3 id="licences-title">Licence products</h3>
+
+
+            <p data-provenance="measured">
+              Licence products found: 3
+              <span class="prov">Measured (simulated)</span>
+
+              <small>Sample licence inventory · 2 November 2026 · Complete, 3 of 3 scanned, 0 failed</small>
+            </p>
+
+
+              <div class="table-scroll" role="region" aria-labelledby="licences-title" tabindex="0">
+                <table class="licences" role="table">
+                  <caption data-sample>Scan measurements are simulated.</caption>
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th scope="col" role="columnheader" data-label="Product code">Product code</th>
+                      <th scope="col" role="columnheader" data-label="Purchased">Purchased</th>
+                      <th scope="col" role="columnheader" data-label="Assigned">Assigned</th>
+                      <th scope="col" role="columnheader" data-label="Service plan classification">Service plan classification</th>
+                    </tr>
+                  </thead>
+                  <tbody role="rowgroup">
+
+
+                      <tr data-product="SPE_E3" data-provenance="measured" role="row">
+                        <th scope="row" role="rowheader" data-label="Product code">SPE_E3 <small class="prov">Measured (simulated)</small></th>
+                        <td role="cell" data-label="Purchased">90</td>
+                        <td role="cell" data-label="Assigned">85</td>
+                        <td role="cell" data-label="Service plan classification">
+
+
+
+                              <div class="licence-plan">
+                                Device management · Included in the product
+                                <small><code>INTUNE_A</code>, <code>INTUNE_O365</code>, <code>UNIVERSAL_PRINT_01</code>, <code>WIN10_PRO_ENT_SUB</code>, <code>Windows_Autopatch</code>, <code>WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Identity and access · Included in the product
+                                <small><code>AAD_PREMIUM</code>, <code>MFA_PREMIUM</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Integrations · Included in the product
+                                <small><code>GRAPH_CONNECTORS_SEARCH_INDEX</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Mail · Included in the product
+                                <small><code>EXCHANGE_S_ENTERPRISE</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Office files · Included in the product
+                                <small><code>OFFICESUBSCRIPTION</code>, <code>SHAREPOINTWAC</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Power Platform · Included in the product
+                                <small><code>CDS_O365_P2</code>, <code>DYN365_CDS_O365_P2</code>, <code>FLOW_O365_P2</code>, <code>POWER_VIRTUAL_AGENTS_O365_P2</code>, <code>POWERAPPS_O365_P2</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Security and compliance · Included in the product
+                                <small><code>ADALLOM_S_DISCOVERY</code>, <code>ATP_ENTERPRISE</code>, <code>ContentExplorer_Standard</code>, <code>MDE_LITE</code>, <code>MIP_S_CLP1</code>, <code>RMS_S_ENTERPRISE</code>, <code>RMS_S_PREMIUM</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                SharePoint · Included in the product
+                                <small><code>SHAREPOINTENTERPRISE</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Small applications · Included in the product
+                                <small><code>BPOS_S_TODO_2</code>, <code>CLIPCHAMP</code>, <code>FORMS_PLAN_E3</code>, <code>MICROSOFT_LOOP</code>, <code>MICROSOFTBOOKINGS</code>, <code>PROJECT_O365_P2</code>, <code>PROJECTWORKMANAGEMENT</code>, <code>STREAM_O365_E3</code>, <code>SWAY</code>, <code>VIVA_LEARNING_SEEDED</code>, <code>VIVAENGAGE_CORE</code>, <code>WHITEBOARD_PLAN2</code>, <code>YAMMER_ENTERPRISE</code></small>
+                              </div>
+
+
+
+                              <div class="licence-plan">
+                                Teams · Included in the product
+                                <small><code>MCOSTANDARD</code>, <code>MESH_AVATARS_ADDITIONAL_FOR_TEAMS</code>, <code>MESH_AVATARS_FOR_TEAMS</code>, <code>MESH_IMMERSIVE_FOR_TEAMS</code>, <code>TEAMS1</code></small>
+                              </div>
+
+
+
+
+                            <div>Service plans not linked to an area: 8.</div>
+
+
+
+                        </td>
+                      </tr>
+
+
+                      <tr data-product="MCOEV" data-provenance="measured" role="row">
+                        <th scope="row" role="rowheader" data-label="Product code">MCOEV <small class="prov">Measured (simulated)</small></th>
+                        <td role="cell" data-label="Purchased">12</td>
+                        <td role="cell" data-label="Assigned">12</td>
+                        <td role="cell" data-label="Service plan classification">
+
+
+
+                              <div class="licence-plan">
+                                Telephony · Separately licensed
+                                <small><code>MCOEV</code></small>
+                              </div>
+
+
+
+
+
+
+                        </td>
+                      </tr>
+
+
+                      <tr data-product="PBI_PREMIUM_PER_USER" data-provenance="measured" role="row">
+                        <th scope="row" role="rowheader" data-label="Product code">PBI_PREMIUM_PER_USER <small class="prov">Measured (simulated)</small></th>
+                        <td role="cell" data-label="Purchased">5</td>
+                        <td role="cell" data-label="Assigned">5</td>
+                        <td role="cell" data-label="Service plan classification">
+
+
+
+                              <div class="licence-plan">
+                                Power Platform · Separately licensed
+                                <small><code>BI_AZURE_P2</code>, <code>BI_AZURE_P3</code></small>
+                              </div>
+
+
+
+
+                            <div>Service plans not linked to an area: 1.</div>
+
+
+
+                        </td>
+                      </tr>
+
+                  </tbody>
+                </table>
+              </div>
+
+
+
+            <details class="workload-evidence" data-evidence-workload="licences">
+              <summary id="evidence-licences"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Licences</summary>
+              <div class="table-scroll" role="region" aria-labelledby="evidence-licences" tabindex="0">
+    <table class="coverage" role="table">
+      <caption data-sample>Scan measurements are simulated.</caption>
+      <thead role="rowgroup">
+        <tr role="row">
+          <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+          <th scope="col" role="columnheader" data-label="Value">Value</th>
+        </tr>
+      </thead>
+      <tbody role="rowgroup">
+
+          <tr data-finding="licences.contract_terms_known" data-provenance="provided" role="row">
+            <th scope="row" role="rowheader" data-label="Finding">Licence terms reviewed</th>
+            <td role="cell" data-label="Value">
+              <div data-provenance="provided">
+    Yes
+
+    <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10 November 2026</small>
+  </div>
+
+
+
+            </td>
+          </tr>
+
+
+
+      </tbody>
+    </table>
+  </div>
+            </details>
+
         </div>
       </div>
     </section>

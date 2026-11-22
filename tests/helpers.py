@@ -13,6 +13,7 @@ from fazit.cli import app
 ROOT = Path(__file__).resolve().parents[1]
 LICENSE_SHA256 = "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
 PLANTED_SCAN = ROOT / "tests" / "fixtures" / "planted_scan.json"
+ALL_UNKNOWN_SCAN = ROOT / "tests" / "fixtures" / "all_unknown_scan.json"
 NAME = "Erika Mustermann"
 ADDRESS = "erika.mustermann@example.invalid"
 TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlIn0.test-signature"

@@ -2145,3 +2145,24 @@ def test_suggested_path_explains_empty_lists(catalogue: Catalogue) -> None:
     for status in ("blocker", "ready"):
         assert strings[status] in path[0]
         assert f'data-path-status="{status}"' not in path[0]
+
+
+def test_summary_explains_empty_lists_with_complete_evidence(
+    catalogue: Catalogue, complete_evidence: dict[str, Finding]
+) -> None:
+    sample = sample_scan("town", catalogue)
+    scan = replace(
+        sample,
+        collectors=tuple(replace(item, status="ok", reason=None) for item in sample.collectors),
+        findings=tuple(complete_evidence.values()),
+        licences=None,
+    )
+    summary = unescape(report_section(render_report(scan, lang="en"), "summary"))
+    blockers, open_part = summary.split('data-summary="unknown"', 1)
+    strings = load_locale("en")
+
+    assert strings["path"]["empty"]["blocker"] in blockers
+    assert "a Blocker cannot be ruled out" not in blockers
+    assert 'href="#status-blocker"' not in blockers
+    assert strings["path"]["empty"]["unknown"] in open_part
+    assert f'href="#not-examined">{strings["summary"]["not_examined"]}' in open_part

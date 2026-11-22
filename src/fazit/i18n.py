@@ -67,10 +67,11 @@ def reason_text(strings: dict, code: str) -> tuple[str, str]:
     return reason["label"], reason["fix"]
 
 
-def _money_parts(amount: Fraction | Decimal) -> tuple[str, int, int]:
-    cents = int(abs(Fraction(amount)) * 100 + Fraction(1, 2))
-    whole, fraction = divmod(cents, 100)
-    return "-" if amount < 0 and cents else "", whole, fraction
+def _money_parts(amount: Fraction | Decimal, *, whole: bool = False) -> tuple[str, int, int]:
+    scale = 1 if whole else 100
+    rounded = int(abs(Fraction(amount)) * scale + Fraction(1, 2))
+    units, fraction = divmod(rounded, scale)
+    return "-" if amount < 0 and rounded else "", units, fraction
 
 
 def plain_amount(amount: Fraction | None) -> str:
@@ -93,10 +94,12 @@ class Formatter:
         whole = whole.replace(",", settings["thousands_separator"])
         return f"{whole}{settings['decimal_separator']}{fraction}" if point else whole
 
-    def money(self, amount: Fraction | Decimal, currency: str) -> str:
-        sign, whole, fraction = _money_parts(amount)
+    def money(self, amount: Fraction | Decimal, currency: str, *, whole: bool = False) -> str:
+        sign, units, fraction = _money_parts(amount, whole=whole)
         settings = self.strings["format"]
-        display = f"{sign}{self.integer(whole)}{settings['decimal_separator']}{fraction:02d}"
+        display = f"{sign}{self.integer(units)}"
+        if not whole:
+            display += f"{settings['decimal_separator']}{fraction:02d}"
         return settings["money"].format(amount=display, currency=currency).strip()
 
     def storage(self, value: int, *, lower_bound: bool = False) -> str:

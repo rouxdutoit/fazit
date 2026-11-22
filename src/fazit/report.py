@@ -5,14 +5,17 @@ from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
+from fractions import Fraction
 from functools import lru_cache, partial
 from importlib.resources import files
+from typing import Literal
 
 from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
 from .catalogue import Catalogue, load_catalogue
-from .costs import CostGroup, CostLine, ScenarioResult, compute_scenarios
+from .costs import YEARS, CostGroup, CostLine, ScenarioResult, compute_scenarios
 from .evidence import (
     combine,
     evidence_conflicts,
@@ -239,7 +242,14 @@ def _prepare_report(
         **_formatting_context(formatter, catalogue),
         **_cost_context(inputs),
         **_evidence_context(
-            scan, by_id, other_evidence, status_rules, catalogue, mapping, lang=lang
+            scan,
+            by_id,
+            other_evidence,
+            status_rules,
+            catalogue,
+            mapping,
+            lang=lang,
+            strings=formatter.strings,
         ),
         lang=lang,
         scan=scan,
@@ -320,6 +330,25 @@ def _target_functions(row: WorkloadStatus, mapping: TargetMapping) -> tuple[Func
     return tuple(sorted(functions, key=lambda item: item.function not in needed)[:2])
 
 
+@dataclass(frozen=True)
+class _SummaryRows:
+    blockers: tuple[WorkloadStatus, ...]
+    open_areas: tuple[tuple[str, str], ...]
+
+
+def _summary_rows(statuses: tuple[WorkloadStatus, ...], strings: dict) -> _SummaryRows:
+    open_areas = []
+    for row in statuses:
+        if row.status == "unknown" or row.incomplete:
+            code = row.reason_code if row.reason_code is not None else row.missing[0].reason_code
+            _, fix = reason_text(strings, code)
+            open_areas.append((row.workload, fix))
+    return _SummaryRows(
+        blockers=tuple(row for row in statuses if row.status == "blocker"),
+        open_areas=tuple(open_areas),
+    )
+
+
 def _evidence_context(
     scan: Scan,
     by_id: dict[str, Finding],
@@ -329,6 +358,7 @@ def _evidence_context(
     mapping: TargetMapping,
     *,
     lang: str,
+    strings: dict,
 ) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
     statuses = evaluate(
@@ -360,6 +390,7 @@ def _evidence_context(
             if counts[status]
         ],
         area_count=len(catalogue.assessed_workload_ids),
+        summary_rows=_summary_rows(statuses, strings),
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
         mapping_gaps=[
@@ -391,17 +422,122 @@ def _evidence_context(
     )
 
 
+def _missing_cost_paths(scenarios: tuple[ScenarioResult, ...]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(path for result in scenarios for path in result.missing_inputs))
+
+
+@dataclass(frozen=True)
+class _CostComparison:
+    direction: Literal["less", "more", "same", "sub_cent", "unknown"]
+    amount: Fraction | None
+
+
+def _cost_comparison(difference: Fraction | None) -> _CostComparison:
+    if difference is None:
+        return _CostComparison("unknown", None)
+    amount = abs(difference)
+    if amount == 0:
+        return _CostComparison("same", amount)
+    if plain_amount(amount) == "0.00":
+        return _CostComparison("sub_cent", amount)
+    return _CostComparison("less" if difference < 0 else "more", amount)
+
+
+@dataclass(frozen=True)
+class _BreakEven:
+    amount: Fraction
+    entered: Fraction
+    none: bool
+
+
+def _break_even(result: ScenarioResult, operations_per_year: Decimal | None) -> _BreakEven | None:
+    if result.difference_to_stay is None or operations_per_year is None:
+        return None
+    entered = Fraction(operations_per_year)
+    amount = entered - result.difference_to_stay / YEARS
+    return _BreakEven(amount, entered, none=amount < 0)
+
+
+@dataclass(frozen=True)
+class _CostTile:
+    result: ScenarioResult
+    comparison: _CostComparison
+    known_blocks: Fraction | None
+    break_even: _BreakEven | None
+
+
+def _known_block_sum(result: ScenarioResult) -> Fraction | None:
+    amounts = [
+        group.total
+        for group in (result.running, *result.blocks)
+        if group.lines and group.total is not None
+    ]
+    return sum(amounts, start=Fraction(0)) if amounts else None
+
+
+def _cost_tiles(scenarios: tuple[ScenarioResult, ...], inputs: Inputs) -> tuple[_CostTile, ...]:
+    operations = (
+        None,
+        inputs.partial_exit.operations_per_year,
+        inputs.full_exit.operations_per_year,
+    )
+    return tuple(
+        _CostTile(
+            result,
+            _cost_comparison(result.difference_to_stay),
+            _known_block_sum(result),
+            _break_even(result, entered),
+        )
+        for result, entered in zip(scenarios, operations, strict=True)
+    )
+
+
+@dataclass(frozen=True)
+class _CostChartRow:
+    tile: _CostTile
+    blocks: tuple[CostGroup, ...]
+    unknown_blocks: tuple[str, ...]
+    share: str | None
+
+
+def _cost_chart_rows(tiles: tuple[_CostTile, ...]) -> tuple[_CostChartRow, ...]:
+    largest = max(
+        (total for tile in tiles if (total := tile.result.total) is not None),
+        default=Fraction(0),
+    )
+    rows = []
+    for tile in tiles:
+        result = tile.result
+        blocks = (result.running, *result.blocks)
+        unknown = tuple(block.id for block in blocks if block.total is None)
+        share = None
+        if result.total is not None:
+            ratio = result.total / largest if largest else Fraction(0)
+            share = f"{ratio:.4f}"
+        rows.append(_CostChartRow(tile, blocks, unknown, share))
+    return tuple(rows)
+
+
 def _cost_context(inputs: Inputs | None) -> dict[str, object]:
     cost_inputs = inputs if inputs is not None else Inputs()
     scenarios = compute_scenarios(cost_inputs)
+    tiles = _cost_tiles(scenarios, cost_inputs)
+    current_costs = vars(cost_inputs.current_costs)
+    target_costs = (vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit))
+    has_cost_inputs = any(
+        value is not None for fields in (current_costs, *target_costs) for value in fields.values()
+    )
     return dict(
         inputs=inputs,
         sample_inputs=cost_inputs.answers_are_sample,
         input_source=cost_inputs.answer_source,
         scenarios=scenarios,
         cost_blocks=_cost_table_blocks(scenarios),
-        current_costs=vars(cost_inputs.current_costs),
-        target_costs=(vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit)),
+        cost_tiles=tiles,
+        cost_chart_rows=_cost_chart_rows(tiles) if has_cost_inputs else (),
+        missing_cost_paths=_missing_cost_paths(scenarios),
+        current_costs=current_costs,
+        target_costs=target_costs,
         cost_currency=cost_inputs.currency or "",
         plain_amount=plain_amount,
     )
