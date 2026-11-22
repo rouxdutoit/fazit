@@ -54,7 +54,7 @@ Two steps, so the site never shows what the shipped sample does not.
 
 ### "Blocker" itself
 
-No change recommended. C13 already decided to keep "Blocker" / "Hindernis" and to answer the negative feel with scoping, next steps and the "Worth doing even if you stay" group. The homepage problem above is one of context, and the change above fixes it without touching the word. If the founder reopens it anyway, the cost of a rename is: both locales (`status` labels and every string that uses the word, 4 lines in `src/fazit/locales`), `DESIGN.md` and UI-SPEC §8 (16 mentions), a new `DECISIONS.md` entry replacing C13, 20 lines across 4 site pages in two languages, both regenerated demo reports, the README, and the RR-01 test that bans "block" and "Hindernis" from Needs work reasons. Options would be "Obstacle" / "Hindernis" (German unchanged, English softer) or "Must resolve" / "Zu lösen" (action-led, but no longer a noun and harder to use in sentences). Neither is recommended.
+The name stays: the founder confirmed "Blocker" / "Hindernis" on 2026-11-22 (decision 13 in `.planning/research/report-usefulness/SYNTHESIS.md`). The negative feel is answered by framing, and this review's changes all work that way: a benefit-led heading, a typical Needs work card in place of the lone Blocker, the card's next step, the scoped "What blocks this move" in the report, and the "Worth doing even if you stay" group. The homepage problem above is one of context, and the change above fixes it without touching the word.
 
 ## 2. Homepage, section by section
 
