@@ -230,16 +230,19 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert "width=device-width" in (metas.get("viewport") or "")
     assert metas.get("color-scheme") == "light dark"
     (css,) = document.styles
+    assert "apple.com" not in css and "iOS system colours" not in css
+    assert re.search(r"a:hover\s*\{\s*color:\s*var\(--accent-hover\);\s*\}", css)
     light = re.search(r":root\s*\{([^}]+)\}", css)
     dark = re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]+)\}", css)
     assert light and dark
     for scheme, block in (("light", light[1]), ("dark", dark[1])):
         colors = dict(re.findall(r"(--[\w-]+):\s*(#[0-9a-fA-F]{6})\s*;", block))
         for background in ("--bg", "--surface"):
-            for foreground in ("--text", "--muted", "--accent"):
+            for foreground in ("--text", "--muted", "--accent", "--accent-hover"):
                 low, high = sorted((_luminance(colors[foreground]), _luminance(colors[background])))
                 contrast = (high + 0.05) / (low + 0.05)
                 assert contrast >= 4.5, (scheme, foreground, background, contrast)
+        assert _luminance(colors["--accent-hover"]) > _luminance(colors["--accent"])
         status_colors = [
             colors[f"--status-{status}"] for status in ("ready", "needs-work", "blocker", "unknown")
         ]
@@ -272,6 +275,7 @@ def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
         "--muted": "--fg-2",
         "--line": "--rule",
         "--accent": "--link",
+        "--accent-hover": "--link-hover",
     }
     light = dict(
         re.findall(r"(--[\w-]+):\s*(#[0-9a-f]{6});", re.search(r":root\s*\{([^}]+)\}", css)[1])
@@ -286,6 +290,10 @@ def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
     }
     for report_name, site_name in pairs.items():
         assert tokens[site_name] == (light[report_name], dark[report_name]), report_name
+    assert re.search(r"a:hover\s*\{\s*color:\s*var\(--link-hover\);", site)
+    for hover, text in zip(tokens["--solid-hover"], tokens["--solid-fg"], strict=True):
+        low, high = sorted((_luminance(hover), _luminance(text)))
+        assert (high + 0.05) / (low + 0.05) >= 4.5
     for status in ("ready", "needs-work", "blocker"):
         assert tokens[f"--status-{status}"] == (
             light[f"--status-{status}"],

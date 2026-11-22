@@ -66,8 +66,12 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
             "unknown_field",
             "target_costs[0]",
         ),
-        ("currency: EUR\ncurrency: CHF", "duplicate_key", "$[1]"),
-        ("current_costs: {other_it_per_year: .inf}", "non_finite_number", "$[0][0]"),
+        ("currency: EUR\ncurrency: CHF", "duplicate_key", "currency"),
+        (
+            "current_costs: {other_it_per_year: .inf}",
+            "non_finite_number",
+            "current_costs.other_it_per_year",
+        ),
         ("organisation_name: private@example.test", "contains_at", "$[0]"),
         ("private@example.test: null", "contains_at", "$[0]"),
         ("currency: eur", "invalid_field", "currency"),
@@ -135,7 +139,7 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
         (f"provided_counts: {{{BOOLEAN_ID}: 1}}", "unknown_field", "provided_counts[0]"),
         (f"confirmations: {{{COUNT_ID}: false}}", "unknown_field", "confirmations[0]"),
         (f"provided_counts: {{{COUNT_ID}: true}}", "invalid_field", f"provided_counts.{COUNT_ID}"),
-        (f"provided_counts: {{{COUNT_ID}: -1}}", "invalid_field", f"provided_counts.{COUNT_ID}"),
+        (f"provided_counts: {{{COUNT_ID}: -1}}", "invalid_integer", f"provided_counts.{COUNT_ID}"),
         (f"confirmations: {{{BOOLEAN_ID}: 1}}", "invalid_field", f"confirmations.{BOOLEAN_ID}"),
         (
             "windows_only_software: [{name: Editor, users: false}]",
@@ -152,57 +156,89 @@ def test_invalid_inputs(catalogue: Catalogue, text: str, code: str, field: str) 
     error = caught.value
     assert (error.code, error.file, error.field) == (code, "manual.yaml", field)
     sentence = error_sentence(load_locale("en"), error)
-    assert "manual.yaml" in sentence and field in sentence
+    assert "manual.yaml" in sentence
+    if field == "$":
+        assert "$" not in sentence
+    else:
+        assert field in sentence
     assert "private@example.test" not in sentence
 
 
-@pytest.mark.parametrize("spelling", ["030", "0o30", "0x1e", "0b11110", "1_000", "1:30", "+30"])
+@pytest.mark.parametrize(
+    "spelling", ["030", "08", "0o30", "0x1e", "0b11110", "1_000", "1:30", "+30"]
+)
 def test_counts_require_unpadded_decimal_digits(catalogue: Catalogue, spelling: str) -> None:
     field = "target_costs.partial_exit.users"
-    with pytest.raises(InputError) as caught:
+    with pytest.raises(InputError, match="invalid_integer") as caught:
         load_inputs_text(
-            f"target_costs: {{partial_exit: {{users: {spelling}}}}}", "inputs.yaml", catalogue
+            f"target_costs:\n  partial_exit:\n    users: {spelling}", "inputs.yaml", catalogue
         )
     assert (caught.value.file, caught.value.field) == ("inputs.yaml", field)
+    assert caught.value.line == 3
 
 
 @pytest.mark.parametrize(
-    ("text", "field"),
+    ("text", "field", "code"),
     [
         (
             "target_costs: {full_exit: {parallel_running_months: 07}}",
             "target_costs.full_exit.parallel_running_months",
+            "invalid_integer",
         ),
         (
             "target_costs: {partial_exit: {training_days_per_person: 0x2}}",
             "target_costs.partial_exit.training_days_per_person",
+            "invalid_integer",
         ),
         (
             "target_costs: {partial_exit: {training_days_per_person: '030'}}",
             "target_costs.partial_exit.training_days_per_person",
+            "invalid_field",
         ),
         (
             "target_costs: {full_exit: {training_staff: 010}}",
             "target_costs.full_exit.training_staff",
+            "invalid_integer",
         ),
-        (f"provided_counts: {{{COUNT_ID}: 1_000}}", f"provided_counts.{COUNT_ID}"),
-        ("windows_only_software: [{name: Editor, users: 030}]", "windows_only_software[0].users"),
+        (
+            f"provided_counts: {{{COUNT_ID}: 1_000}}",
+            f"provided_counts.{COUNT_ID}",
+            "invalid_integer",
+        ),
+        (
+            "windows_only_software: [{name: Editor, users: 030}]",
+            "windows_only_software[0].users",
+            "invalid_integer",
+        ),
         (
             "windows_only_software: [{name: Editor, vendor_has_web_version: OFF}]",
             "windows_only_software[0].vendor_has_web_version",
+            "invalid_scalar",
         ),
-        ("amounts_are_invented: yes", "amounts_are_invented"),
-        ("answers_are_sample: NO", "answers_are_sample"),
-        (f"confirmations: {{{BOOLEAN_ID}: on}}", f"confirmations.{BOOLEAN_ID}"),
-        ("as_of: 2026-11-20T09:00:00Z", "as_of"),
-        ("target_costs: {partial_exit: {users: !!null 030}}", "target_costs.partial_exit.users"),
-        ("target_costs: {partial_exit: {users: !!int '030'}}", "target_costs.partial_exit.users"),
+        ("amounts_are_invented: yes", "amounts_are_invented", "invalid_scalar"),
+        ("answers_are_sample: NO", "answers_are_sample", "invalid_scalar"),
+        (f"confirmations: {{{BOOLEAN_ID}: on}}", f"confirmations.{BOOLEAN_ID}", "invalid_scalar"),
+        ("as_of: 2026-11-20T09:00:00Z", "as_of", "invalid_scalar"),
+        (
+            "target_costs: {partial_exit: {users: !!null 030}}",
+            "target_costs.partial_exit.users",
+            "invalid_scalar",
+        ),
+        (
+            "target_costs: {partial_exit: {users: !!int '030'}}",
+            "target_costs.partial_exit.users",
+            "invalid_integer",
+        ),
     ],
 )
-def test_inputs_reject_yaml_coercions_by_field(catalogue: Catalogue, text: str, field: str) -> None:
-    with pytest.raises(InputError, match="invalid_field") as caught:
+def test_inputs_reject_yaml_coercions_by_field(
+    catalogue: Catalogue, text: str, field: str, code: str
+) -> None:
+    with pytest.raises(InputError, match=code) as caught:
         load_inputs_text(text, "inputs.yaml", catalogue)
     assert (caught.value.file, caught.value.field) == ("inputs.yaml", field)
+    if code != "invalid_field":
+        assert caught.value.line == 1
 
 
 def test_inputs_accept_nulls_iso_dates_and_canonical_booleans(catalogue: Catalogue) -> None:

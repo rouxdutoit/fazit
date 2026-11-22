@@ -12,7 +12,7 @@ from .catalogue import Catalogue, FindingEntry
 from .errors import InputError
 from .i18n import SUPPORTED_LANGUAGES
 from .model import Coverage, Finding, Scan
-from .parsing import parse_yaml, read_text, reject_at_signs
+from .parsing import FieldNames, parse_yaml, read_text, reject_at_signs
 from .rules import PROFILES, provided_answers_conflict, select_evidence
 
 _INPUT_KEYS = (
@@ -42,13 +42,8 @@ _SCENARIO_AMOUNTS = (
     "productivity_loss",
 )
 _SCENARIOS = ("partial_exit", "full_exit")
-_SCENARIO_KEYS = (
-    *_SCENARIO_AMOUNTS,
-    "users",
-    "training_days_per_person",
-    "training_staff",
-    "parallel_running_months",
-)
+_SCENARIO_COUNTS = ("users", "training_staff", "parallel_running_months")
+_SCENARIO_KEYS = (*_SCENARIO_AMOUNTS, *_SCENARIO_COUNTS, "training_days_per_person")
 _SOFTWARE_KEYS = ("name", "users", "vendor_has_web_version")
 _QUOTED_FIELDS = tuple(f"current_costs.{name}" for name in _CURRENT_AMOUNTS) + tuple(
     f"target_costs.{scenario}.{name}"
@@ -234,17 +229,40 @@ class _InputsReader:
 
 
 def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
-    answers = {entry.id: entry.type for entry in catalogue.findings if entry.provided == "answer"}
-    input_keys = {
-        *_INPUT_KEYS,
-        *_CURRENT_AMOUNTS,
-        *_SCENARIOS,
-        *_SCENARIO_KEYS,
-        *_SOFTWARE_KEYS,
-        *answers,
+    count_ids = {
+        entry.id
+        for entry in catalogue.findings
+        if entry.provided == "answer" and entry.type == "count"
+    }
+    boolean_ids = {
+        entry.id
+        for entry in catalogue.findings
+        if entry.provided == "answer" and entry.type == "boolean"
+    }
+    fields: FieldNames = {
+        (): _INPUT_KEYS,
+        ("current_costs",): _CURRENT_AMOUNTS,
+        ("target_costs",): _SCENARIOS,
+        **{("target_costs", scenario): _SCENARIO_KEYS for scenario in _SCENARIOS},
+        ("windows_only_software", None): _SOFTWARE_KEYS,
+        ("provided_counts",): count_ids,
+        ("confirmations",): boolean_ids,
     }
     data = parse_yaml(
-        text, file_name, quoted_fields=_QUOTED_FIELDS, allow_aliases=False, input_keys=input_keys
+        text,
+        file_name,
+        quoted_fields=_QUOTED_FIELDS,
+        allow_aliases=False,
+        fields=fields,
+        integer_fields={
+            *(
+                ("target_costs", scenario, key)
+                for scenario in _SCENARIOS
+                for key in _SCENARIO_COUNTS
+            ),
+            ("windows_only_software", None, "users"),
+            *(("provided_counts", key) for key in count_ids),
+        },
     )
     reject_at_signs(data, file_name)
     reader = _InputsReader(file_name)
@@ -252,16 +270,8 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
     currency = reader.currency(row.get("currency"))
     current = reader.fields(row.get("current_costs"), "current_costs", _CURRENT_AMOUNTS)
     targets = reader.fields(row.get("target_costs"), "target_costs", _SCENARIOS)
-    counts = reader.fields(
-        row.get("provided_counts"),
-        "provided_counts",
-        {key for key, kind in answers.items() if kind == "count"},
-    )
-    confirmations = reader.fields(
-        row.get("confirmations"),
-        "confirmations",
-        {key for key, kind in answers.items() if kind == "boolean"},
-    )
+    counts = reader.fields(row.get("provided_counts"), "provided_counts", count_ids)
+    confirmations = reader.fields(row.get("confirmations"), "confirmations", boolean_ids)
     return Inputs(
         organisation_name=reader.name(row.get("organisation_name"), "organisation_name", 120),
         currency=currency,

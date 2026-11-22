@@ -422,3 +422,9 @@ def test_padded_headcount_is_rejected_instead_of_changing_the_total(
     assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
     assert len(result.stderr.splitlines()) == 1
     assert "inputs.yaml" in result.stderr and "target_costs.partial_exit.users" in result.stderr
+    line = next(i for i, text in enumerate(original.splitlines(), 1) if "users: 30" in text)
+    location = f"line {line}" if lang == "en" else f"Zeile {line}"
+    guidance = (
+        "whole number without leading zeros" if lang == "en" else "ganze Zahl ohne führende Nullen"
+    )
+    assert location in result.stderr and guidance in result.stderr

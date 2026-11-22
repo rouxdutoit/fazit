@@ -24,7 +24,9 @@ uv run fazit demo --sample nonprofit --out ./report/nonprofit
 uv run fazit demo --profile nextcloud --out ./report/nextcloud
 ```
 
-Die Demo schreibt `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` und `inputs-<YYYY-MM-DD>-<lang>.yaml` standardmäßig nach `./report`. Mit `--out` wählen Sie ein anderes Verzeichnis. Das Datum stammt aus der Bestandsaufnahme. Bei einem erneuten Lauf werden gleichnamige Dateien ersetzt. In der letzten Ausgabezeile steht der Pfad zum HTML-Bericht.
+Die Demo schreibt `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` und `inputs-<YYYY-MM-DD>-<lang>.yaml` standardmäßig nach `./report`. Mit `--out` wählen Sie ein anderes Verzeichnis. Das Datum stammt aus der Bestandsaufnahme. Bei einem erneuten Lauf werden gleichnamige Dateien ersetzt. In der letzten Ausgabezeile steht der Pfad zum HTML-Bericht. Liegt der Bericht im aktuellen Verzeichnis oder darunter, gibt Fazit den relativen Pfad aus. Andernfalls verwendet Fazit die Verzeichnisangabe aus `--out`.
+
+Unter Unix legt Fazit die Ausgabedateien mit der Berechtigung `0600` an. Damit kann nur der Dateieigentümer die Dateien lesen und ändern. Sie enthalten Angaben zur IT der Organisation.
 
 ## Bericht neu erstellen
 
@@ -57,7 +59,7 @@ Fazit prüft die Dateien auf Widersprüche und nennt zu jeder Zahl die Quelle. E
 3. Kostenvergleich über fünf Jahre für Verbleib, teilweisen und vollständigen Wechsel.
 4. Bereitschaft nach Bereich, einschließlich der Punkte, die noch nicht untersucht wurden.
 5. Funktionen im gewählten Zielsystem.
-6. Prüfbedarf, einschließlich der Funktionen, deren direkte Übernahme nicht dokumentiert ist.
+6. Prüfbedarf, einschließlich der Funktionen, deren direkte Übernahme in das Zielprofil nicht belegt ist.
 7. Möglicher Ablauf mit Hindernissen, offenen Fragen und Bereichen für einen Pilotbetrieb.
 8. Anhang mit Datenquellen, Regeln, Zuordnungen und Angaben zum Lauf.
 9. Fußzeile mit dem Projektnamen.

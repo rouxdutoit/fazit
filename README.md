@@ -24,7 +24,9 @@ uv run fazit demo --sample nonprofit --out ./report/nonprofit
 uv run fazit demo --profile nextcloud --out ./report/nextcloud
 ```
 
-The demo writes `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` and `inputs-<YYYY-MM-DD>-<lang>.yaml` to `./report` by default. `--out` sets a different directory. The date comes from the sample scan. A repeat run replaces files with the same names. The last line gives the path to the HTML report.
+The demo writes `report-<YYYY-MM-DD>-<lang>.html`, `scan-<YYYY-MM-DD>-<lang>.json` and `inputs-<YYYY-MM-DD>-<lang>.yaml` to `./report` by default. `--out` sets a different directory. The date comes from the sample scan. A repeat run replaces files with the same names. The last line gives the path to the HTML report, relative to the current directory if the report is inside it. For other locations, Fazit uses the directory you entered with `--out`.
+
+On Unix, Fazit creates output files with owner-only permissions (mode `0600`) because they describe the organisation's IT.
 
 ## Rebuild a report
 
@@ -57,7 +59,7 @@ Fazit checks the files for contradictions and labels the source of each figure. 
 3. Five-year cost comparison for staying, partial exit and full exit.
 4. Readiness by workload, including what was left unexamined.
 5. What moves where under the chosen target profile.
-6. Needs attention, including functions with no documented way to transfer them directly.
+6. Needs attention, including functions whose direct transfer to the target profile is unverified.
 7. Suggested path with blockers, questions to resolve and possible pilot areas.
 8. Appendix with collectors, rules, mappings and run details.
 9. Footer with the project name.

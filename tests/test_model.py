@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
+import sys
 from collections.abc import ItemsView
 from dataclasses import asdict
 from importlib.resources import files
@@ -528,44 +529,55 @@ def test_schema_version_support_and_additive_compatibility(
 
 
 @pytest.mark.parametrize(
-    ("document", "code"),
+    ("document", "code", "line"),
     [
-        ('{"items":[{"first":0,"first":1}]}', "duplicate_key"),
-        ('{"items":[NaN]}', "non_finite_number"),
-        ('{"items":[Infinity]}', "non_finite_number"),
-        ('{"items":[-Infinity]}', "non_finite_number"),
-        ('{"items":[1e999]}', "non_finite_number"),
-        ('{"items":[}', "invalid_json"),
+        ('{"items":[{"first":0,\n"first":1}]}', "duplicate_key", 2),
+        ('{"items":[\nNaN]}', "non_finite_number", 2),
+        ('{"items":[Infinity]}', "non_finite_number", 1),
+        ('{"items":[-Infinity]}', "non_finite_number", 1),
+        ('{"items":[1e999]}', "non_finite_number", 1),
+        ('{"items":[\n}', "invalid_json", 2),
     ],
 )
-def test_strict_json_errors_have_structural_paths(document: str, code: str) -> None:
+def test_strict_json_errors_locate_unknown_fields_by_line(
+    document: str, code: str, line: int
+) -> None:
     with pytest.raises(InputError, match=code) as caught:
         parse_json(document, "scan.json")
 
     assert caught.value.file == "scan.json"
-    assert caught.value.field and caught.value.field.startswith("$")
-    assert "first" not in caught.value.field and not caught.value.details
+    assert caught.value.line == line
+    assert caught.value.field is None and not caught.value.details
+
+
+def test_deeply_nested_scan_input_errors_remain_localised(catalogue: Catalogue) -> None:
+    limit = sys.getrecursionlimit()
+    for depth in range(limit - 100, limit + 1):
+        with pytest.raises(InputError, match="invalid_json|invalid_field"):
+            load_scan_text("[" * depth + "0" + "]" * depth, "scan.json", catalogue)
 
 
 @pytest.mark.parametrize(
-    ("document", "code"),
+    ("document", "code", "line"),
     [
-        ("items:\n  - {value: 1, value: 2}", "duplicate_key"),
-        ("items:\n  - .NaN", "non_finite_number"),
-        ("items: .inf", "non_finite_number"),
-        ("items: -1.0e+999", "non_finite_number"),
-        ("items: [", "invalid_yaml"),
-        ("items: &items [*items]", "invalid_yaml"),
-        ("defaults: &defaults {value: 1}\nitems: {<<: *defaults}", "invalid_yaml"),
+        ("items:\n  - {value: 1, value: 2}", "duplicate_key", 2),
+        ("items:\n  - .NaN", "non_finite_number", 2),
+        ("items: .inf", "non_finite_number", 1),
+        ("items: -1.0e+999", "non_finite_number", 1),
+        ("items: [", "invalid_yaml", 1),
+        ("items: &items [*items]", "invalid_yaml", 1),
+        ("defaults: &defaults {value: 1}\nitems: {<<: *defaults}", "invalid_yaml", 2),
     ],
 )
-def test_strict_yaml_errors_have_structural_paths(document: str, code: str) -> None:
+def test_strict_yaml_errors_locate_unknown_fields_by_line(
+    document: str, code: str, line: int
+) -> None:
     with pytest.raises(InputError, match=code) as caught:
         parse_yaml(document, "inputs.yaml")
 
     assert caught.value.file == "inputs.yaml"
-    assert caught.value.field and caught.value.field.startswith("$")
-    assert not caught.value.details
+    assert caught.value.line == line
+    assert caught.value.field is None and not caught.value.details
 
 
 def test_strict_yaml_preserves_quoted_text_and_finite_numbers() -> None:

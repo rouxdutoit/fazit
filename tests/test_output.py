@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import os
 from pathlib import Path
+from stat import S_IMODE
 
 import pytest
 
@@ -17,8 +18,13 @@ def test_write_creates_the_output_directory_and_replaces_regular_files(
 
     assert write_inside(out, "report.html", "Übersicht\n") == destination
     assert destination.read_bytes() == "Übersicht\n".encode()
+    if os.name == "posix":
+        assert S_IMODE(destination.stat().st_mode) == 0o600
+        destination.chmod(0o644)
     assert write_inside(out, "report.html", "Revised\n") == destination
     assert destination.read_bytes() == b"Revised\n"
+    if os.name == "posix":
+        assert S_IMODE(destination.stat().st_mode) == 0o600
     assert list(destination.parent.iterdir()) == [destination]
 
 

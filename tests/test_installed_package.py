@@ -105,8 +105,9 @@ def test_installed_demo_renders_offline(
         _venv_program(venv, "fazit"), "demo", "--lang", "de", "--out", out, cwd=tmp_path, env=env
     )
 
-    path = Path(stdout.splitlines()[-1])
-    assert path.is_absolute() and path.parent == out and path.is_file()
+    relative = Path(stdout.splitlines()[-1])
+    path = tmp_path / relative
+    assert not relative.is_absolute() and path.parent == out and path.is_file()
     html = path.read_text(encoding="utf-8")
     assert '<html lang="de">' in html
     assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
@@ -124,26 +125,30 @@ def test_installed_demo_renders_offline(
 
 
 @pytest.mark.parametrize(
-    ("name", "content", "code", "field"),
+    ("name", "content", "code", "field", "line"),
     [
-        pytest.param("inventory.json", None, "file_not_found", "$", id="missing"),
-        pytest.param("inventory.json", None, "is_directory", "$", id="directory"),
-        pytest.param("inventory.json", b"", "invalid_json", "$", id="empty"),
-        pytest.param("inventory.json", b"{", "invalid_json", "$", id="invalid-json"),
-        pytest.param("inventory.json", b"[]", "invalid_field", "$", id="json-array"),
+        pytest.param("inventory.json", None, "file_not_found", None, None, id="missing"),
+        pytest.param("inventory.json", None, "is_directory", None, None, id="directory"),
+        pytest.param("inventory.json", b"", "invalid_json", None, 1, id="empty"),
+        pytest.param("inventory.json", b"{", "invalid_json", None, 1, id="invalid-json"),
+        pytest.param(
+            "inventory.json", b"[]", "invalid_field_document", None, None, id="json-array"
+        ),
         pytest.param(
             "inventory.json",
             b'{"schema_version": "2.0"}',
             "schema_version",
             "schema_version",
+            None,
             id="schema-version",
         ),
-        pytest.param("inventory.json", b"\xff", "not_utf8", "$", id="utf8"),
+        pytest.param("inventory.json", b"\xff", "not_utf8", None, None, id="utf8"),
         pytest.param(
             "answers.yaml",
             b"currency: EUR\ncurrency: CHF\n",
-            "duplicate_key",
-            "$[1]",
+            "duplicate_key_field",
+            "currency",
+            2,
             id="duplicate-yaml-key",
         ),
         pytest.param(
@@ -151,6 +156,7 @@ def test_installed_demo_renders_offline(
             b"windows_only_software: 42\n",
             "invalid_field",
             "windows_only_software",
+            None,
             id="wrong-type",
         ),
         pytest.param(
@@ -158,30 +164,34 @@ def test_installed_demo_renders_offline(
             b'currency: EUR\ncurrent_costs: {other_it_per_year: "-0.01"}\n',
             "invalid_field",
             "current_costs.other_it_per_year",
+            None,
             id="negative",
         ),
         pytest.param(
             "answers.yaml",
             b"current_costs: {other_it_per_year: .inf}\n",
-            "non_finite_number",
-            "$[0][0]",
+            "non_finite_number_field",
+            "current_costs.other_it_per_year",
+            1,
             id="non-finite",
         ),
         pytest.param(
             "inventory.json",
             b"[" * 1500 + b"0" + b"]" * 1500,
             "invalid_json",
-            "$",
+            None,
+            1,
             id="deep-json",
         ),
         pytest.param(
             "answers.yaml",
             b"x: " + b"[" * 1500 + b"0" + b"]" * 1500,
             "invalid_yaml",
-            "$",
+            None,
+            1,
             id="deep-yaml",
         ),
-        pytest.param("out", b"Keep this file.\n", "out_dir", "--out", id="out-is-file"),
+        pytest.param("out", b"Keep this file.\n", "out_dir", "--out", None, id="out-is-file"),
     ],
 )
 def test_installed_report_rejects_malformed_files_offline(
@@ -190,7 +200,8 @@ def test_installed_report_rejects_malformed_files_offline(
     name: str,
     content: bytes | None,
     code: str,
-    field: str,
+    field: str | None,
+    line: int | None,
 ) -> None:
     source, bad, out = tmp_path / "inventory.json", tmp_path / name, tmp_path / "out"
     if bad != source:
@@ -222,7 +233,7 @@ def test_installed_report_rejects_malformed_files_offline(
     )
     strings = load_locale("en")
     message = strings["errors"][code].format(
-        file=str(out) if bad == out else name, field=field, found="2.0", supported="1.x"
+        file=str(out) if bad == out else name, field=field, line=line, found="2.0", supported="1.x"
     )
     assert result.returncode == 2 and not result.stdout
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
@@ -259,6 +270,7 @@ except OSError as error:
 
 def test_wheel_contains_runtime_data(installed_package: InstalledPackage) -> None:
     resources = (
+        "__main__.py",
         "templates/report.html.j2",
         "locales/de.yaml",
         "locales/en.yaml",

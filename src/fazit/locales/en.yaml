@@ -162,7 +162,7 @@ path:
   title: Suggested path
   blocker: Confirmed blockers
   unknown: Unknowns to resolve first
-  ready: Areas where the evidence shows no obstacle
+  ready: Areas with Ready status
   empty:
     blocker: The evidence identified no blocker.
     unknown: Every area has a known status.
@@ -423,19 +423,30 @@ cli:
   sample_scan: Sample scan saved to {path}.
   sample_inputs: Sample inputs saved to {path}.
 errors:
-  invalid_json: The JSON in {file} is invalid at {field}.
-  invalid_yaml: The YAML in {file} is invalid at {field}.
-  yaml_anchors: Remove YAML anchors and aliases from {file} at {field}.
+  invalid_json: Check the JSON syntax on line {line} of {file}.
+  invalid_json_field: Check the JSON syntax for `{field}` on line {line} of {file}.
+  invalid_yaml: Check the YAML syntax on line {line} of {file}.
+  invalid_yaml_field: Check the YAML syntax for `{field}` on line {line} of {file}.
+  yaml_anchors: Remove the YAML anchor or alias on line {line} of {file}.
+  invalid_integer: Write a whole number without leading zeros on line {line} of {file}.
+  invalid_integer_field: Write `{field}` on line {line} of {file} as a whole number without leading zeros.
+  invalid_scalar: Check the value on line {line} of {file}.
+  invalid_scalar_field: Check the value of `{field}` on line {line} of {file}.
   invalid_field: Check the value of {field} in {file}.
+  invalid_field_document: Check the contents of {file}.
   unknown_field: Remove the unrecognised field {field} from {file}.
   money_not_quoted: Put the decimal value of {field} in quotation marks in {file}.
+  money_not_quoted_field: Put the decimal value of `{field}` on line {line} of {file} in quotation marks.
   missing_field: Supply a value for {field} in {file}.
   invalid_code: Choose a supported code for {field} in {file}.
   invalid_label: Supply label text in both languages for {field} in {file}.
   contains_at: Remove text containing an at sign from {field} in {file}.
-  duplicate_key: Remove the repeated key at {field} in {file}.
+  contains_at_document: Remove text containing an at sign from {file}.
+  duplicate_key: Remove the repeated key on line {line} of {file}.
+  duplicate_key_field: Remove the repeated key `{field}` on line {line} of {file}.
   duplicate_id: The identifier at {field} in {file} is already listed.
-  non_finite_number: Supply a finite number for {field} in {file}.
+  non_finite_number: Enter a finite number on line {line} of {file}.
+  non_finite_number_field: Enter a finite number for `{field}` on line {line} of {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
   invalid_licence_coverage: Complete coverage in {field} in {file} requires the scanned and total counts to match the number of listed licence products, with zero failures.
   licence_products_exceed_coverage: The number of listed licence products exceeds the count at {field} in {file}.
@@ -449,15 +460,17 @@ errors:
   sku_identity_mismatch: The product code and GUID at {field} in {file} must match the same catalogue entry.
   coverage_total_conflict: The total at {field} in {file} disagrees with the count for {related} in the same scan.
   subset_count_exceeds_population: The count at {field} in {file} exceeds the number of items it covers.
-  file_not_found: The file {file} could not be found at {field}.
-  is_directory: The location {file} for {field} is a directory.
-  not_readable: The file {file} for {field} could not be read.
-  file_too_large: The file {file} for {field} exceeds 2 MiB.
-  not_utf8: Save {file} for {field} as UTF-8 text.
+  file_not_found: The file {file} could not be found.
+  is_directory: The path {file} points to a directory.
+  not_readable: The file {file} could not be read.
+  file_too_large: The file {file} exceeds 2 MiB.
+  not_utf8: Save {file} as UTF-8 text.
   schema_version: The field {field} in {file} contains version {found}, and this tool supports {supported}.
   unsupported_language: Choose en or de for {field} in {file}.
-  unsupported_sample: Choose town or nonprofit for {field} in {file}.
+  unsupported_language_option: Choose en or de for {field}.
+  unsupported_sample_option: Choose town or nonprofit for {field}.
   unsupported_profile: Choose opendesk, nextcloud or generic for {field} in {file}.
+  unsupported_profile_option: Choose opendesk, nextcloud or generic for {field}.
   out_dir: The output directory {file} for {field} could not be created or opened.
   destination_is_link: The output file {file} for {field} is a symbolic link.
   destination_not_file: The output location {file} for {field} is not a regular file.

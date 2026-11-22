@@ -5,7 +5,6 @@ from decimal import MAX_EMAX, ROUND_HALF_UP, Context, Decimal, localcontext
 from functools import lru_cache
 from importlib.resources import files
 
-from . import PROJECT_NAME
 from .errors import InputError
 from .parsing import parse_yaml, read_text
 
@@ -15,7 +14,7 @@ DEFAULT_LANGUAGE = "en"
 
 def load_locale(lang: str) -> dict:
     if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
+        raise InputError("unsupported_language", field="--lang")
     locale = files("fazit").joinpath("locales", f"{lang}.yaml")
     return deepcopy(_parse_locale(read_text(locale), locale.name))
 
@@ -29,9 +28,17 @@ def _parse_locale(text: str, file_name: str) -> dict:
 
 
 def error_sentence(strings: dict, error: InputError) -> str:
-    return strings["errors"][error.code].format(
-        file=escape_controls(str(error.file or PROJECT_NAME)),
-        field=escape_controls(str(error.field or "$")),
+    code = error.code
+    if error.file is None:
+        code += "_option"
+    elif error.line is not None and error.field is not None:
+        code += "_field"
+    elif error.field == "$" and code in ("invalid_field", "contains_at"):
+        code += "_document"
+    return strings["errors"][code].format(
+        file=escape_controls(error.file or ""),
+        field=escape_controls(error.field or ""),
+        line=error.line,
         **error.details,
     )
 

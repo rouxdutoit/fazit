@@ -52,7 +52,7 @@ SECTION_ORDER = (
 
 def report_file_name(generated_at: str, *, lang: str) -> str:
     if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
+        raise InputError("unsupported_language", field="--lang")
     return f"report-{date.fromisoformat(generated_at[:10]).isoformat()}-{lang}.html"
 
 

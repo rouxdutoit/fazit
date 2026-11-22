@@ -13,7 +13,6 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Never
 
-from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
 from .model import Collector, Coverage, Finding, FindingValue, Product, Scan
@@ -275,7 +274,7 @@ def load_mapping(
     checksums: MutableMapping[str, str] | None = None,
 ) -> Mapping:
     if profile not in PROFILES:
-        raise InputError("unsupported_profile", file=PROJECT_NAME, field="--profile")
+        raise InputError("unsupported_profile", field="--profile")
     name = f"mappings/{profile}.yaml"
     reader, data = _read_rules(name, directory / name if directory is not None else None, checksums)
     root = reader.fields(

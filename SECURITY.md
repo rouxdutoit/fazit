@@ -23,6 +23,8 @@ This version runs locally and contains no network code. It contacts no host.
 
 Fazit checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
 
+On Unix, Fazit creates output files with mode `0600` so that only the file owner can read and write them. The files describe the organisation's IT. On Windows, the output directory's access control determines who can read the files.
+
 Browsers may add the local file path to printed headers and footers. Turn off **Headers and footers** in the browser's print settings and check the preview for the file path before sharing a PDF.
 
 Tests enforce the safeguards for this version, including privacy, local operation, the offline HTML, output boundaries and honest figures. The host, endpoint and token safeguards will be tested when live collection is added. [Privacy tests](tests/test_privacy.py), [repository tests](tests/test_repo_basics.py), [installed package tests](tests/test_installed_package.py), [report tests](tests/test_report.py), [CLI tests](tests/test_cli.py), [output tests](tests/test_output.py), [cost tests](tests/test_costs.py), [rule tests](tests/test_rules.py)

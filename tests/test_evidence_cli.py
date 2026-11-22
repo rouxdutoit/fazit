@@ -1081,7 +1081,7 @@ confirmations:
 
 @pytest.mark.parametrize(
     ("lang", "title"),
-    [("en", "Direct transfer unverified"), ("de", "Nicht direkt übertragbar")],
+    [("en", "Direct transfer unverified"), ("de", "Direkte Übernahme nicht belegt")],
 )
 def test_transfer_gap_heading_describes_the_scope_of_evidence(
     tmp_path: Path, town_scan: dict, lang: str, title: str

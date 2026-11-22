@@ -6,6 +6,7 @@ import re
 import shlex
 import socket
 import subprocess
+import sys
 from dataclasses import replace
 from datetime import date, tzinfo
 from hashlib import sha256
@@ -80,18 +81,87 @@ def test_readme_commands_run_in_order(
         if line.startswith(prefix)
     ]
     assert commands
+    working = tmp_path / "Pat Analyst@example.invalid"
+    working.mkdir()
     for name in ("inputs.example.yaml", "inputs.yaml"):
-        copyfile(ROOT / "inputs.example.yaml", tmp_path / name)
-    monkeypatch.chdir(tmp_path)
+        copyfile(ROOT / "inputs.example.yaml", working / name)
+    monkeypatch.chdir(working)
 
     for command in commands:
         result = runner.invoke(app, shlex.split(command.removeprefix(prefix)))
         assert result.exit_code == 0, f"{command}\n{result.output}"
         assert not result.stderr, command
+        assert working.name not in result.stdout
         path = Path(result.stdout.splitlines()[-1])
-        assert path.is_absolute() and path.is_relative_to(tmp_path) and path.is_file()
+        assert not path.is_absolute() and path.is_file()
+        assert path.resolve().is_relative_to(working.resolve())
         html = path.read_text(encoding="utf-8")
         assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
+
+
+def test_cli_prints_usable_paths_without_revealing_link_targets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cwd = tmp_path / "Pat Analyst@example.invalid"
+    inside = cwd / "Alex Local@example.invalid"
+    outside = tmp_path / "Sam Outside@example.invalid"
+    inside.mkdir(parents=True)
+    outside.mkdir()
+    (cwd / "local").symlink_to(inside, target_is_directory=True)
+    (tmp_path / "other").symlink_to(outside, target_is_directory=True)
+    monkeypatch.chdir(cwd)
+
+    demo = runner.invoke(app, ["demo", "--out", str(cwd / "local")])
+
+    assert demo.exit_code == 0 and not demo.stderr, demo.output
+    strings = load_locale("en")["cli"]
+    scan, inputs, report = (
+        Path("local") / name
+        for name in (
+            "scan-2026-11-02-en.json",
+            "inputs-2026-11-02-en.yaml",
+            "report-2026-11-02-en.html",
+        )
+    )
+    assert demo.stdout.splitlines() == [
+        strings["sample_scan"].format(path=scan),
+        strings["sample_inputs"].format(path=inputs),
+        str(report),
+    ]
+    assert all(path.is_file() for path in (scan, inputs, report))
+
+    source = Path("Jo Reader@example.invalid.json")
+    copyfile(scan, source)
+    out = os.sep.join(("..", ".", "other"))
+    rebuilt = runner.invoke(app, ["report", str(source), "--out", out])
+
+    assert rebuilt.exit_code == 0 and not rebuilt.stderr, rebuilt.output
+    assert rebuilt.stdout.splitlines() == [os.path.join(out, report.name)]
+    assert (outside / report.name).is_file()
+
+
+def test_cli_errors_only_name_the_supplied_input_or_generated_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cwd = tmp_path / "Pat Analyst@example.invalid"
+    private = cwd / "Alex Local@example.invalid"
+    private.mkdir(parents=True)
+    (cwd / "local").symlink_to(private, target_is_directory=True)
+    monkeypatch.chdir(cwd)
+
+    scan = Path("Jo Reader@example.invalid.json")
+    missing = runner.invoke(app, ["report", str(Path("local") / scan)])
+    assert missing.exit_code == 2 and not missing.stdout
+    assert missing.stderr.splitlines() == [f"Error: The file {scan} could not be found."]
+
+    report = "report-2026-11-02-en.html"
+    (private / report).mkdir()
+    blocked = runner.invoke(app, ["demo", "--out", "local"])
+    assert blocked.exit_code == 2 and not blocked.stdout
+    label = Path("local") / report
+    assert blocked.stderr.splitlines() == [
+        f"Error: The output location {label} for --out is not a regular file."
+    ]
 
 
 def _section(html: str, name: str) -> str:
@@ -547,7 +617,7 @@ def test_cli_rejects_unsupported_options_without_echoing_the_value(
     result = runner.invoke(app, ["demo", *arguments])
     assert result.exit_code == 2
     assert result.stderr.startswith(prefix) and field in result.stderr
-    assert "planted" not in result.stderr
+    assert "planted" not in result.stderr and "fazit" not in result.stderr
 
 
 def test_debug_preserves_the_underlying_input_error(tmp_path: Path) -> None:
@@ -560,6 +630,22 @@ def test_debug_preserves_the_underlying_input_error(tmp_path: Path) -> None:
 def test_version_works_without_a_command() -> None:
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
+    assert result.stdout.strip() == __version__
+
+
+@pytest.mark.parametrize("arguments", [[], ["--debug"]])
+def test_missing_command_shows_help(arguments: list[str]) -> None:
+    result = runner.invoke(app, arguments)
+    assert result.exit_code == 2
+    assert "Usage:" in result.output and "COMMAND [ARGS]..." in result.output
+    assert all(option in result.output for option in ("--debug", "demo", "report"))
+
+
+def test_module_entry_point() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "fazit", "--version"], capture_output=True, text=True, timeout=5
+    )
+    assert result.returncode == 0 and not result.stderr, result.stderr
     assert result.stdout.strip() == __version__
 
 
@@ -590,8 +676,8 @@ def test_report_usage_uses_the_documented_argument_name_in_english() -> None:
     assert failure.exit_code == 2 and "Missing argument" in failure.stderr
     assert help_result.exit_code == 0
     for output in (failure.stderr, help_result.stdout):
-        assert "SCAN_JSON" in output
-        assert "{scan_json}" not in output
+        usage = next(line for line in output.splitlines() if "Usage:" in line)
+        assert usage.rstrip().endswith("[OPTIONS] SCAN_JSON")
 
 
 def test_report_refuses_a_symlink_destination(tmp_path: Path) -> None:
@@ -691,6 +777,96 @@ def test_report_rejects_missing_or_directory_inputs(tmp_path: Path, kind: str) -
     assert len(result.stderr.splitlines()) == 1 and answers.name in result.stderr
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+@pytest.mark.parametrize(
+    ("name", "content", "en", "de"),
+    [
+        (
+            "inputs.yaml",
+            "currency: EUR\ncurrency: CHF\n",
+            "Remove the repeated key `currency` on line 2 of inputs.yaml.",
+            "Entfernen Sie den wiederholten Schlüssel `currency` in Zeile 2 der Datei inputs.yaml.",
+        ),
+        (
+            "inputs.yaml",
+            "current_costs:\n  'Pat Analyst@example.invalid': 1\n"
+            "  'Pat Analyst@example.invalid': 2\n",
+            "Remove the repeated key on line 3 of inputs.yaml.",
+            "Entfernen Sie den wiederholten Schlüssel in Zeile 3 der Datei inputs.yaml.",
+        ),
+        (
+            "inputs.yaml",
+            "'target_costs.partial_exit.users': 1\n'target_costs.partial_exit.users': 2\n",
+            "Remove the repeated key on line 2 of inputs.yaml.",
+            "Entfernen Sie den wiederholten Schlüssel in Zeile 2 der Datei inputs.yaml.",
+        ),
+        (
+            "inputs.yaml",
+            "current_costs:\n  other_it_per_year: .nan\n",
+            "Enter a finite number for `current_costs.other_it_per_year` on line 2 of inputs.yaml.",
+            "Tragen Sie für `current_costs.other_it_per_year` in Zeile 2 der Datei inputs.yaml "
+            "eine endliche Zahl ein.",
+        ),
+        (
+            "inputs.yaml",
+            "target_costs:\n  partial_exit:\n    users: [1, }\n",
+            "Check the YAML syntax for `target_costs.partial_exit.users` on line 3 of inputs.yaml.",
+            "Prüfen Sie die YAML-Syntax für `target_costs.partial_exit.users` in Zeile 3 der Datei "
+            "inputs.yaml.",
+        ),
+        (
+            "scan.json",
+            '{\n "tool": {"name": "fazit",\n "n\\u0061me": "fazit"}\n}',
+            "Remove the repeated key `tool.name` on line 3 of scan.json.",
+            "Entfernen Sie den wiederholten Schlüssel `tool.name` in Zeile 3 der Datei scan.json.",
+        ),
+        (
+            "scan.json",
+            '{\n "Pat Analyst@example.invalid": {"name": "other",\n "name": "copy"}\n}',
+            "Remove the repeated key on line 3 of scan.json.",
+            "Entfernen Sie den wiederholten Schlüssel in Zeile 3 der Datei scan.json.",
+        ),
+        (
+            "scan.json",
+            '{"findings": [{\n "value": 1e999\n}]}',
+            "Enter a finite number for `findings[0].value` on line 2 of scan.json.",
+            "Tragen Sie für `findings[0].value` in Zeile 2 der Datei scan.json "
+            "eine endliche Zahl ein.",
+        ),
+        (
+            "scan.json",
+            '{"findings": [{\n "value": }]}',
+            "Check the JSON syntax for `findings[0].value` on line 2 of scan.json.",
+            "Prüfen Sie die JSON-Syntax für `findings[0].value` in Zeile 2 der Datei scan.json.",
+        ),
+        (
+            "scan.json",
+            '{\n "Pat Analyst@example.invalid": }',
+            "Check the JSON syntax on line 2 of scan.json.",
+            "Prüfen Sie die JSON-Syntax in Zeile 2 der Datei scan.json.",
+        ),
+    ],
+)
+def test_parse_errors_use_lines_and_only_known_fields(
+    tmp_path: Path, name: str, content: str, en: str, de: str, lang: str
+) -> None:
+    source = tmp_path / name
+    source.write_text(content, encoding="utf-8")
+    out = tmp_path / "out"
+    command = ["report", "--lang", lang, "--out", str(out)]
+    if name == "inputs.yaml":
+        sample = files("fazit").joinpath("demo", "town", "scan.json")
+        command += [str(sample), "--inputs", str(source)]
+    else:
+        command.append(str(source))
+
+    result = runner.invoke(app, command)
+
+    assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
+    expected = f"Error: {en}" if lang == "en" else f"Fehler: {de}"
+    assert result.stderr.splitlines() == [expected]
+
+
 def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     demo = tmp_path / "demo"
     result = runner.invoke(app, ["demo", "--out", str(demo)])
@@ -754,6 +930,15 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     [
         ("missing", "file_not_found", "$", {}),
         ("directory", "is_directory", "$", {}),
+        pytest.param(
+            "unreadable",
+            "not_readable",
+            "$",
+            {},
+            marks=pytest.mark.skipif(
+                os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions"
+            ),
+        ),
         ("not_utf8", "not_utf8", "$", {}),
         ("schema", "schema_version", "schema_version", {"found": "2.0", "supported": "1.x"}),
     ],
@@ -765,6 +950,8 @@ def test_report_errors_name_the_file_and_field(
     scan = tmp_path / "inventory.json"
     if kind == "directory":
         scan.mkdir()
+    elif kind == "unreadable":
+        scan.touch(mode=0)
     elif kind == "not_utf8":
         scan.write_bytes(b"\xff")
     elif kind == "schema":
@@ -820,7 +1007,7 @@ def test_report_bounds_untrusted_inputs(tmp_path: Path, case: str) -> None:
     strings = load_locale("en")
     code = "yaml_anchors" if case == "alias-expansion" else "file_too_large"
     file_name = scan.name if case == "oversized-json" else answers.name
-    expected = strings["errors"][code].format(file=file_name, field="$")
+    expected = strings["errors"][code].format(file=file_name, line=1)
     assert result.returncode == 2
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=expected)]
     assert not result.stdout and not out.exists()

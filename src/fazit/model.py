@@ -13,7 +13,7 @@ from uuid import UUID
 from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
-from .parsing import parse_json, read_text, reject_at_signs
+from .parsing import FieldNames, parse_json, read_text, reject_at_signs
 
 if TYPE_CHECKING:
     from .rules import ServicePlan as RegisteredServicePlan
@@ -34,6 +34,19 @@ _TIMESTAMP = re.compile(
 _FRACTIONAL_SECONDS = re.compile(r"[.,]([0-9]+)")
 _PERIOD = re.compile(rf"{_DATE}/{_DATE}")
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_]{1,64}")
+_SCAN_FIELDS = (
+    "schema_version",
+    "tool",
+    "generated_at",
+    "source_kind",
+    "collectors",
+    "findings",
+    "licences",
+)
+_TOOL_FIELDS = ("name", "version")
+_COLLECTOR_REQUIRED = ("id", "status", "permissions_used")
+_COLLECTOR_OPTIONAL = ("reason",)
+_COVERAGE_COUNTS = ("scanned", "failed", "total")
 _FINDING_FIELDS = (
     "id",
     "workload",
@@ -47,6 +60,21 @@ _FINDING_FIELDS = (
     "coverage",
     "missing_reason",
 )
+_LICENCE_FIELDS = ("collector", "source", "collected_at", "coverage", "products")
+_PRODUCT_REQUIRED = ("purchased", "assigned")
+_PRODUCT_OPTIONAL = ("sku_part_number", "sku_guid", "service_plans")
+_SERVICE_PLAN_FIELDS = ("name", "guid")
+_SCAN_FIELD_NAMES: FieldNames = {
+    (): _SCAN_FIELDS,
+    ("tool",): _TOOL_FIELDS,
+    ("collectors", None): (*_COLLECTOR_REQUIRED, *_COLLECTOR_OPTIONAL),
+    ("findings", None): _FINDING_FIELDS,
+    ("findings", None, "coverage"): ("kind", *_COVERAGE_COUNTS),
+    ("licences",): _LICENCE_FIELDS,
+    ("licences", "coverage"): ("kind", *_COVERAGE_COUNTS),
+    ("licences", "products", None): (*_PRODUCT_REQUIRED, *_PRODUCT_OPTIONAL),
+    ("licences", "products", None, "service_plans", None): _SERVICE_PLAN_FIELDS,
+}
 
 type FindingValue = int | bool
 
@@ -263,7 +291,7 @@ class _ScanReader:
         return version
 
     def tool(self, value: object) -> ToolInfo:
-        row = self.fields(value, "tool", required=("name", "version"))
+        row = self.fields(value, "tool", required=_TOOL_FIELDS)
         return ToolInfo(
             name=self.code(row["name"], "tool.name", (PROJECT_NAME,)),
             version=self.matches(row["version"], "tool.version", _TOOL_VERSION),
@@ -274,7 +302,7 @@ class _ScanReader:
         for index, item in enumerate(self.list(value, "collectors")):
             field = f"collectors[{index}]"
             row = self.fields(
-                item, field, required=("id", "status", "permissions_used"), optional=("reason",)
+                item, field, required=_COLLECTOR_REQUIRED, optional=_COLLECTOR_OPTIONAL
             )
             collector_id = self.code(row["id"], f"{field}.id", self.catalogue.collector_ids)
             if collector_id in collectors:
@@ -298,12 +326,11 @@ class _ScanReader:
         return collectors
 
     def coverage(self, value: object, field: str) -> Coverage:
-        count_fields = ("scanned", "failed", "total")
-        row = self.fields(value, field, required=("kind",), optional=count_fields)
+        row = self.fields(value, field, required=("kind",), optional=_COVERAGE_COUNTS)
         kind = self.code(row["kind"], f"{field}.kind", COVERAGE_KINDS)
         scanned, failed, total = (
             None if row.get(name) is None else self.count(row[name], f"{field}.{name}")
-            for name in count_fields
+            for name in _COVERAGE_COUNTS
         )
         if total is not None and (scanned or 0) + (failed or 0) > total:
             self.fail(field, "invalid_coverage")
@@ -462,7 +489,7 @@ class _ScanReader:
         return guid
 
     def service_plan(self, value: object, field: str) -> ServicePlan:
-        row = self.fields(value, field, required=("name", "guid"))
+        row = self.fields(value, field, required=_SERVICE_PLAN_FIELDS)
         name, guid = row["name"], row["guid"]
         return ServicePlan(
             None if name is None else self.matches(name, f"{field}.name", _IDENTIFIER),
@@ -470,12 +497,7 @@ class _ScanReader:
         )
 
     def product(self, value: object, field: str) -> Product:
-        row = self.fields(
-            value,
-            field,
-            required=("purchased", "assigned"),
-            optional=("sku_part_number", "sku_guid", "service_plans"),
-        )
+        row = self.fields(value, field, required=_PRODUCT_REQUIRED, optional=_PRODUCT_OPTIONAL)
         raw_guid = row.get("sku_guid")
         sku_guid = None if raw_guid is None else self.guid(raw_guid, f"{field}.sku_guid")
         sku_part_number = row.get("sku_part_number")
@@ -499,17 +521,7 @@ class _ScanReader:
     def licences(self, value: object, collectors: dict[str, Collector]) -> Licences | None:
         if value is None:
             return None
-        row = self.fields(
-            value,
-            "licences",
-            required=(
-                "collector",
-                "source",
-                "collected_at",
-                "coverage",
-                "products",
-            ),
-        )
+        row = self.fields(value, "licences", required=_LICENCE_FIELDS)
         collector = self.code(row["collector"], "licences.collector", ("licences",))
         if collector not in collectors or collectors[collector].status == "skipped":
             self.fail("licences.collector", "invalid_collector")
@@ -541,23 +553,10 @@ class _ScanReader:
         return licences
 
     def scan(self, value: object) -> Scan:
-        reject_at_signs(value, self.file_name)
         if not isinstance(value, dict):
             self.fail("$")
         version = self.schema_version(value.get("schema_version"))
-        row = self.fields(
-            value,
-            "",
-            required=(
-                "schema_version",
-                "tool",
-                "generated_at",
-                "source_kind",
-                "collectors",
-                "findings",
-                "licences",
-            ),
-        )
+        row = self.fields(value, "", required=_SCAN_FIELDS)
         collectors = self.collectors(row["collectors"])
         generated_at = self.timestamp(row["generated_at"], "generated_at")
         scan = Scan(
@@ -578,7 +577,12 @@ class _ScanReader:
 
 
 def load_scan_text(text: str, file_name: str, catalogue: Catalogue) -> Scan:
-    return _ScanReader(file_name, catalogue).scan(parse_json(text, file_name))
+    data = parse_json(text, file_name, fields=_SCAN_FIELD_NAMES)
+    try:
+        reject_at_signs(data, file_name)
+    except RecursionError:
+        raise InputError("invalid_json", file=file_name, line=1) from None
+    return _ScanReader(file_name, catalogue).scan(data)
 
 
 def load_scan(path: Path, catalogue: Catalogue) -> Scan:

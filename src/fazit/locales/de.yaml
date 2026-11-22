@@ -40,7 +40,7 @@ licences:
   add_on: Separat lizenziert
   unclassified: 'Dienstpläne ohne Einordnung in diesem Produkt: {count}.'
   no_workload: 'Dienstpläne ohne Bezug zu einem geprüften Bereich: {count}.'
-  add_on_assigned: 'Separat zugewiesene Lizenz für {workload}'
+  add_on_assigned: 'Zugewiesene Zusatzlizenz für {workload}'
   bundled_assigned: 'Im Produkt enthaltene, zugewiesene Lizenz für {workload}'
 status:
   ready: Bereit
@@ -70,7 +70,7 @@ costs:
     sample_input: Beispielangabe
     provided: Bereitgestellt
     calculated: Aus den bereitgestellten Angaben berechnet
-    calculated_with_examples: Aus Beispieldaten berechnet
+    calculated_with_examples: Aus Beispielangaben berechnet
   input_fields:
     microsoft_licences_per_year: Bisherige Microsoft-Lizenzen pro Jahr
     other_it_per_year: Sonstige bisherige IT-Kosten pro Jahr
@@ -154,7 +154,7 @@ attention:
   software_name: Anwendung
   software_users: Anzahl der Nutzenden
   software_web_version: Webversion beim Anbieter verfügbar
-  cannot_be_moved: Nicht direkt übertragbar
+  cannot_be_moved: Direkte Übernahme nicht belegt
   gap_scope: Für diese Funktionen ist im gewählten Profil keine direkte Übernahme belegt.
   needed_here: Für diese Organisation erforderlich
   no_gaps: Das Profil führt keine Funktionen auf, für die eine direkte Übernahme ungeklärt ist.
@@ -162,7 +162,7 @@ path:
   title: Möglicher Ablauf
   blocker: Bestätigte Hindernisse
   unknown: Zuerst zu klärende Fragen
-  ready: Bereiche, in denen die Bestandsaufnahme kein Hindernis zeigt
+  ready: Bereiche mit dem Status „Bereit“
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
     unknown: Der Status ist für alle Bereiche bekannt.
@@ -271,7 +271,7 @@ reason:
     label: Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor.
     fix: Stellen Sie einen Export der Exchange-Empfänger mit Angabe des Postfachtyps bereit.
   collector_skipped:
-    label: Das Erhebungsverfahren wurde übersprungen.
+    label: Das Erhebungsverfahren wurde nicht ausgeführt.
     fix: Prüfen Sie den Grund im Anhang und reichen Sie die fehlenden Daten nach.
   not_in_scan:
     label: Das Merkmal fehlt in der Erhebung.
@@ -423,19 +423,30 @@ cli:
   sample_scan: Die Beispielerhebung wurde unter {path} gespeichert.
   sample_inputs: Die Beispieleingaben wurden unter {path} gespeichert.
 errors:
-  invalid_json: Die Datei {file} enthält an der Stelle {field} ungültiges JSON.
-  invalid_yaml: Die Datei {file} enthält an der Stelle {field} ungültiges YAML.
-  yaml_anchors: Entfernen Sie YAML-Anker und Aliase an der Stelle {field} in der Datei {file}.
+  invalid_json: Prüfen Sie die JSON-Syntax in Zeile {line} der Datei {file}.
+  invalid_json_field: Prüfen Sie die JSON-Syntax für `{field}` in Zeile {line} der Datei {file}.
+  invalid_yaml: Prüfen Sie die YAML-Syntax in Zeile {line} der Datei {file}.
+  invalid_yaml_field: Prüfen Sie die YAML-Syntax für `{field}` in Zeile {line} der Datei {file}.
+  yaml_anchors: Entfernen Sie den YAML-Anker oder -Alias in Zeile {line} der Datei {file}.
+  invalid_integer: Tragen Sie in Zeile {line} der Datei {file} eine ganze Zahl ohne führende Nullen ein.
+  invalid_integer_field: Tragen Sie für `{field}` in Zeile {line} der Datei {file} eine ganze Zahl ohne führende Nullen ein.
+  invalid_scalar: Prüfen Sie den Wert in Zeile {line} der Datei {file}.
+  invalid_scalar_field: Prüfen Sie den Wert für `{field}` in Zeile {line} der Datei {file}.
   invalid_field: Prüfen Sie das Feld {field} in der Datei {file}.
+  invalid_field_document: Prüfen Sie den Inhalt der Datei {file}.
   unknown_field: Entfernen Sie das unbekannte Feld {field} aus der Datei {file}.
   money_not_quoted: Setzen Sie die Dezimalzahl für {field} in der Datei {file} in Anführungszeichen.
+  money_not_quoted_field: Setzen Sie die Dezimalzahl für `{field}` in Zeile {line} der Datei {file} in Anführungszeichen.
   missing_field: Ergänzen Sie das Feld {field} in der Datei {file}.
   invalid_code: Geben Sie für {field} in der Datei {file} einen zulässigen Code an.
   invalid_label: Hinterlegen Sie für {field} in der Datei {file} eine Bezeichnung auf Deutsch und Englisch.
   contains_at: Entfernen Sie Text mit einem At-Zeichen aus {field} in der Datei {file}.
-  duplicate_key: Entfernen Sie den doppelten Schlüssel an der Stelle {field} in der Datei {file}.
+  contains_at_document: Entfernen Sie Text mit einem At-Zeichen aus der Datei {file}.
+  duplicate_key: Entfernen Sie den wiederholten Schlüssel in Zeile {line} der Datei {file}.
+  duplicate_key_field: Entfernen Sie den wiederholten Schlüssel `{field}` in Zeile {line} der Datei {file}.
   duplicate_id: Die Kennung in {field} ist in der Datei {file} bereits vorhanden.
-  non_finite_number: Geben Sie für {field} in der Datei {file} eine endliche Zahl an.
+  non_finite_number: Tragen Sie in Zeile {line} der Datei {file} eine endliche Zahl ein.
+  non_finite_number_field: Tragen Sie für `{field}` in Zeile {line} der Datei {file} eine endliche Zahl ein.
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
   invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
   licence_products_exceed_coverage: Die Zahl der aufgeführten Lizenzprodukte überschreitet die Angabe in {field} in der Datei {file}.
@@ -449,15 +460,17 @@ errors:
   sku_identity_mismatch: Produktcode und GUID unter {field} in der Datei {file} müssen demselben Katalogeintrag entsprechen.
   coverage_total_conflict: Die Gesamtzahl in {field} der Datei {file} widerspricht der Angabe für {related} in derselben Erhebung.
   subset_count_exceeds_population: Die Angabe in {field} in der Datei {file} überschreitet die Zahl der erfassten Elemente.
-  file_not_found: Die Datei {file} für {field} wurde nicht gefunden.
-  is_directory: Der Pfad {file} für {field} bezeichnet ein Verzeichnis.
-  not_readable: Die Datei {file} für {field} konnte nicht gelesen werden.
-  file_too_large: Die Datei {file} für {field} ist größer als 2 MiB.
-  not_utf8: Speichern Sie die Datei {file} für {field} als UTF-8-Text.
+  file_not_found: Die Datei {file} wurde nicht gefunden.
+  is_directory: Der Pfad {file} verweist auf ein Verzeichnis.
+  not_readable: Die Datei {file} konnte nicht gelesen werden.
+  file_too_large: Die Datei {file} ist größer als 2 MiB.
+  not_utf8: Speichern Sie die Datei {file} als UTF-8-Text.
   schema_version: Im Feld {field} der Datei {file} steht Version {found}, während das Programm Version {supported} unterstützt.
   unsupported_language: Geben Sie für {field} bei {file} den Wert en oder de an.
-  unsupported_sample: Geben Sie für {field} bei {file} den Wert town oder nonprofit an.
+  unsupported_language_option: Geben Sie für {field} den Wert en oder de an.
+  unsupported_sample_option: Geben Sie für {field} den Wert town oder nonprofit an.
   unsupported_profile: Geben Sie für {field} bei {file} den Wert opendesk, nextcloud oder generic an.
+  unsupported_profile_option: Geben Sie für {field} den Wert opendesk, nextcloud oder generic an.
   out_dir: Das Ausgabeverzeichnis {file} für {field} konnte nicht angelegt oder geöffnet werden.
   destination_is_link: Die Ausgabedatei {file} für {field} ist eine symbolische Verknüpfung.
   destination_not_file: Der Ausgabepfad {file} für {field} bezeichnet keine reguläre Datei.

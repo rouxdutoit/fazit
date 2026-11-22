@@ -305,3 +305,7 @@ site/style.css
 ## Orchestrator changes on merge
 
 Batch 4 ran in a separate worktree while batch 1 and the founder's site restyling landed on `main`. Claude merged the patch three-way, kept the founder's new tile layout, and carried the wording into it. Claude restored founder copy that was not an overclaim (hero line, meta descriptions as "is built to show", the roadmap tiles after "Now", the privacy lines about a single file and no upload, the first pilots paragraph) and kept principle 2 as a promise with the local-storage condition added, instead of rewording it as an instruction.
+
+## Commit note
+
+Batch 4 landed as one commit, `6008c29`, because the merge left four files unstaged and the first two of three planned commits failed. Its message describes only the wording part. The same commit also holds R-21, R-24 and R-28 (site headers, headings in print, coverage check, sitemap, Cyrillic font) and R-25 and R-26 (package metadata, sdist include list, `.gitattributes`), as described above.

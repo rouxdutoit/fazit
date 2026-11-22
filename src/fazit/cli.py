@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from importlib.resources import files
+from os.path import join
 from pathlib import Path
 from typing import Annotated, Never
 
 import typer
+from typer.core import TyperCommand
 
-from . import PROJECT_NAME, __version__
+from . import __version__
 from .catalogue import load_catalogue
 from .errors import InputError
 from .i18n import (
@@ -29,6 +31,15 @@ app = typer.Typer(
     invoke_without_command=True,
 )
 _PROFILE_HELP = f"Target profile ({', '.join(PROFILES)})."
+_SCAN_JSON = "SCAN_JSON"
+
+
+class _ReportCommand(TyperCommand):
+    def collect_usage_pieces(self, ctx: typer.Context) -> list[str]:
+        return [
+            _SCAN_JSON if piece == f"{{{_SCAN_JSON}}}" else piece
+            for piece in super().collect_usage_pieces(ctx)
+        ]
 
 
 @app.callback()
@@ -42,12 +53,28 @@ def options(
     if version:
         typer.echo(load_locale(DEFAULT_LANGUAGE)["cli"]["version"].format(version=__version__))
         raise typer.Exit()
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit(2)
     ctx.obj = debug
 
 
 def _check_language(lang: str) -> None:
     if lang not in SUPPORTED_LANGUAGES:
-        raise InputError("unsupported_language", file=PROJECT_NAME, field="--lang")
+        raise InputError("unsupported_language", field="--lang")
+
+
+def _printed_path(path: Path, out: str) -> str:
+    cwd = Path.cwd()
+    if path.is_relative_to(cwd):
+        # A resolved path can expose directory names behind a user-supplied link.
+        try:
+            relative = Path(out).absolute().relative_to(cwd, walk_up=True)
+        except ValueError:
+            pass
+        else:
+            return escape_controls(str(relative / path.name))
+    return escape_controls(join(out, path.name))
 
 
 def _exit_with_error(ctx: typer.Context, lang: str, error: InputError) -> Never:
@@ -62,7 +89,7 @@ def _exit_with_error(ctx: typer.Context, lang: str, error: InputError) -> Never:
 @app.command()
 def demo(
     ctx: typer.Context,
-    out: Annotated[Path, typer.Option(help="Directory for the output files.")] = Path("report"),
+    out: Annotated[str, typer.Option(help="Directory for the output files.")] = "report",
     lang: Annotated[str, typer.Option(help="Report language (en or de).")] = DEFAULT_LANGUAGE,
     sample: Annotated[str, typer.Option(help="Bundled sample (town or nonprofit).")] = "town",
     profile: Annotated[str, typer.Option(help=_PROFILE_HELP)] = "opendesk",
@@ -71,7 +98,7 @@ def demo(
     try:
         _check_language(lang)
         if sample not in ("town", "nonprofit"):
-            raise InputError("unsupported_sample", file=PROJECT_NAME, field="--sample")
+            raise InputError("unsupported_sample", field="--sample")
         sample_files = files("fazit").joinpath("demo", sample)
         source = sample_files.joinpath("scan.json")
         answers = sample_files.joinpath("inputs.yaml")
@@ -95,22 +122,25 @@ def demo(
     except InputError as error:
         _exit_with_error(ctx, lang, error)
     strings = load_locale(lang)["cli"]
-    typer.echo(strings["sample_scan"].format(path=escape_controls(str(scan_path))))
-    typer.echo(strings["sample_inputs"].format(path=escape_controls(str(inputs_path))))
-    typer.echo(escape_controls(str(path)))
+    typer.echo(strings["sample_scan"].format(path=_printed_path(scan_path, out)))
+    typer.echo(strings["sample_inputs"].format(path=_printed_path(inputs_path, out)))
+    typer.echo(_printed_path(path, out))
 
 
-@app.command()
+@app.command(cls=_ReportCommand)
 def report(
     ctx: typer.Context,
     scan_json: Annotated[
-        Path, typer.Argument(metavar="SCAN_JSON", help="Scan JSON file to rebuild the report from.")
+        Path,
+        typer.Argument(
+            metavar=_SCAN_JSON, readable=False, help="Scan JSON file to rebuild the report from."
+        ),
     ],
     inputs: Annotated[
-        Path | None, typer.Option(help="YAML file with manual answers and costs.")
+        Path | None, typer.Option(readable=False, help="YAML file with manual answers and costs.")
     ] = None,
     lang: Annotated[str | None, typer.Option(help="Report language (en or de).")] = None,
-    out: Annotated[Path, typer.Option(help="Directory for the report.")] = Path("report"),
+    out: Annotated[str, typer.Option(help="Directory for the report.")] = "report",
     profile: Annotated[str | None, typer.Option(help=_PROFILE_HELP)] = None,
 ) -> None:
     """Build a report from an existing scan file."""
@@ -133,7 +163,7 @@ def report(
         path = write_inside(out, report_file_name(scan.generated_at, lang=report_lang), html)
     except InputError as error:
         _exit_with_error(ctx, message_lang, error)
-    typer.echo(escape_controls(str(path)))
+    typer.echo(_printed_path(path, out))
 
 
 def main() -> None:
