@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#101010"/>
-  <path fill="#f9f9f9" d="M9 7h15v4H13v4h9v4h-9v6H9z"/>
+  <style>
+    rect { fill: #1d1d1f; }
+    path { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      rect { fill: #c4f7d0; }
+      path { fill: #050906; }
+    }
+  </style>
+  <rect width="32" height="32" rx="7"/>
+  <path transform="translate(10.30 26.00) scale(0.02789 -0.02789)" d="M112.1 0V408.5H25.7V500H112.1V552.7Q112.1 632.3 151.4 674.7Q190.7 717.2 271.2 717.2Q296.6 717.2 326.1 708.4Q355.7 699.6 382.9 685.9L341.6 603Q322.9 612.2 308.4 616.3Q293.9 620.5 283.4 620.5Q253.1 620.5 238.4 600.5Q223.7 580.6 223.7 537.2V500H355.2V408.5H223.7V0Z"/>
 </svg>
