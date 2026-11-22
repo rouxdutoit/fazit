@@ -428,8 +428,8 @@ code {
 
 /* apple.com buttons, measured: standard 17/20 px, 7 x 15 px padding (36 px tall);
    product bar 12/16 px, 3 x 10 px padding (24 px tall). Pill, regular weight.
-   Figtree's tall lowercase reads about two sizes larger than SF Pro, so 15 px here
-   matches Apple's 17 px optically. */
+   Figtree's tall lowercase reads about two sizes larger than SF Pro and its regular is
+   lighter, so 15 px medium here matches Apple's 17 px regular optically. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -438,7 +438,7 @@ code {
   padding: 7px 15px;
   border-radius: 980px;
   font-size: 0.9375rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.01em;
   white-space: nowrap;
