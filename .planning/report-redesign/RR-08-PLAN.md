@@ -49,7 +49,7 @@ The home page describes the old report, shows its one Blocker as the only exampl
 
 ### Task 1: Home page, new order and content (EN and DE)
 
-New section order, nine sections: hero; report preview; "Find the blockers before the project does"; the example; "What you get"; "What stays on your computer"; "Project status"; "How it works"; "Free and open source".
+New section order, nine sections (founder, 2026-11-22): hero; report preview; "Find the blockers before the project does"; the example; "What you get"; "How it works"; "What stays on your computer"; "Project status"; "Free and open source". "How it works" comes straight after "What you get" because three commands and no account are themselves a selling point, and the privacy section's "Check it yourself" builds on the commands just shown.
 
 1. **Hero and preview:** unchanged apart from the alt text, which RR-05 already updated. Under the preview, fold the languages and offline facts into one line in the figure caption.
 2. **Figures strip:** two figures, not four. Keep the assessed-area count and the targets. Read the count from the demo report, never as a literal. Delete "2 report languages" and "1 file".
