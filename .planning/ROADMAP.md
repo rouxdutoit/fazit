@@ -66,7 +66,7 @@ Plans, run one at a time in this order:
 ### Phase 1.2: Outputs for Integrators (INSERTED)
 **Goal**: Integrators can move a report's findings into their own project plans, and anyone can check that a report has not been changed since it was written
 **Depends on**: Phase 1
-**Requirements**: OUTP-01, OUTP-02
+**Requirements**: OUTP-01, OUTP-02, OUTP-03, OUTP-04
 **Success Criteria** (what must be TRUE):
   1. `--csv` (or an equivalent output) writes findings, open questions and effort drivers next to the report, with no field that can hold person data, covered by the privacy test.
   2. `fazit verify REPORT` passes on an unchanged report and fails, naming the section, after any edit; it works offline and its help text says it detects changes, not authorship.
@@ -86,7 +86,7 @@ Plans, run one at a time in this order:
 **Goal**: A real organisation's admin-centre CSV exports become a `scan.json` and a report on the user's own machine, with no sign-in, no consent and no network access, and with nothing kept but aggregates
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05, DATA-01
+**Requirements**: CLI-03, IMPT-01, IMPT-02, IMPT-03, IMPT-04, IMPT-05, DATA-01, IMPT-06, VALD-01
 **Success Criteria** (what must be TRUE):
   1. With the network switched off and without signing in, a user points `import` at admin-centre exports (mailbox, OneDrive, SharePoint site and Teams usage, and licences) and gets a `scan.json` and a report in German or English, with the report path printed.
   2. The `scan.json` written by `import` holds aggregates only, with no per-user rows, person names or email addresses by default, and each imported figure shows its source file, reporting period and coverage in the report.
@@ -113,7 +113,7 @@ Plans, run one at a time in this order:
 **Goal**: Anyone can run a tagged release with one command, including on a Windows machine without Python, and can find what they need to register the app, understand each permission and build on `scan.json`
 **Mode:** mvp
 **Depends on**: Phase 3
-**Requirements**: DIST-01, DIST-02, DOCS-02, DOCS-03, DOCS-04
+**Requirements**: DIST-01, DIST-02, DOCS-02, DOCS-03, DOCS-04, DIST-04
 **Success Criteria** (what must be TRUE):
   1. A user with `uv` installed runs `uvx fazit demo` and gets the report, installed from the tagged release on PyPI.
   2. A user on a Windows machine without Python downloads the self-contained build, sees a valid signature on it, and runs `demo` to get the same report.

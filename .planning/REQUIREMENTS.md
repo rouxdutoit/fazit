@@ -42,7 +42,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 
 ### Report
 
-- [x] **REPT-01**: Report is one self-contained `.html` file with inline CSS and JS, system fonts, and no external resources
+- [x] **REPT-01**: Report is one self-contained `.html` file with inline CSS and embedded fonts (D29), no JavaScript and no external resources
 - [x] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer
 - [x] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
 - [x] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
@@ -61,6 +61,8 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **SOVC-01**: Each finding links to the criterion it informs in ZenDiS's sovereignty criteria catalogue (version 1.0) and, where they apply, the Austrian and Swiss equivalents; the appendix lists the mapping with its source and date
 - [ ] **OUTP-01**: User can export findings, open questions and effort drivers as CSV for project plans, under the same privacy rules as `scan.json`
 - [ ] **OUTP-02**: `fazit verify REPORT` checks offline whether a report was changed after it was written, using its embedded checksums; it detects changes, it does not prove who ran Fazit
+- [ ] **OUTP-03**: The report opens with a one-page summary (status per area, first blockers, open questions, the three scenario totals) that can be pasted into a council paper and fits German labels. *Why: decision-makers read one page; both release reviewers proposed it.*
+- [ ] **OUTP-04**: User can run `fazit report --inputs inputs.yaml` without a scan, and `fazit` ships a blank interview starter with every measurement unknown. *Why: an integrator should not carry the fictional town's inventory into a client's first meeting.*
 - [ ] **DATA-01**: The report states where the tenant's data is stored (data location and EU Data Boundary status), from an admin-centre export or a provided answer, as a fact without a score
 
 ### Import
@@ -70,6 +72,8 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **IMPT-03**: Import recognises concealed (anonymised) identifiers and reports them as such
 - [ ] **IMPT-04**: An unrecognised or changed CSV layout produces a clear message naming the file and the missing columns, and the rest of the import continues
 - [ ] **IMPT-05**: Shared-mailbox count is Unknown unless an Exchange recipient export is imported
+- [ ] **IMPT-06**: The licence product rosters are generated from Microsoft's published licensing CSV, with a recorded date, including free and education products; only the classification is maintained by hand. *Why: otherwise most real tenants hit "licence not classified" and several areas turn Unknown.*
+- [ ] **VALD-01**: Each founding pilot's IT officer traces one status and recalculates one cost without help, and the report's explanations are revised from what they report. *Why: it shows whether a decision-maker can check the report independently, which is the core promise.*
 
 ### Sign-in
 
@@ -102,6 +106,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **DIST-01**: User can run the tool with `uvx fazit demo` from PyPI
 - [ ] **DIST-02**: User can run a signed, self-contained Windows build without installing Python
 - [x] **DIST-03**: Repository has `LICENSE` (AGPL-3.0-or-later), SPDX headers, `CONTRIBUTING.md` and `SECURITY.md`
+- [ ] **DIST-04**: The repository is REUSE-compliant and published on openCode.de. *Why: German public-sector IT looks there first, and REUSE makes the rights for code, fonts and icons checkable.*
 - [x] **DOCS-01**: README exists in English and German, shows the `demo` command first, and states that the code is written with AI assistance
 - [ ] **DOCS-02**: App-registration guide exists in English and German with the exact steps and who can grant consent
 - [ ] **DOCS-03**: `docs/permissions.md` lists every scope and why it is needed
@@ -129,6 +134,7 @@ Deferred. Tracked but not in the current roadmap.
 - **CONV-03**: Others can contribute rule packs for further target stacks through a documented, checked format
 - **CONV-04**: User can opt in to per-person detail with `--include-names`, once a collector exists that can supply it
 - **CONV-05**: User can point the tool at their own rule files with `--rules DIR`
+- **CONV-06**: Costs by year, cumulatively, with a break-even month and an optional yearly price change supplied by the user. *Why: flat Microsoft prices for five years is the first objection finance raises; a break-even month needs explicit cash-flow timing.*
 
 ### Languages
 
@@ -218,19 +224,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-02 | Phase 4 | Pending |
 | DOCS-03 | Phase 4 | Pending |
 | DOCS-04 | Phase 4 | Pending |
+| OUTP-03 | Phase 1.2 | Pending |
+| OUTP-04 | Phase 1.2 | Pending |
+| IMPT-06 | Phase 2 | Pending |
+| VALD-01 | Phase 2 | Pending |
+| DIST-04 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 64 total
-- Mapped to phases: 64
+- v1 requirements: 69 total
+- Mapped to phases: 69
 - Unmapped: 0 ✓
 - Phase 1 (Demo and Report): 31
 - Phase 1.1 (AI Assistants and Decision Window): 2
-- Phase 1.2 (Outputs for Integrators): 2
+- Phase 1.2 (Outputs for Integrators): 4
 - Phase 1.3 (Sovereignty Criteria): 1
-- Phase 2 (Import): 7
+- Phase 2 (Import): 9
 - Phase 3 (Doctor, Sign-in and Live Counts): 16
-- Phase 4 (Documentation, Packaging and Release): 5
+- Phase 4 (Documentation, Packaging and Release): 6
 
 ---
 *Requirements defined: 2026-11-21*
-*Last updated: 2026-11-22 after adding decision support (phases 1.1 to 1.3, DATA-01 in phase 2)*
+*Last updated: 2026-11-22 after the release review: Phase 1 complete, ideas both reviewers agreed on added (OUTP-03, OUTP-04, IMPT-06, VALD-01, DIST-04, CONV-06)*
