@@ -35,7 +35,8 @@ PROFILES = sorted(
     if path.name.endswith(".yaml")
 )
 DAY = "2026-11-22"
-EMPTY_SCAN = Scan("1.0", ToolInfo(PROJECT_NAME, __version__), DAY, "sample", (), (), None)
+STAMP = f"{DAY}T09:00:00Z"
+EMPTY_SCAN = Scan("1.0", ToolInfo(PROJECT_NAME, __version__), STAMP, "sample", (), (), None)
 COUNTS = st.sampled_from((0, 1, MAX_COUNT)) | st.integers(0, 3000)
 INTERVIEWS = sorted(CATALOGUE.provided_sources - {"inputs_yaml", "sample.inputs_yaml"})
 
@@ -86,45 +87,50 @@ def _finding(
         return None
     methods = sorted(pair for pair in entry.measured_by if pair[0] in collectors)
     measured = [pair for pair in methods if collectors[pair[0]].status != "skipped"]
-    can_provide = entry.provided == "answer"
+    can_provide = entry.provided != "no"
     provenance = draw(
         st.sampled_from(["unknown"] + ["measured"] * bool(measured) + ["provided"] * can_provide)
     )
     if provenance == "measured":
         methods = measured
     collector, source = draw(st.sampled_from(methods)) if methods else (None, None)
-    if provenance == "unknown":
-        reason = collectors[collector].reason if collector is not None else None
-        return Finding(
-            entry.id,
-            entry.workload,
-            None,
-            entry.unit,
-            provenance,
-            collector,
-            source,
-            None,
-            None,
-            None,
-            reason or "not_in_export",
-        )
-
     related = totals.get(entry.coverage_total_from)
-    coverage = None
-    if provenance == "measured":
-        coverage = _coverage(draw, draw(COUNTS) if related is None else related)
-    else:
-        collector, source = None, draw(st.sampled_from(INTERVIEWS))
     count = totals.get(entry.id)
-    if entry.type == "boolean":
-        value = draw(st.booleans())
-    elif count is not None:
-        value = count
-    elif related is not None:
-        limit = related if coverage is None or coverage.scanned is None else coverage.scanned
-        value = draw(st.integers(0, limit))
+    coverage = collected_at = period = scanned = None
+    if provenance == "measured":
+        scope = related if related is not None else count
+        if scope is None:
+            scope = draw(COUNTS)
+        coverage = _coverage(draw, scope)
+        scanned = 0 if scope == 0 else coverage.scanned
+        collected_at = STAMP
+        if entry.workload != "directory":
+            period = "2026-10-01/2026-10-31"
+        if scanned == 0 and coverage.kind != "complete":
+            provenance = "unknown"
+    elif provenance == "provided":
+        collector, source = None, draw(st.sampled_from(INTERVIEWS))
+        collected_at = STAMP
+
+    reason = None
+    if provenance == "unknown":
+        value = None
+        reason = (
+            collectors[collector].reason if collector is not None else None
+        ) or "not_in_export"
+    elif entry.type == "boolean":
+        value = scanned != 0 and draw(st.booleans())
     else:
-        value = draw(COUNTS)
+        bounds = [draw(COUNTS) if count is None else count]
+        if related is not None:
+            bounds.append(related)
+        if entry.subset_of:
+            bounds.append(sum(totals[parent] for parent in entry.subset_of))
+        if scanned is not None and (
+            scanned == 0 or (entry.type == "count" and not entry.aggregate)
+        ):
+            bounds.append(scanned)
+        value = min(bounds)
     return Finding(
         entry.id,
         entry.workload,
@@ -133,10 +139,10 @@ def _finding(
         provenance,
         collector,
         source,
-        DAY,
-        "2026-10-01/2026-10-31" if collector and entry.workload != "directory" else None,
+        collected_at,
+        period,
         coverage,
-        None,
+        reason,
     )
 
 
@@ -157,7 +163,7 @@ def _licences(draw: st.DrawFn, collector: Collector | None) -> Licences | None:
     return Licences(
         collector.id,
         draw(st.sampled_from(sorted(CATALOGUE.licence_sources))),
-        DAY,
+        STAMP,
         coverage,
         tuple(products),
     )
@@ -229,15 +235,11 @@ def tenants(draw: st.DrawFn) -> Tenant:
         for name in sorted(CATALOGUE.collector_ids)
         if thorough or draw(st.booleans())
     }
-    totals = {
-        reference: draw(COUNTS)
-        for reference in dict.fromkeys(
-            entry.coverage_total_from for entry in CATALOGUE.findings if entry.coverage_total_from
-        )
-    }
-    headcount = draw(COUNTS)
-    totals["directory.user_count"] = max(headcount, draw(COUNTS))
-    totals["directory.licensed_user_count"] = headcount
+    populations = {parent for entry in CATALOGUE.findings for parent in entry.subset_of}
+    populations.update(
+        entry.coverage_total_from for entry in CATALOGUE.findings if entry.coverage_total_from
+    )
+    totals = {reference: draw(COUNTS) for reference in sorted(populations)}
     findings = tuple(
         finding
         for entry in CATALOGUE.findings
@@ -286,12 +288,13 @@ def degraded_tenants(draw: st.DrawFn) -> tuple[Tenant, Tenant]:
     changed = draw(st.sampled_from(candidates), label="evidence to degrade")
     if isinstance(changed, Finding):
         kind = draw(st.sampled_from(("partial", "unknown")), label="evidence coverage")
-        findings = tuple(
-            replace(row, coverage=replace(changed.coverage, kind=kind))
-            if row.id == changed.id
-            else row
-            for row in scan.findings
-        )
+        coverage = replace(changed.coverage, kind=kind)
+        degraded = replace(changed, coverage=coverage)
+        if coverage.scanned == 0:
+            degraded = replace(
+                degraded, provenance="unknown", value=None, missing_reason=f"coverage_{kind}"
+            )
+        findings = tuple(degraded if row.id == changed.id else row for row in scan.findings)
         worse = replace(scan, findings=findings)
         return tenant, replace(tenant, scan=worse)
 

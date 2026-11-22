@@ -201,6 +201,8 @@ def _prepare_report(
     *,
     scan_file_name: str = "scan.json",
 ) -> tuple[dict[str, object], ServicePlans]:
+    if scan.licences is not None:
+        scan.licences.check_coverage(scan_file_name)
     formatter = Formatter(lang)
     catalogue = catalogue if catalogue is not None else load_catalogue()
     checksums = {catalogue.file_name: catalogue.checksum} if catalogue.checksum else {}

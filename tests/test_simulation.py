@@ -11,6 +11,7 @@ from math import prod
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
 import yaml
 from helpers import (
     ADDRESS,
@@ -34,9 +35,9 @@ from hypothesis import example, given
 from hypothesis import strategies as st
 from tenants import (
     CATALOGUE,
-    DAY,
     EMPTY_SCAN,
     PLANS,
+    STAMP,
     STATUS_RULES,
     Tenant,
     degraded_tenants,
@@ -44,11 +45,12 @@ from tenants import (
 )
 
 from fazit.cli import app
+from fazit.errors import InputError
 from fazit.evidence import provided_findings
-from fazit.i18n import load_locale
+from fazit.i18n import error_sentence, load_locale
 from fazit.inputs import load_inputs_text
 from fazit.licences import scan_to_json
-from fazit.model import Collector, Coverage, Finding, load_scan
+from fazit.model import Collector, Coverage, Finding, load_scan, load_scan_text
 from fazit.status import STATUSES
 
 CSP = (
@@ -63,7 +65,7 @@ MACROS = Finding(
     "measured",
     "office_files",
     "sample.office_files",
-    DAY,
+    STAMP,
     None,
     Coverage("complete"),
     None,
@@ -160,6 +162,90 @@ def _statuses(html: str) -> dict[str, str]:
     assert tuple(statuses) == CATALOGUE.workload_ids
     assert set(statuses.values()) <= set(STATUSES)
     return statuses
+
+
+@pytest.mark.parametrize(
+    "violation",
+    [
+        "coverage",
+        "count",
+        "accounts",
+        "teams",
+        "team-total",
+        "team-checks",
+        "unobserved",
+        "seats",
+        "rows",
+        "time",
+    ],
+)
+@given(size=st.integers(2, 10**6), phone_in_use=st.booleans())
+def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in_use: bool) -> None:
+    scan = json.loads(scan_to_json(NONPROFIT, plans=PLANS))
+    findings = {row["id"]: (index, row) for index, row in enumerate(scan["findings"])}
+    accounts_index, accounts = findings["directory.licensed_user_count"]
+    accounts.update(
+        value=size,
+        coverage={"kind": "partial", "scanned": size + 1, "failed": 1, "total": size + 2},
+    )
+    findings["directory.user_count"][1]["value"] = 1
+    guests = findings["directory.guest_count"][1]
+    guests["value"] = size + 1
+    findings["teams.team_count"][1].update(
+        value=size, coverage={"kind": "partial", "scanned": size, "total": size + 1}
+    )
+    teams_index, teams = findings["teams.teams_with_guests_count"]
+    teams["coverage"]["kind"] = "partial"
+    phone_index, phone = findings["telephony.in_use"]
+    scan["collectors"].append(
+        {
+            "id": "telephony",
+            "status": "partial",
+            "reason": "coverage_partial",
+            "permissions_used": [],
+        }
+    )
+    phone.update(
+        value=phone_in_use,
+        provenance="measured",
+        collector="telephony",
+        source="sample.telephony",
+        collected_at=scan["generated_at"],
+        coverage={"kind": "partial", "scanned": 1, "failed": size - 1, "total": size},
+    )
+    inventory = scan["licences"]
+    inventory["coverage"] = {"kind": "partial", "failed": size - 1, "total": size}
+    (product,) = inventory["products"]
+    product.update(purchased=size, assigned=size)
+
+    account_field = f"findings[{accounts_index}]"
+    team_field = f"findings[{teams_index}]"
+    node, key, value, field = {
+        "coverage": (accounts["coverage"], "failed", 2, f"{account_field}.coverage"),
+        "count": (accounts, "value", size + 2, f"{account_field}.value"),
+        "accounts": (guests, "value", 0, f"{account_field}.value"),
+        "teams": (teams, "value", size + 2, f"{team_field}.value"),
+        "team-total": (teams["coverage"], "total", size + 2, f"{team_field}.coverage.total"),
+        "team-checks": (teams["coverage"], "failed", size + 1, f"{team_field}.value"),
+        "unobserved": (phone["coverage"], "scanned", 0, f"findings[{phone_index}].value"),
+        "seats": (product, "assigned", size + 1, "licences.products[0].assigned"),
+        "rows": (inventory["coverage"], "failed", size, "licences.coverage.total"),
+        "time": (
+            accounts,
+            "collected_at",
+            accounts["collected_at"][:10],
+            f"{account_field}.collected_at",
+        ),
+    }[violation]
+    file = "inventory.json"
+    load_scan_text(json.dumps(scan), file, CATALOGUE)
+    node[key] = value
+    with pytest.raises(InputError) as caught:
+        load_scan_text(json.dumps(scan), file, CATALOGUE)
+    assert (caught.value.file, caught.value.field) == (file, field)
+    for lang in ("en", "de"):
+        sentence = error_sentence(load_locale(lang), caught.value)
+        assert file in sentence and field in sentence and len(sentence.splitlines()) == 1
 
 
 @given(tenant=tenants())

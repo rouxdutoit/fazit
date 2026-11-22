@@ -2,7 +2,7 @@
 quick_id: 261122-rv10
 slug: consistency
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: reject impossible scans in one place

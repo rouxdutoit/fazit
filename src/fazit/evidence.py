@@ -18,7 +18,6 @@ def evidence_conflicts(first: Finding, second: Finding) -> bool:
     measured, provided = (first, second) if first.provenance == "measured" else (second, first)
     if not (
         measured.provenance == "measured"
-        and measured.value is not None
         and provided.provenance == "provided"
         and is_complete(provided)
     ):

@@ -335,7 +335,6 @@ def licence_findings(
     licences = scan.licences
     if licences is None:
         return ()
-    licences.check_coverage(file_name)
     count, coverage_gap = _inventory_evidence(licences, scan.collector(licences.collector))
     assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
     absence_gap = count.missing_reason or classification_gap or coverage_gap

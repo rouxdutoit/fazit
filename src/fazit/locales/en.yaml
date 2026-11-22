@@ -467,7 +467,8 @@ errors:
   non_finite_number_document: Enter only finite numbers in {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
   invalid_licence_coverage: Complete coverage in {field} in {file} requires the scanned and total counts to match the number of listed licence products, with zero failures.
-  licence_products_exceed_coverage: The number of listed licence products exceeds the count at {field} in {file}.
+  licence_products_exceed_coverage: The coverage at {field} in {file} cannot account for all listed licence products.
+  assigned_exceeds_purchased: The assigned seats at {field} in {file} exceed the purchased seats.
   invalid_collector: The collection method for {field} in {file} must have run.
   invalid_evidence_source: The collection method or source at {field} in {file} is invalid for {finding}.
   inputs_source_in_scan: The source at {field} in {file} is reserved for answers read from the inputs file.
@@ -475,6 +476,8 @@ errors:
   collector_reason_mismatch: The field {field} in {file} must contain a reason for partial or skipped collectors and be empty for ok collectors.
   period_after_collection: The period at {field} in {file} ends after the collection date.
   collection_after_scan: The collection date at {field} in {file} is later than the scan date.
+  observation_time_required: Include the time of collection at {field} in {file}.
+  measurement_without_observations: The value at {field} in {file} has no successful observations to support it.
   sku_identity_mismatch: The product code and GUID at {field} in {file} must match the same catalogue entry.
   coverage_total_conflict: The total at {field} in {file} disagrees with the count for {related} in the same scan.
   subset_count_exceeds_population: The count at {field} in {file} exceeds the number of items it covers.

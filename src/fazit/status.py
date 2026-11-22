@@ -222,8 +222,6 @@ def _gap(
         code = "answer_not_provided" if expected_answer else "not_in_scan"
     elif finding.missing_reason is not None:
         code = finding.missing_reason
-    elif finding.provenance == "unknown":
-        code = "not_established"
     elif condition.provenance is not None and condition.provenance != finding.provenance:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
         collector_id = None

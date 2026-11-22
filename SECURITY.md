@@ -21,7 +21,7 @@ This version runs locally and contains no network code. It contacts no host.
 7. **One command.** After setup, `demo` builds the report from sample data with one command. `report` rebuilds it from a compatible scan and accepts answers and costs from `inputs.yaml`. Measured figures currently come from the samples.
 8. **Honest numbers.** The report labels evidence and prices by their origin. Missing values stay unknown. A skipped collector never makes an area look more ready.
 
-Fazit checks the files for contradictions and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
+Fazit rejects a scan whose figures cannot all be true, for example a subset larger than its population or a measurement from zero successful checks (the full list is D31 in `DECISIONS.md`), shows disagreements between a scan and the answers in `inputs.yaml`, and labels the source of each figure. A fabricated scan that is consistent with itself can still produce a report, so a report is only as trustworthy as the tool and the person that produced the scan.
 
 On Unix, Fazit creates output files with mode `0600` so that only the file owner can read and write them. The files describe the organisation's IT. On Windows, the output directory's access control determines who can read the files.
 

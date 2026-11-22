@@ -97,7 +97,7 @@ def scan_data() -> dict:
         "licences": {
             "collector": "licences",
             "source": "sample.licences",
-            "collected_at": "2026-11-02",
+            "collected_at": "2026-11-02T09:00:00Z",
             "coverage": {"kind": "complete", "scanned": 1, "failed": 0, "total": 1},
             "products": [
                 {
@@ -399,9 +399,9 @@ def test_coverage_rejects_inconsistent_counts(
 def test_coverage_preserves_supplied_counts(
     scan_data: dict, catalogue: Catalogue, coverage: Coverage
 ) -> None:
-    scan_data["findings"][0]["coverage"] = asdict(coverage)
+    scan_data["findings"][0].update(value=18, coverage=asdict(coverage))
     finding = _load(scan_data, catalogue).finding("directory.user_count")
-    assert finding is not None and finding.coverage == coverage
+    assert finding is not None and finding.coverage == coverage and finding.value == 18
 
 
 def test_licences_preserve_identifiers_counts_and_service_plans(

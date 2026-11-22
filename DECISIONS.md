@@ -13,6 +13,30 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-22 — Scan consistency
+
+**D31. Validate the relationships between fields in `scan.json` 1.x at load time.**
+
+- A successful collector has no failure reason. A partial or skipped collector has a registered reason. Measured findings and licence inventories refer to a collector that ran and a source registered for that evidence.
+- A measured finding carries a value, collection date or time, and coverage. Its missing reason is empty.
+- A provided finding carries a value and an interview source. Its collector, coverage and missing reason are empty.
+- An unknown finding has a registered reason and an empty value.
+- Each collector ID and finding ID appears at most once.
+- A scan that includes evidence from a sample source declares its source kind as sample.
+- Successful and failed checks together fit within the stated population. Complete coverage with counts records the entire population with zero failures.
+- A count of scanned items fits within the stated successful count and within the total less known failures. Mail items, SharePoint files, Teams channels and bytes can accumulate multiple units per checked row.
+- A measured value requires at least one possible successful check. Complete coverage of an empty population can establish zero or No.
+- A subset fits within the upper bounds of its population when the catalogue links their counts and the observations share a source and reporting period or, without a period, a collection instant. A linked coverage total also limits successful checks after deducting known failures.
+- Licensed accounts fit within the sum of internal and guest accounts. Guests fit within their stated coverage. Internal accounts exclude guests.
+- Teams with guests fit within the team count. Their stated coverage total equals the known team population and is at least the observed team count when the population is incomplete.
+- Windows devices fit within all devices, and Windows-only applications without a web version fit within all Windows-only applications, when the observations are comparable.
+- The mailbox usage and Exchange recipient exports have independent coverage. Shared mailboxes fit within the stated coverage of the recipient export.
+- Assigned seats fit within purchased seats for each product. Product part numbers and GUIDs each appear at most once after normalisation.
+- Licence rows fit within successful checks and the total less known failures. Complete licence coverage records one row per product, including the empty inventory.
+- A reporting period ends by the collection date, and evidence is collected by the time the scan was generated. Date-only stamps give the calendar day for this ordering check.
+- Measured snapshots and the licence inventory carry a clock time. Date-only collection stamps are accepted for period-based measurements and for provided or unknown evidence. A date alone never establishes a shared instant.
+- Licence reconciliation still requires a complete inventory and a complete measured licensed headcount from the same instant. The headcount must be at least the largest user-SKU assignment count and at most the sum of assigned user seats. A missing, mistimed, incomplete or conflicting headcount leaves inferred licence absences unknown and preserves positive assignments.
+
 ## 2026-11-21 — M0 complete (demo and report)
 
 Fazit builds the nine-section report in German and English with all three target profiles. It accepts bundled samples or a compatible `scan.json` and the organisation's answers and costs in `inputs.yaml`. All measured figures in this milestone come from sample data. These commands run locally with no Microsoft account and contact no host.

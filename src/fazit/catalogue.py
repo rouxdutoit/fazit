@@ -41,6 +41,8 @@ class FindingEntry:
     headline: bool
     measured_by: frozenset[tuple[str, str]] = frozenset()
     coverage_total_from: str | None = None
+    subset_of: frozenset[str] = frozenset()
+    aggregate: bool = False
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,12 @@ def _finding(
     total = row.get("coverage_total_from")
     if total is not None:
         total = reader.matches(total, f"{field}.coverage_total_from", _CODE)
+    subset_of = _code_set(row.get("subset_of", []), reader, f"{field}.subset_of")
+    if subset_of and value_type != "count":
+        reader.fail(f"{field}.subset_of")
+    aggregate = row.get("aggregate", False)
+    if type(aggregate) is not bool or (aggregate and value_type != "count"):
+        reader.fail(f"{field}.aggregate")
     return FindingEntry(
         finding_id,
         workload,
@@ -151,6 +159,8 @@ def _finding(
             measured_sources,
         ),
         total,
+        subset_of,
+        aggregate,
     )
 
 
@@ -164,7 +174,11 @@ def _findings(
     keys = {"id", "workload", "type", "unit", "label", "provided", "headline"}
     findings: dict[str, FindingEntry] = {}
     for field, row in _rows(
-        value, reader, "findings", keys, optional=("measured_by", "coverage_total_from")
+        value,
+        reader,
+        "findings",
+        keys,
+        optional=("measured_by", "coverage_total_from", "subset_of", "aggregate"),
     ):
         finding_id = reader.matches(row["id"], f"{field}.id", _CODE)
         if "." not in finding_id:
@@ -175,10 +189,20 @@ def _findings(
             row, finding_id, field, reader, workload_ids, collector_ids, measured_sources
         )
     for index, entry in enumerate(findings.values()):
-        if entry.coverage_total_from is not None:
-            total = findings.get(entry.coverage_total_from)
-            if total is None or total.type != "count" or total.id == entry.id:
-                reader.fail(f"findings[{index}].coverage_total_from")
+        coverage_total = (entry.coverage_total_from,) if entry.coverage_total_from else ()
+        for field, references in (
+            ("coverage_total_from", coverage_total),
+            ("subset_of", sorted(entry.subset_of)),
+        ):
+            for reference in references:
+                population = findings.get(reference)
+                if (
+                    population is None
+                    or population.type != "count"
+                    or population.aggregate
+                    or reference == entry.id
+                ):
+                    reader.fail(f"findings[{index}].{field}")
     return tuple(findings.values())
 
 

@@ -521,6 +521,43 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     )
 
 
+@pytest.mark.parametrize("violation", ["directory-population", "empty-coverage"])
+def test_report_rejects_impossible_licensed_headcounts(tmp_path: Path, violation: str) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
+    scan = json.loads(sample.read_text(encoding="utf-8"))
+    accounts = _finding(scan, "directory.licensed_user_count")
+    if violation == "directory-population":
+        _finding(scan, "directory.user_count")["value"] = 0
+        assert _finding(scan, "directory.guest_count")["value"] == 0
+    else:
+        accounts["coverage"].update(scanned=0, failed=0, total=0)
+
+    index = scan["findings"].index(accounts)
+    _reject_scan(tmp_path / violation, scan, f"findings[{index}].value")
+
+
+@pytest.mark.parametrize("date_only", ["both", "directory", "licences"])
+def test_report_rejects_date_only_snapshots_that_could_restore_licence_pilots(
+    tmp_path: Path, date_only: str
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
+    scan = json.loads(sample.read_text(encoding="utf-8"))
+    accounts = _finding(scan, "directory.licensed_user_count")
+    accounts["collected_at"] = "2026-11-05T09:59:59Z"
+    licences = scan["licences"]
+    baseline = _html(_report(tmp_path / "different-instants", scan))
+    assert 'data-reason="licence_directory_unverified"' in readiness_row(baseline, "licences")
+
+    if date_only in {"both", "licences"}:
+        licences["collected_at"] = licences["collected_at"][:10]
+    if date_only in {"both", "directory"}:
+        accounts["collected_at"] = accounts["collected_at"][:10]
+        field = f"findings[{scan['findings'].index(accounts)}].collected_at"
+    else:
+        field = "licences.collected_at"
+    _reject_scan(tmp_path / date_only, scan, field)
+
+
 @pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])
 def test_report_rejects_coverage_total_contradicting_team_count(
     tmp_path: Path, town_scan: dict, parent_kind: str
@@ -868,6 +905,32 @@ def test_partial_telephony_collection_keeps_confirmed_use(
     assert f'data-status="{status}" data-incomplete' in row
     assert 'data-reason="coverage_partial"' in row and "1 of 85 scanned" in row
     assert 'data-gap="telephony" data-need="yes"' in html
+
+
+def test_report_rejects_telephony_use_when_all_checks_failed(
+    tmp_path: Path, town_scan: dict
+) -> None:
+    licences = town_scan["licences"]
+    licences["products"] = [p for p in licences["products"] if p["sku_part_number"] != "MCOEV"]
+    licences["coverage"].update(scanned=2, total=2)
+    town_scan["collectors"].append(
+        {
+            "id": "telephony",
+            "status": "partial",
+            "reason": "coverage_partial",
+            "permissions_used": [],
+        }
+    )
+    finding = _measure(town_scan, "telephony.in_use", True, "telephony", kind="partial")
+    finding["coverage"].update(scanned=0, failed=85, total=85)
+    index = town_scan["findings"].index(finding)
+
+    _reject_scan(
+        tmp_path / "failed-telephony",
+        town_scan,
+        f"findings[{index}].value",
+        "confirmations: {telephony.replacement_available: false}",
+    )
 
 
 @pytest.mark.parametrize(
