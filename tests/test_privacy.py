@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+import os
 from collections.abc import Iterator
 from copy import deepcopy
 from dataclasses import replace
@@ -151,12 +152,19 @@ def test_unknown_input_key_reports_position(tmp_path: Path, planted: str) -> Non
     _assert_no_private_text(result, out, planted)
 
 
+# Windows forbids C0 control characters in file names but allows a bidi override.
+_DIRECTORY_CONTROLS = (
+    ("\u202e", r"\u202e") if os.name == "nt" else ("\n\x1b\u202e", r"\n\x1b\u202e")
+)
+
+
 def test_cli_escapes_control_characters_in_file_paths(tmp_path: Path) -> None:
-    out = tmp_path / "out\n\x1b\u202e"
+    controls, escaped = _DIRECTORY_CONTROLS
+    out = tmp_path / f"out{controls}"
     result = runner.invoke(cli.app, ["demo", "--out", str(out)])
     assert result.exit_code == 0 and not result.stderr, result.output
     assert len(result.stdout.splitlines()) == 3
-    assert all(r"out\n\x1b\u202e" in line for line in result.stdout.splitlines())
+    assert all(f"out{escaped}" in line for line in result.stdout.splitlines())
     assert (out / "report-2026-11-02-en.html").is_file()
 
     source = tmp_path / "missing\r\t\x1b\u202e.json"

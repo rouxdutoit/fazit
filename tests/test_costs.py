@@ -381,7 +381,9 @@ def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -
     source = files("fazit").joinpath("demo", "town")
     answers = tmp_path / "costs.yaml"
     data = source.joinpath("inputs.yaml").read_text(encoding="utf-8")
-    answers.write_text(data.replace("amounts_are_invented: true", "amounts_are_invented: false"))
+    answers.write_text(
+        data.replace("amounts_are_invented: true", "amounts_are_invented: false"), encoding="utf-8"
+    )
     out = tmp_path / "out"
 
     section = _cost_section(
