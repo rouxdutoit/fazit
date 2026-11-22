@@ -1222,31 +1222,31 @@ code {
 
 /* Roadmap as a timeline, after the handmark site: a rail, a dot per step,
    filled only for what exists today. */
-.steps {
+.timeline {
   position: relative;
   margin: 0;
   padding: 0 0 0 32px;
   list-style: none;
 }
 
-.steps::before {
+.timeline::before {
   position: absolute;
-  inset: 10px auto 10px 4px;
+  inset: 10px auto -48px 4px;
   width: 1px;
-  background: var(--rule);
+  background: linear-gradient(var(--rule) calc(100% - 96px), transparent);
   content: "";
 }
 
-.step {
+.timeline-step {
   position: relative;
   padding-bottom: 32px;
 }
 
-.step:last-child {
+.timeline-step:last-child {
   padding-bottom: 0;
 }
 
-.step-dot {
+.timeline-dot {
   position: absolute;
   top: 6px;
   left: -32px;
@@ -1257,28 +1257,32 @@ code {
   background: var(--bg);
 }
 
-.step.on .step-dot {
+.timeline-step.on .timeline-dot {
   border-color: var(--link);
   background: var(--link);
 }
 
-.step-name {
+.timeline-name {
   font-weight: 600;
 }
 
-.step.on .step-name {
+.timeline-step.on .timeline-name {
   color: var(--link);
 }
 
-.step-text {
+.timeline-step.on .timeline-text {
+  color: var(--fg);
+}
+
+.timeline-text {
   max-width: 34em;
   margin-top: 4px;
   color: var(--fg-2);
   text-wrap: pretty;
 }
 
-.steps + .table-note {
-  margin-top: 32px;
+.timeline + .table-note {
+  margin-top: 64px;
 }
 
 .legal-intro {
