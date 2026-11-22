@@ -2,7 +2,7 @@
 quick_id: 261122-rv8
 slug: lean2
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: release review round 2, lean pass and remaining items

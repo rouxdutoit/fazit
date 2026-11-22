@@ -54,49 +54,23 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
 @pytest.mark.parametrize(
     ("text", "code", "field"),
     [
-        ("[]", "invalid_field", "$"),
-        ("curency: EUR", "unknown_field", "$[0]"),
-        ("current_costs: {annual: null}", "unknown_field", "current_costs[0]"),
-        (
-            "target_costs: {full_exit: {user_count: null}}",
-            "unknown_field",
-            "target_costs.full_exit[0]",
-        ),
-        (
-            "target_costs: {hosting_per_user_per_month: null}",
-            "unknown_field",
-            "target_costs[0]",
-        ),
-        ("currency: EUR\ncurrency: CHF", "duplicate_key", "currency"),
-        (
-            "current_costs: {other_it_per_year: .inf}",
-            "non_finite_number",
-            "current_costs.other_it_per_year",
-        ),
-        ("organisation_name: private@example.test", "contains_at", "$[0]"),
-        ("private@example.test: null", "contains_at", "$[0]"),
+        ("[]", "invalid_field_document", None),
+        ("organisation_name: private@example.test", "contains_at_field", "organisation_name"),
+        ("private@example.test: null", "contains_at_line", None),
         ("currency: eur", "invalid_field", "currency"),
         ("language: fr", "unsupported_language", "language"),
         ("target_profile: other", "unsupported_profile", "target_profile"),
         ("as_of: yesterday", "invalid_field", "as_of"),
-        ('as_of: "2026-02-30"', "invalid_scalar", "as_of"),
         ('as_of: "20261121"', "invalid_field", "as_of"),
         ('current_costs: {other_it_per_year: "0"}', "missing_field", "currency"),
-        (
-            'current_costs: {other_it_per_year: "-1"}',
-            "invalid_field",
-            "current_costs.other_it_per_year",
-        ),
-        (
-            'current_costs: {other_it_per_year: "many"}',
-            "invalid_field",
-            "current_costs.other_it_per_year",
-        ),
-        (
-            'current_costs: {other_it_per_year: "NaN"}',
-            "invalid_field",
-            "current_costs.other_it_per_year",
-        ),
+        *[
+            (
+                f'current_costs: {{other_it_per_year: "{value}"}}',
+                "invalid_field",
+                "current_costs.other_it_per_year",
+            )
+            for value in ("-1", "many", "NaN")
+        ],
         (
             "target_costs: {partial_exit: {hosting_per_user_per_month: 8.5}}",
             "money_not_quoted",
@@ -104,22 +78,22 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
         ),
         (
             "current_costs: {other_it_per_year: 08}",
-            "money_not_quoted",
+            "money_not_quoted_field",
             "current_costs.other_it_per_year",
         ),
         (
             "current_costs: {other_it_per_year: !!str 8.5}",
-            "money_not_quoted",
+            "money_not_quoted_field",
             "current_costs.other_it_per_year",
         ),
         (
             "current_costs:\n  other_it_per_year: |-\n    8.5",
-            "money_not_quoted",
+            "money_not_quoted_field",
             "current_costs.other_it_per_year",
         ),
         (
             "current_costs: {other_it_per_year: private@example.test}",
-            "contains_at",
+            "contains_at_field",
             "current_costs.other_it_per_year",
         ),
         (
@@ -137,10 +111,12 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
             "money_not_quoted",
             "target_costs.full_exit.training_days_per_person",
         ),
-        (f"provided_counts: {{{BOOLEAN_ID}: 1}}", "unknown_field", "provided_counts[0]"),
-        (f"confirmations: {{{COUNT_ID}: false}}", "unknown_field", "confirmations[0]"),
         (f"provided_counts: {{{COUNT_ID}: true}}", "invalid_field", f"provided_counts.{COUNT_ID}"),
-        (f"provided_counts: {{{COUNT_ID}: -1}}", "invalid_integer", f"provided_counts.{COUNT_ID}"),
+        (
+            f"provided_counts: {{{COUNT_ID}: -1}}",
+            "invalid_integer_field",
+            f"provided_counts.{COUNT_ID}",
+        ),
         (f"confirmations: {{{BOOLEAN_ID}: 1}}", "invalid_field", f"confirmations.{BOOLEAN_ID}"),
         (
             "windows_only_software: [{name: Editor, users: false}]",
@@ -150,7 +126,7 @@ def test_empty_inputs(catalogue: Catalogue) -> None:
         ("windows_only_software: [{}]", "missing_field", "windows_only_software[0].name"),
     ],
 )
-def test_invalid_inputs(catalogue: Catalogue, text: str, code: str, field: str) -> None:
+def test_invalid_inputs(catalogue: Catalogue, text: str, code: str, field: str | None) -> None:
     with pytest.raises(InputError) as caught:
         load_inputs_text(text, "manual.yaml", catalogue)
 
@@ -158,11 +134,29 @@ def test_invalid_inputs(catalogue: Catalogue, text: str, code: str, field: str) 
     assert (error.code, error.file, error.field) == (code, "manual.yaml", field)
     sentence = error_sentence(load_locale("en"), error)
     assert "manual.yaml" in sentence
-    if field == "$":
-        assert "$" not in sentence
-    else:
+    assert "$" not in sentence and "private@example.test" not in sentence
+    if field is not None:
         assert field in sentence
-    assert "private@example.test" not in sentence
+
+
+@pytest.mark.parametrize(
+    ("text", "line"),
+    [
+        ("curency: EUR", 1),
+        ("current_costs:\n  annual: null", 2),
+        ("target_costs:\n  full_exit:\n    user_count: null", 3),
+        ("target_costs: {hosting_per_user_per_month: null}", 1),
+        ("windows_only_software:\n  - name: Editor\n    user_count: 1", 3),
+        (f"provided_counts: {{{BOOLEAN_ID}: 1}}", 1),
+        (f"confirmations: {{{COUNT_ID}: false}}", 1),
+    ],
+)
+def test_unknown_input_keys_report_the_key_line(catalogue: Catalogue, text: str, line: int) -> None:
+    with pytest.raises(InputError, match="unknown_field") as caught:
+        load_inputs_text(text, "inputs.yaml", catalogue)
+
+    error = caught.value
+    assert (error.file, error.field, error.line) == ("inputs.yaml", None, line)
 
 
 @pytest.mark.parametrize(
@@ -184,12 +178,12 @@ def test_counts_require_unpadded_decimal_digits(catalogue: Catalogue, spelling: 
         (
             "target_costs: {full_exit: {parallel_running_months: 07}}",
             "target_costs.full_exit.parallel_running_months",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
         (
             "target_costs: {partial_exit: {training_days_per_person: 0x2}}",
             "target_costs.partial_exit.training_days_per_person",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
         (
             "target_costs: {partial_exit: {training_days_per_person: '030'}}",
@@ -199,36 +193,40 @@ def test_counts_require_unpadded_decimal_digits(catalogue: Catalogue, spelling: 
         (
             "target_costs: {full_exit: {training_staff: 010}}",
             "target_costs.full_exit.training_staff",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
         (
             f"provided_counts: {{{COUNT_ID}: 1_000}}",
             f"provided_counts.{COUNT_ID}",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
         (
             "windows_only_software: [{name: Editor, users: 030}]",
             "windows_only_software[0].users",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
         (
             "windows_only_software: [{name: Editor, vendor_has_web_version: OFF}]",
             "windows_only_software[0].vendor_has_web_version",
-            "invalid_scalar",
+            "invalid_scalar_field",
         ),
-        ("amounts_are_invented: yes", "amounts_are_invented", "invalid_scalar"),
-        ("answers_are_sample: NO", "answers_are_sample", "invalid_scalar"),
-        (f"confirmations: {{{BOOLEAN_ID}: on}}", f"confirmations.{BOOLEAN_ID}", "invalid_scalar"),
-        ("as_of: 2026-11-20T09:00:00Z", "as_of", "invalid_scalar"),
+        ("amounts_are_invented: yes", "amounts_are_invented", "invalid_scalar_field"),
+        ("answers_are_sample: NO", "answers_are_sample", "invalid_scalar_field"),
+        (
+            f"confirmations: {{{BOOLEAN_ID}: on}}",
+            f"confirmations.{BOOLEAN_ID}",
+            "invalid_scalar_field",
+        ),
+        ("as_of: 2026-11-20T09:00:00Z", "as_of", "invalid_scalar_field"),
         (
             "target_costs: {partial_exit: {users: !!null 030}}",
             "target_costs.partial_exit.users",
-            "invalid_scalar",
+            "invalid_scalar_field",
         ),
         (
             "target_costs: {partial_exit: {users: !!int '030'}}",
             "target_costs.partial_exit.users",
-            "invalid_integer",
+            "invalid_integer_field",
         ),
     ],
 )

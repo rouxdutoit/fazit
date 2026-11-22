@@ -77,7 +77,7 @@ def _exit_with_error(
 ) -> Never:
     if ctx.obj:
         raise error
-    if error.code == "unsupported_language" and error.file is None:
+    if error.code == "unsupported_language_option":
         lang = DEFAULT_LANGUAGE
     strings = load_locale(lang)
     message = error_sentence(strings, error, input_role=input_role)
@@ -97,7 +97,7 @@ def demo(
     try:
         check_language(lang)
         if sample not in ("town", "nonprofit"):
-            raise InputError("unsupported_sample", field="--sample")
+            raise InputError("unsupported_sample_option", field="--sample")
         sample_files = files("fazit").joinpath("demo", sample)
         source = sample_files.joinpath("scan.json")
         answers = sample_files.joinpath("inputs.yaml")

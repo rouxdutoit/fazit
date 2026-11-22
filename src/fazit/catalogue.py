@@ -218,7 +218,7 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
     catalogue = _parse_catalogue(read_text(source), reader)
     sections = (("workloads", catalogue.workloads), ("findings", catalogue.findings))
     for lang in SUPPORTED_LANGUAGES:
-        strings = load_locale(lang)
+        strings = load_locale(lang, copy=False)
         for group, entries in sections:
             for index, entry in enumerate(entries):
                 section, key = entry.label.split(".", 1)
@@ -239,7 +239,7 @@ def load_catalogue(path: Path | None = None) -> Catalogue:
 def _parse_catalogue(text: str, reader: Validator) -> Catalogue:
     data = parse_yaml(text, reader.file_name)
     if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}:
-        reader.fail("$")
+        reader.fail("", "invalid_field_document")
     workloads = _workloads(data["workloads"], reader)
     codes = data["codes"]
     if not isinstance(codes, dict) or codes.keys() != {

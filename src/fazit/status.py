@@ -21,6 +21,7 @@ class Condition:
     op: str
     value: FindingValue | None
     provenance: str | None = None
+    accept_partial_true: bool = False
 
 
 @dataclass(frozen=True)
@@ -72,12 +73,14 @@ def _conditions(
     conditions = []
     for index, item in enumerate(reader.rows(value, field)):
         member = f"{field}[{index}]"
-        row = reader.fields(item, member, ("finding", "op"), ("value", "provenance"))
+        row = reader.fields(
+            item, member, ("finding", "op"), ("value", "provenance", "accept_partial_true")
+        )
         finding_id = reader.choice(row["finding"], f"{member}.finding", types.keys())
         op = reader.choice(row["op"], f"{member}.op", _OPERATORS)
         kind = types[finding_id]
         literal = row.get("value")
-        if op in (">", ">=") and kind not in ("count", "bytes"):
+        if op in (">", ">=") and kind == "boolean":
             reader.fail(f"{member}.op")
         if op == "exists":
             if "value" in row:
@@ -85,14 +88,17 @@ def _conditions(
         elif kind == "boolean":
             if type(literal) is not bool:
                 reader.fail(f"{member}.value")
-        elif kind not in ("count", "bytes") or not non_negative_integer(literal):
+        elif not non_negative_integer(literal):
             reader.fail(f"{member}.value")
         provenance = (
             reader.choice(row["provenance"], f"{member}.provenance", ("measured", "provided"))
             if "provenance" in row
             else None
         )
-        conditions.append(Condition(finding_id, op, literal, provenance))
+        accept_partial = row.get("accept_partial_true", False)
+        if type(accept_partial) is not bool or (accept_partial and kind != "boolean"):
+            reader.fail(f"{member}.accept_partial_true")
+        conditions.append(Condition(finding_id, op, literal, provenance, accept_partial))
     return tuple(conditions)
 
 
@@ -134,7 +140,7 @@ def load_status_rules(
     checksums: MutableMapping[str, str] | None = None,
 ) -> StatusRuleSet:
     reader, data = read_rules("status.yaml", path, checksums)
-    root = reader.fields(data, "$", ("workloads",))
+    root = reader.fields(data, "", ("workloads",))
     workload_ids = catalogue.workload_ids
     blocks = reader.fields(root["workloads"], "workloads", workload_ids)
     types = {entry.id: entry.type for entry in catalogue.findings}
@@ -254,7 +260,7 @@ def _problem_result(
         return None
     if (
         gap.reason_code in ("coverage_partial", "coverage_unknown")
-        and finding.id.endswith(".licence_add_on_assigned")
+        and condition.accept_partial_true
         and finding.value is True
     ):
         return _matches_condition(condition, finding)

@@ -22,7 +22,6 @@ class CostLine:
     id: str
     amount: Fraction | None
     missing: tuple[str, ...]
-    input_exponent: int = 0
 
 
 @dataclass(frozen=True)
@@ -31,7 +30,6 @@ class CostGroup:
     lines: tuple[CostLine, ...]
     total: Fraction | None
     missing: tuple[str, ...]
-    input_exponent: int
 
 
 @dataclass(frozen=True)
@@ -42,7 +40,6 @@ class ScenarioResult:
     total: Fraction | None
     missing_inputs: tuple[str, ...]
     difference_to_stay: Fraction | None
-    input_exponent: int
 
 
 def _line(id: str, *factors: _Factor, multiplier: int | Fraction = 1) -> CostLine:
@@ -51,10 +48,11 @@ def _line(id: str, *factors: _Factor, multiplier: int | Fraction = 1) -> CostLin
     missing = tuple(path for path, value in factors if value is None)
     if missing:
         return CostLine(id, None, missing)
-    values = [value for _, value in factors if value is not None]
-    amount = prod((Fraction(value) for value in values), start=Fraction(multiplier))
-    exponent = sum(value.as_tuple().exponent for value in values if isinstance(value, Decimal))
-    return CostLine(id, amount, (), exponent)
+    amount = prod(
+        (Fraction(value) for _, value in factors if value is not None),
+        start=Fraction(multiplier),
+    )
+    return CostLine(id, amount, ())
 
 
 def _sum(amounts: Iterable[Fraction | None]) -> Fraction | None:
@@ -69,8 +67,7 @@ def _sum(amounts: Iterable[Fraction | None]) -> Fraction | None:
 def _group(id: str, *lines: CostLine) -> CostGroup:
     total = _sum(line.amount for line in lines)
     missing = tuple(dict.fromkeys(path for line in lines for path in line.missing))
-    exponent = min((0, *(line.input_exponent for line in lines)))
-    return CostGroup(id, lines, total, missing, exponent)
+    return CostGroup(id, lines, total, missing)
 
 
 def _exit_running(target: ScenarioInputs, prefix: str, other_it: CostLine) -> CostGroup:
@@ -151,8 +148,7 @@ def _result(
     total = _sum(group.total for group in groups)
     missing = tuple(dict.fromkeys(path for group in groups for path in group.missing))
     difference = total - stay_total if total is not None and stay_total is not None else None
-    exponent = min(group.input_exponent for group in groups)
-    return ScenarioResult(id, running, blocks, total, missing, difference, exponent)
+    return ScenarioResult(id, running, blocks, total, missing, difference)
 
 
 def compute_scenarios(inputs: Inputs) -> tuple[ScenarioResult, ...]:

@@ -143,7 +143,7 @@ def load_service_plans(
 @lru_cache(maxsize=2)
 def _parse_service_plans(text: str, reader: Validator, catalogue: Catalogue) -> ServicePlans:
     data = parse_yaml(text, reader.file_name)
-    root = reader.fields(data, "$", ("reference_url", "checked_on", "plans", "products"))
+    root = reader.fields(data, "", ("reference_url", "checked_on", "plans", "products"))
     reference = reader.matches(root["reference_url"], "reference_url", _REFERENCE)
     checked_on = reader.calendar_date(root["checked_on"], "checked_on")
     definitions = _plan_definitions(root["plans"], reader, catalogue.workload_ids)

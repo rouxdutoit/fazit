@@ -439,9 +439,9 @@ cli:
     unsupported_profile: Geben Sie für {field} in der Datei {file} den Wert opendesk, nextcloud oder generic an.
 errors:
   invalid_json: Prüfen Sie die JSON-Syntax in Zeile {line} der Datei {file}.
-  invalid_json_field: Prüfen Sie die JSON-Syntax für `{field}` in Zeile {line} der Datei {file}.
+  invalid_json_document: Prüfen Sie den Inhalt der JSON-Datei {file}.
   invalid_yaml: Prüfen Sie die YAML-Syntax in Zeile {line} der Datei {file}.
-  invalid_yaml_field: Prüfen Sie die YAML-Syntax für `{field}` in Zeile {line} der Datei {file}.
+  invalid_yaml_document: Prüfen Sie den Inhalt der YAML-Datei {file}.
   yaml_anchors: Entfernen Sie den YAML-Anker oder -Alias in Zeile {line} der Datei {file}.
   invalid_integer: Tragen Sie in Zeile {line} der Datei {file} eine ganze Zahl ohne führende Nullen ein.
   invalid_integer_field: Tragen Sie für `{field}` in Zeile {line} der Datei {file} eine ganze Zahl ohne führende Nullen ein.
@@ -449,19 +449,22 @@ errors:
   invalid_scalar_field: Prüfen Sie den Wert für `{field}` in Zeile {line} der Datei {file}.
   invalid_field: Prüfen Sie das Feld {field} in der Datei {file}.
   invalid_field_document: Prüfen Sie den Inhalt der Datei {file}.
-  unknown_field: Entfernen Sie das unbekannte Feld {field} aus der Datei {file}.
+  unknown_field: Entfernen Sie das unbekannte Feld in Zeile {line} der Datei {file}.
   money_not_quoted: Setzen Sie die Dezimalzahl für {field} in der Datei {file} in Anführungszeichen.
   money_not_quoted_field: Setzen Sie die Dezimalzahl für `{field}` in Zeile {line} der Datei {file} in Anführungszeichen.
   missing_field: Ergänzen Sie das Feld {field} in der Datei {file}.
   invalid_code: Geben Sie für {field} in der Datei {file} einen zulässigen Code an.
   invalid_label: Hinterlegen Sie für {field} in der Datei {file} eine Bezeichnung auf Deutsch und Englisch.
-  contains_at: Entfernen Sie Text mit einem At-Zeichen aus {field} in der Datei {file}.
   contains_at_document: Entfernen Sie Text mit einem At-Zeichen aus der Datei {file}.
+  contains_at_line: Entfernen Sie Text mit einem At-Zeichen in Zeile {line} der Datei {file}.
+  contains_at_field: Entfernen Sie Text mit einem At-Zeichen aus dem Feld `{field}` in Zeile {line} der Datei {file}.
   duplicate_key: Entfernen Sie den wiederholten Schlüssel in Zeile {line} der Datei {file}.
   duplicate_key_field: Entfernen Sie den wiederholten Schlüssel `{field}` in Zeile {line} der Datei {file}.
+  duplicate_key_document: Entfernen Sie den wiederholten Schlüssel aus der Datei {file}.
   duplicate_id: Die Kennung in {field} ist in der Datei {file} bereits vorhanden.
   non_finite_number: Tragen Sie in Zeile {line} der Datei {file} eine endliche Zahl ein.
   non_finite_number_field: Tragen Sie für `{field}` in Zeile {line} der Datei {file} eine endliche Zahl ein.
+  non_finite_number_document: Tragen Sie in der Datei {file} nur endliche Zahlen ein.
   invalid_coverage: Die Zahlen in {field} in der Datei {file} entsprechen nicht dem angegebenen Erhebungsumfang.
   invalid_licence_coverage: Bei einer vollständigen Erhebung müssen die Zahlen für erfasste Produkte und Gesamtbestand in {field} in der Datei {file} der Anzahl der aufgeführten Lizenzprodukte entsprechen, und die Zahl der Fehler muss null sein.
   licence_products_exceed_coverage: Die Zahl der aufgeführten Lizenzprodukte überschreitet die Angabe in {field} in der Datei {file}.

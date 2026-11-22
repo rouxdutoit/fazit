@@ -1,6 +1,6 @@
 # Fazit
 
-[Deutsch](README.de.md)
+[Deutsch](https://github.com/rouxdutoit/fazit/blob/main/README.de.md)
 
 Fazit is a free, open source command-line tool for assessing a move from Microsoft 365 to an open source setup such as openDesk or Nextcloud. It creates a self-contained HTML report locally in English or German.
 
@@ -36,7 +36,7 @@ Use the scan and inputs copies from the first demo to rebuild the report in Germ
 uv run fazit report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report/rebuilt
 ```
 
-To try your own answers and costs, copy the example file. Fill in the values you know and leave unanswered fields empty. [Interview checklist](docs/interview-checklist.md)
+To try your own answers and costs, copy the example file. Fill in the values you know and leave unanswered fields empty. [Interview checklist](https://github.com/rouxdutoit/fazit/blob/main/docs/interview-checklist.md)
 
 ```sh
 cp inputs.example.yaml inputs.yaml
@@ -72,7 +72,7 @@ Your browser may add the local file path to printed headers and footers. Before 
 
 Fazit runs from a clone and is not yet published on PyPI. Import and live collection are not available yet.
 
-The next steps are coverage of AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Local import of Microsoft 365 admin-centre exports will follow in phase 2. Phase 3 will add `doctor`, browser sign-in and live licence and directory counts. Phase 4 will bring bilingual guides, packaging and a signed Windows build. [Project roadmap](.planning/ROADMAP.md)
+The next steps are coverage of AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Local import of Microsoft 365 admin-centre exports will follow in phase 2. Phase 3 will add `doctor`, browser sign-in and live licence and directory counts. Phase 4 will bring bilingual guides, packaging and a signed Windows build. [Project roadmap](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
 
 ## What Fazit will never do
 
@@ -84,7 +84,7 @@ The next steps are coverage of AI assistants and licence renewal deadlines (1.1)
 
 Assessment data stays on your computer only when the scan, inputs and `--out` directory are on local storage, since a network share transfers those files over the network.
 
-[Security and vulnerability reporting](SECURITY.md)
+[Security and vulnerability reporting](https://github.com/rouxdutoit/fazit/blob/main/SECURITY.md)
 
 ## Change the rules
 
@@ -96,4 +96,4 @@ Fazit is AI-assisted and human-reviewed. A human maintainer directs the work and
 
 ## Licence
 
-AGPL-3.0-or-later. [Licence](LICENSE), [Contributing](CONTRIBUTING.md), [Decisions](DECISIONS.md)
+AGPL-3.0-or-later. [Licence](https://github.com/rouxdutoit/fazit/blob/main/LICENSE), [Contributing](https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md), [Decisions](https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md)

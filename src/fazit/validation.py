@@ -23,7 +23,7 @@ class Validator:
     file_name: str
 
     def fail(self, field: str, code: str = "invalid_field", **details: object) -> Never:
-        raise InputError(code, file=self.file_name, field=field or "$", **details) from None
+        raise InputError(code, file=self.file_name, field=field or None, **details) from None
 
     def fields(
         self,
@@ -35,10 +35,10 @@ class Validator:
         if not isinstance(value, dict) or (
             optional is not None and value.keys() - {*required, *optional}
         ):
-            self.fail(field)
+            self.fail(field, "invalid_field" if field else "invalid_field_document")
         for name in required:
             if name not in value:
-                self.fail(f"{field}.{name}" if field not in ("", "$") else name, "missing_field")
+                self.fail(f"{field}.{name}" if field else name, "missing_field")
         return value
 
     def rows(self, value: object, field: str, *, allow_empty: bool = False) -> list[object]:

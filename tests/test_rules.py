@@ -13,7 +13,7 @@ import yaml
 from helpers import readiness_row, report_section, runner
 from report_expectations import SECTION_ORDER
 
-from fazit import rules
+from fazit import i18n, rules
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.cli import app
 from fazit.errors import InputError
@@ -1034,7 +1034,13 @@ def test_bad_catalogue_label_exits_with_a_localised_sentence(
     ],
 )
 def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, lang: str, prefix: str, file: str, field: str
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    request: pytest.FixtureRequest,
+    lang: str,
+    prefix: str,
+    file: str,
+    field: str,
 ) -> None:
     locales = tmp_path / "locales"
     copytree(Path(str(files("fazit").joinpath("locales"))), locales)
@@ -1043,6 +1049,8 @@ def test_catalogue_rejects_a_label_missing_only_in_the_other_locale(
     line = next(line for line in source.splitlines(keepends=True) if line.startswith(prefix))
     path.write_text(source.replace(line, "", 1), encoding="utf-8")
     monkeypatch.setattr("fazit.i18n.files", lambda _: tmp_path)
+    i18n._read_locale.cache_clear()
+    request.addfinalizer(i18n._read_locale.cache_clear)
     other = "en" if lang == "de" else "de"
     out = tmp_path / "out"
 

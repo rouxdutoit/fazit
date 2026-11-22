@@ -138,8 +138,9 @@ def test_unknown_input_key_reports_position(tmp_path: Path, planted: str) -> Non
         cli.app, ["report", str(PLANTED_SCAN), "--inputs", str(answers), "--out", str(out)]
     )
     assert result.exit_code == 2 and not result.stdout and not out.exists()
-    assert len(result.stderr.splitlines()) == 1
-    assert answers.name in result.stderr and "current_costs[0]" in result.stderr
+    assert result.stderr.splitlines() == [
+        f"Error: Remove the unrecognised field on line 3 of {answers.name}."
+    ]
     assert_no_private_text(result, out, planted)
 
 
@@ -237,7 +238,10 @@ def test_privacy_in_every_scan_field_and_key(
         assert_no_private_text(result, out, *PRIVATE_TEXT, planted)
         if planted == ADDRESS:
             assert result.exit_code == 2, position
-            assert strings["errors"]["contains_at"].split("{")[0] in result.stderr
+            message = strings["errors"]["contains_at_document"].format(file=scan_file.name)
+            assert result.stderr.splitlines() == [
+                strings["cli"]["error_prefix"].format(message=message)
+            ]
         if result.exit_code == 0:
             copied = scan_to_json(load_scan(scan_file, catalogue), plans=plans)
             assert all(text not in copied for text in (*PRIVATE_TEXT, planted)), position

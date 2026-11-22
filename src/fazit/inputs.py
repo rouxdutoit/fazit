@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
@@ -9,7 +9,7 @@ from types import MappingProxyType
 from .catalogue import Catalogue
 from .i18n import check_language
 from .mappings import PROFILES
-from .parsing import FieldNames, parse_yaml, read_text, reject_at_signs
+from .parsing import FieldNames, parse_yaml, read_text
 from .validation import Validator, non_negative_integer
 
 _INPUT_KEYS = (
@@ -42,11 +42,6 @@ _SCENARIOS = ("partial_exit", "full_exit")
 _SCENARIO_COUNTS = ("users", "training_staff", "parallel_running_months")
 _SCENARIO_KEYS = (*_SCENARIO_AMOUNTS, *_SCENARIO_COUNTS, "training_days_per_person")
 _SOFTWARE_KEYS = ("name", "users", "vendor_has_web_version")
-_QUOTED_FIELDS = tuple(f"current_costs.{name}" for name in _CURRENT_AMOUNTS) + tuple(
-    f"target_costs.{scenario}.{name}"
-    for scenario in _SCENARIOS
-    for name in (*_SCENARIO_AMOUNTS, "training_days_per_person")
-)
 _DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
 _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
 _CURRENCY = re.compile(r"[A-Z]{3}")
@@ -107,21 +102,18 @@ class Inputs:
 class _InputsReader:
     validator: Validator
 
-    def fields(self, value: object, field: str, allowed: Collection[str]) -> dict[str, object]:
-        if value is None:
-            return {}
-        row = self.validator.fields(value, field, (), optional=None)
-        for index, key in enumerate(row):
-            if key not in allowed:
-                self.validator.fail(f"{field or '$'}[{index}]", "unknown_field")
-        return row
+    def fields(self, value: object, field: str) -> dict[str, object]:
+        return {} if value is None else self.validator.fields(value, field, (), optional=None)
 
     def name(self, value: object, field: str, limit: int) -> str | None:
         if value is None:
             return None
-        if not isinstance(value, str) or not value.strip() or len(value) > limit:
-            self.validator.fail(field)
-        if not value.isprintable():
+        if (
+            not isinstance(value, str)
+            or not value.strip()
+            or len(value) > limit
+            or not value.isprintable()
+        ):
             self.validator.fail(field)
         return value
 
@@ -150,7 +142,7 @@ class _InputsReader:
         return amounts
 
     def scenario(self, value: object, field: str, currency: str | None) -> ScenarioInputs:
-        row = self.fields(value, field, _SCENARIO_KEYS)
+        row = self.fields(value, field)
         amounts = self.amounts(row, field, _SCENARIO_AMOUNTS, currency)
         months = self.validator.optional_count(
             row.get("parallel_running_months"), f"{field}.parallel_running_months"
@@ -172,7 +164,7 @@ class _InputsReader:
         )
 
     def software_entry(self, value: object, field: str) -> WindowsSoftware:
-        row = self.fields(value, field, _SOFTWARE_KEYS)
+        row = self.fields(value, field)
         name = self.name(row.get("name"), f"{field}.name", 80)
         if name is None:
             self.validator.fail(f"{field}.name", "missing_field")
@@ -214,10 +206,16 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
     data = parse_yaml(
         text,
         file_name,
-        quoted_fields=_QUOTED_FIELDS,
         allow_aliases=False,
         fields=fields,
+        strict_scalars=True,
         scalar_fields={
+            **{("current_costs", key): "quoted" for key in _CURRENT_AMOUNTS},
+            **{
+                ("target_costs", scenario, key): "quoted"
+                for scenario in _SCENARIOS
+                for key in (*_SCENARIO_AMOUNTS, "training_days_per_person")
+            },
             **{
                 ("target_costs", scenario, key): "integer"
                 for scenario in _SCENARIOS
@@ -228,22 +226,19 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
             ("as_of",): "date",
         },
     )
-    reject_at_signs(data, file_name)
-    return _read_inputs(data, Validator(file_name), count_ids, boolean_ids)
+    return _read_inputs(data, Validator(file_name))
 
 
-def _read_inputs(
-    data: object, validator: Validator, count_ids: set[str], boolean_ids: set[str]
-) -> Inputs:
+def _read_inputs(data: object, validator: Validator) -> Inputs:
     reader = _InputsReader(validator)
-    row = reader.fields(data, "", _INPUT_KEYS)
+    row = reader.fields(data, "")
     currency = row.get("currency")
     if currency is not None:
         currency = validator.matches(currency, "currency", _CURRENCY)
-    current = reader.fields(row.get("current_costs"), "current_costs", _CURRENT_AMOUNTS)
-    targets = reader.fields(row.get("target_costs"), "target_costs", _SCENARIOS)
-    counts = reader.fields(row.get("provided_counts"), "provided_counts", count_ids)
-    confirmations = reader.fields(row.get("confirmations"), "confirmations", boolean_ids)
+    current = reader.fields(row.get("current_costs"), "current_costs")
+    targets = reader.fields(row.get("target_costs"), "target_costs")
+    counts = reader.fields(row.get("provided_counts"), "provided_counts")
+    confirmations = reader.fields(row.get("confirmations"), "confirmations")
     language, profile, as_of = (row.get(name) for name in ("language", "target_profile", "as_of"))
     return Inputs(
         organisation_name=reader.name(row.get("organisation_name"), "organisation_name", 120),

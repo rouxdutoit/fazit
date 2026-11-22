@@ -121,12 +121,12 @@ def load_mapping(
     checksums: MutableMapping[str, str] | None = None,
 ) -> TargetMapping:
     if profile not in PROFILES:
-        raise InputError("unsupported_profile", field="--profile")
+        raise InputError("unsupported_profile_option", field="--profile")
     name = f"mappings/{profile}.yaml"
     reader, data = read_rules(name, directory / name if directory is not None else None, checksums)
     root = reader.fields(
         data,
-        "$",
+        "",
         ("profile", "label", "description", "product_profile", "no_function", "functions"),
     )
     reader.choice(root["profile"], "profile", (profile,))

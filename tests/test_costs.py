@@ -2,19 +2,17 @@
 import re
 from dataclasses import replace
 from decimal import Decimal, localcontext
+from fractions import Fraction
 from html import unescape
-from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
+from helpers import ROOT, report_section, runner, sample_inputs_path, sample_scan_path
 
 from fazit.cli import app
 from fazit.costs import BLOCKS, SCENARIOS, CostGroup, ScenarioResult, compute_scenarios
 from fazit.i18n import Formatter, load_locale
 from fazit.inputs import CurrentCosts, Inputs, ScenarioInputs
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
@@ -55,7 +53,7 @@ def worked_example() -> Inputs:
     )
 
 
-def _amounts(group: CostGroup) -> dict[str, Decimal | None]:
+def _amounts(group: CostGroup) -> dict[str, Fraction | None]:
     return {line.id: line.amount for line in group.lines}
 
 
@@ -310,14 +308,11 @@ def test_no_prices_in_application_sources() -> None:
 
 
 def _cost_section(out: Path, *command: str) -> str:
-    result = CliRunner().invoke(app, [*command, "--out", str(out)])
+    result = runner.invoke(app, [*command, "--out", str(out)])
     assert result.exit_code == 0, result.output
     path = Path(result.stdout.splitlines()[-1])
     assert path.is_file() and path.parent == out
-    html = path.read_text(encoding="utf-8")
-    section = re.search(r'<section data-section="costs">.*?</section>', html, re.S)
-    assert section is not None
-    return section[0]
+    return report_section(path.read_text(encoding="utf-8"), "costs")
 
 
 def _rendered_totals(section: str) -> dict[str, str]:
@@ -327,7 +322,10 @@ def _rendered_totals(section: str) -> dict[str, str]:
 @pytest.mark.parametrize("lang", ["en", "de"])
 @pytest.mark.parametrize(
     ("sample", "totals"),
-    [("town", ("600000", "527800", "464350")), ("nonprofit", ("22000", "29870", "unknown"))],
+    [
+        ("town", ("600000.00", "527800.00", "464350.00")),
+        ("nonprofit", ("22000.00", "29870.00", "unknown")),
+    ],
 )
 def test_demo_cost_comparison(
     tmp_path: Path, lang: str, sample: str, totals: tuple[str, ...]
@@ -360,7 +358,7 @@ def test_demo_cost_comparison(
 
 @pytest.mark.parametrize("with_example", [False, True])
 def test_empty_inputs_render_unknown_costs(tmp_path: Path, with_example: bool) -> None:
-    scan = files("fazit").joinpath("demo", "town", "scan.json")
+    scan = sample_scan_path("town")
     options = ("--inputs", str(ROOT / "inputs.example.yaml")) if with_example else ()
     section = _cost_section(tmp_path, "report", str(scan), *options)
     strings = load_locale("en")["costs"]
@@ -378,23 +376,25 @@ def test_empty_inputs_render_unknown_costs(tmp_path: Path, with_example: bool) -
 
 
 def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -> None:
-    source = files("fazit").joinpath("demo", "town")
     answers = tmp_path / "costs.yaml"
-    data = source.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    data = sample_inputs_path("town").read_text(encoding="utf-8")
     answers.write_text(
-        data.replace("amounts_are_invented: true", "amounts_are_invented: false"), encoding="utf-8"
+        data.replace("amounts_are_invented: true", "amounts_are_invented: false").replace(
+            'retained_microsoft_licences_per_year: "60000"',
+            'retained_microsoft_licences_per_year: "60000.01"',
+        ),
+        encoding="utf-8",
     )
     out = tmp_path / "out"
 
-    section = _cost_section(
-        out, "report", str(source.joinpath("scan.json")), "--inputs", str(answers)
-    )
+    section = _cost_section(out, "report", str(sample_scan_path("town")), "--inputs", str(answers))
 
     assert _rendered_totals(section) == {
-        "stay": "600000",
-        "partial_exit": "527800",
-        "full_exit": "464350",
+        "stay": "600000.00",
+        "partial_exit": "527800.05",
+        "full_exit": "464350.00",
     }
+    assert re.search(r'data-amount="270000\.05">\s*EUR 270,000\.05', section)
     assert "data-invented-amounts" not in section and 'data-cost-origin="invented"' not in section
     assert 'data-cost-origin="provided"' in section
     assert 'data-cost-origin="sample_input"' in section
@@ -406,20 +406,24 @@ def test_sample_measurements_do_not_label_real_prices_invented(tmp_path: Path) -
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])
-def test_padded_headcount_is_rejected_instead_of_changing_the_total(
-    tmp_path: Path, lang: str
-) -> None:
-    source = files("fazit").joinpath("demo", "town")
+def test_report_rejects_padded_headcounts(tmp_path: Path, lang: str) -> None:
     inputs = tmp_path / "inputs.yaml"
-    original = source.joinpath("inputs.yaml").read_text(encoding="utf-8")
-    inputs.write_text(original, encoding="utf-8")
-    command = ("report", str(source.joinpath("scan.json")), "--inputs", str(inputs), "--lang", lang)
-    section = _cost_section(tmp_path / "valid", *command)
-    assert _rendered_totals(section)["partial_exit"] == "527800"
-
+    original = sample_inputs_path("town").read_text(encoding="utf-8")
     inputs.write_text(original.replace("users: 30", "users: 030", 1), encoding="utf-8")
     out = tmp_path / "rejected"
-    result = CliRunner().invoke(app, [*command, "--out", str(out)])
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            str(sample_scan_path("town")),
+            "--inputs",
+            str(inputs),
+            "--lang",
+            lang,
+            "--out",
+            str(out),
+        ],
+    )
 
     assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
     assert len(result.stderr.splitlines()) == 1

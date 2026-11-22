@@ -232,8 +232,7 @@ def test_scan_refuses_contact_text_before_dropping_unknown_data(
         _load(scan_data, catalogue)
 
     error = caught.value
-    assert error.file == "scan.json" and error.field and error.field.startswith("$")
-    assert not error.details and address not in error.field
+    assert error.file == "scan.json" and error.field is None and not error.details
     assert address not in error_sentence(load_locale("en"), error)
 
 
@@ -530,16 +529,16 @@ def test_schema_version_support_and_additive_compatibility(
 @pytest.mark.parametrize(
     ("document", "code", "line"),
     [
-        ('{"items":[{"first":0,\n"first":1}]}', "duplicate_key", 2),
-        ('{"items":[\nNaN]}', "non_finite_number", 2),
-        ('{"items":[Infinity]}', "non_finite_number", 1),
-        ('{"items":[-Infinity]}', "non_finite_number", 1),
-        ('{"items":[1e999]}', "non_finite_number", 1),
+        ('{"items":[{"first":0,\n"first":1}]}', "duplicate_key_document", None),
+        ('{"items":[\nNaN]}', "non_finite_number_document", None),
+        ('{"items":[Infinity]}', "non_finite_number_document", None),
+        ('{"items":[-Infinity]}', "non_finite_number_document", None),
+        ('{"items":[1e999]}', "non_finite_number_document", None),
         ('{"items":[\n}', "invalid_json", 2),
     ],
 )
-def test_strict_json_errors_locate_unknown_fields_by_line(
-    document: str, code: str, line: int
+def test_strict_json_errors_report_only_available_positions(
+    document: str, code: str, line: int | None
 ) -> None:
     with pytest.raises(InputError, match=code) as caught:
         parse_json(document, "scan.json")
@@ -580,9 +579,9 @@ def test_strict_yaml_errors_locate_unknown_fields_by_line(
 
 
 def test_strict_yaml_preserves_quoted_text_and_finite_numbers() -> None:
-    assert parse_yaml('quoted: "1.00499999999999999"\nfinite: 1.5', "inputs.yaml") == {
+    assert parse_yaml('quoted: "1.00499999999999999"\nfinite: 1:02.5', "inputs.yaml") == {
         "quoted": "1.00499999999999999",
-        "finite": 1.5,
+        "finite": 62.5,
     }
 
 
@@ -609,7 +608,7 @@ def test_read_text_maps_absent_directory_and_invalid_utf8(tmp_path: Path) -> Non
 
     assert missing.value.file == encoding.value.file == path.name
     assert directory.value.file == tmp_path.name
-    assert all(error.value.field == "$" for error in (missing, directory, encoding))
+    assert all(error.value.field is None for error in (missing, directory, encoding))
 
 
 def test_read_text_maps_unreadable_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -624,7 +623,7 @@ def test_read_text_maps_unreadable_files(tmp_path: Path, monkeypatch: pytest.Mon
     monkeypatch.setattr(Path, "open", refuse_read)
     with pytest.raises(InputError, match="not_readable") as caught:
         read_text(path)
-    assert (caught.value.file, caught.value.field) == (path.name, "$")
+    assert (caught.value.file, caught.value.field) == (path.name, None)
 
 
 def test_read_text_checks_size_before_opening(
@@ -643,7 +642,7 @@ def test_read_text_checks_size_before_opening(
         patch.setattr(Path, "open", unexpected_open)
         with pytest.raises(InputError, match="file_too_large") as caught:
             read_text(path)
-    assert (caught.value.file, caught.value.field) == (path.name, "$")
+    assert (caught.value.file, caught.value.field) == (path.name, None)
 
 
 def test_report_shows_finding_evidence_and_collector_details(

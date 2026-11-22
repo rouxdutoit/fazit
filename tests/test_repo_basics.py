@@ -150,7 +150,8 @@ def test_readmes_show_the_checkout_demo_and_no_published_install(
 ) -> None:
     text = (ROOT / readme).read_text(encoding="utf-8")
     commands = "\n".join(readme_code_blocks(text))
-    assert f"]({translation})" in text
+    assert f"](https://github.com/rouxdutoit/fazit/blob/main/{translation})" in text
+    assert not re.search(r"\]\((?!https://|#)[^)]+\)", text)
     assert "Claude" in text and "Codex" in text
     assert "![" not in text and not re.search(r"<img\b", text, re.I)
     assert re.search(r"(?m)^\s*uv run fazit demo\b", commands)
@@ -172,6 +173,7 @@ def test_ci_runs_the_required_checks_on_supported_python_versions(ci_workflow: d
     strategy = job["strategy"]
     assert strategy["fail-fast"] is False
     matrix = strategy["matrix"]
+    assert "ubuntu-latest" in matrix["os"]
     assert {"3.12", "3.x"} <= set(matrix["python-version"])
     platforms = {(row.get("os"), row.get("python-version")) for row in matrix.get("include", [])}
     assert {("windows-latest", "3.12"), ("macos-latest", "3.12")} <= platforms
@@ -196,8 +198,15 @@ def test_ci_runs_the_required_checks_on_supported_python_versions(ci_workflow: d
     )
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     required = set(re.findall(r"^uv run .+$", agents, re.M))
-    required.add("uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep")
     assert not (missing := required - commands), sorted(missing)
+
+    deep = "uv run pytest -q tests/test_simulation.py --hypothesis-profile=deep"
+    (step,) = (step for step in steps if step.get("run") == deep)
+    assert set(step["if"].split(" && ")) == {
+        "github.event_name == 'push'",
+        "matrix.os == 'ubuntu-latest'",
+        "matrix.python-version == '3.12'",
+    }
 
 
 def test_ci_uses_read_only_permissions_and_sha_pinned_actions(ci_workflow: dict) -> None:

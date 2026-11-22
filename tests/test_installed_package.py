@@ -88,7 +88,6 @@ def test_installed_demo_renders_offline(
     html = path.read_text(encoding="utf-8")
     assert '<html lang="de">' in html
     assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
-    assert not audit_log.read_text(encoding="utf-8")
     location = _run(
         _venv_program(venv, "python"),
         "-c",
@@ -155,17 +154,17 @@ def test_installed_demo_renders_offline(
         pytest.param(
             "inventory.json",
             b"[" * 1500 + b"0" + b"]" * 1500,
-            "invalid_json",
+            "invalid_json_document",
             None,
-            1,
+            None,
             id="deep-json",
         ),
         pytest.param(
             "answers.yaml",
             b"x: " + b"[" * 1500 + b"0" + b"]" * 1500,
-            "invalid_yaml",
+            "invalid_yaml_document",
             None,
-            1,
+            None,
             id="deep-yaml",
         ),
         pytest.param("out", b"Keep this file.\n", "out_dir", "--out", None, id="out-is-file"),

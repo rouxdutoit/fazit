@@ -4,8 +4,6 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
-from decimal import MAX_EMAX, MIN_EMIN, Context, Decimal
-from fractions import Fraction
 from functools import lru_cache, partial
 from importlib.resources import files
 
@@ -13,7 +11,7 @@ from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
 from .catalogue import Catalogue, load_catalogue
-from .costs import MONTHS_PER_YEAR, CostGroup, CostLine, ScenarioResult, compute_scenarios
+from .costs import CostGroup, CostLine, ScenarioResult, compute_scenarios
 from .evidence import (
     combine,
     evidence_conflicts,
@@ -21,7 +19,7 @@ from .evidence import (
     provided_answers_conflict,
     provided_findings,
 )
-from .i18n import Formatter, check_language, code_label, reason_text
+from .i18n import Formatter, check_language, code_label, plain_amount, reason_text
 from .inputs import Inputs
 from .licences import (
     RegisteredPlan,
@@ -138,19 +136,6 @@ def _cost_table_blocks(scenarios: tuple[ScenarioResult, ...]) -> tuple[_CostTabl
             )
         )
     return tuple(blocks)
-
-
-def _plain_amount(amount: Fraction | None, input_exponent: int) -> str:
-    if amount is None:
-        return "unknown"
-    # Preserve the decimal precision of existing HTML data attributes for prorated amounts.
-    coefficient = int(amount * MONTHS_PER_YEAR * Fraction(10) ** -input_exponent)
-    precision = max(28, len(Decimal(coefficient).as_tuple().digits) + 4)
-    context = Context(prec=precision, Emin=MIN_EMIN, Emax=MAX_EMAX)
-    number = context.divide(Decimal(amount.numerator), Decimal(amount.denominator))
-    whole, _, fraction = f"{number:f}".partition(".")
-    fraction = fraction.rstrip("0")
-    return f"{whole}.{fraction}" if fraction else whole
 
 
 def render_report(
@@ -355,7 +340,7 @@ def _cost_context(inputs: Inputs | None) -> dict[str, object]:
         current_costs=vars(cost_inputs.current_costs),
         target_costs=(vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit)),
         cost_currency=cost_inputs.currency or "",
-        plain_amount=_plain_amount,
+        plain_amount=plain_amount,
     )
 
 

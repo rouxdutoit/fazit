@@ -68,35 +68,35 @@ def test_demo_prints_output_paths_and_renders_inventory(tmp_path: Path) -> None:
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("readme", ["README.md", "README.de.md"])
 def test_readme_examples_produce_local_reports(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, readme: str
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    text = (ROOT / readme).read_text(encoding="utf-8")
     prefix = "uv run fazit "
-    commands = [
-        line.strip()
-        for block in readme_code_blocks(text)
-        for line in block.splitlines()
-        if line.lstrip().startswith(prefix)
-    ]
-    assert commands
-    working = tmp_path / "Pat Analyst@example.invalid"
-    working.mkdir()
-    for name in ("inputs.example.yaml", "inputs.yaml"):
-        copyfile(ROOT / "inputs.example.yaml", working / name)
-    monkeypatch.chdir(working)
+    examples = {
+        tuple(
+            line.strip()
+            for block in readme_code_blocks((ROOT / readme).read_text(encoding="utf-8"))
+            for line in block.splitlines()
+            if line.lstrip().startswith(prefix)
+        )
+        for readme in ("README.md", "README.de.md")
+    }
+    assert all(examples)
+    for index, commands in enumerate(sorted(examples)):
+        working = tmp_path / str(index) / "Pat Analyst@example.invalid"
+        working.mkdir(parents=True)
+        copyfile(ROOT / "inputs.example.yaml", working / "inputs.yaml")
+        monkeypatch.chdir(working)
 
-    for command in commands:
-        result = runner.invoke(app, shlex.split(command.removeprefix(prefix)))
-        assert result.exit_code == 0, f"{command}\n{result.output}"
-        assert not result.stderr, command
-        assert working.name not in result.stdout
-        path = Path(result.stdout.splitlines()[-1])
-        assert not path.is_absolute() and path.is_file()
-        assert path.resolve().is_relative_to(working.resolve())
-        html = path.read_text(encoding="utf-8")
-        assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
+        for command in commands:
+            result = runner.invoke(app, shlex.split(command.removeprefix(prefix)))
+            assert result.exit_code == 0 and not result.stderr, f"{command}\n{result.output}"
+            assert working.name not in result.stdout
+            path = Path(result.stdout.splitlines()[-1])
+            assert not path.is_absolute() and path.is_file()
+            assert path.resolve().is_relative_to(working.resolve())
+            html = path.read_text(encoding="utf-8")
+            assert tuple(re.findall(r'data-section="([^"]+)"', html)) == SECTION_ORDER
 
 
 def test_cli_prints_usable_paths_without_revealing_link_targets(
@@ -185,7 +185,8 @@ def test_input_error_uses_the_role_for_an_identifying_filename(
     assert len(result.stderr.splitlines()) == 1
     assert role in result.stderr and "@" not in result.stderr
     if contents is not None:
-        assert "currency" in result.stderr
+        assert ("line 1" if lang == "en" else "Zeile 1") in result.stderr
+        assert "currency" not in result.stderr
 
 
 @pytest.mark.parametrize("profile", PROFILES)
@@ -611,26 +612,6 @@ def test_module_entry_point() -> None:
     assert result.stdout.strip() == __version__
 
 
-def test_report_rebuilds_a_demo_copy(tmp_path: Path) -> None:
-    demo_out = tmp_path / "demo"
-    demo_result = runner.invoke(app, ["demo", "--out", str(demo_out)])
-    assert demo_result.exit_code == 0, demo_result.output
-    scan = demo_out / "scan-2026-11-02-en.json"
-    assert scan.is_file()
-
-    out = tmp_path / "rebuilt"
-    result = runner.invoke(app, ["report", str(scan), "--lang", "de", "--out", str(out)])
-
-    assert result.exit_code == 0, result.output
-    report = out / "report-2026-11-02-de.html"
-    assert result.stdout.splitlines() == [str(report.resolve())]
-    assert not result.stderr
-    assert list(out.iterdir()) == [report]
-    html = report.read_text(encoding="utf-8")
-    assert 'lang="de"' in html
-    assert "2. November 2026" in html
-
-
 def test_report_usage_uses_the_documented_argument_name_in_english() -> None:
     failure = runner.invoke(app, ["report", "--lang", "de"])
     help_result = runner.invoke(app, ["report", "--help"])
@@ -675,13 +656,19 @@ def test_report_resolves_options_and_displays_organisation_from_inputs(
     assert answers.name not in html
 
 
-@pytest.mark.parametrize(("lang", "prefix"), [(None, "Error:"), ("de", "Fehler:")])
+@pytest.mark.parametrize(
+    ("lang", "message"),
+    [
+        (None, "Error: Remove the unrecognised field on line 4 of {file}."),
+        ("de", "Fehler: Entfernen Sie das unbekannte Feld in Zeile 4 der Datei {file}."),
+    ],
+)
 def test_report_input_errors_use_the_flag_language(
-    tmp_path: Path, lang: str | None, prefix: str
+    tmp_path: Path, lang: str | None, message: str
 ) -> None:
     scan = files("fazit").joinpath("demo", "town", "scan.json")
     answers = tmp_path / "office-interview.yaml"
-    answers.write_text("language: de\ncurency: EUR\n", encoding="utf-8")
+    answers.write_text("# Interview\nlanguage: de\n\ncurency: EUR\n", encoding="utf-8")
     out = tmp_path / "out"
     options = [] if lang is None else ["--lang", lang]
 
@@ -690,9 +677,7 @@ def test_report_input_errors_use_the_flag_language(
     )
 
     assert result.exit_code == 2 and not result.stdout and not out.exists()
-    assert len(result.stderr.splitlines()) == 1 and result.stderr.startswith(prefix)
-    assert answers.name in result.stderr and "$[1]" in result.stderr
-    assert "curency" not in result.stderr
+    assert result.stderr.splitlines() == [message.format(file=answers.name)]
 
 
 @pytest.mark.parametrize("kind", ["missing", "directory"])
@@ -710,121 +695,106 @@ def test_report_rejects_missing_or_directory_inputs(tmp_path: Path, kind: str) -
 
 
 @pytest.mark.parametrize(("lang", "line_label"), [("en", "line"), ("de", "Zeile")])
-@pytest.mark.parametrize("date_text", ["2026-02-30", '"2026-02-30"'])
-def test_invalid_input_date_names_its_field_and_line(
-    tmp_path: Path, lang: str, line_label: str, date_text: str
-) -> None:
-    answers = tmp_path / "inputs.yaml"
-    answers.write_text(f"# Interview date\ncurrency: EUR\n\nas_of: {date_text}\n", encoding="utf-8")
-    out = tmp_path / "out"
-    result = runner.invoke(
-        app,
-        [
-            "report",
-            str(sample_scan_path("town")),
-            "--inputs",
-            str(answers),
-            "--out",
-            str(out),
-            "--lang",
-            lang,
-        ],
-    )
-
-    assert result.exit_code == 2 and not result.stdout and not out.exists()
-    assert len(result.stderr.splitlines()) == 1
-    assert "inputs.yaml" in result.stderr and "as_of" in result.stderr
-    assert f"{line_label} 4" in result.stderr
-
-
-@pytest.mark.parametrize("lang", ["en", "de"])
 @pytest.mark.parametrize(
-    ("name", "content", "en", "de"),
+    ("name", "content", "code", "line", "field"),
     [
-        (
-            "inputs.yaml",
-            "currency: EUR\ncurrency: CHF\n",
-            "Remove the repeated key `currency` on line 2 of inputs.yaml.",
-            "Entfernen Sie den wiederholten Schlüssel `currency` in Zeile 2 der Datei inputs.yaml.",
-        ),
+        ("inputs.yaml", "currency: EUR\ncurrency: CHF\n", "duplicate_key_field", 2, "currency"),
         (
             "inputs.yaml",
             "current_costs:\n  'Pat Analyst@example.invalid': 1\n"
             "  'Pat Analyst@example.invalid': 2\n",
-            "Remove the repeated key on line 3 of inputs.yaml.",
-            "Entfernen Sie den wiederholten Schlüssel in Zeile 3 der Datei inputs.yaml.",
+            "duplicate_key",
+            3,
+            None,
         ),
         (
             "inputs.yaml",
             "'target_costs.partial_exit.users': 1\n'target_costs.partial_exit.users': 2\n",
-            "Remove the repeated key on line 2 of inputs.yaml.",
-            "Entfernen Sie den wiederholten Schlüssel in Zeile 2 der Datei inputs.yaml.",
+            "duplicate_key",
+            2,
+            None,
         ),
         (
             "inputs.yaml",
             "current_costs:\n  other_it_per_year: .nan\n",
-            "Enter a finite number for `current_costs.other_it_per_year` on line 2 of inputs.yaml.",
-            "Tragen Sie für `current_costs.other_it_per_year` in Zeile 2 der Datei inputs.yaml "
-            "eine endliche Zahl ein.",
+            "non_finite_number_field",
+            2,
+            "current_costs.other_it_per_year",
         ),
         (
             "inputs.yaml",
             "target_costs:\n  partial_exit:\n    users: [1, }\n",
-            "Check the YAML syntax for `target_costs.partial_exit.users` on line 3 of inputs.yaml.",
-            "Prüfen Sie die YAML-Syntax für `target_costs.partial_exit.users` in Zeile 3 der Datei "
-            "inputs.yaml.",
+            "invalid_yaml",
+            3,
+            None,
         ),
+        *[
+            (
+                "inputs.yaml",
+                f"# Interview date\ncurrency: EUR\n\nas_of: {date}\n",
+                "invalid_scalar_field",
+                4,
+                "as_of",
+            )
+            for date in ("2026-02-30", '"2026-02-30"')
+        ],
         (
             "scan.json",
             '{\n "tool": {"name": "fazit",\n "n\\u0061me": "fazit"}\n}',
-            "Remove the repeated key `tool.name` on line 3 of scan.json.",
-            "Entfernen Sie den wiederholten Schlüssel `tool.name` in Zeile 3 der Datei scan.json.",
+            "duplicate_key_document",
+            None,
+            None,
         ),
         (
             "scan.json",
             '{\n "Pat Analyst@example.invalid": {"name": "other",\n "name": "copy"}\n}',
-            "Remove the repeated key on line 3 of scan.json.",
-            "Entfernen Sie den wiederholten Schlüssel in Zeile 3 der Datei scan.json.",
+            "duplicate_key_document",
+            None,
+            None,
         ),
         (
             "scan.json",
             '{"findings": [{\n "value": 1e999\n}]}',
-            "Enter a finite number for `findings[0].value` on line 2 of scan.json.",
-            "Tragen Sie für `findings[0].value` in Zeile 2 der Datei scan.json "
-            "eine endliche Zahl ein.",
+            "non_finite_number_document",
+            None,
+            None,
         ),
-        (
-            "scan.json",
-            '{"findings": [{\n "value": }]}',
-            "Check the JSON syntax for `findings[0].value` on line 2 of scan.json.",
-            "Prüfen Sie die JSON-Syntax für `findings[0].value` in Zeile 2 der Datei scan.json.",
-        ),
-        (
-            "scan.json",
-            '{\n "Pat Analyst@example.invalid": }',
-            "Check the JSON syntax on line 2 of scan.json.",
-            "Prüfen Sie die JSON-Syntax in Zeile 2 der Datei scan.json.",
-        ),
+        ("scan.json", '{"findings": [{\n "value": }]}', "invalid_json", 2, None),
+        ("scan.json", '{\n "Pat Analyst@example.invalid": }', "invalid_json", 2, None),
     ],
 )
-def test_parse_errors_use_lines_and_only_known_fields(
-    tmp_path: Path, name: str, content: str, en: str, de: str, lang: str
+def test_parse_errors_report_available_positions_without_leaking_fields(
+    tmp_path: Path,
+    name: str,
+    content: str,
+    code: str,
+    line: int | None,
+    field: str | None,
+    lang: str,
+    line_label: str,
 ) -> None:
     source = tmp_path / name
     source.write_text(content, encoding="utf-8")
     out = tmp_path / "out"
     command = ["report", "--lang", lang, "--out", str(out)]
     if name == "inputs.yaml":
-        sample = files("fazit").joinpath("demo", "town", "scan.json")
-        command += [str(sample), "--inputs", str(source)]
+        command += [str(sample_scan_path("town")), "--inputs", str(source)]
     else:
         command.append(str(source))
 
     result = runner.invoke(app, command)
 
     assert result.exit_code == 2 and not result.stdout and not out.exists(), result.output
-    expected = f"Error: {en}" if lang == "en" else f"Fehler: {de}"
-    assert result.stderr.splitlines() == [expected]
+    strings = load_locale(lang)
+    message = strings["errors"][code].format(file=name, line=line, field=field)
+    assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
+    assert name in message and "$" not in message and "Pat Analyst" not in message
+    if line is not None:
+        assert f"{line_label} {line}" in message
+    if field is not None:
+        assert field in message
+    if code in ("invalid_json", "invalid_yaml"):
+        assert "value" not in message and "users" not in message
 
 
 def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
@@ -845,15 +815,8 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     path = Path(result.stdout.strip())
     assert path.is_file() and path.parent == out
     html = path.read_text(encoding="utf-8")
-    readiness = report_section(html, "readiness")
-    assert 'data-workload="telephony" data-status="blocker"' in readiness
-    assert 'data-workload="windows_software" data-status="needs_work"' in readiness
-    assert 'data-workload="mail" data-status="needs_work" data-incomplete' in readiness
-    assert 'data-reason="needs_recipient_export"' in readiness
-    assert 'data-workload="mail" data-status="ready"' not in readiness
+    assert html == demo_report.read_text(encoding="utf-8")
     macro = re.compile(r'<tr data-finding="office_files.kind.macro".*?</tr>', re.S)
-    original_html = demo_report.read_text(encoding="utf-8")
-    assert "Sample input" in macro.search(original_html)[0]
     assert "Sample input" in macro.search(html)[0]
     assert 'data-cost-origin="sample_input">Sample input' in report_section(html, "costs")
     assert "answers_are_sample: true" in answers.read_text(encoding="utf-8")
@@ -878,36 +841,39 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     assert 'data-cost-origin="sample_input"' not in own_costs
     assert 'data-cost-origin="invented"' in own_costs
 
-    scan_only = runner.invoke(app, ["report", str(source), "--out", str(tmp_path / "scan-only")])
+    out = tmp_path / "scan-only"
+    scan_only = runner.invoke(app, ["report", str(source), "--lang", "de", "--out", str(out)])
     assert scan_only.exit_code == 0, scan_only.output
-    scan_html = Path(scan_only.stdout.strip()).read_text(encoding="utf-8")
+    report = out / "report-2026-11-02-de.html"
+    assert scan_only.stdout.splitlines() == [str(report)] and not scan_only.stderr
+    assert list(out.iterdir()) == [report]
+    scan_html = report.read_text(encoding="utf-8")
+    assert 'lang="de"' in scan_html and "2. November 2026" in scan_html
     assert 'data-workload="telephony" data-status="unknown"' in report_section(
         scan_html, "readiness"
     )
-    assert "This organisation" in scan_html.split("</header>", 1)[0]
+    assert "Diese Organisation" in scan_html.split("</header>", 1)[0]
 
 
 @pytest.mark.parametrize(
-    ("kind", "code", "field", "details"),
+    ("kind", "code"),
     [
-        ("missing", "file_not_found", "$", {}),
-        ("directory", "is_directory", "$", {}),
+        ("missing", "file_not_found"),
+        ("directory", "is_directory"),
         pytest.param(
             "unreadable",
             "not_readable",
-            "$",
-            {},
             marks=pytest.mark.skipif(
                 os.name != "posix" or os.geteuid() == 0, reason="Requires POSIX permissions"
             ),
         ),
-        ("not_utf8", "not_utf8", "$", {}),
-        ("schema", "schema_version", "schema_version", {"found": "2.0", "supported": "1.x"}),
+        ("not_utf8", "not_utf8"),
+        ("schema", "schema_version"),
     ],
 )
 @pytest.mark.parametrize("lang", ["en", "de"])
 def test_report_errors_name_the_file_and_field(
-    tmp_path: Path, kind: str, code: str, field: str, details: dict[str, str], lang: str
+    tmp_path: Path, kind: str, code: str, lang: str
 ) -> None:
     scan = tmp_path / "inventory.json"
     if kind == "directory":
@@ -919,14 +885,12 @@ def test_report_errors_name_the_file_and_field(
     elif kind == "schema":
         scan.write_text('{"schema_version": "2.0"}', encoding="utf-8")
     out = tmp_path / "out"
-    arguments = ["report", str(scan), "--out", str(out)]
-    if lang == "de":
-        arguments.extend(["--lang", "de"])
-
-    result = runner.invoke(app, arguments)
+    result = runner.invoke(app, ["report", str(scan), "--out", str(out), "--lang", lang])
 
     strings = load_locale(lang)
-    message = strings["errors"][code].format(file=scan.name, field=field, **details)
+    message = strings["errors"][code].format(
+        file=scan.name, field="schema_version", found="2.0", supported="1.x"
+    )
     assert result.exit_code == 2
     assert result.stderr.splitlines() == [strings["cli"]["error_prefix"].format(message=message)]
     assert not result.stdout and not out.exists()

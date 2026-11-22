@@ -27,7 +27,7 @@ def load_risky_file_types(
     checksums: MutableMapping[str, str] | None = None,
 ) -> tuple[RiskyKind, ...]:
     reader, data = read_rules("risky_file_types.yaml", path, checksums)
-    root = reader.fields(data, "$", ("kinds",))
+    root = reader.fields(data, "", ("kinds",))
     finding_ids = {
         entry.id.removeprefix(_RISKY_FINDING_PREFIX): entry.id
         for entry in catalogue.findings

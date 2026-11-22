@@ -439,9 +439,9 @@ cli:
     unsupported_profile: Choose opendesk, nextcloud or generic for {field} in {file}.
 errors:
   invalid_json: Check the JSON syntax on line {line} of {file}.
-  invalid_json_field: Check the JSON syntax for `{field}` on line {line} of {file}.
+  invalid_json_document: Check the JSON contents of {file}.
   invalid_yaml: Check the YAML syntax on line {line} of {file}.
-  invalid_yaml_field: Check the YAML syntax for `{field}` on line {line} of {file}.
+  invalid_yaml_document: Check the YAML contents of {file}.
   yaml_anchors: Remove the YAML anchor or alias on line {line} of {file}.
   invalid_integer: Write a whole number without leading zeros on line {line} of {file}.
   invalid_integer_field: Write `{field}` on line {line} of {file} as a whole number without leading zeros.
@@ -449,19 +449,22 @@ errors:
   invalid_scalar_field: Check the value of `{field}` on line {line} of {file}.
   invalid_field: Check the value of {field} in {file}.
   invalid_field_document: Check the contents of {file}.
-  unknown_field: Remove the unrecognised field {field} from {file}.
+  unknown_field: Remove the unrecognised field on line {line} of {file}.
   money_not_quoted: Put the decimal value of {field} in quotation marks in {file}.
   money_not_quoted_field: Put the decimal value of `{field}` on line {line} of {file} in quotation marks.
   missing_field: Supply a value for {field} in {file}.
   invalid_code: Choose a supported code for {field} in {file}.
   invalid_label: Supply label text in both languages for {field} in {file}.
-  contains_at: Remove text containing an at sign from {field} in {file}.
   contains_at_document: Remove text containing an at sign from {file}.
+  contains_at_line: Remove text containing an at sign on line {line} of {file}.
+  contains_at_field: Remove text containing an at sign from `{field}` on line {line} of {file}.
   duplicate_key: Remove the repeated key on line {line} of {file}.
   duplicate_key_field: Remove the repeated key `{field}` on line {line} of {file}.
+  duplicate_key_document: Remove the repeated key from {file}.
   duplicate_id: The identifier at {field} in {file} is already listed.
   non_finite_number: Enter a finite number on line {line} of {file}.
   non_finite_number_field: Enter a finite number for `{field}` on line {line} of {file}.
+  non_finite_number_document: Enter only finite numbers in {file}.
   invalid_coverage: The counts in {field} in {file} do not agree with the stated coverage.
   invalid_licence_coverage: Complete coverage in {field} in {file} requires the scanned and total counts to match the number of listed licence products, with zero failures.
   licence_products_exceed_coverage: The number of listed licence products exceeds the count at {field} in {file}.

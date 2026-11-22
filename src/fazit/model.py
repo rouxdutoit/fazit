@@ -7,7 +7,7 @@ from pathlib import Path
 from . import PROJECT_NAME
 from .catalogue import Catalogue, FindingEntry, sku_key
 from .errors import InputError
-from .parsing import FieldNames, parse_json, read_text, reject_at_signs
+from .parsing import parse_json, read_text
 from .validation import DATE, IDENTIFIER, Validator
 
 SUPPORTED_SCHEMA_MAJOR = 1
@@ -19,10 +19,9 @@ COVERAGE_KINDS = ("complete", "partial", "unknown")
 _SCHEMA_VERSION = re.compile(r"[0-9]{1,8}\.[0-9]{1,8}")
 _TOOL_VERSION = re.compile(r"[0-9]{1,8}(?:\.[0-9]{1,8}){1,2}")
 _TIMESTAMP = re.compile(
-    rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]+)?)?"
+    rf"{DATE.pattern}(?:T[0-9]{{2}}:[0-9]{{2}}(?::[0-9]{{2}}(?:[.,][0-9]{{1,6}})?)?"
     r"(?:Z|[+-][0-9]{2}(?::?[0-5][0-9])?)?)?"
 )
-_FRACTIONAL_SECONDS = re.compile(r"[.,]([0-9]+)")
 _PERIOD = re.compile(rf"{DATE.pattern}/{DATE.pattern}")
 _SCAN_FIELDS = (
     "schema_version",
@@ -54,25 +53,7 @@ _LICENCE_FIELDS = ("collector", "source", "collected_at", "coverage", "products"
 _PRODUCT_REQUIRED = ("purchased", "assigned")
 _PRODUCT_OPTIONAL = ("sku_part_number", "sku_guid", "service_plans")
 _SERVICE_PLAN_FIELDS = ("name", "guid")
-_SCAN_FIELD_NAMES: FieldNames = {
-    (): _SCAN_FIELDS,
-    ("tool",): _TOOL_FIELDS,
-    ("collectors", None): (*_COLLECTOR_REQUIRED, *_COLLECTOR_OPTIONAL),
-    ("findings", None): _FINDING_FIELDS,
-    ("findings", None, "coverage"): ("kind", *_COVERAGE_COUNTS),
-    ("licences",): _LICENCE_FIELDS,
-    ("licences", "coverage"): ("kind", *_COVERAGE_COUNTS),
-    ("licences", "products", None): (*_PRODUCT_REQUIRED, *_PRODUCT_OPTIONAL),
-    ("licences", "products", None, "service_plans", None): _SERVICE_PLAN_FIELDS,
-}
-
 type FindingValue = int | bool
-
-
-def _fractional_seconds(stamp: str) -> str:
-    # datetime truncates fractional seconds to microseconds.
-    match = _FRACTIONAL_SECONDS.search(stamp)
-    return match[1].rstrip("0") if match else ""
 
 
 def _timestamp_after(stamp: str, reference: str) -> bool:
@@ -81,20 +62,13 @@ def _timestamp_after(stamp: str, reference: str) -> bool:
         return time.date() > limit.date()
     if time.tzinfo is None or limit.tzinfo is None:
         time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None)
-    if time != limit:
-        return time > limit
-    return _fractional_seconds(stamp) > _fractional_seconds(reference)
+    return time > limit
 
 
 def same_collection_time(first: str | None, second: str | None) -> bool:
-    if first is None or second is None:
+    if first is None or second is None or (len(first) == 10) != (len(second) == 10):
         return False
-    return first == second or (
-        len(first) > 10
-        and len(second) > 10
-        and datetime.fromisoformat(first) == datetime.fromisoformat(second)
-        and _fractional_seconds(first) == _fractional_seconds(second)
-    )
+    return datetime.fromisoformat(first) == datetime.fromisoformat(second)
 
 
 @dataclass(frozen=True)
@@ -524,7 +498,7 @@ class _ScanReader:
 
     def scan(self, value: object) -> Scan:
         if not isinstance(value, dict):
-            self.check.fail("$")
+            self.check.fail("", "invalid_field_document")
         version = self.schema_version(value.get("schema_version"))
         row = self.fields(value, "", _SCAN_FIELDS)
         collectors = self.collectors(row["collectors"])
@@ -547,12 +521,7 @@ class _ScanReader:
 
 
 def load_scan_text(text: str, file_name: str, catalogue: Catalogue) -> Scan:
-    data = parse_json(text, file_name, fields=_SCAN_FIELD_NAMES)
-    try:
-        reject_at_signs(data, file_name)
-    except RecursionError:
-        raise InputError("invalid_json", file=file_name, line=1) from None
-    return _ScanReader(file_name, catalogue).scan(data)
+    return _ScanReader(file_name, catalogue).scan(parse_json(text, file_name))
 
 
 def load_scan(path: Path, catalogue: Catalogue) -> Scan:

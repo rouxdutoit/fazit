@@ -523,7 +523,7 @@ def test_report_rejects_a_subset_above_its_population_for_the_same_period(
     ("parent_stamp", "subset_stamp"),
     [
         ("2026-11-02T09:00Z", "2026-11-02T10:00+01:00"),
-        ("2026-11-02T08:59:59.9999999Z", "2026-11-02T09:59:59.99999990+01:00"),
+        ("2026-11-02T08:59:59.999999Z", "2026-11-02T09:59:59.999999+01:00"),
     ],
 )
 def test_report_rejects_a_subset_above_its_population_at_the_same_instant(
@@ -536,7 +536,7 @@ def test_report_rejects_a_subset_above_its_population_at_the_same_instant(
 
     _reject_scan(tmp_path / "same-instant", town_scan, f"findings[{index}].value")
 
-    guests["collected_at"] = "2026-11-02T08:59:59.9999998Z"
+    guests["collected_at"] = "2026-11-02T08:59:59.999998Z"
     _html(_report(tmp_path / "different-instant", town_scan))
 
 

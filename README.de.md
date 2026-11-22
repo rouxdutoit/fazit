@@ -1,6 +1,6 @@
 # Fazit
 
-[English](README.md)
+[English](https://github.com/rouxdutoit/fazit/blob/main/README.md)
 
 Fazit ist ein freies Open-Source-Werkzeug für die Kommandozeile, mit dem Sie einen Umstieg von Microsoft 365 auf eine Lösung wie openDesk oder Nextcloud prüfen können. Fazit erstellt den HTML-Bericht lokal auf Deutsch oder Englisch. Die Datei lässt sich ohne Netzwerkverbindung öffnen.
 
@@ -36,7 +36,7 @@ Mit den Dateien aus dem ersten Demo-Lauf können Sie den Bericht auf Deutsch neu
 uv run fazit report ./report/scan-2026-11-02-en.json --inputs ./report/inputs-2026-11-02-en.yaml --lang de --out ./report/rebuilt
 ```
 
-Kopieren Sie die Vorlage, wenn Sie eigene Antworten und Kosten eintragen möchten. Lassen Sie Felder leer, zu denen noch keine Angaben vorliegen. [Interviewleitfaden](docs/interview-checklist.de.md)
+Kopieren Sie die Vorlage, wenn Sie eigene Antworten und Kosten eintragen möchten. Lassen Sie Felder leer, zu denen noch keine Angaben vorliegen. [Interviewleitfaden](https://github.com/rouxdutoit/fazit/blob/main/docs/interview-checklist.de.md)
 
 ```sh
 cp inputs.example.yaml inputs.yaml
@@ -72,7 +72,7 @@ Der Browser kann den lokalen Dateipfad in die Kopf- und Fußzeilen des Ausdrucks
 
 Sie können Fazit aus dem Klon starten. Eine Veröffentlichung auf PyPI steht noch aus. Der Import und die direkte Erhebung sind noch nicht verfügbar.
 
-Als Nächstes sind die Prüfung von KI-Assistenten und Fristen für die Lizenzverlängerung (1.1), der CSV-Export für die Projektplanung und eine Prüfung auf nachträgliche Berichtsänderungen (1.2) sowie Verweise auf Souveränitätskriterien (1.3) geplant. In Phase 2 soll der lokale Import von Exporten aus dem Microsoft-365-Admin-Center folgen. Für Phase 3 sind `doctor`, die Anmeldung im Browser und die Erhebung von Lizenz- und Verzeichnisdaten vorgesehen. In Phase 4 folgen zweisprachige Anleitungen, Installationspakete und eine signierte Windows-Version. [Projektfahrplan (Englisch)](.planning/ROADMAP.md)
+Als Nächstes sind die Prüfung von KI-Assistenten und Fristen für die Lizenzverlängerung (1.1), der CSV-Export für die Projektplanung und eine Prüfung auf nachträgliche Berichtsänderungen (1.2) sowie Verweise auf Souveränitätskriterien (1.3) geplant. In Phase 2 soll der lokale Import von Exporten aus dem Microsoft-365-Admin-Center folgen. Für Phase 3 sind `doctor`, die Anmeldung im Browser und die Erhebung von Lizenz- und Verzeichnisdaten vorgesehen. In Phase 4 folgen zweisprachige Anleitungen, Installationspakete und eine signierte Windows-Version. [Projektfahrplan (Englisch)](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
 
 ## Grenzen von Fazit
 
@@ -84,7 +84,7 @@ Als Nächstes sind die Prüfung von KI-Assistenten und Fristen für die Lizenzve
 
 Die Prüfdaten bleiben nur dann auf Ihrem Rechner, wenn die Erhebungsdatei, die Eingabedatei und das Verzeichnis für `--out` auf lokalen Datenträgern liegen, da eine Netzwerkfreigabe die Dateien über das Netzwerk überträgt.
 
-[Sicherheit und Meldung von Schwachstellen](SECURITY.md)
+[Sicherheit und Meldung von Schwachstellen](https://github.com/rouxdutoit/fazit/blob/main/SECURITY.md)
 
 ## Regeln anpassen
 
@@ -96,4 +96,4 @@ Fazit entsteht KI-gestützt und wird von Menschen geprüft. Ein Mensch leitet di
 
 ## Lizenz
 
-AGPL-3.0-or-later. [Lizenz](LICENSE), [Mitwirken](CONTRIBUTING.md), [Entscheidungen](DECISIONS.md)
+AGPL-3.0-or-later. [Lizenz](https://github.com/rouxdutoit/fazit/blob/main/LICENSE), [Mitwirken](https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md), [Entscheidungen](https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md)
