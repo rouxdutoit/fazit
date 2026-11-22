@@ -1342,11 +1342,20 @@ code {
   margin-top: 64px;
 }
 
+/* Link symbols centre on the line of text. */
+.more, .download, .copy.done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.more {
+  gap: 1px;
+}
+
 .more::after {
   width: 1em;
   height: 1em;
-  margin-inline-start: 1px;
-  vertical-align: -0.15em;
   --icon: url("icons/chevron-right.svg");
   content: "";
 }
@@ -1360,8 +1369,6 @@ code {
 .download::before {
   width: 1.1em;
   height: 1.1em;
-  margin-inline-end: 4px;
-  vertical-align: -0.2em;
   --icon: url("icons/download.svg");
   content: "";
 }
@@ -1369,8 +1376,6 @@ code {
 .copy.done::before {
   width: 1.1em;
   height: 1.1em;
-  margin-inline-end: 4px;
-  vertical-align: -0.2em;
   --icon: url("icons/check.svg");
   content: "";
 }
