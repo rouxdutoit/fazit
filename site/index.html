@@ -21,12 +21,9 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Fazit · Know what leaving Microsoft 365 would take">
-  <meta name="twitter:description" content="Fazit is built to show what your organisation relies on in Microsoft 365, what would need work on openDesk, Nextcloud or LibreOffice, and what a move would cost. Free, open source and local.">
-  <meta name="twitter:image" content="https://fazit.dev/og.png">
-  <meta name="twitter:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -64,10 +61,10 @@
       <a class="report-card" href="/demo/en/">
         <span class="report-card-bar" aria-hidden="true"><span></span><span></span><span></span><code>report-2026-11-02-en.html</code><span class="tile-arrow"></span></span>
         <picture>
-          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.png" width="800" height="1440">
-          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.png" width="800" height="1440">
-          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.png" width="2016" height="1120">
-          <img src="/images/readiness-en-light.png" width="2016" height="1120" alt="Readiness section of the sample report: 4 areas Ready, 9 Needs work, 1 Blocker, 1 Unknown. Opens the full sample report." decoding="async">
+          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1440">
+          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1440">
+          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1120">
+          <img src="/images/readiness-en-light.webp" width="2016" height="1120" alt="Readiness section of the sample report: 4 areas Ready, 9 Needs work, 1 Blocker, 1 Unknown. Opens the full sample report." decoding="async" fetchpriority="high">
         </picture>
       </a>
       <figcaption>
@@ -101,22 +98,22 @@
         <p class="lead">Fazit creates the report locally, and the current version makes no network connections at all. Keep the scan, inputs and report on local storage and your data stays on your computer.</p>
         <ul class="tiles tiles-2">
           <li>
-            <span class="feature-icon icon-computer" aria-hidden="true"></span>
+            <span class="tile-icon icon-computer" aria-hidden="true"></span>
             <h3>Runs on your computer</h3>
             <p>The report is a single file on your own disk. Nothing is uploaded, and there is no account or cloud service.</p>
           </li>
           <li>
-            <span class="feature-icon icon-wifi-off" aria-hidden="true"></span>
+            <span class="tile-icon icon-wifi-off" aria-hidden="true"></span>
             <h3>No network connections</h3>
             <p>The current version contacts no server. A planned read-only sign-in will talk only to Microsoft sign-in and Microsoft Graph.</p>
           </li>
           <li>
-            <span class="feature-icon icon-lock" aria-hidden="true"></span>
+            <span class="tile-icon icon-lock" aria-hidden="true"></span>
             <h3>Read-only</h3>
             <p>Fazit never writes to Microsoft 365 and keeps no tokens, personal names or email addresses.</p>
           </li>
           <li>
-            <span class="feature-icon icon-code" aria-hidden="true"></span>
+            <span class="tile-icon icon-code" aria-hidden="true"></span>
             <h3>Open to inspection</h3>
             <p>Every safeguard has a test anyone can run. Disconnect from the network and the demo still works.</p>
           </li>
@@ -134,7 +131,7 @@
         <div class="subsection">
           <h3>Check it yourself</h3>
           <p>After the first run, disconnect from the network. Run <code>uv run --offline fazit demo</code> and open the report in your browser.</p>
-          <p class="section-link"><a href="/security/#offline">How to verify offline operation</a></p>
+          <p><a class="more" href="/security/#offline">How to verify offline operation</a></p>
         </div>
       </div>
     </section>
@@ -167,7 +164,7 @@
           <p class="finding-target">On openDesk, telephone service is not in the suite and needs a separate provider. Checked 21 November 2026.</p>
         </article>
         <p class="tally">All 15 areas in the sample: 4 Ready, 9 Needs work, 1 Blocker, 1 Unknown.</p>
-        <p class="section-link"><a href="/demo/en/#readiness-title">Open the readiness section</a></p>
+        <p><a class="more" href="/demo/en/#readiness-title">Open the readiness section</a></p>
       </div>
     </section>
 
@@ -177,42 +174,42 @@
         <p class="sec-intro">One self-contained HTML report in English or German, ready to save, read offline or print.</p>
         <ul class="tiles tiles-2">
           <li>
-            <span class="feature-icon icon-description" aria-hidden="true"></span>
+            <span class="tile-icon icon-description" aria-hidden="true"></span>
             <h3>Report details</h3>
             <p>Date, data source and target profile, at the top of every report.</p>
           </li>
           <li>
-            <span class="feature-icon icon-search" aria-hidden="true"></span>
+            <span class="tile-icon icon-search" aria-hidden="true"></span>
             <h3>What we found</h3>
             <p>What the available evidence shows about your use of Microsoft 365.</p>
           </li>
           <li>
-            <span class="feature-icon icon-euro" aria-hidden="true"></span>
+            <span class="tile-icon icon-euro" aria-hidden="true"></span>
             <h3>Five-year cost comparison</h3>
             <p>Compare staying, a partial move and a full move. The figures include retained licences, project costs, lost working time and parallel running.</p>
           </li>
           <li>
-            <span class="feature-icon icon-speed" aria-hidden="true"></span>
+            <span class="tile-icon icon-speed" aria-hidden="true"></span>
             <h3>Readiness by area</h3>
             <p>Ready, Needs work, Blocker or Unknown, with reasons, evidence and what was left unexamined.</p>
           </li>
           <li>
-            <span class="feature-icon icon-swap-horiz" aria-hidden="true"></span>
+            <span class="tile-icon icon-swap-horiz" aria-hidden="true"></span>
             <h3>What moves where</h3>
             <p>Possible replacements under the chosen target profile, with documented gaps.</p>
           </li>
           <li>
-            <span class="feature-icon icon-flag" aria-hidden="true"></span>
+            <span class="tile-icon icon-flag" aria-hidden="true"></span>
             <h3>Needs attention</h3>
             <p>File types to review, Windows-only applications and functions that may not carry over directly.</p>
           </li>
           <li>
-            <span class="feature-icon icon-route" aria-hidden="true"></span>
+            <span class="tile-icon icon-route" aria-hidden="true"></span>
             <h3>Suggested path</h3>
             <p>Blockers, questions to resolve and areas that may be suitable for a pilot.</p>
           </li>
           <li>
-            <span class="feature-icon icon-menu-book" aria-hidden="true"></span>
+            <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
             <h3>Appendix</h3>
             <p>Collection methods, rules, mappings, cost calculations and run details.</p>
           </li>
@@ -230,32 +227,30 @@
           <li><span class="cov cov-community">Community app</span></li>
           <li><span class="cov cov-none">Not in the suite</span></li>
         </ul>
-        <div class="table-wrap">
-          <table class="coverage" role="table">
-            <caption class="sr-only">Coverage of each area by openDesk and Nextcloud</caption>
-            <thead role="rowgroup">
-              <tr role="row"><th scope="col" role="columnheader">Area</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
-            </thead>
-            <tbody role="rowgroup">
-              <tr role="row" data-workload="directory"><th scope="row" role="rowheader">Directory</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nubus</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud user and group administration</span></span></td></tr>
-              <tr role="row" data-workload="mail"><th scope="row" role="rowheader">Mail</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Open-Xchange (OX App Suite)</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Mail and Calendar with a separate mail server</span></span></td></tr>
-              <tr role="row" data-workload="onedrive"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td></tr>
-              <tr role="row" data-workload="sharepoint"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Shared folders in Nextcloud Files · Separate redesign of workflows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Team Folders in Nextcloud Files · Rebuild supported workflows with Nextcloud Flow</span></span></td></tr>
-              <tr role="row" data-workload="teams"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Element · Jitsi · Separate decision on retaining past chats</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk · Separate decision on retaining past chats</span></span></td></tr>
-              <tr role="row" data-workload="office_files"><th scope="row" role="rowheader">Office files</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Collabora Online · Separate conversion or redevelopment</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Office · Separate conversion or redevelopment</span></span></td></tr>
-              <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td></tr>
-              <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td></tr>
-              <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate review and redevelopment of applications and flows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Flow and Nextcloud Tables</span></span></td></tr>
-              <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate telephone service</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway</span></span></td></tr>
-              <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Keycloak</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community app: </span></span><span>OIDC Identity Provider app for Nextcloud</span></span></td></tr>
-              <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Access controls and malware scanning in openDesk</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud file protection and retention controls</span></span></td></tr>
-              <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>OpenProject and OX App Suite for tasks</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Forms, Deck and Calendar</span></span></td></tr>
-              <tr role="row" data-workload="integrations"><th scope="row" role="rowheader">Integrations</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Interfaces in the openDesk components</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud application interfaces and integrations</span></span></td></tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="coverage" role="table">
+          <caption class="sr-only">Coverage of each area by openDesk and Nextcloud</caption>
+          <thead role="rowgroup">
+            <tr role="row"><th scope="col" role="columnheader">Area</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
+          </thead>
+          <tbody role="rowgroup">
+            <tr role="row" data-workload="directory"><th scope="row" role="rowheader">Directory</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nubus</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud user and group administration</span></span></td></tr>
+            <tr role="row" data-workload="mail"><th scope="row" role="rowheader">Mail</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Open-Xchange (OX App Suite)</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Mail and Calendar with a separate mail server</span></span></td></tr>
+            <tr role="row" data-workload="onedrive"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td></tr>
+            <tr role="row" data-workload="sharepoint"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Shared folders in Nextcloud Files · Separate redesign of workflows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Team Folders in Nextcloud Files · Rebuild supported workflows with Nextcloud Flow</span></span></td></tr>
+            <tr role="row" data-workload="teams"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Element · Jitsi · Separate decision on retaining past chats</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk · Separate decision on retaining past chats</span></span></td></tr>
+            <tr role="row" data-workload="office_files"><th scope="row" role="rowheader">Office files</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Collabora Online · Separate conversion or redevelopment</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Office · Separate conversion or redevelopment</span></span></td></tr>
+            <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td></tr>
+            <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td></tr>
+            <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate review and redevelopment of applications and flows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Flow and Nextcloud Tables</span></span></td></tr>
+            <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate telephone service</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway</span></span></td></tr>
+            <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Keycloak</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community app: </span></span><span>OIDC Identity Provider app for Nextcloud</span></span></td></tr>
+            <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Access controls and malware scanning in openDesk</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud file protection and retention controls</span></span></td></tr>
+            <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>OpenProject and OX App Suite for tasks</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Forms, Deck and Calendar</span></span></td></tr>
+            <tr role="row" data-workload="integrations"><th scope="row" role="rowheader">Integrations</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Interfaces in the openDesk components</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud application interfaces and integrations</span></span></td></tr>
+          </tbody>
+        </table>
         <p class="table-note">For public telephone calls with Nextcloud Talk, include the quoted recurring cost in the comparison and check call routing and queues. The openDesk and Nextcloud profiles were checked against project documentation on 21 and 22 November 2026. Licences appear in the cost comparison. The generic profile covers other setups, such as desktops with Linux and LibreOffice.</p>
-        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings">Read the mappings and their sources</a></p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings">Read the mappings and their sources</a></p>
       </div>
     </section>
 
@@ -265,19 +260,19 @@
         <ul class="tiles tiles-3">
           <li>
             <a class="tile-link" href="/integrators/">
-              <span class="feature-icon icon-handshake" aria-hidden="true"></span>
+              <span class="tile-icon icon-handshake" aria-hidden="true"></span>
               <h3>Integrators</h3>
               <p>With local import, you will be able to run the same assessment for each client and plan work from the findings. Firms that complete an assessment will be eligible for a free listing.</p>
               <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
-            <span class="feature-icon icon-account-balance" aria-hidden="true"></span>
+            <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
             <h3>Municipal IT providers</h3>
             <p>With local import, you will be able to offer assessments to member organisations and keep their assessment files on their own computers.</p>
           </li>
           <li>
-            <span class="feature-icon icon-person" aria-hidden="true"></span>
+            <span class="tile-icon icon-person" aria-hidden="true"></span>
             <h3>IT leads</h3>
             <p>Run the demo without a Microsoft account and use your own answers and costs to prepare for an assessment.</p>
           </li>
@@ -402,7 +397,7 @@
             <p class="timeline-text">Sign in read-only to check permissions and count licences and directory entries.</p>
           </li>
         </ol>
-        <p class="table-note">French and Italian are planned with the Swiss pilot. Fazit is built to be translated; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">the guide</a> explains how.</p>
+        <p class="note-text">French and Italian are planned with the Swiss pilot. Fazit is built to be translated; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">the guide</a> explains how.</p>
       </div>
     </section>
 
@@ -427,15 +422,15 @@
             <p>Directs the work, signs off every change and is responsible for it. <a href="https://github.com/rouxdutoit/fazit/tree/main/tests">Browse the tests</a></p>
           </li>
         </ul>
-        <p class="table-note">We work by the <a href="https://www.slopmanifesto.com/">No AI Slop manifesto</a>: a person owns every change and AI-written work is labelled.</p>
+        <p class="note-text">We work by the <a href="https://www.slopmanifesto.com/">No AI Slop manifesto</a>: a person owns every change and AI-written work is labelled.</p>
       </div>
     </section>
   </main>
 
-  <footer class="foot">
+  <footer>
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/">fazit</a>
+        <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
@@ -459,9 +454,7 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
-        <div class="foot-actions">
-          <a class="language" href="/de/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
-        </div>
+        <a class="language" href="/de/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
       </div>
     </div>
   </footer>

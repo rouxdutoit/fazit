@@ -21,12 +21,9 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Datenschutz · Fazit">
-  <meta name="twitter:description" content="Wie diese Website personenbezogene Daten verarbeitet.">
-  <meta name="twitter:image" content="https://fazit.dev/og.png">
-  <meta name="twitter:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -55,16 +52,15 @@
     </div>
     <div class="legal-layout has-summary">
       <aside aria-label="Datenschutz im Überblick">
-        <dl class="rows legal-summary">
-          <div><dt>Cookies</dt><dd>Keine.</dd></div>
+        <dl class="rows">
+          <div><dt>Cookies</dt><dd>Keine. Diese Website nutzt keinen Browserspeicher.</dd></div>
           <div><dt>Webanalyse und Tracking</dt><dd>Keine.</dd></div>
           <div><dt>Anfragen an Dritte</dt><dd>Keine. Schriften und Dateien werden von dieser Website geladen.</dd></div>
           <div><dt>Verarbeitete Daten</dt><dd>Ihre IP-Adresse und technische Anfragedaten beim Abruf der Website.</dd></div>
-          <div><dt>Speicherung im Browser</dt><dd>Ihre Wahl der hellen oder dunklen Ansicht, wenn Sie diese ändern.</dd></div>
           <div><dt>Kontakt</dt><dd><a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a></dd></div>
         </dl>
       </aside>
-      <div class="legal-content">
+      <article>
         <section class="legal-part">
           <h2>Verantwortlicher</h2>
           <address>
@@ -79,10 +75,6 @@
         <section class="legal-part">
           <h2>Hosting</h2>
           <p>Diese Website wird von der BunnyWay d.o.o., Dunajska cesta 165, Ljubljana, Slowenien (<a href="https://bunny.net/">bunny.net</a>) gehostet. Die Dateien der Website liegen auf Servern in Frankfurt am Main und werden nur über Rechenzentren in Europa ausgeliefert. Beim Aufruf einer Seite erhalten die Server von Bunny Ihre IP-Adresse und technische Angaben zur Anfrage, etwa die aufgerufene Adresse und Angaben zum Browser. Bunny benötigt diese Daten, um die Seite auszuliefern und die Website vor Angriffen zu schützen. In den Protokollen kürzt Bunny die IP-Adressen und löscht die Protokolle nach drei Tagen. Mit Bunny besteht ein Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. f DSGVO. Das berechtigte Interesse liegt im sicheren und funktionsfähigen Betrieb der Website.</p>
-        </section>
-        <section class="legal-part">
-          <h2>Speicherung in Ihrem Browser</h2>
-          <p>Wenn Sie die Ansicht wechseln, speichert die Website Ihre Wahl ausschließlich im lokalen Speicher Ihres Browsers unter <code>fazit-theme</code>. Damit stellt der Browser beim nächsten Besuch die von Ihnen gewählte Ansicht wieder her (§ 25 Abs. 2 Nr. 2 TDDDG). Sie können die Einstellung entfernen, indem Sie die gespeicherten Daten dieser Website im Browser löschen.</p>
         </section>
         <section class="legal-part">
           <h2>Lokal erstellte Berichte</h2>
@@ -100,14 +92,14 @@
           <h2>Ihre Rechte</h2>
           <p>Sie haben nach der DSGVO das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und Datenübertragbarkeit (Art. 20). Sie können der Verarbeitung widersprechen (Art. 21) und sich bei einer Aufsichtsbehörde beschweren (Art. 77), etwa beim Bayerischen Landesamt für Datenschutzaufsicht, Promenade 18, 91522 Ansbach.</p>
         </section>
-      </div>
+      </article>
     </div>
   </main>
 
-  <footer class="foot">
+  <footer>
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/de/">fazit</a>
+        <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
@@ -131,9 +123,7 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <div class="foot-actions">
-          <a class="language" href="/privacy/" lang="en" hreflang="en" aria-label="English">EN</a>
-        </div>
+        <a class="language" href="/privacy/" lang="en" hreflang="en" aria-label="English">EN</a>
       </div>
     </div>
   </footer>

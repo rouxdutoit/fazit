@@ -21,12 +21,9 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Security and privacy · Fazit">
-  <meta name="twitter:description" content="Read Fazit’s safeguards, verify offline operation or report a vulnerability privately.">
-  <meta name="twitter:image" content="https://fazit.dev/og.png">
-  <meta name="twitter:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -61,47 +58,47 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
-            <span class="feature-icon icon-lock" aria-hidden="true"></span>
+            <span class="tile-icon icon-lock" aria-hidden="true"></span>
             <h3>Read-only</h3>
             <p>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</p>
           </li>
           <li>
-            <span class="feature-icon icon-computer" aria-hidden="true"></span>
+            <span class="tile-icon icon-computer" aria-hidden="true"></span>
             <h3>Local processing</h3>
             <p>Fazit keeps assessment data on the computer, as long as the scan, inputs and <code>--out</code> directory are on local storage: a network share sends those files over the network. Usage exports will be imported offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</p>
           </li>
           <li>
-            <span class="feature-icon icon-memory" aria-hidden="true"></span>
+            <span class="tile-icon icon-memory" aria-hidden="true"></span>
             <h3>Tokens in memory</h3>
             <p>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</p>
           </li>
           <li>
-            <span class="feature-icon icon-database" aria-hidden="true"></span>
+            <span class="tile-icon icon-database" aria-hidden="true"></span>
             <h3>Metadata only</h3>
             <p>Planned collection will be limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</p>
           </li>
           <li>
-            <span class="feature-icon icon-visibility-off" aria-hidden="true"></span>
+            <span class="tile-icon icon-visibility-off" aria-hidden="true"></span>
             <h3>Personal data</h3>
             <p>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</p>
           </li>
           <li>
-            <span class="feature-icon icon-description" aria-hidden="true"></span>
+            <span class="tile-icon icon-description" aria-hidden="true"></span>
             <h3>Offline report</h3>
             <p>The report is one HTML file with inline CSS and embedded Figtree and Geist Mono fonts. It opens and prints without a network connection, JavaScript or external resources.</p>
           </li>
           <li>
-            <span class="feature-icon icon-terminal" aria-hidden="true"></span>
+            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
             <h3>One command</h3>
             <p>After setup, one command builds a report from bundled samples or a compatible scan with your own answers and costs. Measured figures come from the samples. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</p>
           </li>
           <li>
-            <span class="feature-icon icon-fact-check" aria-hidden="true"></span>
+            <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
             <h3>Honest figures</h3>
             <p>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</p>
           </li>
         </ul>
-        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
       </div>
     </section>
 
@@ -113,7 +110,7 @@
           <li>Disconnect the computer from the network. In the same directory, run <code>uv run --offline fazit demo</code>.</li>
           <li>Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.</li>
         </ol>
-        <p class="section-link"><a href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
       </div>
     </section>
 
@@ -141,10 +138,10 @@
     </section>
   </main>
 
-  <footer class="foot">
+  <footer>
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/">fazit</a>
+        <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
         <nav class="foot-cols" aria-label="Footer">
           <div>
             <p class="foot-heading">Project</p>
@@ -168,9 +165,7 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
-        <div class="foot-actions">
-          <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
-        </div>
+        <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
       </div>
     </div>
   </footer>

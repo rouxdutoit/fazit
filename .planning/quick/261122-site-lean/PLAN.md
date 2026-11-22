@@ -1,0 +1,32 @@
+---
+quick_id: 261122-site-lean
+status: complete
+date: 2026-11-22
+---
+
+# Quick task: lean the website
+
+Source: a lean review of `site/` (52 items, summarised below). The design is final. Lean it, fix the defects, change nothing visible except the two glitches named here. Touch only `site/` and the repository root `.gitignore`; never `src/`, `tests/` (except as stated), `drafts/`, `grants/`.
+
+## Do
+
+1. **Privacy statement (defect).** `site/privacy/index.html` and `site/de/privacy/index.html` still say the site stores the colour mode in local storage under `fazit-theme`. The toggle is gone and `site.js` uses no storage. Remove that row and paragraph in both languages so the pages say the site stores nothing in the browser. Remove any `<code>` that then only existed for it.
+2. **Images.** Re-encode the eight `site/images/readiness-*.png` as lossless WebP (`readiness-*.webp`, identical pixels), update every `<picture>`/`<img>` on both home pages, delete the PNGs, and update `site/check_site.py` (it assumes `.png` for dimension checks: read WebP dimensions from the VP8L/VP8X header). Keep `og.png` and `apple-touch-icon.png` as PNG (required formats). Add `fetchpriority="high"` to the hero report `img`.
+3. **Fonts.** Replace `site/fonts/geist-mono-latin.woff2` (variable 100-900) with a static weight-400 instance, same file name, keeping OFL compliance (no Reserved Font Name is declared). Use `uv run --no-project --python 3.12 --with fonttools==4.55.3 --with brotli==1.1.0` in a scratch script outside the repo. Do not touch `src/fazit/fonts/`. Add `<link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>` to every page.
+4. **Screenshot folder.** Move `site/.shots/` out of the web root (to `/.shots/` at the repo root, still git-ignored) and make sure nothing under `site/` is a working file: `check_site.py` stays (CI runs it) but add a note in `CONTRIBUTING.md`'s check list only if needed; deploy exclusion is for the founder.
+5. **CSS (`site/style.css`).** Apply every verified item from the review: dead selectors (`.icon` in the mask list, `.hero-name`, `.stages dt`, `.areas` both places, `.sec-intro:has(+ .rows)`, `.status-shape.ready/.needs_work/.unknown` and the `--status-*` tokens they alone use, `--line`, `.foot { margin-top: 0 }`, the orphan "underline on hover" comment); always-overridden or duplicated declarations (`text-decoration: none` repeats and `.btn:hover`, `.wordmark` colour twice, button `color` repeats, `.btn-small` letter-spacing, split `.command-label`, `.command` hero leftovers, `.hero + .report-preview` folded into `.report-preview`, `.rows`/`.legal-summary` simplification, `.command-line code` overflow-wrap, `.lead` weight and `.eyebrow` size/line-height equal to inherited, `.btn` and `.btn-small` min-width); merge the mobile nav block to one rule per selector and scope `[data-open]` to `.bar[data-open]`; `.evidence-meta` without `!important`; reduced-motion block keeps only what is needed; one `html` rule; merge the two `.timeline-step.on` rules; put each media-query rule beside its component and use as few breakpoints as the design allows without changing the layout.
+6. **Glitch: flash before motion.** With motion on, the hero headline paints, disappears about 150 ms later, then decodes; in-view tiles also paint, hide, then fade. Make the pre-animation state apply from first paint (`.motion` is set in `<head>` before paint): hide `[data-scramble]` until its decode starts and hide reveal targets until they are revealed, selecting the targets in CSS so no class has to be added after paint. If the script fails, content must not stay hidden: keep a safe fallback (for example, the `motion` class is only added after the script has set everything up synchronously in `<head>`).
+7. **JS (`site/site.js`).** Drop the `IntersectionObserver` guard; drop unneeded guards for elements present on every page (`bar?.`, `if (menuButton)`; keep `if (copy)`); one helper for the two observers; fix the stagger so it uses the grid's actual column count (not `% 3`), or remove the stagger comment's wrong claim; name the timing constants. Keep the script blocking in `<head>` (it must set classes before first paint).
+8. **HTML (all pages except `site/demo/`).** Remove `.foot-actions` (it wraps one link) and its CSS; drop the `table-wrap` div if only `site.js` uses it (target `.coverage`); drop `legal-content` wrappers with no CSS; give the footer wordmark the same `aria-label` as the header one; make `pilots` use `.subsection` the same way as other pages; remove the four `twitter:*` duplicates of `og:*` and update `check_site.py` accordingly. Keep the explicit table roles on the coverage table.
+9. **Icons.** Delete icons no page or CSS references (`visibility.svg`, and `warning.svg` and `help.svg` once item 5 removes their only users). Verify each by grep first.
+10. **Server files.** Add long `Cache-Control` (`public, max-age=31536000, immutable`) for `/fonts/*` and `/icons/*` in both `_headers` and `.htaccess`; images get a shorter one (`max-age=86400`) because their names are not versioned. Keep both files.
+11. **Naming and comments.** Comments say what a rule does, not where the idea came from (remove references to other sites or brands). Rename for consistency where it is purely internal: `.feature-icon` → `.tile-icon`; `.table-note` on paragraphs without a table → `.note-text` or reuse an existing class; use one class for chevron links (`.more`) and drop the other; logical properties (`inset-inline-start`, `padding-inline-start`) instead of `left`/`right`/`padding-left`; one pill radius value; brief reasons for remaining magic numbers only where not obvious.
+
+## Done means
+
+- `uv run python site/check_site.py` passes (if the sample reports differ only because of another session's uncommitted `src/` work, say so and do not touch `site/demo/`).
+- `node --check site/site.js`; `uv run ruff check site/check_site.py`; `uv run ruff format --check site/check_site.py`; `uv run pytest -q tests/test_repo_basics.py`.
+- No visual change at 1280 and 375 px in light and dark except the removed flash: take screenshots before and after with Playwright (`/home/roux/.local/share/playwright-1.62.1/node_modules/playwright`) into `/.shots/` and compare.
+- Report the byte sizes before and after (CSS, JS, images, home page total).
+
+Write `.planning/quick/261122-site-lean/SUMMARY.md`: each item, what changed, and anything left with the reason. Do not stage or commit.

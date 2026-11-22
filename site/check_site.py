@@ -248,15 +248,13 @@ class Page(HTMLParser):
             "og:image:width": "1200",
             "og:image:height": "630",
             "twitter:card": "summary_large_image",
-            "twitter:image": ORIGIN + "/og.png",
         }
         for key, value in expected.items():
             if self.meta.get(key) != value:
                 self.errors.append(f"Incorrect or missing metadata {key}.")
-        for key in ("title", "description", "image:alt"):
-            for prefix in ("og", "twitter"):
-                if not self.meta.get(f"{prefix}:{key}", "").strip():
-                    self.errors.append(f"Missing metadata {prefix}:{key}.")
+        for key in ("og:title", "og:description", "og:image:alt"):
+            if not self.meta.get(key, "").strip():
+                self.errors.append(f"Missing metadata {key}.")
 
 
 def alternates(pair: dict[str, str]) -> dict[str, str]:
@@ -284,6 +282,25 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
     return width, height
 
 
+def webp_dimensions(path: Path) -> tuple[int, int] | None:
+    with path.open("rb") as image:
+        header = image.read(30)
+    if header[:4] != b"RIFF" or header[8:12] != b"WEBP":
+        return None
+    chunk = header[12:16]
+    chunk_size = int.from_bytes(header[16:20], "little")
+    if chunk == b"VP8L" and len(header) >= 25 and chunk_size >= 5 and header[20] == 0x2F:
+        # Each dimension occupies 14 bits, followed by alpha and version bits.
+        bits = int.from_bytes(header[21:25], "little")
+        if bits >> 29 == 0:
+            return (bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1
+    if chunk == b"VP8X" and len(header) == 30 and chunk_size == 10:
+        width = int.from_bytes(header[24:27], "little")
+        height = int.from_bytes(header[27:30], "little")
+        return width + 1, height + 1
+    return None
+
+
 def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str | None:
     if not ref.value.strip():
         return f"{ref.name} is empty."
@@ -304,8 +321,10 @@ def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str 
         and unquote(resolved.fragment) not in pages[target].ids
     ):
         return f"{ref.name}={ref.value!r} does not resolve to an element."
-    if ref.dimensions and target.suffix == ".png" and png_dimensions(target) != ref.dimensions:
-        return f"{ref.name}={ref.value!r} does not match its declared width and height."
+    if ref.dimensions and target.suffix in {".png", ".webp"}:
+        read_dimensions = png_dimensions if target.suffix == ".png" else webp_dimensions
+        if read_dimensions(target) != ref.dimensions:
+            return f"{ref.name}={ref.value!r} does not match its declared width and height."
     return None
 
 
@@ -469,8 +488,8 @@ def check_assets() -> list[str]:
         image = ROOT / filename
         if not image.is_file() or png_dimensions(image) != dimensions:
             errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
-    for preview in (ROOT / "images").glob("readiness-*.png"):
-        if preview.stat().st_size >= 150_000:
+    for preview in (ROOT / "images").glob("readiness-*"):
+        if preview.suffix in {".png", ".webp"} and preview.stat().st_size >= 150_000:
             errors.append(f"{preview.relative_to(ROOT)}: Must be under 150 KB.")
     if f"Sitemap: {ORIGIN}/sitemap.xml" not in (ROOT / "robots.txt").read_text().splitlines():
         errors.append("robots.txt: Missing sitemap URL.")

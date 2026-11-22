@@ -21,12 +21,9 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Impressum · Fazit">
-  <meta name="twitter:description" content="Angaben zum Verantwortlichen und Kontakt für Fazit.">
-  <meta name="twitter:image" content="https://fazit.dev/og.png">
-  <meta name="twitter:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/site.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -54,42 +51,40 @@
       <h1>Impressum</h1>
     </div>
     <div class="legal-layout">
-      <div class="legal-content">
-        <section class="legal-part">
-          <h2>Angaben gemäß § 5 DDG</h2>
-          <address>
-            Ruan „Roux“ du Toit<br>
-            Emeranstraße 23<br>
-            85622 Feldkirchen<br>
-            Deutschland
-          </address>
-        </section>
-        <section class="legal-part">
-          <h2>Kontakt</h2>
-          <p>E-Mail <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a><br>
-          Telefon <a href="tel:+491627850608">+49 162 7850608</a></p>
-        </section>
-        <section class="legal-part">
-          <h2>Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV</h2>
-          <address>
-            Ruan „Roux“ du Toit<br>
-            Emeranstraße 23<br>
-            85622 Feldkirchen<br>
-            Deutschland
-          </address>
-        </section>
-        <section class="legal-part">
-          <h2>Über diese Website</h2>
-          <p>Diese Website informiert über Fazit, ein kostenloses Kommandozeilenprogramm mit offenem Quellcode unter der Lizenz AGPL-3.0-or-later.</p>
-        </section>
-      </div>
+      <section class="legal-part">
+        <h2>Angaben gemäß § 5 DDG</h2>
+        <address>
+          Ruan „Roux“ du Toit<br>
+          Emeranstraße 23<br>
+          85622 Feldkirchen<br>
+          Deutschland
+        </address>
+      </section>
+      <section class="legal-part">
+        <h2>Kontakt</h2>
+        <p>E-Mail <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a><br>
+        Telefon <a href="tel:+491627850608">+49 162 7850608</a></p>
+      </section>
+      <section class="legal-part">
+        <h2>Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV</h2>
+        <address>
+          Ruan „Roux“ du Toit<br>
+          Emeranstraße 23<br>
+          85622 Feldkirchen<br>
+          Deutschland
+        </address>
+      </section>
+      <section class="legal-part">
+        <h2>Über diese Website</h2>
+        <p>Diese Website informiert über Fazit, ein kostenloses Kommandozeilenprogramm mit offenem Quellcode unter der Lizenz AGPL-3.0-or-later.</p>
+      </section>
     </div>
   </main>
 
-  <footer class="foot">
+  <footer>
     <div class="foot-in">
       <div class="foot-top">
-        <a class="wordmark" href="/de/">fazit</a>
+        <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
         <nav class="foot-cols" aria-label="Fußnavigation">
           <div>
             <p class="foot-heading">Projekt</p>
@@ -113,9 +108,7 @@
       </div>
       <div class="foot-fine">
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
-        <div class="foot-actions">
-          <a class="language" href="/impressum/" lang="en" hreflang="en" aria-label="English">EN</a>
-        </div>
+        <a class="language" href="/impressum/" lang="en" hreflang="en" aria-label="English">EN</a>
       </div>
     </div>
   </footer>

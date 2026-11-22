@@ -18,6 +18,13 @@ Header always set X-Content-Type-Options "nosniff"
 Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 Header always set Cross-Origin-Opener-Policy "same-origin"
 
+<If "%{REQUEST_URI} =~ m#^/(fonts|icons)/#">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</If>
+<ElseIf "%{REQUEST_URI} =~ m#^/images/#">
+  Header set Cache-Control "public, max-age=86400"
+</ElseIf>
+
 <If "%{REQUEST_URI} =~ m#^/demo/en/(index[.]html)?$#">
   Header always set Link '<https://fazit.dev/demo/en/>; rel="canonical", <https://fazit.dev/demo/en/>; rel="alternate"; hreflang="en", <https://fazit.dev/demo/de/>; rel="alternate"; hreflang="de"'
 </If>

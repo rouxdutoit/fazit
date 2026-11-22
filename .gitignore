@@ -13,3 +13,4 @@ build/
 /*.html
 /scan.json
 /.claude/launch.json
+/.shots/

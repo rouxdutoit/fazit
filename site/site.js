@@ -1,12 +1,16 @@
 (() => {
-  const root = document.documentElement;
-  const animate = !matchMedia("(prefers-reduced-motion: reduce)").matches
-    && "IntersectionObserver" in window;
-  root.classList.add("has-js");
-  if (animate) root.classList.add("motion");
+  const HERO_DELAY_MS = 150;
+  const SCRAMBLE_STAGGER_MS = 800;
+  const MAX_CHAR_STEP_MS = 18;
+  const GLYPH_SWAP_MS = 42;
+  const GLYPH_SETTLE_MS = 200;
+  const REVEAL_STAGGER_MS = 80;
+  const COPY_FEEDBACK_MS = 3000;
 
-  // Headings resolve from random glyphs into their text, like evidence into a conclusion.
-  // Screen readers get the plain text throughout; reduced motion skips the effect.
+  const root = document.documentElement;
+  const animate = matchMedia("(prefers-reduced-motion: no-preference)").matches;
+
+  // Keep the original heading available to screen readers throughout the animation.
   const glyphs = "-_/\\|<>~^*+=:;!?#%&@0123456789";
   const randomGlyph = () => glyphs[Math.floor(Math.random() * glyphs.length)];
 
@@ -31,17 +35,18 @@
         chars.push(span);
       }
       element.replaceChildren(plain, shown);
+      element.classList.add("scramble-started");
 
-      const step = Math.min(18, 800 / Math.max(1, chars.length));
+      const step = Math.min(MAX_CHAR_STEP_MS, SCRAMBLE_STAGGER_MS / Math.max(1, chars.length));
       let lastSwap = 0;
       const frame = (now) => {
         const elapsed = now - start;
-        const swap = now - lastSwap > 42;
+        const swap = now - lastSwap > GLYPH_SWAP_MS;
         if (swap) lastSwap = now;
         let done = 0;
         chars.forEach((span, index) => {
           const from = index * step;
-          if (elapsed >= from + 200) {
+          if (elapsed >= from + GLYPH_SETTLE_MS) {
             span.className = "ch";
             done += 1;
           } else if (elapsed >= from && (swap || span.classList.contains("wait"))) {
@@ -56,55 +61,33 @@
     });
   };
 
+  const observeOnce = (rootMargin, enter) => new IntersectionObserver((entries, observer) => {
+    for (const { isIntersecting, target } of entries) {
+      if (!isIntersecting) continue;
+      observer.unobserve(target);
+      enter(target);
+    }
+  }, { rootMargin });
+
   document.addEventListener("DOMContentLoaded", () => {
     const bar = document.querySelector("[data-bar]");
-    const menuButton = bar?.querySelector(".menu-button");
-    if (menuButton) {
-      const setOpen = (open) => {
-        menuButton.setAttribute("aria-expanded", String(open));
-        bar.toggleAttribute("data-open", open);
-      };
-      menuButton.hidden = false;
-      menuButton.addEventListener("click", () => setOpen(!bar.hasAttribute("data-open")));
-      bar.querySelector("nav").addEventListener("click", (event) => {
-        if (event.target.closest("a")) setOpen(false);
-      });
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && bar.hasAttribute("data-open")) {
-          setOpen(false);
-          menuButton.focus();
-        }
-      });
-      matchMedia("(min-width: 820px)").addEventListener("change", () => setOpen(false));
-    }
-
-    if (animate) {
-      const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          observer.unobserve(entry.target);
-          decode(entry.target);
-        }
-      }, { rootMargin: "0px 0px -8% 0px" });
-      for (const element of document.querySelectorAll("[data-scramble]")) {
-        if (element.closest(".hero")) setTimeout(() => decode(element), 150);
-        else observer.observe(element);
+    const menuButton = bar.querySelector(".menu-button");
+    const setOpen = (open) => {
+      menuButton.setAttribute("aria-expanded", String(open));
+      bar.toggleAttribute("data-open", open);
+    };
+    menuButton.hidden = false;
+    menuButton.addEventListener("click", () => setOpen(!bar.hasAttribute("data-open")));
+    bar.querySelector("nav").addEventListener("click", (event) => {
+      if (event.target.closest("a")) setOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && bar.hasAttribute("data-open")) {
+        setOpen(false);
+        menuButton.focus();
       }
-
-      // Content rises into place as it enters, a beat apart within a row.
-      const reveal = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          reveal.unobserve(entry.target);
-          entry.target.classList.add("in");
-        }
-      }, { rootMargin: "0px 0px -6% 0px" });
-      for (const element of document.querySelectorAll(".tiles > li, .figures > li, .finding, .table-wrap, .timeline-step")) {
-        element.classList.add("reveal");
-        element.style.setProperty("--i", [...element.parentElement.children].indexOf(element) % 3);
-        reveal.observe(element);
-      }
-    }
+    });
+    matchMedia("(min-width: 820px)").addEventListener("change", () => setOpen(false));
 
     const copy = document.querySelector("[data-copy]");
     if (copy) {
@@ -134,8 +117,34 @@
           copy.textContent = label;
           copy.classList.remove("done");
           message.textContent = "";
-        }, 3000);
+        }, COPY_FEEDBACK_MS);
       });
     }
-  });
+  }, { once: true });
+  root.classList.add("has-js");
+
+  if (animate) {
+    const headings = observeOnce("0px 0px -8% 0px", decode);
+    const reveal = observeOnce("0px 0px -6% 0px", (element) => {
+      const grid = element.parentElement;
+      if (grid.matches(".tiles, .figures")) {
+        const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+        const column = [...grid.children].indexOf(element) % columns;
+        element.style.setProperty("--reveal-delay", `${column * REVEAL_STAGGER_MS}ms`);
+      }
+      element.classList.add("in");
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      for (const element of document.querySelectorAll("[data-scramble]")) {
+        if (element.closest(".hero")) setTimeout(() => decode(element), HERO_DELAY_MS);
+        else headings.observe(element);
+      }
+      for (const element of document.querySelectorAll(".tiles > li, .figures > li, .finding, .coverage, .timeline-step")) {
+        reveal.observe(element);
+      }
+    }, { once: true });
+    window.addEventListener("error", () => root.classList.remove("motion"), { once: true });
+    root.classList.add("motion");
+  }
 })();
