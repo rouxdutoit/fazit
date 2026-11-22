@@ -1,0 +1,160 @@
+We need answer user's request. Need review three small files. Need produce findings or NO FINDINGS. Need analyze code for concrete faults under categories.
+
+Files:
+src/fazit/__init__.py:
+1 # SPDX...
+2 from importlib.metadata import version
+3
+4 PROJECT_NAME = "fazit"
+5 REPOSITORY_URL = "https://github.com/rouxdutoit/fazit"
+6 __version__ = version(PROJECT_NAME)
+
+Potential issue: version(PROJECT_NAME) at import time will raise PackageNotFoundError if package not installed? But for a CLI tool installed, likely okay. Is that a fault? It may crash if not installed, but maybe expected. Not among categories? unhandled-input? input from file system? Not really. Could be wrong if package name differs? PROJECT_NAME = "fazit" and likely distribution name fazit. No comment. Not enough.
+
+REPOSITORY_URL contains URL. Principle 2 live collection only login.microsoftonline.com and graph.microsoft.com; omit telemetry, update checks, CDNs. But this is just constant, not used here. Does having repository URL in code violate? No, not contacting. Could report if displayed? Not in these files. No.
+
+src/fazit/__main__.py:
+1 #...
+2 from .cli import main
+3
+4 if __name__ == "__main__":
+5     main()
+
+Potential issue: when running as python -m fazit, __name__ is "__main__"? For package __main__.py, yes. But the if guard is unnecessary but not fault. It imports .cli; if cli missing? We only see part. If fault depends on code cannot see, say confidence? But likely cli exists. No.
+
+src/fazit/errors.py:
+class InputError(Exception):
+ def __init__(self, code: str, *, file: str | None = None, field: str | None = None, line: int | None = None, **details: object) -> None:
+  super().__init__(code)
+  self.code = code
+  self.file = file
+  self.field = field
+  self.line = line
+  self.details = details
+
+Potential issue: Exception.__init__ with one arg sets args=(code,). That's okay. But if code is not string? Type says str. No.
+Potential issue: **details: object, but details may include keys that shadow file/field/line? Since keyword-only named file, field, line, cannot pass file in details. Fine.
+Potential issue: line parameter name shadows built-in? no.
+Potential issue: if code is a non-string, super().__init__(code) okay, but type. No.
+Potential issue: InputError might be intended to carry details but not include details in args; not a fault unless comment. No.
+Potential issue: using str | None requires Python 3.10. If project supports older? Not given. Could be bug if Python <3.10. But no evidence.
+Potential issue: Exception subclass with custom __init__ not setting self.args? It does via super. Fine.
+Potential issue: if details contains 'code' etc? no.
+
+Need find concrete faults. Could be no findings. But need be careful: The prompt likely expects some findings? It says three small files maybe all benign. Need not invent. Let's scrutinize principles.
+
+__init__.py imports version at package import. If package is run from source without install, version("fazit") raises PackageNotFoundError. Is that an unhandled-input? Input from file system? It accepts environment where distribution metadata missing. But a CLI tool may be installed. The principle one command after setup; setup likely installs. Not a concrete fault? Could be if pip install -e .? metadata present. If running from source without install, crash. But is that "plainly intends"? It intends to get version from installed package. Not necessarily wrong.
+
+REPOSITORY_URL: Could be used to send data? Not here. No.
+
+__main__.py: from .cli import main. If user runs python -m fazit, __name__ == '__main__', calls main. Good. But if someone imports fazit.__main__, guard prevents call. Good.
+
+errors.py: InputError.__init__ super().__init__(code). If code is not a string but e.g. None? Type says str. If caller passes no code? required. No.
+
+Could there be a bug: self.details = details, but details is a dict of object. If details has key 'details'? no. If details includes line? Can't because line keyword-only, but could pass line=... only once. If caller wants detail named 'file', impossible because named parameter. Not a bug.
+
+Maybe Exception.__str__ only returns code, not details; not comment. No.
+
+Maybe line number parameter named line conflicts with line numbers? no.
+
+Need answer exactly format. If no faults: NO FINDINGS. But let's think if any contradicts-principle: "Tokens in memory" not relevant. "Offline report" not relevant. "Honest figures" not relevant.
+
+Could __version__ = version(PROJECT_NAME) be a network request? importlib.metadata reads local metadata, no network. OK.
+
+Could REPOSITORY_URL be an external resource in report? Not in these files. If report includes it as link? HTML offline? A URL in HTML is not external resource unless fetched. But not here.
+
+Potential unhandled-input: version(PROJECT_NAME) can raise if package not found; but is that input? It's environment. The code accepts a filesystem state where metadata missing and crashes. But is that "input the code accepts (from scan.json, inputs.yaml, a rule file, the command line or the file system)"? File system maybe installed metadata. But likely not considered. Also if distribution name is not "fazit" but project name? Could be wrong. But no evidence.
+
+Potential bug: In __main__.py, if __name__ == "__main__" main() but when executed as python -m fazit, __name__ is "__main__". Good. But if script is executed directly? It's inside package, not direct. No.
+
+Maybe errors.py: **details: object is invalid? In Python, annotation for **kwargs can be object? Yes, **details: object is valid? Let's confirm: def f(**kwargs: int) valid. object ok. No.
+
+Maybe str | None in errors.py requires from __future__ annotations for Python 3.9? But if project uses 3.10. No evidence. Could be bug if Python 3.9. But not given. We shouldn't guess.
+
+Need maybe report no findings. But let's consider hidden expected faults in these small files. The task says "The code has line numbers... File: (three small files)" maybe they expect to find that __init__.py has REPOSITORY_URL which is not Microsoft endpoints? But principle 2 says live collection may contact only login... and graph... Omit telemetry, analytics, update checks and CDNs. A repository URL is not a live collection endpoint. It might be included in report? If report is self-contained, a link to repository is not an external resource? It is not fetched. But if HTML includes <a href>, offline still okay. Not a fault.
+
+Maybe __init__.py's version() call at import time violates one command? No.
+
+Could errors.py InputError not include details in exception args, so if caught as Exception and printed, details lost. But no comment. Not a wrong result? It does what it plainly intends? It stores details. If intended to convey details, maybe not. But no.
+
+Could InputError.__init__ with **details: object allow details to override self.details? No.
+
+Could line parameter be int | None but line numbers are 1-based? no.
+
+Maybe file parameter name shadows file? no.
+
+Let's think about "bug: code that gives a wrong result, crashes, or does something other than what it plainly intends." __version__ = version(PROJECT_NAME) may crash if package not installed. But is that "plainly intends"? It intends to read version from installed package. If not installed, crash. Is that a fault? Many packages do this. It might be considered unhandled-input from file system: if distribution metadata absent, import fazit crashes. But the CLI tool is installed, so metadata present. The prompt says after setup one command; setup likely installs. I'd not report.
+
+Could there be a bug in __main__.py: from .cli import main then if __name__ == "__main__": main(). If main is async? no. If main returns exit code? no.
+
+Could errors.py: super().__init__(code) means exception args only code. If code is a str, fine. If code is e.g. "missing-evidence" and details include file, str(e) only code. But no comment.
+
+Maybe the class InputError should be a ValueError? no.
+
+Need ensure final exactly one block per finding or NO FINDINGS. If no findings, exactly NO FINDINGS.
+
+But let's not rush. The prompt is from a code review task; maybe there are subtle faults. Let's inspect each line for principle 8: missing value treated as zero/good news, skipped/denied collector improves readiness, invented figure. None.
+
+Could REPOSITORY_URL be an invented figure? no.
+
+Could __version__ from importlib.metadata be a figure not supplied? It's measured from installed metadata. OK.
+
+Could errors.py line: int | None = None allow line=0? no.
+
+Maybe a bug: In errors.py, **details: object, but details dict values annotated object; if details is passed as positional? It's keyword-only due to *. OK.
+
+Potential issue: InputError.__init__ does not call super().__init__(code, *details) or include details in args. If someone does except InputError as e: print(e.args) gets only code. But "plainly intends"? The docstring absent. It stores details. Not enough.
+
+Could there be an unhandled-input: if code is not a string, super().__init__(code) still works, but self.code type wrong. No crash.
+
+Maybe Python version: using PEP 604 unions in annotations at runtime. In Python 3.9, str | None raises TypeError at function definition? Actually evaluating annotation str | None at runtime in 3.9: str.__or__ not defined? TypeError: unsupported operand type(s) for |. So if project supports Python 3.9, crash on import. But no minimum version given. Modern Python likely 3.10+. Not report.
+
+Could from importlib.metadata import version be unavailable in Python 3.7? importlib.metadata added 3.8. no.
+
+Could PROJECT_NAME = "fazit" but distribution name maybe "fazit-cli"? If mismatch, version raises. But no evidence.
+
+The instruction: "Do not report something you would need to guess about; you only see this part of the program, so if a fault depends on code you cannot see, say so in 'confidence'." We can report low confidence if depends? But only concrete faults. If we suspect version mismatch, need guess. No.
+
+Maybe "REPOSITORY_URL" is a constant that could be used in report as external link, violating offline? But not in code. No.
+
+Maybe "from .cli import main" in __main__.py: if cli module has side effects? Not visible. No.
+
+Could __main__.py not call sys.exit(main())? If main returns exit code, not propagated. But no comment. If main returns int, running python -m fazit will ignore return code? Actually if __main__ function returns int, Python doesn't sys.exit; process exit code 0 unless raises. If main returns nonzero, not propagated. But we cannot see cli.main. Could be a bug if main returns exit code. But plain intent? Many CLIs use main() returning int and __main__ should sys.exit(main()). But not necessarily; main may call sys.exit itself. We cannot see. Do not report.
+
+Could __init__.py import version at package import cause circular import? no.
+
+Maybe errors.py: self.details = details, but details is a dict, mutable default? No default; ** details always new dict. OK.
+
+Maybe line number 9: line: int | None = None, but **details: object. If caller passes line as a detail? can't. no.
+
+Could InputError be unpicklable because details values arbitrary? no.
+
+Need final likely NO FINDINGS. But let's consider if "contradicts-principle" includes "Omit telemetry, analytics, update checks and CDNs." REPOSITORY_URL is a URL to GitHub, which could be considered an external resource if included in report. But just constant. The principle says live collection may contact only ... Omit telemetry, analytics, update checks and CDNs. A repository URL is not telemetry/update/CDN. It's project repository. Not a fault.
+
+Maybe "free command-line tool" and REPOSITORY_URL in __init__ could be used for update check? Not here. No.
+
+Let's read user: "You are reviewing one part of the source code of Fazit... Rule files in YAML hold judgement... Your task: find concrete faults in the code below. Report only: ... File: (three small files)" It might be a trick: all three files are clean. Need answer NO FINDINGS. Ensure no extra.
+
+Double-check exact format: If no faults, answer exactly: NO FINDINGS. So final should be just that. But desired oververbosity 9? User says exactly. So final NO FINDINGS.
+
+Before final, ensure no hidden issue with SPDX lines? no.
+
+Let's think about importlib.metadata version: If package is installed as "fazit" but project name maybe "Fazit"? Distribution names normalized? version("fazit") okay if distribution name fazit. If PyPI name "fazit"? likely.
+
+Could __version__ = version(PROJECT_NAME) be wrong because version() returns str, but if package has no version, raises. no.
+
+Could REPOSITORY_URL be a security issue? no.
+
+Could __main__.py line 4: if __name__ == "__main__": main() but when run as python -m fazit, __name__ is "__main__". Good. But if run as python -m fazit.__main__, also __name__ is "__main__"? Yes. If imported as module, not. Good.
+
+Could errors.py: super().__init__(code) with code: str, but if code contains non-ASCII? fine.
+
+Maybe InputError.__init__ should set self.details = details but if details includes 'code', 'file', etc? Can't due keyword-only? Actually **details can include 'code' because code is positional-only? Wait signature: def __init__(self, code: str, *, file: str | None = None, field: str | None = None, line: int | None = None, **details: object). code is positional or keyword? Since no /, code can be passed by keyword too. But if caller passes code=... as keyword, it binds code. **details cannot include code because code already bound? If caller calls InputError(code, code='x')? That would be multiple values? Actually code is a named parameter, so cannot also be in **details. If caller calls InputError('a', **{'code': 'b'}) raises TypeError: got multiple values? Yes. Not a fault.
+
+Could details include 'self'? no.
+
+Maybe line: int | None = None, but line numbers in errors could be None; no.
+
+No findings.
+
+Need final exactly NO FINDINGS. Ensure no period.

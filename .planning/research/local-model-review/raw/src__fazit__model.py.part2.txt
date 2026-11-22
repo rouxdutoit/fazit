@@ -1,0 +1,35 @@
+FINDING
+file: src/fazit/model.py
+line: 379-381
+kind: unhandled-input
+claim: An invalid finding item is reported but then still indexed, causing a crash.
+evidence: "            if not isinstance(item, dict) or not isinstance(item.get(\"id\"), str):\n                self.check.fail(f\"{field}.id\")\n            finding_id = item[\"id\"]"
+why: If scan.json has a findings list containing a non-dict item, an item without an id, or an item whose id is not a string, the code records a failure but continues and executes item["id"], raising AttributeError or KeyError.
+confidence: high
+
+FINDING
+file: src/fazit/model.py
+line: 352
+kind: contradicts-principle
+claim: A denied collector is not treated as invalid for live evidence.
+evidence: "            if collector is None or collector.status == \"skipped\":"
+why: Principle 8 says a skipped or denied collector never improves readiness, but this check only fails for a missing or skipped collector, so live evidence from a denied collector can still be accepted.
+confidence: medium
+
+FINDING
+file: src/fazit/model.py
+line: 469
+kind: contradicts-principle
+claim: A denied licence collector is not treated as invalid.
+evidence: "        if collector not in collectors or collectors[collector].status == \"skipped\":"
+why: Principle 8 says a skipped or denied collector never improves readiness, but this check only rejects a missing or skipped collector, so licences collected by a denied collector can still be processed.
+confidence: medium
+
+FINDING
+file: src/fazit/model.py
+line: 500-502
+kind: unhandled-input
+claim: A non-dict scan document is reported but then still treated as a dict, causing a crash.
+evidence: "        if not isinstance(value, dict):\n            self.check.fail(\"\", \"invalid_field_document\")\n        version = self.schema_version(value.get(\"schema_version\"))"
+why: If scan.json parses to a list, string, number, or null, the code records invalid_field_document but continues and calls value.get, raising AttributeError.
+confidence: high

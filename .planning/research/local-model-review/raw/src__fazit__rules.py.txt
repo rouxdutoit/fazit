@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules.py
+line: 18
+kind: bug
+claim: The validator and checksum key use only the source file's basename, so a requested rule name that includes a subdirectory is silently reduced to its final component.
+evidence: "return Validator(source.name), read_text(source)"
+why: If `name` is something like `sub/status.yaml`, `source.name` is `status.yaml`; `parse_yaml` and `checksums` then identify the rule by the wrong name, and same-basename files in different directories collide.
+confidence: medium

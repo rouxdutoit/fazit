@@ -1,0 +1,350 @@
+We need answer user's request: review code, find concrete faults. Need produce findings in exact format or NO FINDINGS. Need analyze carefully. We only see src/fazit/catalogue.py. Need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. Need not report style etc. Need exact line quotes. Need confidence.
+
+Let's deeply inspect code.
+
+Project principles: read-only, local processing, tokens memory, metadata only, privacy, offline report, one command, honest figures. This file is catalogue parsing rules. Likely faults around validation, lru_cache with mutable Validator? Let's inspect.
+
+Code:
+1 import re
+2 dataclass
+3 lru_cache
+4 sha256
+5 files
+6 Path
+7
+8 from .i18n import SUPPORTED_LANGUAGES, load_locale
+9 from .parsing import parse_yaml, read_text
+10 from .validation import IDENTIFIER, Validator
+
+VALUE_TYPES = ("count", "bytes", "boolean")
+_PROVIDED_KINDS = ("no", "answer", "software_list", "software_list_without_web_version")
+_CODE_LENGTH = r"(?=.{1,64}\Z)"
+_CODE_PATH = r"[a-z0-9_]+(?:\.[a-z0-9_]+)*"
+_CODE = re.compile(_CODE_LENGTH + _CODE_PATH)
+_PERMISSION = re.compile(r"[A-Za-z0-9.]{1,64}")
+_LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}")
+_SKU_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
+
+sku_key normalizes nbsp and casefold, guid lower.
+
+WorkloadEntry id label.
+FindingEntry fields.
+Catalogue.
+accepts_sku_part_number: isinstance str and (IDENTIFIER.fullmatch or guid not None and sku_key in exceptions). Could be okay.
+
+_rows:
+allowed = keys.union(optional)
+rows=[]
+for index,row in enumerate(reader.rows(value, field, allow_empty=True)):
+ member=...
+ if not isinstance(row, dict) or not keys <= row.keys() <= allowed:
+   reader.fail(member)
+ rows.append((member,row))
+return rows
+
+Potential bug: after reader.fail maybe should raise? If fail doesn't raise, continues with row maybe not dict causing KeyError. But likely Validator.fail raises. Can't see. Need not guess? It says reader.fail probably raises. But if not, bug. But validation module unknown. Usually fail raises. We can't assume. Need only concrete faults visible. Could be if reader.fail doesn't raise, but no evidence.
+
+_workloads: uses _rows value reader "workloads" {"id","label"}. row["id"] etc. If row not dict but reader.fail maybe raises. OK.
+
+_measurement_pairs:
+value, reader, field, collector_ids, measured_sources
+pairs=set()
+rows = reader.fields(value, field, (), optional=None)
+for index, (collector, values) in enumerate(rows.items()):
+ member=f"{field}[{index}]"
+ sources = _code_set(values, reader, member)
+ if collector not in collector_ids or not sources or not sources <= measured_sources:
+   reader.fail(member)
+ pairs.update(...)
+return frozenset(pairs)
+
+Potential: reader.fields(value, field, (), optional=None). We need know semantics. It likely validates mapping with required keys? optional=None maybe no optional? It returns dict of validated fields? The keys are collector ids? It doesn't validate collector keys pattern? It gets collector from rows.items. It checks collector in collector_ids. But if collector key not string? membership false. OK.
+But member uses index not collector. If duplicate collector keys? YAML mapping duplicate keys maybe parse_yaml may fail or last wins. Not visible.
+Potential bug: _measurement_pairs expects measured_by mapping collector -> list of sources. It validates sources subset measured_sources. But if measured_by is missing, row.get("measured_by", {}) default. If measured_by null? row.get returns None if key present null. Then reader.fields(None, field,...) maybe handles? Could be unhandled if null? But optional field might allow null? Not sure.
+
+_finding:
+workload = reader.choice(row["workload"], ...)
+value_type = reader.choice(row["type"], ...)
+provided = reader.choice(row["provided"], ...)
+headline = row["headline"]
+if not isinstance(headline, bool): fail
+unit = row["unit"]
+if unit is not None: unit=reader.matches(unit,... _CODE)
+total = row.get("coverage_total_from")
+if total is not None: total=reader.matches(total,...)
+return FindingEntry(... _measurement_pairs(row.get("measured_by", {}), ...))
+
+Potential: row["unit"] required key but can be null. OK.
+Potential: coverage_total_from can be null. OK.
+Potential: measured_by default {} but if key present null, row.get returns None. _measurement_pairs with value None. reader.fields(None,...) maybe fail? Could be unhandled if optional null not accepted. But maybe fields handles None as empty? Need not guess.
+
+_findings:
+keys = {"id", "workload", "type", "unit", "label", "provided", "headline"}
+_rows optional measured_by, coverage_total_from.
+finding_id = reader.matches(row["id"], _CODE)
+if "." not in finding_id: fail
+if duplicate fail
+findings[finding_id] = _finding(...)
+for index, entry in enumerate(findings.values()):
+ if entry.coverage_total_from is not None:
+   total = findings.get(entry.coverage_total_from)
+   if total is None or total.type != "count" or total.id == entry.id:
+      reader.fail(f"findings[{index}].coverage_total_from")
+return tuple(findings.values())
+
+Potential bug: coverage_total_from is validated as _CODE, but finding id requires dot. It checks target exists and type count and not self. But it doesn't ensure target finding's workload same? Maybe intended? Not stated.
+Potential bug: coverage_total_from may refer to a finding that appears later; findings dict built all before validation, OK.
+Potential bug: if coverage_total_from refers to a finding with type count but provided? OK.
+Potential bug: total.id == entry.id check only self; but cycle A->B, B->A? It only checks direct self, not cycles. Could be wrong? Is coverage_total_from intended to point to total finding; cycles could cause infinite? Not in parsing. But maybe no.
+Potential: _findings uses findings.get(entry.coverage_total_from) but coverage_total_from is a code, not necessarily finding id? It is _CODE, not necessarily with dot. If no dot, get returns None fail. OK.
+
+_code_set:
+for index,item in enumerate(reader.rows(value, field, allow_empty=True)):
+ member=...
+ code=reader.matches(item, member, pattern)
+ if code in codes: fail duplicate_id
+ codes.add(code)
+return frozenset(codes)
+
+Potential: _code_set used for permissions with _PERMISSION. OK.
+Potential: for sku_exceptions? Not.
+
+_sku_exceptions:
+field = "codes.sku_exceptions"
+rows = reader.fields(value, field, (), optional=None)
+keys = set()
+for index, (raw_guid, part) in enumerate(rows.items()):
+ member = f"{field}[{index}]"
+ guid = reader.guid(raw_guid, member)
+ keys.add(sku_key(reader.matches(part, member, _SKU_EXCEPTION), guid))
+return frozenset(keys)
+
+Potential: It uses index for member, not guid. If duplicate GUID keys? YAML duplicate? Not.
+Potential: It doesn't check duplicate part/guid combinations? keys set dedups silently. Is that a bug? If rule file has duplicate sku_exceptions with same key, silently ignored. Could be unhandled? It might be acceptable. But if two different raw parts normalize to same key, silently dedup. Maybe intended? Not sure.
+Potential: reader.fields(value, field, (), optional=None) expects mapping. It returns items raw_guid -> part. But it doesn't validate that part is string before matches? matches likely does.
+Potential: _SKU_EXCEPTION allows spaces and parentheses. OK.
+Potential: It calls reader.guid(raw_guid, member) but member is field[index], not .? OK.
+
+_require_label:
+text = labels.get(key) if isinstance(labels, dict) else None
+if not isinstance(text,str) or not text.strip(): fail invalid_label
+
+load_catalogue:
+source = path if path is not None else files("fazit").joinpath("rules", "findings.yaml")
+reader = Validator(source.name)
+catalogue = _parse_catalogue(read_text(source), reader)
+sections = (("workloads", catalogue.workloads), ("findings", catalogue.findings))
+for lang in SUPPORTED_LANGUAGES:
+ strings = load_locale(lang, copy=False)
+ for group, entries in sections:
+   for index, entry in enumerate(entries):
+     section, key = entry.label.split(".", 1)
+     _require_label(strings.get(section), key, reader, f"{group}[{index}].label")
+ for index, entry in enumerate(catalogue.findings):
+   if entry.unit is not None:
+     for group in ("units", "unit_one"):
+       _require_label(strings.get(group), entry.unit, reader, f"findings[{index}].unit")
+ locale_reader = Validator(f"{lang}.yaml")
+ for code in sorted(catalogue.source_codes):
+   _require_label(strings.get("source"), code, locale_reader, f"source.{code}")
+return catalogue
+
+Potential bug: lru_cache on _parse_catalogue(text, reader). lru_cache requires arguments hashable. Validator may be unhashable? It is passed. If Validator is a class instance maybe hashable by id if no __eq__? Dataclass? Could be. But lru_cache with mutable reader? It caches by text and reader. Since reader is new each load_catalogue, cache may grow? maxsize=2. But if reader has state, caching return based on reader identity? If same text with different reader, returns cached catalogue from first reader? But catalogue doesn't depend on reader except file_name/checksum. file_name from reader.file_name. If load_catalogue called with different path same text but different source.name, lru_cache may return first catalogue with first file_name if text same? But key includes reader object. If reader objects are distinct, cache key differs, so no cross. If reader is same? load_catalogue creates new. But if _parse_catalogue called elsewhere? Not visible.
+But lru_cache with Validator instance: if Validator defines __eq__ based on file_name? Could be. If two readers with same file_name but different state, cache collision. Can't see.
+Potential: lru_cache maxsize=2 with text string and reader. If reader not hashable, TypeError. But likely Validator hashable? We don't know. Could be bug if dataclass with eq? Not enough.
+
+Potential contradicts-principle: load_catalogue reads locale files for all supported languages. It uses files("fazit")? local. OK.
+Potential: checksum sha256. OK.
+
+Need focus on concrete faults. Let's inspect validation semantics maybe infer. The code uses reader.rows, reader.fields, reader.matches, reader.choice, reader.guid, reader.fail. We don't have validation.py. Need only faults in this file independent. Could be obvious: _rows uses keys <= row.keys() <= allowed. But keys is set of required keys. If row has extra keys not in optional, fail. OK. But _rows appends row even if fail? If fail raises no issue. If fail doesn't raise, wrong. But typical fail raises. We can't report due unknown? Could mention confidence low? But instruction: don't report something need guess. If fail might not raise, depends on unseen code. Avoid.
+
+Potential bug: _measurement_pairs uses reader.fields(value, field, (), optional=None). It doesn't validate that the mapping keys (collector ids) match _CODE. It checks collector in collector_ids. If collector_ids is frozenset of strings, and collector key maybe non-string (int) not in set fail. OK. But if collector key is e.g. '  ' not in collector_ids fail. OK.
+
+Potential bug: _measurement_pairs member = f"{field}[{index}]" but error for invalid collector/source points to index not collector. Not a fault.
+
+Potential bug: In _measurement_pairs, if sources is empty, fail. But measured_by mapping with collector: [] fails. Maybe intended? It says measured_by maybe optional; if present, each collector must have at least one source? Could be intended. Not a fault.
+
+Potential bug: _code_set for measured_by values uses pattern _CODE. It fails duplicates within a collector's list. OK.
+
+Potential bug: _findings coverage_total_from validation: It doesn't check that coverage_total_from is not None and target finding's coverage_total_from? Not.
+Potential: It allows a finding to have coverage_total_from pointing to a finding with type count but that target may itself have coverage_total_from pointing to it? It only checks self. Could create cycle. Is that a bug? It could cause later report logic infinite if computing totals. But not in this file. Not concrete.
+
+Potential bug: _findings line 180: if total is None or total.type != "count" or total.id == entry.id. It uses total.id == entry.id. But entry.id is finding_id. OK. However if coverage_total_from refers to a finding ID that is not in findings but is a valid code, fail. OK.
+Potential: It doesn't ensure the target finding is in the same workload? Maybe not intended.
+
+Potential bug: _LABEL regex: _CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}". _CODE_LENGTH is lookahead (?=.{1,64}\Z). Then pattern workload|finding dot path. This enforces total length 1-64? Lookahead at start ensures entire match length 1-64? Since it's at start and \Z, yes. But _CODE_PATH can be long; lookahead ensures total <=64. OK.
+_CODE = lookahead + path. OK.
+_PERMISSION = [A-Za-z0-9.]{1,64}. OK.
+_SKU_EXCEPTION = [A-Za-z0-9_()/ ]{1,80}. OK.
+
+Potential bug: sku_key uses part_number.replace("\u00a0", " ").casefold(). It only normalizes non-breaking space, not other whitespace. _SKU_EXCEPTION allows normal space. If part has multiple spaces, key preserves. OK.
+accepts_sku_part_number: IDENTIFIER.fullmatch(part_number) or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions). If guid is None but part_number in exceptions? It requires guid not None. OK. If part_number not str but guid not None? isinstance false. OK.
+
+Potential bug: Catalogue.finding linear search. OK.
+
+Potential unhandled-input: load_catalogue path None uses files("fazit").joinpath("rules", "findings.yaml"). If package not installed? Not.
+read_text(source) may raise if missing. Not in code? Could be unhandled? It plainly intends to read; missing file should error maybe. Not report.
+
+Potential contradicts-principle: "Local processing. Assessment data stays on computer, provided its input and output files are on local storage (a network share sends them over the network). Live collection may contact only ... Omit telemetry...". This file doesn't network.
+
+Potential honest figures: missing evidence treated as unknown? This file parsing rules. Maybe _finding provided "no" etc. No figures.
+
+Potential privacy: no.
+
+Let's look for subtle bug with lru_cache and Validator. _parse_catalogue is lru_cache(maxsize=2). It takes text: str, reader: Validator. lru_cache caches based on equality of arguments. If Validator is a dataclass(frozen?) maybe __eq__ by fields. If two different Validator instances with same file_name compare equal, cache will collide. In load_catalogue, reader = Validator(source.name). If source.name same for built-in and custom path? e.g. path=Path("/custom/findings.yaml") same name as built-in "findings.yaml". If text different, cache key text differs. If text same but file_name same, returning cached catalogue fine. If text same but reader state? Catalogue file_name same. OK.
+But if Validator has mutable validation state and __eq__ not identity, caching could return catalogue parsed with previous reader? But catalogue independent. Not issue.
+However lru_cache on function that calls reader.fail which may raise exceptions. If parsing fails, lru_cache does not cache exceptions (it propagates). OK.
+Potential: lru_cache with maxsize=2 and text can be large; memory. Not performance.
+
+Potential bug: _parse_catalogue line 241: if not isinstance(data, dict) or data.keys() != {"workloads", "findings", "codes"}: reader.fail("", "invalid_field_document"). In Python, dict.keys() equality with set works? Yes, keys view compares equal to set if same elements. OK.
+codes.keys() != set. OK.
+
+Potential bug: _rows: allowed = keys.union(optional). If row is not dict, row.keys() would error, but short-circuit not isinstance(row, dict) or ... uses or, so if not dict, doesn't call keys. OK.
+
+Potential bug: _workloads: WorkloadEntry(workload_id, reader.matches(row["label"], ...)). If row missing label? _rows required keys includes label, so row has key but value may be None. reader.matches likely fails if not str. OK.
+
+Potential bug: _finding: unit = row["unit"]; if unit is not None: matches. If unit is empty string? matches _CODE fails because length 1-64. OK.
+headline bool: YAML yes/no parsed as bool? OK. If headline is int 1, fail. Good.
+
+Potential bug: _findings: keys includes "unit" required. But FindingEntry.unit can be None. So unit key must be present but can be null. OK.
+Potential: optional coverage_total_from can be null. OK.
+
+Potential unhandled-input: _measurement_pairs: reader.fields(value, field, (), optional=None). If value is None (measured_by: null), what does fields do? It might treat None as invalid or empty. If it treats None as empty, OK. If it crashes, unhandled. But depends on validation.py. We can't see. However in _finding, row.get("measured_by", {}) only default if key absent. If YAML has measured_by: null, value None. Is null accepted? The field is optional; often optional means may be absent, not null. But _rows allows row keys include measured_by; row.get returns None. Then _measurement_pairs(None...). If reader.fields doesn't accept None, it may fail or crash. Could be an unhandled-input if null should be accepted? But is null an input? Yes. Does code plainly intend to accept optional null? It uses row.get("measured_by", {}) suggesting if missing use empty, but not if null. Many parsers treat null as None and optional fields may allow null. But not guaranteed. Need concrete? Maybe we can report: measured_by: null leads to reader.fields(None) which likely validates as mapping? But we don't know. Avoid if depends unseen.
+
+Potential bug: _sku_exceptions: keys = set() but variable name maybe should be keys? It builds frozenset. OK.
+It uses reader.fields(value, field, (), optional=None). If sku_exceptions is empty list? fields expects mapping; maybe fail. OK.
+It doesn't validate that part_number matches IDENTIFIER? It uses _SKU_EXCEPTION. OK.
+Potential: It doesn't check duplicate GUID? If two entries have same GUID but different part, keys set keeps both if part differs. OK.
+Potential: It doesn't ensure part is not empty? _SKU_EXCEPTION length 1-80. OK.
+
+Potential bug: load_catalogue label validation: for group, entries in sections: for index, entry in enumerate(entries): section, key = entry.label.split(".", 1). Since label regex ensures starts workload. or finding. and path. OK.
+_require_label(strings.get(section), key, reader, ...). If strings is not dict? load_locale likely returns dict. If section missing, labels=None, fail. OK.
+For units: for group in ("units", "unit_one"): _require_label(strings.get(group), entry.unit, reader, f"findings[{index}].unit"). It requires both units and unit_one for every unit. Is that intended? Maybe. If unit is e.g. "days", locale must have units.days and unit_one.days. OK.
+Potential bug: It validates units for findings only, not workloads? Workloads no units. OK.
+Potential: It validates source labels using locale_reader = Validator(f"{lang}.yaml") but uses reader for labels/units. Why different? Not a bug.
+Potential: It doesn't validate labels for provided kinds? Not.
+
+Potential contradicts-comment: No comments/docstrings except SPDX. So no contradicts-comment likely.
+
+Potential contradicts-principle: "Honest figures. Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness." In catalogue, measured_by pairs: if a finding has measured_by empty (no collectors) maybe means not measured? But provided kinds? It doesn't treat skipped collector as good. Not here.
+
+Could there be a bug with source_codes: measured_sources |= licence_sources, then source_codes=measured_sources | provided_sources. But measured_sources variable now includes licence_sources. In _findings, measured_by sources must be subset of measured_sources (including licence_sources). Is that intended? measured_by should be collectors that measure sources; licence_sources are sources? It says licence service plans. Maybe measured_by can reference licence_sources? Possibly.
+But line 258: if measured_sources & licence_sources: fail duplicate_id. Then measured_sources |= licence_sources. So measured_sources becomes all sources including licence. provided_sources disjoint. source_codes = all. OK.
+
+Potential bug: _measurement_pairs receives measured_sources (all sources). It validates sources <= measured_sources. But measured_by values are source codes, not collector ids. OK.
+
+Potential bug: _finding: _measurement_pairs(row.get("measured_by", {}), reader, f"{field}.measured_by", collector_ids, measured_sources). If measured_by is an empty dict, reader.fields returns empty, OK. If measured_by is a list? reader.fields likely fail. OK.
+
+Potential bug: _rows: reader.rows(value, field, allow_empty=True). If value is None? For workloads or findings missing? Top-level requires keys, but value could be null. reader.rows likely handles. OK.
+
+Potential bug: _findings: after building findings, it validates coverage_total_from using findings.get(entry.coverage_total_from). But coverage_total_from was validated as _CODE, not necessarily a finding id pattern with dot. If it points to a workload id? fail. OK.
+Potential: It doesn't validate that coverage_total_from target's unit is same? Not necessarily.
+
+Potential bug: _findings: total.id == entry.id check prevents self, but if coverage_total_from points to a finding that is not count but e.g. bytes, fail. OK.
+
+Potential bug: _findings: if coverage_total_from points to a finding that appears later and that finding has invalid type? The type validation already done in _finding. OK.
+
+Potential bug: _findings: if coverage_total_from points to a finding that is duplicate? duplicate failed. OK.
+
+Potential bug: _findings: It doesn't check that coverage_total_from is not None and not empty string? _CODE requires 1-64. OK.
+
+Potential unhandled-input: _CODE regex lookahead (?=.{1,64}\Z) with re.compile. reader.matches likely uses fullmatch? If it uses re.search? The pattern with lookahead and \Z maybe still. But if matches uses .match not fullmatch, _CODE_LENGTH lookahead ensures length? If pattern can match prefix? _CODE_PATH doesn't include dot? It can match prefix of longer string if not fullmatch. But reader.matches likely fullmatch. We can't see. The regex itself is designed for fullmatch. OK.
+
+Potential bug: _LABEL = _CODE_LENGTH + rf"(?:workload|finding)\.{_CODE_PATH}". Because _CODE_LENGTH is lookahead, then (?:workload|finding). The lookahead asserts total length 1-64. But if label is "workload." (empty path) _CODE_PATH requires at least one segment, so fail. OK.
+Potential: _LABEL allows "workload.a.b" length maybe >64? lookahead fails. OK.
+
+Potential bug: _PERMISSION = [A-Za-z0-9.]{1,64}. It allows leading/trailing dots, multiple dots. OK maybe intended.
+
+Potential bug: _SKU_EXCEPTION allows space, but sku_key only replaces non-breaking space. If part_number has leading/trailing spaces, _SKU_EXCEPTION allows, key includes spaces. IDENTIFIER likely no spaces. OK.
+
+Potential bug: accepts_sku_part_number: if guid is not None but not str? sku_key(part_number, guid) calls guid.lower(). If guid is int, AttributeError. But signature guid: str | None. Input from scan.json could be non-string? This is unhandled-input if accepts object. The method is public. It only checks isinstance(part_number, str), not guid. If guid is not None and not str, guid.lower() crashes. Is that a concrete unhandled-input? The type hint says str | None, but scan.json may contain integer GUID? GUIDs are strings usually. But code accepts guid: str | None; if caller passes non-str, crash. Does "input" include command line/file system? This method may be called with guid from scan.json. If scan.json guid is number, unhandled. But is that likely? Microsoft GUIDs are strings. Could be integer? Not. But code could be called internally. Need report if input from scan.json leads to crash. If scan.json has guid: 123, accepts_sku_part_number(part_number, 123) would crash. But maybe parsing elsewhere validates guid as string before. We can't see. The method plainly intends guid string; but no check. Could be unhandled-input. Confidence medium? The task says only see this part; if fault depends on code you cannot see, say confidence. We can report with medium/low. But need concrete: line 70 calls guid.lower() without isinstance check. If guid is not None but not str, AttributeError. It accepts guid: str | None type hint, but Python doesn't enforce. Input from scan.json could be non-string. Is that a fault? Maybe yes: unhandled-input. But maybe all callers ensure str. Since method is in catalogue, could be used to validate SKU part numbers from scan.json. It should be robust. However they may have a validator for guid. Hmm.
+
+Potential bug: sku_key line 24: guid.lower() also no str check. Same.
+
+Potential bug: _sku_exceptions: guid = reader.guid(raw_guid, member). reader.guid likely returns str or fails. OK.
+
+Potential bug: load_catalogue: lru_cache on _parse_catalogue with reader. If read_text returns str. OK.
+Potential: checksum = sha256(text.encode("utf-8")).hexdigest(). If text contains surrogates from read_text? read_text likely decodes utf-8. OK.
+
+Potential bug: _parse_catalogue line 241 data.keys() != set. If data is dict subclass? keys view equality OK.
+
+Potential bug: _rows: keys <= row.keys() <= allowed. In Python, set <= set works. row.keys() is dict_keys, supports <=? Yes, set. OK.
+
+Potential bug: _rows: if row has required keys but extra optional keys, OK. If row has duplicate keys in YAML? parse_yaml maybe.
+
+Potential bug: _findings: keys includes "unit" but _finding uses row["unit"]. If unit key present but value is a dict? reader.matches fails. OK.
+
+Potential bug: _finding: total = row.get("coverage_total_from"); if total is not None: matches. If total is false? matches fails. OK.
+
+Potential bug: _finding: _measurement_pairs(row.get("measured_by", {}), ...). If measured_by key present with value None, as above.
+
+Potential bug: _measurement_pairs: rows = reader.fields(value, field, (), optional=None). It doesn't restrict keys to collector_ids before _code_set? It checks after. OK.
+Potential: It uses member = f"{field}[{index}]" for both collector and sources. If collector invalid, error message index. OK.
+Potential: It calls _code_set(values, reader, member). If values is None (mapping value null), reader.rows(None, member, allow_empty=True) maybe returns []? If so sources empty then fail due not sources. If it crashes, depends.
+
+Potential bug: _code_set: for index, item in enumerate(reader.rows(value, field, allow_empty=True)): If value is None, reader.rows maybe returns []? OK. If item is None, matches fails. OK.
+
+Potential bug: _sku_exceptions: rows = reader.fields(value, field, (), optional=None). If value is None, maybe returns {}? If sku_exceptions: null, maybe should be empty? But top-level codes requires sku_exceptions key, value could be null. If fields(None) returns {}, then OK. If not, fail. Not sure.
+
+Potential contradicts-principle: "Metadata only. Collect counts, sizes and coded evidence. Leave mail bodies and file contents unopened." Not.
+
+Potential bug: _finding: provided = reader.choice(row["provided"], _PROVIDED_KINDS). _PROVIDED_KINDS includes "no". If provided is "no", maybe means not provided. OK.
+
+Potential bug: Catalogue.accepts_sku_part_number: bool(IDENTIFIER.fullmatch(part_number)) or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions). If part_number is str but contains non-breaking space, IDENTIFIER likely fails, exception maybe accepted if guid. OK.
+Potential: If guid is None and part_number in sku_exceptions but no guid, not accepted. Maybe intended: exceptions are keyed by part+guid. OK.
+
+Potential bug: sku_key uses casefold on part_number, lower on guid. _sku_exceptions builds keys with reader.guid likely lower? It calls sku_key(part, guid). If reader.guid returns lower? It may return normalized. If not, sku_key lower. OK.
+
+Potential bug: _sku_exceptions doesn't validate that part_number is not just spaces? _SKU_EXCEPTION allows spaces, length 1. A part of single space would be accepted. Is that a fault? It plainly intends SKU exception part numbers; spaces are allowed maybe for product names? _SKU_EXCEPTION includes space. Single space maybe weird but not wrong.
+
+Potential bug: _LABEL regex uses _CODE_LENGTH lookahead with .{1,64}\Z. In Python re, dot doesn't match newline by default. If label contains newline, fullmatch fails. OK.
+
+Potential bug: _CODE_PATH segments [a-z0-9_]+. It doesn't allow uppercase. IDs lower. OK.
+
+Potential bug: _findings: finding_id must contain ".". But _CODE allows dot. It doesn't enforce at least two segments? "." in string ensures. Could be "a."? _CODE_PATH doesn't allow trailing dot, so no. ".a" no. OK.
+
+Potential bug: _workloads: workload_id = reader.matches(row["id"], _CODE). It doesn't require dot. Workload IDs can be simple. Labels require workload.<id>? _LABEL path can be any code path, not necessarily matching id. It doesn't check label path equals workload id. Is that a bug? WorkloadEntry label is e.g. workload.exchange? The id maybe exchange. It might intend label to be workload.<id> or finding.<id>? The regex only ensures prefix workload. It doesn't ensure the rest equals entry.id. For findings, label regex prefix finding. It doesn't ensure label key matches finding id. Could be a bug? Let's examine: WorkloadEntry id and label. In load_catalogue, label.split(".",1) gives section and key. It requires locale strings under workload.<key>. If label key doesn't match id, still works. Is that intended? Maybe labels can be any key. But likely intended label = workload.<id> or finding.<id>. The code doesn't enforce. Is that a concrete fault? It may allow inconsistent catalogue where label differs from id, leading to report using label key not id. But not plainly wrong unless comment? No comment. Could be design.
+
+Potential bug: _finding label regex prefix finding, but doesn't ensure label key equals finding_id. Same.
+
+Potential bug: _findings coverage_total_from: It doesn't check target finding's label? no.
+
+Potential bug: _parse_catalogue: checksum computed after parsing. If parse fails, no. OK.
+
+Potential bug: lru_cache with text and reader: If reader.fail raises a custom exception that is not hashable? no.
+
+Potential bug: load_catalogue: for lang in SUPPORTED_LANGUAGES: strings = load_locale(lang, copy=False). It reuses reader from findings.yaml for label validation errors, so error file name is findings.yaml, not locale. For source labels uses locale_reader. Inconsistent but not fault.
+
+Potential bug: _require_label: if labels is dict but text is empty string, fail. If text has whitespace only, fail. OK.
+
+Potential bug: load_catalogue: It validates units for findings, but not for workloads? WorkloadEntry no unit. OK.
+Potential: It validates source labels for all source_codes, including provided_sources and licence_sources. OK.
+Potential: It does not validate labels for reason_codes or permissions. Maybe not needed.
+
+Potential contradicts-principle: "One command. After setup, one command produces a report." Not.
+
+Need maybe find hidden intentional faults. This is a code review task; likely there are specific bugs planted. Let's look for subtle logic errors.
+
+1. _rows: allowed = keys.union(optional). But optional is tuple. OK.
+2. _workloads: _rows(value, reader, "workloads", {"id", "label"}). If value is empty list, allow_empty=True. OK.
+3. _measurement_pairs: rows = reader.fields(value, field, (), optional=None). The third argument () maybe required keys? optional=None maybe no optional. It returns dict. But then for index, (collector, values) in enumerate(rows.items()): member = f"{field}[{index}]". If value is a dict, rows.items() order. OK.
+But note: _measurement_pairs is called with field f"{field}.measured_by". It uses reader.fields(value, field, (), optional=None). If measured_by is a dict mapping collector -> list. However reader.fields likely expects a mapping and validates each value according to? The third arg () and optional=None maybe means no known fields, returns raw? It might validate keys? Unknown.
+Potential bug: It does not check that collector is a string before using in collector_ids. If collector is unhashable (list) from YAML? Mapping keys in YAML can be lists? parse_yaml may produce list keys? Python dict keys can be list? No, unhashable cannot be key. YAML can have complex keys? PyYAML can parse complex keys? It may produce unhashable? Actually YAML mapping keys can be lists/dicts? PyYAML supports complex keys? It may produce list keys? Python dict cannot have list keys, but PyYAML might not support? Not sure. If unhashable key, membership collector in collector_ids (frozenset) would raise TypeError if unhashable. Is that unhandled-input? Rule file could have measured_by:
+  - collector: ? No, measured_by is mapping. YAML keys can be complex? For example:
+measured_by:
+  ? [foo]
+  : []
+PyYAML may parse list key? It might. Then collector is list, unhashable, `collector not in collector_ids` raises TypeError. But is that an accepted input? YAML can have complex keys. parse_yaml may reject? Unknown. Could be unhandled. But maybe too obscure.
+
+4. _finding: unit = row["unit"]; if unit is not None: unit = reader.matches(unit, _CODE). But _CODE requires lowercase. Units maybe should be localized? OK.
+5. _findings: coverage_total_from target type count. But if target finding is itself coverage total? OK.
+Potential bug: It doesn't check that coverage_total_from target is not in a different workload? Could be intended to sum across? Not.
+
+6. _code_set: uses reader.rows(value, field, allow_empty=True). For permissions, pattern _PERMISSION. It doesn't check duplicate normalized? It checks code in codes. OK.
+
+7. _sku_exceptions: rows = reader.fields(value, field, (), optional=None). It builds keys set. It does not fail on duplicate sku_key? keys.add silently. If rule file has duplicate exception entries, no error. Is that a bug? It might be intended to deduplicate. But if two entries have same normalized key but different raw, silently ignore. Not necessarily wrong.
+Potential bug: It uses `keys = set()` but Catalogue.sku_exceptions type frozenset[tuple[str,str]]. OK.
+Potential bug: It doesn't validate that part_number matches IDENTIFIER or _SKU_EXCEPTION? It does matches. OK.
+Potential bug: It doesn't check that guid is not empty? reader.guid likely.
+
+8. load_catalogue: lru_cache _parse_catalogue. Since _parse_catalogue uses reader.fail which may have side effects? It may record

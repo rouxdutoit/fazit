@@ -1,0 +1,195 @@
+We need answer user's request: review code, find concrete faults. Need produce findings in exact format. Need analyze src/fazit/i18n.py. Need consider principles. Need only report bugs, unhandled-input, contradicts-comment, contradicts-principle. Need quote exact lines, confidence.
+
+We need inspect code carefully.
+
+File i18n.py:
+1 license
+2 from copy import deepcopy
+3 date
+4 Decimal
+5 Fraction
+6 lru_cache
+7 files
+9 InputError
+10 parse_yaml, read_text
+12 SUPPORTED_LANGUAGES en de
+13 DEFAULT_LANGUAGE en
+
+check_language: if not str or not in supported raise InputError with code depending file None. OK.
+
+load_locale: strings = _read_locale(check_language(lang)); return deepcopy if copy else strings. OK.
+
+_read_locale lru_cache maxsize=2: files("fazit")... parse_yaml(read_text(locale), locale.name). If not dict raise InputError. Potential issue: lru_cache caches exceptions? No, if raises not cached. OK. But maxsize=2 for two languages. OK.
+
+error_sentence(strings, error, input_role): template = strings["errors"][error.code]. If missing KeyError. Is that unhandled-input? error.code likely internal. But if rule file? error.code from InputError. Could be unknown? Maybe not input. But if error.code not in locale, crash. But maybe all codes known. We can't guess. Need concrete.
+
+file_name = error.file or ""
+if input_role is not None and "@" in file_name:
+    cli = strings["cli"]
+    file_name = cli["private_input_file"][input_role]
+    template = cli["private_input_errors"].get(error.code, template)
+return template.format(file=escape_controls(file_name), field=..., line=error.line, **error.details)
+
+Potential bug: template.format with line=error.line. If template doesn't contain {line}, fine. If error.details contains keys conflicting file, field, line? format kwargs conflict? In Python, if **error.details includes 'file', 'field', or 'line', then TypeError: multiple values for keyword argument. Could be unhandled-input if details from parsing include field? But details internal. Need concrete? Maybe error.details might include 'line'? Unknown.
+
+escape_controls: char if char.isprintable() else char.encode("unicode_escape").decode("ascii")
+Potential bug: For non-printable chars, unicode_escape may produce bytes like b'\\x00' for NUL, decode ascii -> '\\x00' (4 chars) OK. But for characters with code point > 0x7f that are not printable? isprintable false for some control, but non-ASCII printable? For non-printable non-ASCII? unicode_escape encodes to \\x or \\u. OK. But for character like '\x85' (NEL) isprintable? Python str.isprintable: false for Cc, Cf, Cs? Actually NEL is Cc? false. encode unicode_escape yields b'\\x85' decode ascii. OK. For surrogates? If text contains isolated surrogate, encode unicode_escape may produce invalid? But not likely.
+
+Potential contradicts-principle? escape_controls maybe escapes control chars, fine.
+
+code_label: labels = strings[group]; return labels.get(code, code) if group == "collector" else labels[code]
+Potential unhandled-input: if group not collector and code missing -> KeyError. group and code from rule files? Could be. But maybe internal.
+
+reason_text: reasons = strings["reason"]; reason = reasons.get(code, reasons["not_recognised"]); return reason["label"], reason["fix"]. If reason missing keys KeyError. If code not recognised, uses default. OK if default has keys.
+
+_money_parts(amount: Fraction | Decimal) -> tuple[str, int, int]:
+cents = int(abs(Fraction(amount)) * 100 + Fraction(1, 2))
+whole, fraction = divmod(cents, 100)
+return "-" if amount < 0 and cents else "", whole, fraction
+
+Need inspect rounding. For positive 0.004: Fraction=0.004*100=0.4 +0.5=0.9 int=0 -> 0.00. Half-up? 0.005*100=0.5+0.5=1 -> 0.01. OK. For negative: abs. Sign if amount <0 and cents else. If amount=-0.004, cents=0, sign "" -> 0.00. OK. For amount=-0.005, cents=1 sign '-'. OK.
+But type: amount Fraction | Decimal. Fraction(Decimal) works? Fraction(Decimal('1.23')) returns exact? Yes. Fraction(Fraction) ok.
+Potential issue: int(abs(Fraction(amount)) * 100 + Fraction(1,2)) rounds half away from zero? For positive half up. For negative abs half up. OK.
+Potential unhandled-input: amount can be int? Type says Fraction|Decimal but maybe int. Fraction(int) ok. If amount is float? Fraction(float) exact binary maybe weird. But not from inputs? Could be.
+
+plain_amount(amount: Fraction | None) -> str:
+if None unknown; sign, whole, fraction = _money_parts(amount); return f"{sign}{whole}.{fraction:02d}"
+OK.
+
+Formatter:
+__init__: self.strings = load_locale(lang). OK.
+
+integer(value: int): f"{value:,}".replace(",", self.strings["format"]["thousands_separator"])
+If value negative, f"{-1234:,}" = '-1,234', replace comma -> '-1.234' if separator dot? In German thousands separator maybe '.'? OK. If thousands_separator empty? OK. If value not int? Type int.
+
+number(value: Decimal): whole, point, fraction = f"{value:,f}".partition("."). For Decimal, format ',f' uses comma thousands and no exponential. For negative: '-1,234.567' partition -> whole '-1,234', point '.', fraction '567'. replace comma. OK. For Decimal('1E+3')? format f -> '1,000'? OK. For Decimal('NaN')? f'{Decimal("NaN"),f}' -> 'NaN'? partition '.' -> whole 'NaN', point '', fraction ''. Then whole.replace... return 'NaN'. Not crash. For Infinity? 'Infinity'. OK.
+But if Decimal has no fractional part, point empty, returns whole. OK.
+Potential bug: f"{value:,f}" for Decimal uses current locale? No Python format doesn't use locale. OK.
+Potential bug: For Decimal with exponent negative? e.g. Decimal('1.2E-3') format ',f' -> '0.0012'? OK.
+
+money(amount: Fraction | Decimal, currency: str): sign, whole, fraction = _money_parts(amount); settings = ...; display = f"{sign}{self.integer(whole)}{settings['decimal_separator']}{fraction:02d}"; return settings["money"].format(amount=display, currency=currency).strip()
+Potential issue: _money_parts returns whole int, fraction int. integer(whole) formats thousands. OK. If settings["money"] template has placeholders not amount/currency? format with extra kwargs OK. If template uses {currency} etc. strip removes spaces. OK.
+Contradicts principle? If amount missing? money requires amount not None; plain_amount handles unknown. If caller passes None to money crash, but not in this code.
+
+storage(value: int, *, lower_bound: bool = False) -> str:
+settings = self.strings["format"]
+units = settings["storage_units"]
+divisor, index = 1, 0
+while value >= divisor * 1000 and index < len(units) - 1:
+    divisor *= 1000
+    index += 1
+rounding = 0 if lower_bound else divisor // 2
+tenths = (value * 10 + rounding) // divisor
+whole, fraction = divmod(tenths, 10)
+return f"{self.integer(whole)}{settings['decimal_separator']}{fraction} {units[index]}"
+
+Need analyze. It wants human readable storage. Units likely ["B", "KB", "MB", "GB", "TB"]? If value bytes. divisor starts 1, index 0. while value >= divisor*1000 and index < len(units)-1: divisor *=1000, index++.
+For value 999: divisor 1, index 0. rounding divisor//2=0? 1//2=0. tenths=(999*10+0)//1=9990. whole=999, fraction=0 -> "999.0 B". OK.
+For value 1000: while 1000>=1000 and index<4 -> divisor=1000 index=1. rounding=500. tenths=(1000*10+500)//1000=10500//1000=10. whole=1 fraction=0 -> "1.0 KB". OK.
+For value 1499: divisor 1000, rounding 500, tenths=(14990+500)//1000=15 -> 1.5 KB. OK.
+For value 1500: (15000+500)//1000=15 -> 1.5 (round half? 1.5 exactly). 1500.5? value int only. For 1500, half up? Actually rounding to one decimal: (value*10 + divisor/2)//divisor. For 1500 -> 15.0. For 1500? exact. For 1500? OK.
+For value 1999: (19990+500)//1000=20 -> 2.0 KB. OK.
+For value 2000: while 2000>=1000 and index<4 -> divisor=1000000? Wait after first loop: value 2000, divisor 1000 index 1. Check condition value >= divisor*1000? 2000 >= 1,000,000 false. So stays KB. rounding=500. tenths=(20000+500)//1000=20 -> 2.0 KB. OK.
+For value 999999: divisor 1000? Check initial: 999999>=1000 -> divisor 1000 index1. Next: 999999>=1,000,000 false. So KB. rounding 500. tenths=(9,999,990+500)//1000=10000 -> whole=1000 fraction=0 -> "1,000.0 KB" not MB. Is that intended? Usually if value >= 999.5 KB, should round to 1.0 MB? The while chooses unit based on raw value, not rounded value. For 999,999 bytes, raw is <1,000,000 so KB, rounds to 1,000.0 KB. Could be considered bug? It might be intended to avoid unit promotion due to rounding? But display "1,000.0 KB" is awkward but not wrong? It is a lower bound? If lower_bound False, rounding to one decimal can produce 1000.0 KB. Is that a concrete fault? Maybe. But if units list includes up to TB, for values near top: 999,999,999,999 bytes (999.999 GB) -> GB, rounds to 1,000.0 GB not 1.0 TB. Could be acceptable? The principle? Not necessarily. But maybe intended to show 1.0 TB. The code's while condition uses value >= divisor*1000, but rounding can increase to next unit. If it's supposed to format with one decimal and choose largest unit where value < 1000? For 999,999 bytes, largest unit with value <1000 is KB? 999.999 KB <1000, but rounded to 1000.0. Many formatters promote. But not clear. Could be a bug if plainly intends storage formatting? Need be careful not to report style. The function name storage, lower_bound flag. It likely aims to show e.g. 1.0 MB for 999,999? Maybe not. The lower_bound flag: if lower_bound true rounding=0 (floor). If false round half up. If floor, 999,999 -> 999.9 KB, OK. If round, 1000.0 KB. Could be intended to show exact unit without promotion. But "wrong result"? It gives 1,000.0 KB instead of 1.0 MB, but not necessarily wrong. Need see if there is a more concrete bug.
+
+Potential bug: rounding = divisor // 2. For divisor=1 (bytes), rounding=0. For one decimal bytes, OK. For divisor=1000, rounding=500. But to round to nearest tenth, add divisor/2 before integer division. Correct. However for negative value? storage value int maybe non-negative? If negative, while value >= divisor*1000 false, rounding positive, tenths = (negative*10 + rounding)//divisor. Python floor division. For value=-1: rounding=0, tenths=-10//1=-10, whole=-1 fraction=0? divmod(-10,10) = (-1,0) -> "-1.0 B". For value=-1500: divisor 1? while false, rounding 0, tenths=-15000, divmod(-15000,10)=(-1500,0) -> "-1500.0 B". If negative storage not expected.
+
+Potential bug: integer(whole) with whole maybe large. OK.
+
+Potential unhandled-input: storage_units missing or empty. If units empty, len(units)-1 = -1, index=0, while condition index < -1 false, then units[index] IndexError. But locale file internal. Could be unhandled-input from locale? But not user? Rule files? Locale is source. Not likely.
+
+_date(day, layout, months): return self.strings["format"][layout].format(day=..., month=..., year=...)
+If layout missing KeyError. Internal.
+
+date(value: str): return self._date(date.fromisoformat(value[:10]), "date", "months")
+Potential unhandled-input: value may be shorter than 10, fromisoformat raises ValueError not InputError. If scan.json date malformed, crash traceback. Is this an input from scan.json? Yes date values likely from scan.json. The code accepts value str, slices first 10. If value is '2024-01-01T12:00:00Z' works. If value is '2024-1-1' length 8, value[:10] = '2024-1-1', date.fromisoformat? In Python 3.11+ fromisoformat accepts '2024-01-01' but not '2024-1-1'? It accepts YYYY-MM-DD with zero padding? Since 3.11 more flexible? Let's recall: date.fromisoformat in 3.11 accepts YYYY-MM-DD, also YYYY-MM, maybe? It does not accept non-zero-padded? Python 3.11 fromisoformat accepts most ISO 8601, but date must be YYYY-MM-DD? It may accept '2024-1-1'? I think no, requires 4-2-2 digits? Actually 3.11 docs: fromisoformat supports any valid ISO 8601 date or datetime, but for date, basic format YYYYMMDD? It might accept '20240101' and '2024-01-01'. It does not accept '2024-1-1'. But we don't know Python version. Fault: if value not ISO date, ValueError. Is that unhandled-input? The code plainly intends to parse date string. It doesn't catch. But many functions assume valid. Need report if input from scan.json can be malformed. The task: find concrete faults. Unhandled-input: input accepted leads to crash/traceback. If scan.json contains invalid date, crash. But is that too broad? They likely expect specific lines.
+
+period(value: str): start, end = (date.fromisoformat(day) for day in value.split("/"))
+Potential unhandled-input: if value doesn't have exactly two parts, ValueError "not enough values to unpack" or too many. If invalid date, ValueError. If value empty, split gives [''], fromisoformat error. This is from scan.json? Period likely usage period e.g. "2024-01-01/2024-02-01". Malformed leads crash. Could be unhandled-input. But maybe parse layer validates? We only see this part. Need confidence medium? The instructions: if fault depends on code you cannot see, say in confidence. We can report with medium if no validation visible. But need concrete. They might expect findings in this file only, not missing validation elsewhere. The code accepts from scan.json, inputs.yaml, rule file, CLI, filesystem. If period value from scan.json malformed, crash. But is that a fault in this code? It doesn't handle. However many functions rely on valid input. The task likely wants concrete faults not generic missing validation? Need infer from code.
+
+Need look for subtle bugs.
+
+Potential bug in escape_controls: char.encode("unicode_escape") for a character that is not printable but encodes to multiple bytes including backslash. For backslash itself is printable, so not escaped. For newline, char.encode('unicode_escape') returns b'\\n' (two chars backslash n) decode ascii -> '\\n'. Good. For carriage return -> '\\r'. For tab -> '\\t'. For form feed -> '\\f'. For vertical tab -> '\\x0b'. For null -> '\\x00'. OK.
+But char.isprintable() returns True for some non-ASCII characters that may be control? e.g. U+0085 NEL is not printable? Let's check: str.isprintable: returns false for Cc, Cf, Cs, Co, Cn? Actually printable = not control, format, surrogate, unassigned. NEL (U+0085) is Cc? false. OK.
+Potential issue: For characters with Unicode escape that produce bytes not ascii? unicode_escape always ascii. OK.
+
+Potential bug in _money_parts: int(abs(Fraction(amount)) * 100 + Fraction(1, 2)). For amounts that are extremely large, int ok. For Decimal with exponent? Fraction(Decimal('1E+2')) = 100. OK.
+But for Decimal('0.005') Fraction exact? Decimal to Fraction uses decimal value exact: 5/1000. *100=1/2, +1/2=1, int=1. OK.
+For Decimal('0.015') *100=1.5 +0.5=2 -> 0.02. Half up. OK.
+For Decimal('0.999') *100=99.9 +0.5=100.4 int=100 -> 1.00. OK.
+Sign: amount < 0 and cents. If amount is Decimal('-0.004') cents=0 sign ''. OK. If amount is Fraction(0) negative zero? Fraction no negative zero. Decimal('-0.00') <0? Decimal('-0.00') is negative? Decimal('-0.00') < 0 is False? Decimal compares value, -0 == 0, so false. OK.
+
+Potential bug: plain_amount uses f"{sign}{whole}.{fraction:02d}" not using locale decimal separator. But function name plain_amount likely intentionally plain dot. OK.
+
+Potential bug: Formatter.number: f"{value:,f}" for Decimal uses comma as thousands separator, but if value is Decimal('1234.5') -> '1,234.5'. partition('.') -> whole '1,234', fraction '5'. It replaces comma with settings thousands. OK. But if decimal separator in settings is comma? Then whole.replace(",", settings["thousands_separator"]) might replace original Python comma with thousands separator (maybe '.'), then append decimal_separator comma. OK. If thousands_separator is empty, fine.
+Potential issue: If Decimal value has no fractional part but format ',f' may include trailing '.'? Let's test: f'{Decimal("1234"),f}' -> '1,234' no point. OK.
+If Decimal value is negative zero? f'{Decimal("-0.0"),f}' -> '-0.0'? partition -> whole '-0', point '.', fraction '0'. OK.
+
+Potential bug: Formatter.money: uses self.integer(whole) which uses thousands_separator. If whole=0, integer(0) -> '0'. OK. If sign '-' and whole 0 -> '-0,00' if German? OK.
+
+Potential bug: storage: units = settings["storage_units"]; while value >= divisor * 1000 and index < len(units) - 1. If value is exactly 1,000,000 and units length 5: initial divisor 1 index0 -> condition true -> divisor 1000 index1; condition value >= 1,000,000 true and index<4 -> divisor 1,000,000 index2; condition value >= 1,000,000,000 false. So MB. rounding=500,000. tenths=(10,000,000+500,000)//1,000,000=10 -> 1.0 MB. OK.
+For value 999,999,999 (999.999999 MB): divisor MB, rounding 500,000, tenths=(9,999,999,990+500,000)//1,000,000=10000 -> 1000.0 MB. Again.
+Could be bug: because rounding can make whole=1000, but unit not promoted. If the intent is to display one decimal in largest unit less than 1000 before rounding, maybe not. But if lower_bound False, it's rounding, so 999,999,999 bytes should be 1.0 GB. The code's while condition should perhaps consider rounded value or use value >= divisor * 1000 - rounding? Let's examine likely intended. For storage, they may want to show e.g. '1.0 GB' for 999,999,999. The lower_bound flag: if lower_bound true, show '999.9 MB' (floor). If false, show '1.0 GB'. The current code shows '1,000.0 MB'. That seems a concrete bug: rounding to next unit not reflected. Is that "plainly intends"? The function chooses unit by raw value, then rounds; if rounded value reaches 1000, it should use next unit to keep one decimal scale. It's a common bug. Need decide if report. The code has no comment. But "plainly intends" maybe human-readable storage. A value of 999,999,999 bytes is less than 1 GB by 1 byte, but rounded to one decimal is 1.0 GB. Displaying 1,000.0 MB is not wrong? It is exact to one decimal in MB? 999.999999 MB rounded to one decimal is 1000.0 MB. That is a valid representation, just not normalized. Is it a wrong result? It might be considered less ideal but not a fault. The task says bug: code gives wrong result, crashes, or does something other than what plainly intends. Does it plainly intend normalized units? Maybe yes because while loop increments unit while value >= divisor*1000. It intends to use next unit when value is at least 1000 in current unit. But after rounding, value becomes 1000. Yet condition uses unrounded value. If intended to round to one decimal, it should account. But maybe they intentionally avoid promoting because raw value is below next unit. Need not over-report.
+
+Potential bug: storage rounding for lower_bound False uses divisor // 2. For divisor not even? Divisors are powers of 1000, even except 1. OK.
+
+Potential bug: storage uses integer(whole) but whole can be 1000, giving '1,000.0 MB'. If the locale thousands separator is '.' and decimal separator ',', display '1.000,0 MB'. OK.
+
+Potential bug: date(value): value[:10]. If value includes timezone, OK. If value has less than 10 but valid ISO date with no zero padding? maybe crash. If value is empty, crash. Unhandled-input.
+
+Potential bug: period(value): value.split("/") expects exactly two dates. If value has trailing slash or extra, crash. Unhandled-input.
+
+Potential bug: error_sentence: template.format(... **error.details). If error.details contains a key with braces? No. If template contains literal braces, format raises. But locale internal.
+
+Potential bug: error_sentence: line=error.line. If error.line is None? InputError line maybe int or None. If template expects int, None prints 'None'. Maybe OK. If template has {line} and error.line None, shows None. Could be wrong? Not enough.
+
+Potential bug: code_label: labels.get(code, code) if group == "collector" else labels[code]. If group is collector and labels missing code, returns code. If group not collector and missing, KeyError. Could be unhandled-input from rule file group/code. But group likely from internal mapping. If a rule file has unknown code in group "status"? It may crash. But maybe code_label is used for known groups. Need concrete? The line itself treats collector specially, implying other groups must have code. If code missing, crash. But is that a fault? It might be intended to fail hard on missing translation? But unhandled-input: rule file with unknown code leads crash. However the code's purpose is to label codes from rule files; if code not in locale, for collector it falls back to code, for others crashes. Inconsistent. Could be bug: missing label in non-collector group causes KeyError instead of fallback. But maybe non-collector codes are controlled. The comment? None.
+
+Potential bug: reason_text: reasons.get(code, reasons["not_recognised"]) returns dict. If code exists but value not dict, reason["label"] TypeError. If locale malformed. Not user.
+
+Potential contradicts-principle: principle 5 privacy by construction: exclude collected person names and email addresses. Reports may show organisation name and Windows-only application names entered in inputs.yaml. This i18n code doesn't handle names. No.
+Principle 8 honest figures: missing value unknown. plain_amount None unknown. Good.
+Principle 2 local processing: no network.
+Principle 6 offline report: no JS.
+No.
+
+Need maybe find a real bug in _read_locale lru_cache with copy=False? load_locale(copy=False) returns cached dict. If caller mutates, affects cache. But default copy True. Not fault.
+
+Potential bug: check_language uses file parameter to choose error code. If file is None, code unsupported_language_option; else unsupported_language. OK. But field defaults --lang. If file provided but field maybe? OK.
+
+Potential bug: _read_locale: files("fazit").joinpath("locales", f"{lang}.yaml"). If package not installed? Not.
+
+Potential bug: parse_yaml(read_text(locale), locale.name). read_text likely accepts Path. OK.
+
+Potential bug: escape_controls: It escapes non-printable characters by char.encode("unicode_escape").decode("ascii"). For a non-printable character that is a Unicode control, this produces a string like '\n' (backslash n). But for a character like U+0000, produces '\x00'. However for a character like U+007F DEL, isprintable false, encode unicode_escape -> b'\\x7f', decode -> '\\x7f'. OK.
+But for a character that is not printable but encodes to a multi-byte sequence whose decoded ascii contains backslash and maybe letters. OK.
+Potential bug: If char is a non-printable non-ASCII character with code point > 0xff, unicode_escape produces '\\uXXXX'. OK.
+Potential bug: If char is a surrogate (isprintable false), char.encode('unicode_escape') may produce b'\\udc80' etc. decode ascii OK. But if text has isolated surrogate, later .format? OK.
+
+Potential bug: Formatter.number: It assumes f"{value:,f}" uses '.' as decimal point. Python format for Decimal with 'f' uses '.' regardless of locale. OK. But if value is Decimal with a custom context? No.
+
+Potential bug: Formatter.number: If value is Decimal('1234.567') and settings decimal_separator is '.' and thousands_separator is ','? Then whole.replace(",", ",") no change, returns '1,234.567'. OK. If thousands_separator is ' ' (space), replace comma with space. OK.
+If value is Decimal('0.000') -> '0.000'. OK.
+
+Potential bug: Formatter.money: settings["money"].format(amount=display, currency=currency).strip(). If template is "{currency} {amount}" -> strip. If template is "{amount} {currency}" -> strip. OK. If template includes {amount} multiple times? OK. If template includes {currency} and extra? OK.
+Potential bug: If currency string contains braces? format argument value not template, OK.
+
+Potential bug: storage: units[index] if units is a string? If settings storage_units is a string, len chars, but units[index] char. But locale should list. If string, while index < len(units)-1, units[index] returns char, maybe wrong. But internal.
+
+Potential bug: _date: self.strings["format"][layout].format(day=day.day, month=..., year=day.year). If layout template uses {day:02d}? format supports. OK.
+
+Potential bug: date(value): value[:10] assumes first 10 chars are date. If value is '2024-01-01T00:00:00+00:00' OK. If value is '2024-01-01 00:00:00' (space) fromisoformat in 3.11 accepts? maybe. If value is '2024-01-01T00:00:00.123456Z' OK. If value is '2024-01-01T00:00:00+01:00' OK. If value is date with timezone offset no colon? maybe.
+But if value is '2024-01-01T00:00:00Z' length >10. OK.
+If value is '2024-13-01' fromisoformat ValueError. Unhandled-input.
+
+Potential bug: period(value): start, end = (date.fromisoformat(day) for day in value.split("/"))
+This uses a generator expression for unpacking. It will unpack exactly two. If value has two but one invalid, ValueError. If value has more, ValueError. If value has one, ValueError. Unhandled-input.
+Also if start.year == end.year, first_layout = "day_and_month" else "date". This means if same year, start formatted without year, end with full date. If different years, start full date. OK. But if period crosses year boundary e.g. 2024-12-01/2025-01-31, start full date, end full date. OK.
+Potential bug: If start and end same year but start month/day? OK.
+Potential bug: If start > end? It doesn't validate. Could produce period with start after end. Is that unhandled-input? If scan.json has reversed period, report silently wrong? It plainly intends a period start/end. If start > end, maybe wrong. But maybe not.
+
+Potential bug: date.fromisoformat(day) in period does not slice first 10. If value parts include time, e.g. "2024-01-01T00:00:00Z/2024-02-01T00:00:00Z", fromisoformat in Python 3.11 can parse datetime and return date? Wait date.fromisoformat expects date string, not datetime. In Python 3.11, date.fromisoformat can parse 'YYYY-MM-DDTHH:MM:SS'? Let's recall: date.fromisoformat in 3.11 supports ISO 8601 dates, but not datetime? It may accept 'YYYY-MM-DD' only, maybe also 'YYYY-MM-DDTHH:MM:SS' returns date? I think date.fromisoformat does not accept time; datetime.fromisoformat does. In 3.11, date.fromisoformat supports 'YYYY-MM-DD' and basic 'YYYYMMDD', maybe also 'YYYY-MM'? It does not accept 'T...'. So period with timestamps would crash. But date(value) slices first 10 to handle timestamps. period doesn't slice. If scan.json period uses full ISO timestamps separated by '/', crash. Is period expected to be dates only? It says period value split by '/'. Could be "2024-01-01/2024-02-01". But if usage reports have timestamps? Maybe period is like "2024-01-01T00:00:00Z/2024-02-01T00:00:00Z"? The date function explicitly slices first 10, suggesting values may include time. period does not. That could be a bug: inconsistent handling; if period parts include time, crash. But we don't know input format. The line value.split("/") and fromisoformat(day) plainly intends dates only. If day includes time, fromisoformat fails. Is that unhandled-input? Maybe.
+
+Need consider Python version. Fazit free CLI Python. Could target 3.11? If date.fromisoformat in 3.11 accepts '2024-01-01T00:00:00Z'? Let's verify from memory: Python 3.11 changed fromisoformat to accept most ISO 8601. For date.fromisoformat, it accepts 'YYYY-MM-DD' and 'YYYYMMDD', and also 'YYYY-MM-DDTHH:MM:SS'? Actually I used date.fromisoformat('2021-01-01T00:00:00')? I think it raises ValueError: Invalid isoformat string. Because date can't parse time. But 3.11 maybe accepts 'YYYY-MM-DD' with optional timezone? No, date ignores time? Let's recall docs: date.fromisoformat('2021-01-01') -> date. In 3.11, it supports 'YYYY-MM-DDTHH:MM:SS' for datetime? The docs: "This does not support parsing arbitrary ISO 8601 strings. It is only intended for use with dates generated by date.isoformat()." In 3.11: "fromisoformat() now supports parsing most ISO 8601 formats". For date, maybe it accepts 'YYYY-MM-DDTHH:MM:SS' and returns date? I can recall examples: date.fromisoformat('20210101') works. date.fromisoformat('2021-01-01T00:00:00')? I think ValueError: Invalid isoformat string: '2021-01-01T00:00:00'. Because date has no time. But not 100%.
+
+Potential bug: period value.split("/") if value is not

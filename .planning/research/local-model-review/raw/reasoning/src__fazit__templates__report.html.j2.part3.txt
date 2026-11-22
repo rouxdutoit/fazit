@@ -1,0 +1,201 @@
+We need answer user's request: review code part 3 of 3 of report.html.j2 lines 693-1016, find concrete faults. Need output exact format only. Need analyze template for bugs, unhandled-input, contradicts-comment, contradicts-principle. Need quote exact lines. Need be careful: only this part visible. Need not guess? Can report if depends on unseen code with confidence. Need identify likely intentional faults.
+
+We need inspect template. It's Jinja2. Variables: statuses, mapping, risky_files, software, inputs, mapping_gaps, scan, status_rules, costs, strings, etc. Functions: code_label, reason_detail, finding_labels, evidence_pair, workload_status, status_reason, attention_evidence, label, missing_answer, literal_text, format.date, format.integer, mapping_date, conditions_list, status_label, finding_source, finding_date.
+
+Need look for concrete faults.
+
+Potential issues:
+- Line 696: {{ rule.reason[lang] }}. If rule.reason missing lang? Maybe unhandled input? But rules likely have lang. Could be wrong if lang not in dict: Jinja undefined? By default undefined renders empty? In Jinja2 default Undefined allows subscript? Actually Undefined.__getitem__? In Jinja2, Undefined supports __getitem__? Let's recall: Undefined class has __str__, __iter__, __bool__, __eq__, __hash__, __getattr__? For subscript, it may raise UndefinedError? In Jinja2, default Undefined: "Undefined" object is falsy, iterating raises, subscript? I think Undefined.__getitem__ raises UndefinedError? Let's check: Jinja2's Undefined has __getitem__ = __getattr__? Maybe it raises. But not sure. However likely not intended.
+- Line 704: finding_labels[gap.finding_id] if missing key? Could KeyError? In Jinja dict missing returns Undefined? Actually mapping subscript returns undefined? It may not crash. But if finding_labels not defined? Probably.
+- Line 718 evidence_pair(finding) maybe undefined.
+- Line 732: {% for row in statuses if row.reason_code %}. If statuses row lacks reason_code? Jinja undefined false? Probably okay.
+- Line 736: finding.missing_reason. unknown_findings maybe.
+- Line 739: collector.reason.
+- Line 760: {% set row = status_by_workload[item.workload] %}. If item.workload not in status_by_workload, row undefined. Then line 761 data-status="{{ row.status }}" maybe empty. Line 772 workload_status(row), status_reason(row). Could be unhandled input if mapping references workload not in statuses. But maybe statuses built for all workloads. Could be fault? Need concrete? It could silently wrong if mapping has workload missing from status_by_workload. But maybe statuses includes all. Need see if mapping.workload might be not in statuses? The template plainly intends row for each mapping function. If missing, row undefined and status blank, not crash maybe. But if row undefined, row.status undefined, workload_status(row) may crash if function expects dict? We can't see functions. Could report low.
+- Line 769: anchor href="#readiness-{{ item.workload }}". If readiness section rows have id? Not visible. Could be wrong if workload not present.
+- Line 807: {% if finding and finding.value == 0 and finding.id not in conflicts and finding.id not in answer_conflicts and (not finding.coverage or finding.coverage.kind == 'complete') %}. This shows none_reported when finding value 0 and complete. But if finding is undefined? It checks finding. But if finding.value missing? Undefined == 0 false? In Jinja, undefined == 0 false? Maybe. If finding.value is None? false. If finding is present but value not int? maybe.
+- Potential principle: missing value treated as zero/good news. Line 807 treats finding.value == 0 as none reported. If finding.value missing? not. If finding exists with value 0 but coverage incomplete? condition requires complete. Good.
+- Line 824: {% if inputs and inputs.windows_only_software %}. If inputs.windows_only_software is not list but e.g. string? for iterates chars? unhandled input? inputs.yaml could have non-list. But maybe validation elsewhere.
+- Line 839: {{ code_label('source', input_source) }} · {{ format.date(inputs.as_of) if inputs.as_of else strings.common.date_not_supplied }}. input_source variable maybe undefined? If not passed, renders empty? Could be bug. But likely passed.
+- Line 842: {% if item.users is none %}{{ missing_answer() }}{% else %}<span>{{ format.integer(item.users) }}</span>{% endif %}. If item.users is not none but not int (e.g. string, null? none handled, maybe bool, float?) format.integer may crash or wrong. inputs.yaml unhandled. Could report: item.users may be non-numeric (e.g. "about 10" or float) causing crash/wrong. But maybe format.integer coerces? We don't know. It says format.integer, likely expects int. If item.users is string numeric maybe okay? Need concrete. If item.users is bool True? format.integer(True) maybe 1. If item.users is null handled. If item.users missing? In YAML, missing key yields undefined not none? In Jinja, item.users if missing returns Undefined, is none? Undefined is not none? Actually in Jinja, undefined is not None. So if key absent, condition false, format.integer(undefined) maybe crash or 0? This is a plausible unhandled-input: inputs.windows_only_software item without users key. But maybe schema requires. However "missing answer" should be shown if not supplied. If key omitted, item.users is undefined, not none, so it goes else and format.integer(undefined). Depending on format.integer implementation unknown. Could crash or silently 0. This is a missing value not treated as missing. But is that plain? The code checks `is none`, not `is not defined`. In Jinja, missing attribute yields Undefined, not None. If inputs.yaml omits users, it's not none. But maybe Python loader converts missing to None? If item is dict from YAML, missing key not present. In Jinja, item.users returns Undefined. `is none` false. So yes. But maybe they use a custom undefined? Not visible. Could be a fault. Need confidence medium/low because depends on format.integer and how inputs are loaded. But likely intentional? Let's keep in mind.
+- Line 845: item.vendor_has_web_version is none. Same issue: if key omitted, undefined not none. But vendor_has_web_version likely boolean; missing should be missing answer. Could format? literal_text(undefined) maybe empty? If literal_text expects bool? Could be wrong.
+- Line 862: data-provenance="{{ 'unknown' if need == 'unknown' else finding.provenance }}". If need unknown, finding may be undefined? In mapping_gaps tuple item, finding, need, reasons. If need unknown, finding might be None? Then line 863 uses strings.status.unknown. Line 868 only else. OK.
+- Line 863: {{ strings.status.unknown if need == 'unknown' else strings.common[need] }}. If need not in strings.common (e.g. 'yes'/'no'?) maybe missing. But likely.
+- Line 869: finding_source(finding) · finding_date(finding). If need not unknown but finding is None? Could crash. But mapping_gaps likely only includes finding when need not unknown.
+- Line 873: item.reference_url or strings.common.unavailable. If reference_url missing, Undefined or empty? In Jinja, Undefined is falsy, so unavailable. OK.
+- Line 928: {{ collector.permissions_used|join(', ') or strings.common.unavailable }}. If permissions_used missing, Undefined|join? Join filter on undefined? In Jinja, join iterates; Undefined iteration raises UndefinedError? Actually join filter may call list(value); if value undefined, maybe TypeError? Let's recall: Jinja2 join filter: `return dumper(value)`? It does `return sep.join([str(v) for v in value])` maybe if value undefined raises UndefinedError. But if collector.permissions_used missing, could crash. But collectors likely always have permissions_used? Maybe if skipped? Could be unhandled input. But line 928 uses `or` after join; if list empty, join returns '' then unavailable. If missing, crash. Could report. But maybe scan.json collector always includes permissions_used list. Need concrete? It accepts scan.json; if a collector object lacks permissions_used, template crashes. Is that a fault? Maybe.
+- Line 934: {% if scan.dropped_count %}. If dropped_count missing, undefined false, no issue. If dropped_count is 0, no issue. If negative? shows? maybe.
+- Line 944: {{ conditions_list(status_rules.workloads[row.workload].ready) }}. If status_rules.workloads missing row.workload, undefined.ready -> Undefined, conditions_list(Undefined) maybe crash or empty. Could be unhandled input if status rule file lacks workload present in statuses. But statuses likely derived from status_rules.workloads, so okay.
+- Line 945: {% for rule in status_rules.workloads[row.workload].rules if rule == row.deciding or rule in row.notes %}. If rules missing? Undefined iteration raises. But likely.
+- Line 947: rule.reason[lang]. same.
+- Line 979: {{ strings.source_kind[scan.source_kind] }}. If scan.source_kind not in strings, undefined renders empty. Could be silently wrong. But likely valid.
+- Line 980: {{ scan.tool.name }}. If scan.tool missing, Undefined renders empty? In Jinja, attribute access on Undefined returns Undefined, renders empty. No crash. But if scan.tool is None, None.name? Undefined? Actually None has no name, Jinja returns Undefined? I think Jinja uses getattr with default undefined, so no crash.
+- Line 986: <time datetime="{{ scan.generated_at }}">{{ format.date(scan.generated_at) }}</time>. If scan.generated_at missing, format.date(undefined) might crash. Could be unhandled input. But scan.json likely always has generated_at. Could be missing? It's a scan file. Could report? Need concrete.
+- Line 999: {% if inputs and inputs.as_of %}<time datetime="{{ inputs.as_of }}">{{ format.date(inputs.as_of) }}</time>. If inputs.as_of not date but string? format.date may handle. If missing, else.
+- Line 1005: checksums.items(). If checksums missing, Undefined.items? In Jinja, method call on Undefined? Undefined has __getattr__ returns undefined, calling it? Might raise. But checksums likely passed.
+- Principle 6: offline report, no external resources. Template line 1013 repository_url in footer. If repository_url is URL, it's just text, not external resource unless link. It's not <a>. OK.
+- Principle 5: privacy. This part doesn't show names/email. Windows-only application names allowed. OK.
+- Principle 8: honest figures. Could be issue with line 807: `finding.value == 0` and none_reported. If finding is a conflict or answer conflict, excluded. If coverage incomplete, excluded. Good. But if finding.value == 0 because answer says 0? It excludes answer_conflicts? Actually if answer conflict, not show none_reported. But attention_evidence(finding) may show value? If answer says 0, is that supplied? It may be honest. If finding.value == 0 but no evidence? coverage complete. OK.
+- Potential bug: line 807 uses `finding.id not in conflicts and finding.id not in answer_conflicts`. If `conflicts` or `answer_conflicts` are undefined? In Jinja, `in` on undefined? If variable undefined, maybe TypeError? But likely passed. If not, crash. But maybe always.
+- Line 806: {{ attention_evidence(finding) }}. If finding undefined, attention_evidence may crash. But risky_files mapping likely values may be None? It checks `finding and` after. If finding None, attention_evidence(None) called. Does function handle? Unknown. Could be bug if risky_files includes None. But maybe function handles.
+- Line 819: {% for entry, finding in software %}. If software dict values None, attention_evidence(None). Unknown.
+- Line 820: {{ label(entry.label) }}. If entry.label missing? maybe.
+- Line 824: inputs.windows_only_software. If inputs is defined but windows_only_software is None? if none false? In Jinja, None false. OK. If string, iterates chars, entry is char, entry.label undefined. Could crash/wrong. But inputs.yaml should list. Could be unhandled.
+- Line 836: data-software-entry no value. OK.
+- Line 838: item.name. If missing, empty.
+- Line 839: input_source variable. If not defined, empty. Could be bug? The table header says source? It shows code_label('source', input_source). If input_source undefined, label maybe empty. But maybe passed.
+- Line 842: format.integer(item.users). If item.users is a float with decimal, maybe rounds? unknown.
+- Line 845: literal_text(item.vendor_has_web_version). If value is boolean, literal_text maybe returns yes/no? If missing key undefined, literal_text(undefined) maybe empty, not missing_answer. The code checks is none only. If YAML key omitted, not missing. If key explicitly null, none. So missing key not handled. This is a concrete unhandled-input? inputs.yaml item without users/vendor_has_web_version. The code plainly intends to show missing_answer for missing answer. But it only checks none. In Jinja, omitted key is Undefined, not None. Unless the data is preprocessed to include None for missing. We can't see. But likely a fault.
+- However, the task says "Do not report something you would need to guess about; you only see this part of the program, so if a fault depends on code you cannot see, say so in confidence." We can report with medium if depends on Jinja undefined behavior? We know Jinja default. But if they use custom undefined? Not visible. Could be low.
+- Need find more definite faults.
+
+Look at line 696: row.notes is list of rules. It renders `rule.reason[lang]`. If rule.reason is dict with languages. OK.
+Line 706: reason_detail(gap.reason_code). If gap.reason_code missing? maybe.
+Line 732: statuses if row.reason_code. This not-examined section lists rows with reason_code. But readiness table maybe already lists? OK.
+Line 733: reason_detail(row.reason_code). If row.reason_code truthy but not valid, maybe empty.
+Line 735: unknown_findings. line 736 finding.missing_reason. OK.
+Line 738: skipped_collectors. line 739 collector.reason. OK.
+
+Potential contradicts-principle: "A skipped or denied collector never improves readiness." In template, not-examined lists skipped collectors. But statuses may be computed elsewhere. Not visible.
+Line 732: `{% for row in statuses if row.reason_code %}`. If a workload status is ready but has reason_code? It lists as not examined? Maybe reason_code indicates not examined. OK.
+
+Potential bug: line 761 `data-status="{{ row.status }}"` but if `status_by_workload[item.workload]` undefined, row undefined. Could be wrong. But maybe not.
+
+Potential bug: line 765 `{{ strings.mapping_coverage[item.coverage] }}`. If item.coverage missing, undefined renders empty. But mapping rule file should have coverage. If invalid coverage, empty. Could be unhandled input. But maybe validation.
+
+Potential bug: line 766 `mapping_date(item)`. If item.date missing? function unknown.
+
+Potential bug: line 799 `{% for kind, finding in risky_files %}`. If risky_files is dict, OK. If values are finding or None. line 807 `finding.value == 0`. If finding is None, short-circuit. If finding is Undefined, `finding` false? Undefined bool false. OK.
+
+Potential bug: line 807 uses `finding.coverage.kind == 'complete'`. If finding.coverage is None, not finding.coverage true, so condition true. If coverage missing, treats as complete? The condition: `(not finding.coverage or finding.coverage.kind == 'complete')`. So if finding.coverage is missing/None, it allows none_reported. Is that honest? If coverage unknown, missing evidence should not be treated as complete. This could be a contradicts-principle: missing coverage treated as complete, making a zero count look like none reported. But maybe coverage missing means no coverage info; should not show none_reported. The code plainly says `not finding.coverage or ...` i.e. if no coverage, show none_reported. That may be a fault. Let's examine: For attention evidence, if finding.value == 0 and not in conflicts and (not finding.coverage or coverage.kind == 'complete'), show "none reported". If finding has no coverage object, it treats as complete. Principle 8: missing evidence as unknown; skipped/unknown input never improves. A missing coverage should not make zero look complete. This is a concrete contradicts-principle? The code's intent? It says if no coverage or complete. Maybe they intend coverage optional and absence means complete? But principle says missing evidence unknown. If finding exists with value 0 but no coverage, is that missing evidence? Could be a finding from answer? If coverage absent, unknown. The condition explicitly allows `not finding.coverage`. That seems suspicious. Could be intentional for findings that don't have coverage? But "none reported" is a strong statement. If coverage missing, shouldn't say none reported. Need report? It's a behavior that breaks principle: missing coverage treated as complete. But is it "plainly intends"? The condition says not finding.coverage or complete, so it intends to show none reported when coverage missing. That contradicts principle 8. Could be high? But maybe finding.coverage missing means the finding is from input answer, which is supplied, not missing. Yet coverage could be None for answer? If answer says 0, it's supplied, not missing. But if finding from scan with no coverage? Hmm.
+
+Line 807: `finding.value == 0` and `not finding.coverage` -> none_reported. If finding is from a skipped collector? It would have value? Maybe skipped collector finding missing? Not here.
+
+Another principle: "Show missing evidence as unknown." If finding is None, attention_evidence(None) maybe shows unknown? Then no none_reported because finding false. OK.
+
+Line 842: missing users. If item.users is undefined, not none. Could be missing value not shown as missing. This is principle 8. But if format.integer(undefined) returns 0? We don't know. Could be silently wrong. Need maybe report as unhandled-input: omitted `users` key leads to format.integer on undefined, crash or wrong. Confidence low/medium.
+
+Line 845: omitted vendor_has_web_version key leads literal_text(undefined), not missing_answer. Could be wrong. But if literal_text(undefined) returns empty, silently wrong. Could report.
+
+But maybe the data model uses `None` for missing answers, and inputs.yaml loader fills missing with None. We can't see. The code checks `is none`, suggesting missing answers are None. If YAML key omitted, in Python dict it's missing, not None. But maybe they use a custom dict that returns None for missing? Not visible. In Jinja, if item is a Python object with __getattr__ returning None for missing? Could be. But likely plain dict. The template's explicit `is none` is common for optional fields that may be null in YAML. If key omitted, it's undefined. Is that an input the code accepts? inputs.yaml could omit optional key. If optional, should show missing. This is plausible.
+
+Need look for more clear-cut faults.
+
+Line 928: `collector.permissions_used|join(', ') or strings.common.unavailable`. In Jinja, if `permissions_used` is undefined, join filter? Let's verify. Jinja2 filters: join: `def do_join(eval_ctx, value, d=None, attribute=None)`? It does `return d.join([str(v) for v in value])`. If value is Undefined, list(Undefined) raises UndefinedError? Actually Undefined has __iter__ that raises UndefinedError. So crash. If scan.json collector lacks permissions_used, crash. Is that a fault? The template intends to show unavailable if missing. It uses `or` to handle empty list, but not missing. However maybe every collector has permissions_used. But scan.json input can omit? It's an input. Could report unhandled-input. But is it "concrete"? Yes, a scan.json collector object without permissions_used key leads to crash. But if they validate schema, maybe not. The task says input from scan.json. We can report with medium confidence because depends on no validation elsewhere. But they ask find faults in code below; if code accepts input that leads crash. The template itself does not guard missing. Could be.
+
+Line 986: `format.date(scan.generated_at)`. If scan.generated_at missing, crash. But scan.json likely required. Could be unhandled. But less likely.
+
+Line 999: `format.date(inputs.as_of)` if inputs.as_of truthy but invalid string? format.date may crash. inputs.yaml can contain invalid date. But format.date may handle? unknown. Could report unhandled-input? Maybe too broad.
+
+Line 1005: checksums.items(). If checksums undefined, crash. But likely passed.
+
+Need identify intentional planted faults. The code part is template; likely there are a few subtle issues. Let's scan for line-specific anomalies.
+
+- Line 696: `rule.reason[lang]` maybe should be `rule.reason.get(lang, ...)`? But other lines use [lang]. Not likely.
+- Line 704: `finding_labels[gap.finding_id]` if missing. Not likely.
+- Line 705: `code_label('collector', gap.collector)`. OK.
+- Line 706: `reason_detail(gap.reason_code)`. OK.
+- Line 718: `evidence_pair(finding)`. OK.
+- Line 732: `{% for row in statuses if row.reason_code %}`. If row.reason_code is 0? false. But reason_code likely string.
+- Line 733: `workload_labels[row.workload]`. OK.
+- Line 736: `finding.missing_reason`. OK.
+- Line 739: `collector.reason`. OK.
+- Line 748: sample_scan caption. OK.
+- Line 759: mapping.functions. OK.
+- Line 760: status_by_workload[item.workload]. Potential KeyError? In Jinja, dict missing returns Undefined, not crash. But if status_by_workload is Undefined? no.
+- Line 761: data-status row.status. If row undefined, empty.
+- Line 762: item.microsoft[lang]. If missing lang, maybe crash? In Jinja, dict subscript missing returns Undefined? Wait, for dict, `{{ d.missing }}` returns Undefined, but `{{ d['missing'] }}`? I think also Undefined? Let's verify: Jinja2's Environment.getattr/getitem: for getitem, it tries `environment.getitem(obj, argument)`; if KeyError, returns Undefined? I think yes, it catches LookupError and returns Undefined. So no crash. So missing lang renders empty. Not a crash. But silently wrong if rule file lacks lang. But maybe validation.
+- Line 765: strings.mapping_coverage[item.coverage]. If item.coverage invalid, empty.
+- Line 769: anchor to readiness-{{ item.workload }}. If readiness table rows have ids? Not visible. Could be broken link if workload not in readiness. But not a fault? It plainly intends link. If mapping includes workload with no readiness row, link broken. But statuses likely all.
+- Line 772: workload_status(row). If row undefined, function maybe crash. Unknown.
+- Line 780: mapping.no_function. If not list? maybe.
+- Line 799: risky_files. OK.
+- Line 803: `{% for extension in kind.extensions %}<code>.{{ extension }}</code>{{ ', ' if not loop.last }}{% endfor %}`. If extension missing dot? It adds dot. OK. If extensions is None, iteration crash? Maybe.
+- Line 807: condition with `finding.id not in conflicts` and `answer_conflicts`. If conflicts is a list of ids. OK.
+- Line 808: none_reported. Potential principle issue as above.
+- Line 811: kind.note[lang]. OK.
+- Line 819: software. OK.
+- Line 820: label(entry.label). OK.
+- Line 824: inputs and inputs.windows_only_software. OK.
+- Line 835: for item in inputs.windows_only_software. OK.
+- Line 839: `code_label('source', input_source)`. If input_source undefined, maybe empty. But maybe should be `inputs.source`? The variable name input_source maybe passed. Could be a bug if not defined. We only see part; maybe defined earlier. Not report.
+- Line 839: `format.date(inputs.as_of) if inputs.as_of else strings.common.date_not_supplied`. If inputs.as_of is false (0?) but date? no.
+- Line 842: item.users is none. Potential missing key.
+- Line 845: item.vendor_has_web_version is none. Potential missing key.
+- Line 858: mapping_gaps tuple. OK.
+- Line 861: item.note[lang] if item.note else not_available. If item.note is dict without lang, empty.
+- Line 862: data-provenance unknown if need unknown else finding.provenance. If need unknown and finding undefined, OK. If need not unknown and finding undefined, finding.provenance undefined, data-provenance empty. But line 868 uses finding_labels[finding.id] etc. Could be wrong.
+- Line 863: strings.common[need]. If need is 'yes'/'no'? likely.
+- Line 865: for reason in reasons. If reasons missing? maybe.
+- Line 868: finding_labels[finding.id] · provenance · finding_source · finding_date. If finding.provenance not in strings.provenance, empty.
+- Line 869: finding_source(finding) · finding_date(finding). If finding missing source/date, functions unknown.
+- Line 873: item.reference_url or unavailable. If reference_url is None, OK. If empty string, unavailable.
+- Line 883: for status in ('blocker', 'unknown', 'ready'). OK.
+- Line 885: statuses|selectattr('status', 'equalto', status). If status missing, selectattr? In Jinja, selectattr with attribute missing? It may treat as undefined and not equal. OK.
+- Line 891: row.incomplete. OK.
+- Line 900: strings.path.steps. OK.
+- Line 918: scan.collectors. If missing, Undefined iteration crash? If scan.collectors missing, for loop over undefined raises. But scan.json likely has collectors. Could be unhandled.
+- Line 921: code_label('collector_status', collector.status). If status invalid, empty.
+- Line 924: reason_text(collector.reason). If reason invalid, unknown.
+- Line 928: permissions_used join. Potential missing.
+- Line 934: scan.dropped_count. OK.
+- Line 938: status_rules.file_name. OK.
+- Line 940: for row in statuses. OK.
+- Line 944: status_rules.workloads[row.workload].ready. If missing, conditions_list(undefined) maybe? Unknown.
+- Line 945: status_rules.workloads[row.workload].rules. If missing, for over undefined crash. But statuses likely from workloads.
+- Line 947: rule.reason[lang]. OK.
+- Line 955: mapping.description[lang]. OK.
+- Line 956: mapping.file_name. OK.
+- Line 958: mapping.functions. OK.
+- Line 961: item.replacement[lang] · coverage. OK.
+- Line 963: reference_url. OK.
+- Line 968: mapping.no_function. OK.
+- Line 971: costs.formulas_title. OK.
+- Line 973: costs.formulas. OK.
+- Line 978: scan.schema_version. OK.
+- Line 979: strings.source_kind[scan.source_kind]. If source_kind invalid, empty.
+- Line 980: scan.tool.name. OK.
+- Line 981: scan.tool.version. OK.
+- Line 982: tool_version. OK.
+- Line 986: format.date(scan.generated_at). Potential missing/invalid.
+- Line 989: scan_periods. OK.
+- Line 992: format.period(period). OK.
+- Line 999: inputs.as_of. OK.
+- Line 1005: checksums.items(). OK.
+- Line 1013: project_name · repository_url. OK.
+
+Need consider Jinja syntax errors? None.
+
+Could there be a bug with line 807: `finding.id not in answer_conflicts` but answer_conflicts maybe set of finding ids? OK.
+
+Potential bug: line 807 uses `finding.value == 0` but if finding.value is a string "0"? In YAML, could be string? If scan.json value is string, equality false, so none_reported not shown, but attention_evidence may show "0"? Not wrong? If value is 0.0, equality true. OK.
+
+Potential bug: line 807 `not finding.coverage` treats missing coverage as complete. I think this is a strong candidate for contradicts-principle. Let's analyze principle 8: "Show missing evidence as unknown. A skipped or denied collector never improves readiness." Here, if a finding has value 0 but no coverage, it shows "none reported" (good news) even though coverage missing. But is coverage "evidence"? The finding itself has value 0. If no coverage, maybe the finding is from an answer (inputs) where coverage not applicable. But the condition includes `not finding.coverage` to allow findings without coverage. Could be for answer findings: a user-supplied answer of 0 has no coverage, and it's supplied, so none reported is honest. But if finding from scan and coverage missing, unknown. We don't know. The code doesn't distinguish. Could be a planted fault: should be `finding.coverage and finding.coverage.kind == 'complete'` not `not finding.coverage or ...`. The comment? No comment. Principle says missing evidence unknown. So report medium/high? Need be careful: if finding.coverage is None because it's an answer, not missing evidence. But the template's `attention_evidence(finding)` likely shows provenance; if answer, provenance provided. The condition excludes answer_conflicts but not answers. If answer says 0, it's supplied, so OK. If finding.coverage missing for scan finding, maybe unknown. But can we say input situation? A risky file finding with value 0 and no coverage object will show none reported. That is a missing value treated as complete. This is concrete. Confidence medium because coverage may be optional for supplied answers. But the principle says missing evidence unknown; if no coverage, we cannot know if complete. I'd report as contradicts-principle, medium.
+
+Potential bug: line 842 and 845 missing key vs None. This is also principle 8/unhandled-input. Which is more likely planted? The code uses `is none` to check missing answer. In Jinja, if key absent, it's undefined. But maybe inputs.yaml entries always have keys with null if not supplied. The principle: "Show missing evidence as unknown." If an item omits `users`, the code may not show missing_answer. This is a concrete unhandled-input: inputs.yaml can omit optional field. But does it lead to crash? format.integer(undefined) maybe. Let's determine Jinja behavior: If item is dict and key missing, `item.users` returns Undefined. `item.users is none`? In Jinja, `is none` tests identity to None? Undefined is not None. So else. `format.integer(item.users)` calls Python function with Undefined object. If format.integer does int(value), int(Undefined) raises TypeError. So crash. If format.integer handles Undefined by 0? unknown. But likely crash. So unhandled-input high? We know Jinja missing key yields Undefined, but we don't know format.integer. However any Python function receiving Undefined likely not intended. If it does `int(value)`, crash. If it does `str(value)`, maybe "0"? Actually str(Undefined) returns ''? In Jinja, Undefined __str__ returns ''. If format.integer does int(str(value)) maybe ValueError. So crash likely. But if format.integer is a Jinja filter? It's a function. Could be custom to format integers and may handle None. It may not handle Undefined. So yes.
+
+But is omitting key an input the code accepts? inputs.yaml could be:
+windows_only_software:
+  - name: Foo
+No users. The template would attempt. That's a fault. However maybe the inputs schema requires `users` key (can be null). The code checks none, so if not supplied, user should write null. But "missing evidence" could be omitted. The principle says show missing as unknown; code only for null. I'd report with medium confidence because depends on loader not normalizing missing to None.
+
+Line 845 similarly: vendor_has_web_version omitted. `literal_text(undefined)` maybe returns '' not missing_answer. Could be silently wrong. If literal_text does str(value), str(Undefined) returns ''? Then empty cell, not missing. That's wrong. Could report one finding for both lines? Need one block per finding. Could combine line 842-845? The format allows line range. But claim one sentence. Could say omitted keys are not treated as missing because only `is none` check, while Jinja missing attributes are Undefined. Evidence lines 842 and 845. Why triggers. Confidence medium. But maybe too broad.
+
+Potential bug: line 839 uses `input_source` variable, but elsewhere maybe `inputs.source`? If `input_source` not defined in this template part, could be undefined. But it might be set earlier. We cannot see. Do not report if depends on unseen.
+
+Potential bug: line 928 `collector.permissions_used|join(', ') or strings.common.unavailable`. If permissions_used is missing, crash. If empty list, unavailable. This is similar. Could report unhandled-input. But is permissions_used optional? A collector that was skipped may not have permissions_used? It might. The template intends to show unavailable if no permissions. It uses join then or, but missing key not handled. If scan.json collector lacks permissions_used, crash. This is concrete. Confidence medium.
+
+Potential bug: line 986 `format.date(scan.generated_at)` if missing. But scan.json should have generated_at. Less likely.
+
+Potential bug: line 918 `{% for collector in scan.collectors %}` if scan.collectors missing, crash. But scan.json likely has collectors. Could be unhandled. But many templates assume required fields. The task likely expects faults that are clear within visible code, not all missing required fields.
+
+Need think of "contradicts-comment". There are no comments/docstrings in this part except maybe none. So no contradicts-comment unless string? No.
+
+Need "contradicts-principle" pay special attention: writes/sends data off computer, missing value zero/good news, skipped/unknown making status better, invented figure. Template doesn't write/send. But could have external resources? It includes repository_url text, not link. No JS. Inline CSS? Not in this part. Fonts? Not here.
+
+Missing value treated as zero/good news:
+- line 807 `not finding.coverage` -> none_reported.
+- line 842 missing users maybe format.integer undefined -> maybe 0? If format.integer treats Undefined as 0, good news. But unknown.
+- line 845 missing vendor_has_web_version -> literal_text undefined maybe empty, not good news.
+- line 928 missing permissions_used -> crash not good.
+- line 934 dropped_count missing -> not shown; if missing, maybe unknown but

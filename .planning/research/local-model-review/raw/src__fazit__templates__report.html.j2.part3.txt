@@ -1,0 +1,35 @@
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 807
+kind: contradicts-principle
+claim: A zero-count finding with no coverage is displayed as “none reported”, treating missing coverage as complete evidence.
+evidence: `{% if finding and finding.value == 0 and finding.id not in conflicts and finding.id not in answer_conflicts and (not finding.coverage or finding.coverage.kind == 'complete') %}`
+why: If `finding.coverage` is absent or null, `not finding.coverage` is true, so the template can show the reassuring “none reported” note even though the evidence coverage is unknown. This conflicts with the principle that missing evidence must be shown as unknown rather than as good news.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 842
+kind: unhandled-input
+claim: An omitted `users` key in a `windows_only_software` entry is not treated as a missing answer.
+evidence: `{% if item.users is none %}{{ missing_answer() }}{% else %}<span>{{ format.integer(item.users) }}</span>{% endif %}`
+why: In Jinja, a missing dictionary key yields `Undefined`, not `None`, so an input entry that omits `users` bypasses the `is none` branch and passes `Undefined` to `format.integer`, which can crash or render an incorrect value instead of the missing-answer marker.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 845
+kind: unhandled-input
+claim: An omitted `vendor_has_web_version` key in a `windows_only_software` entry is not treated as a missing answer.
+evidence: `{% if item.vendor_has_web_version is none %}{{ missing_answer() }}{% else %}<span>{{ literal_text(item.vendor_has_web_version) }}</span>{% endif %}`
+why: A missing key produces `Undefined`, which is not `None`, so the template skips `missing_answer()` and renders the undefined value through `literal_text`, silently showing an empty or incorrect answer instead of unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 928
+kind: unhandled-input
+claim: A collector entry without `permissions_used` crashes the template instead of showing the unavailable fallback.
+evidence: `{{ collector.permissions_used|join(', ') or strings.common.unavailable }}`
+why: The `or` fallback only handles an empty list; if `permissions_used` is absent, the `join` filter receives an undefined value, which can raise an error during rendering instead of displaying `strings.common.unavailable`.
+confidence: medium

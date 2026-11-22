@@ -1,0 +1,35 @@
+FINDING
+file: src/fazit/report.py
+line: 39-41
+kind: unhandled-input
+claim: `report_file_name` crashes if `generated_at` is not an ISO date string at least 10 characters long.
+evidence: "    check_language(lang)\n    return f\"report-{date.fromisoformat(generated_at[:10]).isoformat()}-{lang}.html\""
+why: A scan or command-line value such as `generated_at="2024-13-99T00:00:00Z"` or a short string makes `date.fromisoformat` raise `ValueError`, producing a traceback instead of a report or an unknown date.
+confidence: medium
+
+FINDING
+file: src/fazit/report.py
+line: 252
+kind: bug
+claim: A complete boolean `False` finding is treated as “no”, while a complete boolean `True` is treated as “yes”, but the same truthiness logic can treat any non-integer truthy value as “yes”.
+evidence: "        need = \"yes\" if finding.value else \"no\""
+why: If `FindingValue` can hold non-numeric values, a complete finding with a non-empty string, list, or other truthy value is silently interpreted as a positive requirement; if it holds `False`, it is interpreted as a definite “no” rather than unknown when the value is not a valid yes/no answer.
+confidence: low
+
+FINDING
+file: src/fazit/report.py
+line: 308
+kind: unhandled-input
+claim: `other_evidence` items whose IDs are not present in `scan.findings` or derived findings cause a `KeyError`.
+evidence: "        conflicts={item.id for item in other_evidence if evidence_conflicts(by_id[item.id], item)},"
+why: If `combine` returns a provided or alternative finding for an ID that was not merged into `scan.findings` and has no derived replacement, `by_id[item.id]` raises `KeyError`, crashing report generation.
+confidence: low
+
+FINDING
+file: src/fazit/report.py
+line: 310
+kind: unhandled-input
+claim: `other_evidence` items whose IDs are not present in `scan.findings` or derived findings cause a `KeyError` when checking answer conflicts.
+evidence: "            item.id for item in other_evidence if provided_answers_conflict(by_id[item.id], item)"
+why: The same missing-ID situation as the conflict check makes `by_id[item.id]` raise `KeyError`, so a valid scan/inputs combination with an unmerged alternative finding can crash the report.
+confidence: low

@@ -1,0 +1,44 @@
+FINDING
+file: src/fazit/i18n.py
+line: 40
+kind: contradicts-principle
+claim: The code exposes a private input file path in an error message, contrary to the privacy-by-construction principle.
+evidence: `if input_role is not None and "@" in file_name:`
+why: A file path containing `@` is treated as a private input file, so the user's local filename can be revealed in the error message instead of only the organisation name or supplied application names.
+confidence: high
+
+FINDING
+file: src/fazit/i18n.py
+line: 38
+kind: unhandled-input
+claim: An unknown error code causes an unhandled `KeyError`.
+evidence: `template = strings["errors"][error.code]`
+why: If `error.code` is not present in the locale's `errors` mapping, the lookup raises a traceback rather than producing a labelled error.
+confidence: medium
+
+FINDING
+file: src/fazit/i18n.py
+line: 61
+kind: unhandled-input
+claim: A missing label for a non-collector code causes an unhandled `KeyError`.
+evidence: `return labels.get(code, code) if group == "collector" else labels[code]`
+why: For any group other than `collector`, an absent `code` raises a traceback instead of falling back to the code or another safe label.
+confidence: medium
+
+FINDING
+file: src/fazit/i18n.py
+line: 120
+kind: unhandled-input
+claim: A malformed date string causes an unhandled `ValueError`.
+evidence: `return self._date(date.fromisoformat(value[:10]), "date", "months")`
+why: If `value` is shorter than 10 characters or not an ISO date, `date.fromisoformat` raises a traceback instead of reporting invalid input.
+confidence: high
+
+FINDING
+file: src/fazit/i18n.py
+line: 123
+kind: unhandled-input
+claim: A malformed period string causes an unhandled unpacking or parsing error.
+evidence: `start, end = (date.fromisoformat(day) for day in value.split("/"))`
+why: If `value` does not contain exactly two ISO date parts, or either part is invalid, the code raises a traceback instead of reporting invalid input.
+confidence: high

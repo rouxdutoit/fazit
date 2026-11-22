@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/findings.yaml
+line: 370
+kind: bug
+claim: The provided-source allowlist does not include the `answer` source used by many findings.
+evidence: "      - sample.inputs_yaml"
+why: Findings such as `licences.contract_terms_known` set `provided: answer`, but `codes.provided_sources` only lists `sample.inputs_yaml`, `sample.interview`, `interview`, and `inputs_yaml`; a validator or resolver that checks `provided` against this list would reject or mishandle the `answer` source.
+confidence: medium

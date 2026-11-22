@@ -11,7 +11,7 @@ from html.parser import HTMLParser
 from itertools import pairwise
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from urllib.parse import unquote, urljoin, urlsplit
+from urllib.parse import unquote, unquote_to_bytes, urljoin, urlsplit
 from xml.etree import ElementTree
 
 from typer.testing import CliRunner
@@ -45,7 +45,13 @@ COVERAGE_BADGES = {
 SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 XHTML_NS = "http://www.w3.org/1999/xhtml"
 VOID = set("area base br col embed hr img input link meta param source track wbr".split())
-CSS_REFS = re.compile(r"""url\(\s*["']?([^"')]+)["']?\s*\)|@import\s*["']([^"']+)""", re.I)
+CSS_REFS = re.compile(
+    r"""url\(\s*["']?(?P<url>[^"')]+)["']?\s*\)"""
+    r"""(?:[ \t]+/\* (?P<symbol>icons/[\w-]+\.svg) \*/)?"""
+    r"""|@import\s*["'](?P<import_url>[^"']+)""",
+    re.I,
+)
+EMBEDDED_SVG = "data:image/svg+xml,"
 
 
 @dataclass(frozen=True)
@@ -55,6 +61,7 @@ class Reference:
     line: int
     plain_link: bool = False
     dimensions: tuple[int, int] | None = None
+    symbol_source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -71,8 +78,13 @@ EMBEDDED_FONT = re.compile(r"data:font/woff2;base64,[A-Za-z0-9+/=]+")
 
 def css_references(css: str, first_line: int) -> Iterator[Reference]:
     for match in CSS_REFS.finditer(css):
-        value = (match[1] or match[2]).strip()
-        yield Reference("CSS URL", value, first_line + css.count("\n", 0, match.start()))
+        value = (match["url"] or match["import_url"]).strip()
+        yield Reference(
+            "CSS URL",
+            value,
+            first_line + css.count("\n", 0, match.start()),
+            symbol_source=match["symbol"],
+        )
 
 
 class Page(HTMLParser):
@@ -326,9 +338,24 @@ def webp_dimensions(path: Path) -> tuple[int, int] | None:
     return None
 
 
+def check_embedded_symbol(ref: Reference) -> str | None:
+    if ref.symbol_source is None:
+        return "Expected an icons/*.svg source comment after the embedded symbol URL."
+    if not ref.value.startswith(EMBEDDED_SVG) or re.search(r"[\s<>#]", ref.value):
+        return f"Expected a URL-encoded SVG for {ref.symbol_source}."
+    source = ROOT / ref.symbol_source
+    decoded = unquote_to_bytes(ref.value.removeprefix(EMBEDDED_SVG))
+    if not source.is_file() or decoded != source.read_bytes():
+        return f"Embedded symbol does not match {ref.symbol_source} byte for byte."
+    return None
+
+
 def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str | None:
     if not ref.value.strip():
         return f"{ref.name} is empty."
+    stylesheet_url = route == "/style.css" and ref.name == "CSS URL"
+    if stylesheet_url and (ref.symbol_source or ref.value.startswith(EMBEDDED_SVG)):
+        return check_embedded_symbol(ref)
     if ref.name == "CSS URL" and EMBEDDED_FONT.fullmatch(ref.value):
         return None
     raw = urlsplit(ref.value)
@@ -338,6 +365,8 @@ def check_reference(route: str, ref: Reference, pages: dict[Path, Page]) -> str 
     if resolved.scheme != "https" or resolved.netloc != "fazit.dev":
         return f"{ref.name}={ref.value!r} is an external resource or unsupported link."
     target = local_path(resolved.path or "/")
+    if stylesheet_url and target.is_relative_to(ROOT / "icons"):
+        return f"Expected an embedded symbol for {target.relative_to(ROOT)}."
     if not target.is_relative_to(ROOT) or not target.is_file():
         return f"{ref.name}={ref.value!r} does not resolve to a file in the site."
     if (

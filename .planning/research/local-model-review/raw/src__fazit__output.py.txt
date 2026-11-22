@@ -1,0 +1,11 @@
+FINDING
+file: src/fazit/output.py
+line: 17-48
+kind: unhandled-input
+claim: On a case-insensitive filesystem, two output names that differ only by case are accepted and overwrite each other.
+evidence:
+    destinations = [(directory / name, join(location, name)) for name in outputs]
+    for destination, label in destinations:
+        _check_destination(destination, label)
+why: If outputs contains both "Report.html" and "report.html", the code treats them as distinct destinations, stages both, and the second replace overwrites the first on Windows/macOS, silently producing only one file while returning two paths.
+confidence: medium

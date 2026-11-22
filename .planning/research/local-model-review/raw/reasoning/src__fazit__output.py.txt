@@ -1,0 +1,329 @@
+We need answer user's request: review code, find concrete faults. Need output exact format. Need analyze code deeply.
+
+We have file src/fazit/output.py lines 1-79. Need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. Only concrete. Need quote exact line(s). Need confidence.
+
+Let's inspect code.
+
+Functions:
+write_inside(out_dir, file_name, text) -> Path: calls write_files(out_dir, {file_name: text}) returns destination.
+
+write_files(out_dir, outputs: Mapping[str, str]) -> tuple[Path,...]:
+ location = str(out_dir)
+ for name in outputs:
+   if name in {"", "."} or ".." in name or any(char in name for char in "/\\:\0"):
+       raise InputError("write_failed", file=location, field="--out")
+ try:
+   directory = Path(out_dir).resolve()
+   directory.mkdir(parents=True, exist_ok=True)
+ except (OSError, RuntimeError, ValueError):
+   raise InputError("out_dir", file=location, field="--out") from None
+ destinations = [(directory / name, join(location, name)) for name in outputs]
+ for destination, label in destinations:
+   _check_destination(destination, label)
+ with ExitStack() as staged:
+   pending = [
+       (destination, label, staged.enter_context(_stage(destination, label, outputs[destination.name])))
+       for destination, label in destinations
+   ]
+   for destination, label in destinations:
+       _check_destination(destination, label)
+   for destination, label, temporary in pending:
+       try:
+           temporary.replace(destination)
+       except OSError:
+           raise InputError("write_failed", file=label, field="--out") from None
+ return tuple(destination for destination, _ in destinations)
+
+_check_destination:
+ try mode = destination.lstat().st_mode
+ except FileNotFoundError return
+ except OSError raise InputError write_failed
+ if S_ISLNK: raise destination_is_link
+ if not S_ISREG: raise destination_not_file
+
+_stage contextmanager:
+ temporary=None
+ try:
+   with NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n", dir=destination.parent, delete=False) as stream:
+       temporary=Path(stream.name)
+       stream.write(text)
+   yield temporary
+ except (OSError, UnicodeError):
+   raise InputError("write_failed", file=label, field="--out") from None
+ finally:
+   if temporary is not None:
+       with suppress(OSError): temporary.unlink(missing_ok=True)
+
+Potential bugs:
+
+1. In write_files, outputs mapping iteration: if duplicate names? Mapping keys unique. But destination.name used to index outputs. If name is e.g. "foo" ok. But if out_dir? no.
+
+2. Name validation: rejects "", ".", ".." in name, and chars / \ : \0. It doesn't reject names that are absolute? Contains / or \, so no. It doesn't reject names with trailing spaces? On Windows maybe? Not necessarily. It doesn't reject names that are reserved? Not relevant. It allows names that are directory? no. It allows name "..."? contains ..? yes rejects. Allows name containing null? rejects. Good.
+
+3. location = str(out_dir). If out_dir is Path with weird? label join(location, name) just for error labels. If out_dir is not string? Path accepts? Path(out_dir) can raise TypeError if not str/PathLike? e.g. out_dir=None. Path(None) raises TypeError, not caught (only OSError, RuntimeError, ValueError). But command line likely passes str. Could be unhandled-input if CLI passes None? But maybe out_dir from argparse string. Need not guess. But if out_dir is Path subclass? ok. If out_dir is bytes? Path(b'...')? In Python 3.11? Path accepts bytes? It may decode? Actually pathlib.Path accepts bytes? Path(b'foo') works? It may raise TypeError? Let's recall: PurePath accepts str or PathLike, not bytes? In Python 3.8, Path(b'foo')? I think PurePath accepts path-like, but bytes not? It might treat bytes as str? Let's check mentally: pathlib._make_child_relpath? Path('abc') ok. Path(b'abc')? I think TypeError: argument should be a str or an os.PathLike object. But maybe not. If unhandled TypeError from Path(out_dir).resolve() if out_dir invalid type. But command line likely string. Need only concrete from code? Input from CLI could be None? Not likely.
+
+4. directory.mkdir(parents=True, exist_ok=True) after resolve. If out_dir is symlink? It resolves, so mkdir on resolved dir. But if out_dir path is symlink to directory, resolve returns target. It will write into target. Is that allowed? Maybe not? Principle? Not necessarily. But _check_destination checks destination lstat, not directory. If out_dir is symlink, directory resolved. Could be considered unsafe? But not principle. Could be bug: If out_dir exists as symlink to a file, resolve returns file path? mkdir on file path with exist_ok=True? If file exists, mkdir raises FileExistsError (OSError) caught -> InputError out_dir. ok.
+
+5. destinations = [(directory / name, join(location, name)) ...]. label uses original location not resolved. If out_dir is relative, label relative. ok. If out_dir is Path with trailing slash? str maybe. join works.
+
+6. _check_destination before staging. Then pending list comprehension calls staged.enter_context(_stage(...)) for each destination. This stages all temp files before second check. But _stage uses NamedTemporaryFile(dir=destination.parent). If destination.parent doesn't exist? directory was mkdir, so exists. If destination is a symlink? _check_destination before staging catches. But between first check and staging, TOCTOU not relevant.
+
+7. Critical bug: pending list comprehension uses outputs[destination.name]. But if two outputs have same destination.name? Mapping keys unique, so no. But what if name is e.g. "report.html" and out_dir? ok.
+
+8. Critical bug: In _stage, finally unlinks temporary after yield. But in write_files, after pending created, they call temporary.replace(destination). NamedTemporaryFile with delete=False. After replace, temporary path no longer exists. finally unlink missing_ok ok. But if replace succeeds, temporary is gone. If replace fails, finally unlinks. Good.
+
+But context manager: yield temporary occurs inside with NamedTemporaryFile? Let's inspect: 
+try:
+    with NamedTemporaryFile(...) as stream:
+        temporary = Path(stream.name)
+        stream.write(text)
+    yield temporary
+except ...
+finally: ...
+
+Because yield is outside the with block (dedented after with? Let's check indentation:
+68          with NamedTemporaryFile(
+69              mode="w", encoding="utf-8", newline="\n", dir=destination.parent, delete=False
+70          ) as stream:
+71              temporary = Path(stream.name)
+72              stream.write(text)
+73          yield temporary
+Yes yield is after with block, so stream closed before yield. Good.
+
+But contextmanager: If consumer (write_files) raises exception during temporary.replace? The exception propagates into contextmanager at yield point. Since yield is in try, except (OSError, UnicodeError) catches? Wait temporary.replace is called by consumer outside contextmanager. In contextmanager, yield temporary. If consumer raises exception, it is thrown into generator at yield point. The generator's except clause catches (OSError, UnicodeError) and raises InputError. But if consumer raises InputError? It won't be caught (unless OSError? InputError maybe subclass? Unknown). But write_files catches OSError from replace and raises InputError. That InputError is thrown into generator at yield, not caught by except (OSError, UnicodeError), so propagates out of contextmanager. That's okay? But finally unlinks temporary. However, if replace raised OSError, write_files raises InputError, generator finally unlinks temp. Good.
+
+But if replace succeeds, consumer continues. Then ExitStack closes staged contexts in reverse. For each _stage context, after yield, generator resumes after yield? Actually when ExitStack closes context manager, it calls context.__exit__ with no exception (if no exception). In contextlib.contextmanager, __exit__ calls gen.send(None) if no exc, or gen.throw(exc). So after yield, generator proceeds to finally. It unlinks temporary. But temporary may have been replaced (renamed) to destination. unlink missing_ok ok. Good.
+
+But there is a bug: If one of multiple files fails replace, ExitStack will close remaining staged contexts. For contexts already consumed? Let's simulate. pending list contains context managers. For first replace fails, write_files raises InputError. ExitStack __exit__ with exception. It closes contexts in reverse order. For the failed context, __exit__ receives exception, contextmanager throws exception into generator at yield. except (OSError, UnicodeError) won't catch InputError, so exception propagates? But ExitStack may suppress? No. It will continue closing other contexts, passing exception to each? Need contextlib.ExitStack behavior: __exit__ calls _exit_cm for each cm in reverse; if exception, it calls cm.__exit__(exc_type, exc_value, traceback); if returns False, continues; if returns True, suppresses. For contextmanager, __exit__ throws exception into gen. If gen raises same/different, __exit__ returns False? Then ExitStack continues. For other contexts, it will also throw exception. Their finally unlinks temps. So okay. But if a context's generator catches exception and raises InputError? For InputError not caught. Good.
+
+Potential bug: _stage catches (OSError, UnicodeError) around yield. If consumer raises UnicodeError? Not likely. If stream.write raises UnicodeError, caught. Good.
+
+Potential bug: NamedTemporaryFile mode="w" with delete=False. It creates temp file. But if text is large, no flush? with closes flush. ok.
+
+Potential bug: The temporary file is created in destination.parent. If destination.name is e.g. "report.html", temp file in same dir. Good. But if destination is a symlink? checked. If destination is a directory? checked. But what if destination exists as a symlink to a regular file? lstat S_ISLNK catches. Good.
+
+Potential bug: _check_destination uses lstat, but if destination is a broken symlink? lstat mode S_ISLNK, raises. Good.
+
+Potential bug: It doesn't check if destination parent is a symlink? directory resolved, so parent is resolved? destination = directory / name, directory resolved. If name is simple, parent resolved. Good.
+
+Potential bug: write_files validates names before resolving out_dir. It rejects ".." in name. But if out_dir itself is ""? location = str(out_dir). If out_dir = "" then Path("").resolve() returns current working directory? Path("") is Path('.'), resolve to cwd. mkdir exist_ok. Then destinations cwd/name. label join("", name) -> name. It would write to cwd. Is that intended? Maybe --out empty should fail? The code accepts empty out_dir. Input from CLI? If --out given empty string, maybe should be error? But not necessarily. Could be unhandled-input? If out_dir is empty, location = ''. Path('') resolves to cwd. It writes files into cwd. Is that plainly intends? Maybe out_dir is output directory; empty means current dir? Many tools accept. Not a fault.
+
+Potential bug: Name validation doesn't reject names that are absolute on Windows? Contains : or / \, so no. Doesn't reject names with drive letter? contains :. ok.
+
+Potential bug: Name validation rejects ":" but on Linux filenames can contain colon, but they choose to reject. Not fault.
+
+Potential bug: It uses join(location, name) for label. If location contains null? str(out_dir) can't contain null? Path can? If out_dir string with null, Path may raise ValueError? Caught? Path(out_dir).resolve() ValueError caught -> InputError. But validation before? location = str(out_dir) no. If out_dir has null, Path raises ValueError, caught. Good.
+
+Potential bug: If outputs mapping is empty, destinations empty, returns empty tuple. write_inside expects single? If file_name empty, validation raises. ok.
+
+Potential bug: In write_files, first _check_destination loop before staging. Then pending list comprehension stages all. If _stage raises InputError for first temp, ExitStack not entered? Actually with ExitStack() as staged: pending = [...] If list comprehension raises, ExitStack __exit__ called with exception, no contexts. ok.
+
+Potential bug: _stage's finally unlinks temporary even if NamedTemporaryFile creation failed? temporary None. ok. But if stream.write raises, temporary set, finally unlinks. ok.
+
+Potential bug: If NamedTemporaryFile creation succeeds but stream.write raises, with block closes stream, exception propagates to except, then finally unlink. ok.
+
+Potential bug: If consumer never uses temporary? Not.
+
+Potential bug: If temporary.replace(destination) where destination is a directory? _check_destination before and after staging. But if destination is a directory that appears between checks? TOCTOU not relevant.
+
+Potential bug: The second _check_destination loop after staging but before replace. It rechecks. Good.
+
+Potential bug: If a destination path is a symlink to a file, _check_destination raises. Good.
+
+Potential bug: If destination is a hard link? lstat S_ISREG, allowed. replace will replace hard link? It renames temp over path, breaking hard link, not modifying target. ok.
+
+Potential bug: If destination is a file and replace succeeds, good.
+
+Now principles:
+1 read-only: This is output writing local. ok.
+2 local processing: writes local. NamedTemporaryFile local. ok.
+3 tokens in memory: no.
+4 metadata: no.
+5 privacy: no.
+6 offline report: This file writes HTML? It writes text. No JS? not here.
+7 one command: no.
+8 honest figures: no.
+
+Could there be contradicts-comment? No comments/docstrings except SPDX. No.
+
+Need find concrete faults. Maybe there is a subtle bug with outputs[destination.name] if file name is e.g. "report.html" but directory / name yields Path with name same. ok. But if name is "."? rejected. If name is "..."? contains .., rejected. If name is "a..b" contains ".." -> rejected even though not traversal. That's overly strict but not wrong? It intends to reject traversal; rejecting any ".." may be acceptable. Not a fault? Could be unhandled-input: a legitimate filename containing ".." (e.g. "foo..html") is rejected. But is that a wrong result? It plainly intends to prevent path traversal; rejecting any ".." is a design choice. Not a bug unless comment says only traversal. No comment.
+
+Potential bug: The name validation checks any(char in name for char in "/\\:\0"). In Python string, char in name where char is a string of length 1, ok. But the literal "/\\:\0" is a string containing '/', '\', ':', '\0'? Let's parse: "/\\:\0" -> characters: '/', '\', ':', '\x00'? Actually Python string literal: backslash escaped backslash -> one backslash, then colon, then \0 null. Yes. Good.
+
+Potential bug: It doesn't reject names that are absolute on Windows with drive letter without slash? e.g. "C:file" contains ':' rejected. "C" no. ok.
+
+Potential bug: It doesn't reject names that are reserved Windows names like CON, NUL, PRN, AUX, COM1, LPT1. If out_dir on Windows and name="CON", Path mkdir? destination = dir/CON, replace to CON? On Windows, creating CON file may fail? It may raise OSError caught? _check_destination lstat maybe FileNotFoundError, then _stage NamedTemporaryFile in dir, replace temp to CON may fail OSError -> InputError. Not crash. Not fault.
+
+Potential bug: If out_dir is a file, mkdir raises FileExistsError? caught. If out_dir is a symlink to a file, resolve returns file, mkdir raises. ok.
+
+Potential bug: If out_dir is a symlink to a directory, resolve returns target. It will write into target, not into symlink path. Is that a bug? It may bypass _check_destination? For output directory, maybe should reject symlink out_dir? Principle? Not explicit. Could be security: writing through symlink to unexpected location. But out_dir user-provided; resolve is normal. Not a fault.
+
+Potential bug: The error field for name validation is field="--out" even though bad name is file name, not out dir. It passes file=location. This may be misleading but not bug? It says field --out. If file_name from rule? The outputs mapping keys may be report file names, not CLI. But field --out maybe wrong. Not concrete? Could be bug? The InputError field indicates --out but the problematic input is file name. But maybe all write_files used for --out. Not enough.
+
+Potential bug: write_inside returns destination from write_files. If file_name invalid, raises. ok.
+
+Potential bug: In write_files, after directory.mkdir, if out_dir is a file, caught. But if out_dir is a broken symlink? Path(out_dir).resolve() with strict=False returns path of target? If symlink broken, resolve returns target path (nonexistent). mkdir(parents=True, exist_ok=True) will create target directory? Example out_dir = symlink to /nonexistent/dir. resolve -> /nonexistent/dir. mkdir creates /nonexistent/dir. It writes to target, not original symlink. It may create directory at target. Is that intended? If out_dir is symlink, maybe should not follow? Not principle. Could be unhandled-input? If user passes symlink, it follows. Many tools do. Not a fault.
+
+Potential bug: _check_destination uses destination.lstat() but if destination is a path with null? name validation rejects null. out_dir null caught. ok.
+
+Potential bug: The temporary file is unlinked in finally after yield. But if replace succeeded, the temporary path is gone. unlink missing_ok. ok. But if replace failed because destination is a directory? It would have been caught. If replace failed due to permission, temp unlinked. ok.
+
+Potential bug: If one of multiple outputs has same destination path due to different names? Mapping keys unique, but on case-insensitive filesystems, names "Report.html" and "report.html" are distinct keys but same destination path. The code will stage two temp files, then replace first to destination, second replace to same destination? Let's examine: outputs = {"Report.html": text1, "report.html": text2}. On Windows/macOS case-insensitive, directory / "Report.html" and directory / "report.html" compare equal? Path objects may not compare equal? Path('/dir/Report.html') == Path('/dir/report.html')? PurePath comparison is string-based? I think PurePath uses _parts and compares case-sensitive? Actually PurePath equality is case-sensitive? On POSIX, yes; on Windows, PureWindowsPath may be case-insensitive? I think PurePath does not normalize case; equality is case-sensitive? Let's recall: PurePosixPath('/a') == PurePosixPath('/A') is False. PureWindowsPath maybe? I think also False because it stores strings. But filesystem case-insensitive. The code will create two destinations with different Path objects but same actual file. First _check_destination for both sees nonexistent. Stage two temp files. Second check still nonexistent. Replace first temp to 'Report.html'. Then replace second temp to 'report.html' on case-insensitive FS: it will replace the existing file (first output) with second, because path resolves to same. Result only one file, last wins. Return tuple contains two Path objects that point to same file. This is a bug for duplicate case-insensitive names. Is this an input the code accepts? Yes, outputs mapping with names differing only by case. Is that from scan.json/inputs.yaml/rule file/CLI? Could be rule file defines file names? Maybe. It leads to silently wrong result (one file missing/overwritten). Should report? It depends on filesystem case-insensitivity. The code likely runs on Linux? But could be Windows. The principle local. Is it concrete? It's a bug on case-insensitive file systems. Confidence medium? The code doesn't deduplicate case-insensitively. But is it "plainly intends" to write each output file. Yes. Could be unhandled-input. Need decide if include.
+
+Potential bug: If outputs mapping has keys that differ only by trailing dot or space on Windows, e.g. "report.html" and "report.html." or "report.html " are same file on Windows. The validation doesn't reject trailing dots/spaces. On Windows, file names cannot end with dot/space? Actually Windows strips trailing dots/spaces. Path('dir/report.html.') may be normalized? pathlib may keep? On Windows, Path('report.html.') maybe 'report.html.'? It may not strip. Creating file with trailing dot fails? Actually Win32 strips trailing dots/spaces, so 'report.html.' becomes 'report.html'. Two names could collide. But less common. Could report general case-insensitive/case? Maybe too speculative.
+
+Potential bug: The name validation rejects ".." in name, but on Windows, names like "foo.." are invalid? It rejects. ok.
+
+Potential bug: If out_dir is a path with trailing backslash on Windows, str(Path) may normalize? location = str(out_dir) before Path. If out_dir is Windows path string with backslashes, join(location, name) uses os.path.join, ok. If out_dir is a Path, str uses platform separator. ok.
+
+Potential bug: If out_dir is a relative path, location relative. label join(location, name). If out_dir is Path('.') then location '.'; join('.', name) -> 'name'? Actually os.path.join('.', 'name') -> './name'? Let's check: os.path.join('.', 'name') returns './name'? I think if second not absolute, joins with sep: '.' + '/' + name -> './name'. ok.
+
+Potential bug: In write_files, it calls _check_destination twice. The first before staging, second after staging. But if _stage creates temp files, it could fail due to disk full. It raises InputError. ok.
+
+Potential bug: The temporary file name is not atomically unique? NamedTemporaryFile unique. ok.
+
+Potential bug: If text contains invalid UTF-8? text is str. UnicodeError caught.
+
+Potential bug: If text is huge, memory? no.
+
+Potential bug: If destination.parent is not writable, NamedTemporaryFile raises OSError caught. ok.
+
+Potential bug: If destination.parent is a symlink? directory resolved, so no.
+
+Potential bug: If out_dir is a file, mkdir raises FileExistsError (subclass OSError) caught. Good.
+
+Potential bug: If out_dir is a directory without write permission, mkdir exist_ok=True may not raise? If directory exists but not writable, mkdir with exist_ok=True returns? It may not raise because exists. Then NamedTemporaryFile raises PermissionError (OSError) caught. ok.
+
+Potential bug: If out_dir is a directory but path component is a file, mkdir parents=True raises NotADirectoryError (OSError) caught. ok.
+
+Potential bug: If out_dir is a path with too many components, OSError caught. ok.
+
+Potential bug: If out_dir is a path with null, ValueError caught. ok.
+
+Potential bug: If out_dir is a path that resolves to a different filesystem? NamedTemporaryFile in destination.parent, replace on same filesystem. ok.
+
+Potential bug: If destination is a symlink to a file outside, _check_destination catches. Good.
+
+Potential bug: If destination is a symlink to a directory, catches link. Good.
+
+Potential bug: If destination is a FIFO, S_ISREG false, raises destination_not_file. Good.
+
+Potential bug: If destination is a socket/device, raises. Good.
+
+Potential bug: If destination is a hard link to /etc/passwd? lstat regular, allowed. replace renames over it, not modifying target. ok.
+
+Potential bug: If destination is a regular file but read-only? replace may succeed if directory writable, replacing file doesn't require file write permission. ok.
+
+Potential bug: If destination file is open by another process? replace may succeed on POSIX, fail on Windows? OSError caught. ok.
+
+Potential bug: The code uses temporary.replace(destination). If destination exists, replace atomically overwrites. Good.
+
+Potential bug: The code creates temp files in destination.parent, but if destination.parent is a directory that is a symlink? resolved. ok.
+
+Potential bug: The code does not fsync temp file. Not a fault (durability not principle).
+
+Potential bug: The code does not set file permissions. Not fault.
+
+Potential bug: The code uses NamedTemporaryFile with mode="w", encoding="utf-8", newline="\n". On Windows, temp file may be created with temporary name. ok.
+
+Potential bug: The code's _stage finally unlinks temporary after the with block. But if the consumer replaces temporary, the Path object temporary still references old name. unlink missing_ok. ok.
+
+Potential bug: If the consumer raises an exception that is not OSError/UnicodeError, the contextmanager will propagate it, but finally unlinks temp. Good. But if the exception is KeyboardInterrupt (BaseException), finally unlinks. ok.
+
+Potential bug: If the consumer raises SystemExit, contextmanager? finally unlinks. ok.
+
+Potential bug: If the generator is garbage collected without closing? ExitStack closes. ok.
+
+Potential bug: In write_files, pending list comprehension enters contexts in order. If a later _stage fails, earlier contexts are closed by ExitStack. Their finally unlink temps. Good.
+
+Potential bug: If _stage's except catches OSError from consumer's replace? Wait consumer's replace is not inside _stage's try? Let's understand contextlib.contextmanager mechanics. The yield is inside try. The consumer code after obtaining temporary is outside the generator. If consumer raises OSError, it is thrown into generator at yield. The except clause catches (OSError, UnicodeError) and raises InputError. But write_files catches OSError from replace and raises InputError before the exception reaches generator? Let's see:
+for destination, label, temporary in pending:
+    try:
+        temporary.replace(destination)
+    except OSError:
+        raise InputError(...) from None
+If replace raises OSError, write_files raises InputError. That InputError propagates out of the with ExitStack block. ExitStack __exit__ throws InputError into each context. For the context whose replace raised, the generator receives InputError at yield. except (OSError, UnicodeError) does not catch InputError (unless InputError is OSError? Let's check .errors import InputError. It might be Exception, not OSError. Could be custom. If InputError is subclass of OSError? Unlikely. If it is not, it propagates. finally unlinks temp. Good. If InputError were subclass of OSError, except would catch and raise another InputError, maybe same. Not a fault.
+
+But if replace raises OSError and write_files did not catch, _stage would convert to InputError. But it does catch. ok.
+
+Potential bug: If temporary.replace(destination) raises OSError, write_files raises InputError, but the temporary file is still open? No, stream closed. ok.
+
+Potential bug: If temporary.replace(destination) succeeds, then later another output's replace fails. ExitStack closes contexts. For the successful context, generator resumes after yield (no exception? Actually if exception in ExitStack, __exit__ throws exception into all contexts, including successful ones. So successful context generator receives exception at yield, except doesn't catch InputError, finally unlinks temp (missing because replaced). ok. It does not alter destination. Good.
+
+Potential bug: If a later output fails, earlier files have already been replaced. The function raises, leaving partial writes. Is that intended? It stages all temp files, then replaces sequentially. If one fails, previous files remain written. Is that a bug? It might intend atomic multi-file write? The code stages all before replacing, but not all-or-nothing. If one fails, partial outputs. Is that plainly intends? The function write_files maybe should write all or fail? It doesn't say. It uses staged temp files for atomic replacement per file, but not transactional. Not a fault unless comment. No comment.
+
+Potential bug: The second _check_destination after staging but before replace. If destination is a symlink created after first check but before second, caught. Good.
+
+Potential bug: The first _check_destination before staging may be unnecessary. ok.
+
+Potential bug: The name validation uses `".." in name` which rejects any substring. If a rule file has file name "evidence..html" it fails. Is that unhandled-input? It's accepted? No, it raises InputError, not crash. Is it silently wrong? No. It's a validation error. Could be too strict but not a fault under categories? "unhandled-input: an input the code accepts ... that leads to crash, traceback, or silently wrong result." It doesn't accept; it rejects. So no.
+
+Potential bug: It accepts names that are absolute? No, contains / or \ or :. But what about name = "C" on Windows? It's relative. ok. name = "C:" contains : rejected. name = "C:." contains : rejected. ok.
+
+Potential bug: It accepts name = "..."? contains .. rejected. ok.
+
+Potential bug: It accepts name = "foo\bar"? contains backslash rejected. ok.
+
+Potential bug: It accepts name = "foo:bar" rejected. ok.
+
+Potential bug: It accepts name = "foo\x00bar" rejected. ok.
+
+Potential bug: It accepts name = "foo/."? contains / rejected. ok.
+
+Potential bug: It accepts name = "foo."? On Windows trailing dot problematic. It does not reject. Could lead to OSError caught? On Windows, Path('dir/foo.').replace? It may fail or create 'foo'. If two names collide? Could be unhandled-input if from rule file. But depends on Windows. Maybe not.
+
+Potential bug: It accepts name = "foo " trailing space. On Windows, trailing spaces stripped. Could collide. But maybe not.
+
+Potential bug: It accepts name = "CON" etc. Could fail. Not silently wrong.
+
+Potential bug: It accepts out_dir = "~" not expanded. Path("~") is literal ~, creates directory named ~. If CLI expects expansion? Not in code. Could be unhandled-input? If user passes ~, it writes to ./~ not home. But plainly intends? out_dir path, not shell. Not fault.
+
+Potential bug: It accepts out_dir = None? Path(None) TypeError not caught. But command line likely not None. If API caller passes None, crash. Is that an input from file system/CLI? Maybe not. Could be unhandled-input if out_dir can be None from CLI? argparse default? If --out optional? Not know. Need not guess.
+
+Potential bug: It accepts outputs mapping with non-string keys? Mapping[str, str] type hint. If key is int, name in {"", "."} works? int in set ok false, ".." in int raises TypeError? Actually `".." in name` if name int -> TypeError. any(char in name for char in ...) if name int -> TypeError. So unhandled-input if rule file mapping key non-string? But YAML keys could be non-string? The code accepts Mapping[str, str] but actual input from YAML could have integer keys? If outputs is built from rule file, maybe keys are strings. But unhandled-input: an input the code accepts (from scan.json, inputs.yaml, a rule file...) that leads to crash. If outputs mapping has non-string key, code crashes with TypeError. Is that likely? The function signature says Mapping[str, str], but inputs from YAML can have non-string keys. However, outputs mapping is likely constructed by code not directly YAML. But task says input from rule file. If a rule file defines outputs with keys? Could be. Need consider. The code's validation assumes name is string. If name is not string, `".." in name` can crash. But is that "accepts"? It accepts any Mapping; type hint not enforced. If a rule file has a non-string file name, crash. Could report unhandled-input. But is it concrete? Yes: outputs = {123: "text"} leads TypeError at line 20. But is that an input the code accepts? It says Mapping[str, str], but Python doesn't enforce. From rule file, YAML keys can be int. But does Fazit pass rule file mapping directly to write_files? Unknown. We only see this part. If fault depends on code we cannot see (whether non-string keys reach), confidence low/medium. The instruction: if fault depends on code you cannot see, say so in confidence. We can report with low confidence? They want concrete faults. Maybe avoid speculative.
+
+Potential bug: If outputs mapping is not a Mapping but e.g. list of tuples? It expects Mapping. If list, for name in outputs yields tuples, name is tuple, `".." in name` checks membership in tuple? If name tuple, `".." in name` works (false), any(char in name for char in ...) checks char in tuple, false. Then destination = directory / name where name tuple -> TypeError: argument should be str or PathLike. Not caught (TypeError not in except? The try only around Path(out_dir).resolve/mkdir, not around destinations). Crash. But type hint. Not likely.
+
+Potential bug: If outputs values not str, _stage stream.write(text) if text not str raises TypeError, not caught (only OSError, UnicodeError). Crash. If rule file value non-string, crash. Could be unhandled-input. But type hint. Again depends.
+
+Potential bug: If text is None, stream.write(None) TypeError, not caught. Could be from YAML? Maybe. But not likely.
+
+Potential bug: The except in write_files catches RuntimeError from Path.resolve? Why RuntimeError? Path.resolve can raise RuntimeError? Maybe if path is too long? ValueError. ok.
+
+Potential bug: If out_dir is a path that resolves to a file, mkdir raises FileExistsError, caught. Good.
+
+Potential bug: If out_dir is a path that is a symlink to a file, resolve returns file, mkdir raises. Good.
+
+Potential bug: If out_dir is a path that is a symlink to a directory, it writes to target. Could be security but not principle.
+
+Potential bug: The code uses directory.mkdir(parents=True, exist_ok=True). If out_dir is a symlink to a directory, mkdir on resolved target. If target doesn't exist, creates target. This could create directories outside intended? But user gave symlink. Not.
+
+Potential bug: The code does not verify that out_dir is a directory after mkdir. If a race creates a file, mkdir exist_ok? If file appears, mkdir raises. ok.
+
+Potential bug: The code uses lstat on destination, but if destination is a path with a component that is a symlink to a directory, it follows? lstat only final component. But directory resolved, so intermediate components resolved. If name has no slashes, parent is resolved directory. ok.
+
+Potential bug: The code does not check if destination.parent is a symlink after resolve? resolved.
+
+Potential bug: The code's _check_destination catches FileNotFoundError and returns. But if destination is a broken symlink, lstat succeeds (S_ISLNK) and raises. Good. If destination is a path with null, lstat raises ValueError? Actually OSError? ValueError not caught. But name validation rejects null. out_dir null caught earlier. ok.
+
+Potential bug: The code's _check_destination catches OSError but not ValueError. If destination path contains null, lstat raises ValueError: embedded null byte. But name validation rejects null in name; out_dir null caught by Path resolve ValueError. But what if label? no. If out_dir contains null but Path(out_dir) raises ValueError before. ok.
+
+Potential bug: The code's _stage NamedTemporaryFile can raise ValueError if dir contains null? dir resolved, no null. ok.
+
+Potential bug: The code's _stage finally unlink temporary. If temporary is a symlink? NamedTemporaryFile creates regular file. ok.
+
+Potential bug: The code's _stage uses suppress(OSError) around unlink. If unlink raises PermissionError (OSError), suppress. ok.
+
+Potential bug: The code's _stage catches UnicodeError from stream.write. But if stream.write raises ValueError? e.g. text is not str? TypeError. Not caught. Could be unhandled-input.
+
+Potential bug: The code's write_files returns tuple of destination Path objects. If one file replaced, ok. If multiple case-insensitive collision, returns duplicate paths. bug.
+
+Potential bug: The code's write_inside returns single destination. If file_name is e.g. "report.html" ok. If file_name is invalid, raises.
+
+Now need decide final findings. Need only concrete faults. We need be careful not to report style or speculative. The code seems robust. But there may be a real bug: In write_files, the name validation rejects names containing ".." anywhere, but also rejects names containing backslash. On Windows, a file name can contain backslash? No. ok.
+
+Another real bug: The temporary file is created in destination.parent, but if destination.name is a reserved name or invalid, maybe. Not.
+
+Another real bug: The code uses `outputs[destination.name]` after `destination = directory / name`. If `name` is a string that is not a valid filename but passes validation? e.g. name = "foo\x00" rejected. ok.
+
+Another real bug: If `out_dir` is a `Path` with a drive letter on Windows, `location = str(out_dir)` before resolve. `join(location, name)` for label. If out_dir is `Path('C:/temp')`, location 'C:\\temp'? ok. If out_dir is `PurePosixPath` on Windows

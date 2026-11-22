@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/validation.py
+line: 36
+kind: bug
+claim: The unknown-field check in `fields` uses the wrong variable twice, so optional field names are never allowed.
+evidence: `            optional is not None and value.keys() - {*required, *optional}`
+why: The set subtracted from the input keys contains `required` twice and omits `optional`, so any key named in `optional` is treated as an unknown field and rejected.
+confidence: high

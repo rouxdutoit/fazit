@@ -1,0 +1,125 @@
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 400
+kind: contradicts-comment
+claim: The data-label pseudo-element is suppressed for the evidence table even though the evidence table cells carry data-label attributes intended for the same responsive display.
+evidence: "table:not(.cost-table, .evidence) td[data-label]::before {"
+why: The selector explicitly excludes .evidence, so the evidence table rows will not show their data-label headers in the narrow layout, unlike other non-cost tables.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 454
+kind: unhandled-input
+claim: The template assumes scan.generated_at is present and renderable.
+evidence: "<dd><time datetime=\"{{ scan.generated_at }}\">{{ format.date(scan.generated_at) }}</time></dd>"
+why: If scan.json omits generated_at or supplies a value format.date cannot render, rendering can crash or produce an invalid datetime attribute instead of showing missing evidence as unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 463
+kind: unhandled-input
+claim: The template indexes mapping.label directly with the active language.
+evidence: "<div><dt>{{ strings.header.target_profile }}</dt><dd>{{ mapping.label[lang] }}</dd></div>"
+why: If the rule file or command-line language is not a key in mapping.label, rendering fails or shows an empty target profile instead of handling the unsupported/missing label.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 480
+kind: unhandled-input
+claim: Unknown provenance handling can pass a missing missing_reason as the reason code.
+evidence: "{% set code = finding.missing_reason if finding else ('not_in_scan' if entry.provided == 'no' else 'answer_not_provided') %}"
+why: When finding is present but missing_reason is absent or null, code becomes null/undefined and reason_text(code) is called with no reason, causing a crash or a blank/incorrect unknown explanation.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 496
+kind: unhandled-input
+claim: The product count paragraph always renders collected_at even when the count is missing.
+evidence: "<small>{{ code_label('source', product_count.source) }} · {{ format.date(product_count.collected_at) }} · {{ coverage_text(product_count.coverage) }}</small>"
+why: If product_count is missing and collected_at is absent or null, format.date is still invoked, which can crash or display an invalid date instead of unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 515
+kind: unhandled-input
+claim: Licence purchased and assigned values are formatted as integers without handling missing values.
+evidence: "<td role=\"cell\" data-label=\"{{ strings.licences.purchased }}\">{{ format.integer(product.purchased) }}</td>"
+why: If a licence product in scan.json has purchased or assigned null/missing, format.integer receives a non-integer and can crash rather than showing the value as unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 518
+kind: unhandled-input
+claim: The template filters product.plans without handling a null plan list.
+evidence: "{% set classified = matches|reject('none')|list %}"
+why: If product.plans is null rather than an empty list, the reject filter iterates over None and rendering crashes, even though the later branches intend to handle missing plan lists.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 522
+kind: unhandled-input
+claim: Licence plan grouping renders workload and signal labels without validating that the keys exist.
+evidence: "{{ workload_labels[workload] }} · {{ strings.licences[signal] }}"
+why: If a plan entry from scan.json or a rule file contains a workload or signal not present in the label maps, the report shows empty labels or fails, producing a silently wrong licence breakdown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 598
+kind: unhandled-input
+claim: The target cost input rows assume target_costs has at least one mapping.
+evidence: "{% for field in target_costs[0] %}"
+why: If target_costs is empty, the template attempts to iterate an undefined/out-of-range value and rendering crashes instead of handling the missing cost input.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 599
+kind: unhandled-input
+claim: The target cost input rows assume target_costs has at least two scenario mappings.
+evidence: "{{ cost_input_row(field, (none, target_costs[0][field], target_costs[1][field])) }}"
+why: If target_costs contains only one scenario, target_costs[1][field] is undefined and rendering crashes or emits an incorrect cost input row.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 629
+kind: unhandled-input
+claim: Subtotal data-amount is rendered without checking whether the group total is missing.
+evidence: "<td role=\"cell\" data-label=\"{{ costs[scenarios[loop.index0].id] }}\" data-amount=\"{{ plain_amount(group.total) }}\">{{ cost_amount(group.total) }}</td>"
+why: When group.total is null, plain_amount is still called, which can crash or expose a malformed/zero data attribute while the visible cell is meant to show missing/unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 638
+kind: unhandled-input
+claim: The total row data-total is rendered without checking whether the scenario total is missing.
+evidence: "<td data-scenario=\"{{ result.id }}\" data-total=\"{{ plain_amount(result.total) }}\" role=\"cell\" data-label=\"{{ costs[result.id] }}\">{{ cost_amount(result.total) }}</td>"
+why: When result.total is null, plain_amount is still called, which can crash or create a malformed/zero data-total even though the visible amount should be unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 655
+kind: unhandled-input
+claim: Missing cost input labels assume each path is a dotted string and that the final segment has a label.
+evidence: "<li data-missing-cost=\"{{ path }}\">{{ costs.input_fields[path.split('.')[-1]] }}</li>"
+why: If a missing_inputs path is not a string or its final segment is not in costs.input_fields, rendering crashes or shows an empty label instead of the supplied input field name.
+confidence: medium
+
+FINDING
+file: src/fazit/templates/report.html.j2
+line: 691
+kind: unhandled-input
+claim: The readiness reason cell maps over row.missing without handling a missing or null missing list.
+evidence: "{% if not row.reason_code or row.reason_code not in row.missing|map(attribute='reason_code')|list %}"
+why: If row.missing is null or absent, the map filter iterates over None and rendering crashes instead of evaluating the reason safely.
+confidence: medium

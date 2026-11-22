@@ -1,0 +1,342 @@
+We need answer user's request: review code, find concrete faults. Need output exactly format. Need analyze mappings.py. Need identify bugs/unhandled-input/contradicts-comment/principle. Let's inspect carefully.
+
+We only see this file. Need quote exact lines. Need not guess outside code unless confidence. We can infer from visible code. Need find concrete faults.
+
+Let's parse code.
+
+Line 24: _MAPPING_REFERENCE = re.compile(r"https://[^/\s?#]+(?:[/?#][^\s]*)?")
+This regex for URL? It matches https://host then optional path/query/fragment. It allows any non-space after /?#. It might accept invalid schemes? Only https. It might allow trailing? Fine.
+
+FunctionMapping dataclass: note Mapping[str,str] | None.
+
+_need_conditions:
+55 need_finding = row.get("need_finding")
+56 entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
+57 if need_finding is not None and (
+58 entry is None
+59 or not (
+60 (entry.type == "boolean" and entry.workload == workload)
+61 or (
+62 entry.type == "count"
+63 and entry.provided in ("software_list", "software_list_without_web_version")
+64 )
+65 )
+66 ):
+67 reader.fail(...)
+This validates need_finding. If need_finding is not str but not None (e.g. int/list), entry None, fail. Good.
+Then need_if_positive:
+68 need_if_positive = row.get("need_if_positive")
+69 if need_if_positive is not None:
+70 count = catalogue.finding(need_if_positive) if isinstance(need_if_positive, str) else None
+71 if entry is None or entry.type != "boolean" or count is None or count.type != "count":
+72 reader.fail(...)
+Potential bug: If need_if_positive present but need_finding absent (None), entry is None, fails. That may be intended? need_if_positive likely requires need_finding boolean? But code comment? No comment. Could be wrong: if need_finding not specified, need_if_positive cannot be valid? Maybe intended that need_if_positive only applies when need_finding is boolean. But if need_finding is count? entry.type != boolean fails. Fine.
+But potential issue: If need_if_positive is not None and need_finding is a count valid, entry.type != boolean -> fail. That's intended? The field name need_if_positive suggests if a boolean finding positive? Actually maybe need_finding can be count and need_if_positive is a count finding? Let's reason. _need_conditions returns need_finding and need_if_positive. Validation for need_finding allows boolean or count with provided software_list. need_if_positive validation requires entry boolean and count count. So need_if_positive only valid if need_finding boolean. That might be intended. But if need_finding is count, need_if_positive invalid. Not necessarily bug.
+
+But line 71 uses entry from need_finding. If need_finding is None, entry None. fails. OK.
+
+Potential unhandled input: catalogue.finding(need_finding) may return None for unknown ID. Good. But if need_finding is bool? isinstance(need_finding, str) false; entry None; fail. Good.
+
+_function_mapping:
+79 references = ("reference_url", "checked_on")
+80 row = reader.fields(
+ item, field,
+ ("function", "workload", "microsoft", "replacement", "coverage") + (references if product_profile else ()),
+ ("note", "need_finding", "need_if_positive") + (() if product_profile else references),
+)
+Need understand reader.fields signature? Not visible. Likely required fields first tuple, optional fields second tuple. For product_profile true: required includes references, optional note/need...; for false: required base, optional note/need + references. Then later if product_profile: read reference_url/checked_on; else: for key in references: if row.get(key) is not None: fail. So non-product profile forbids reference fields. OK.
+
+But note: If product_profile is False, references are optional and if present fail. If absent, row.get None. OK.
+
+Line 87 workload = reader.choice(row["workload"], f"{field}.workload", catalogue.workload_ids)
+Line 88 steps = COVERAGE_LADDER if product_profile else COVERAGE_LADDER[4:]
+COVERAGE_LADDER[4:] = ("open_source_community", "open_source_third_party", "proprietary_third_party", "not_available")? Actually ladder indices: 0 in_suite,1 in_suite_with_limits,2 announced,3 component_vendor_solution,4 open_source_community. So non-product only from open_source_community onward. OK.
+
+reference_url = reader.matches(row["reference_url"], ...) if product_profile. reader.matches likely validates string matches regex. If row["reference_url"] not string? It may raise? Need consider unhandled input. Since required field, reader.fields likely returns raw YAML value. If not string, reader.matches could crash if it calls .match? But maybe reader.matches handles type? We don't see. Need only report if plainly wrong. Can't guess.
+
+checked_on = reader.calendar_date(row["checked_on"], ...)
+
+Need conditions: row is dict from reader.fields. Does row include optional fields only if present? It uses row.get. OK.
+
+Line 110 note=reader.bilingual(row["note"], f"{field}.note") if "note" in row else None. If optional note present but null? In YAML note: null. row has key? reader.fields may include optional key with None? If "note" in row true, reader.bilingual(None) might crash or fail? Need know. Could be unhandled input. But likely reader.bilingual validates mapping and fails if None. But not visible. We can't guess? We can say depends on unseen Validator. Avoid.
+
+load_mapping:
+123 if profile not in PROFILES: raise InputError("unsupported_profile_option", field="--profile")
+125 name = f"mappings/{profile}.yaml"
+126 reader, data = read_rules(name, directory / name if directory is not None else None, checksums)
+Potential path traversal? profile validated in PROFILES, so safe.
+
+root = reader.fields(data, "", required tuple)
+132 reader.choice(root["profile"], "profile", (profile,))
+133 product_profile = root["product_profile"]
+134 if type(product_profile) is not bool: fail. Good.
+
+no_function:
+138 for index, item in enumerate(reader.rows(root["no_function"], "no_function", allow_empty=True)):
+140 workload = reader.choice(item, field, workload_ids)
+If item is not string? reader.choice likely handles. If duplicate fail.
+
+functions:
+145 reader.rows(root["functions"], "functions") likely non-empty? If empty? Maybe functions can be empty? It doesn't allow_empty. Could be required non-empty. Then line 151 covered set. If no functions, covered empty. Then line 152: covered.intersection(no_function) or covered.union(no_function) != set(workload_ids). If no_function covers all workload_ids, union equals set, no fail. So empty functions allowed if no_function covers all. But reader.rows without allow_empty may fail if empty? Not visible. Could be intended.
+
+Line 152: if covered.intersection(no_function) or covered.union(no_function) != set(workload_ids): reader.fail("no_function")
+This ensures every workload either in functions or no_function, and no overlap. Good. But if catalogue.workload_ids is empty? Then set empty. If no functions and no_function empty, union empty equals empty, ok. If functions nonempty, workload choice would fail if no workload_ids? reader.choice with empty choices likely fail. OK.
+
+Potential bug: covered.union(no_function) != set(workload_ids) uses no_function list, union accepts iterable. OK.
+
+Potential issue: product_profile variable from root is bool, but if YAML value is e.g. True? type is bool. Good. But if product_profile is 1? type int not bool fail.
+
+Potential contradicts principle? Not much.
+
+Need find concrete faults. Let's scrutinize line 24 regex. It is used to validate reference_url. Regex: r"https://[^/\s?#]+(?:[/?#][^\s]*)?"
+This matches https://host, then optional one of / ? # followed by any non-space to end. It does not allow spaces. It allows e.g. https://example.com/path with spaces? [^\s]* no spaces. It allows control chars? [^\s] includes newline? In Python re, \s matches [ \t\n\r\f\v] and Unicode whitespace. [^\s] excludes newline. But if input string contains newline, fail. OK.
+But it allows https://example.com?foo#bar? It matches host then optional ?foo#bar. It allows https://example.com? (empty path after ?) because [^\s]* can be empty. It allows https://example.com/ etc. It allows https://example.com#frag. It allows https://example.com/path?query#fragment? It matches /path?query#fragment as [/?#][^\s]*: first char / then rest path?query#fragment. OK.
+But does it allow https://example.com/path//? yes.
+Could it accept non-URL strings like https://foo bar? no space. https://foo\n? no.
+Potential bug: It doesn't require a valid host? It accepts https:// (no host)? Let's test mentally: pattern https:// then [^/\s?#]+ requires at least one char not / space ? #. So https:/// no. https://? no. https://example.com OK. It accepts https://example.com:8080? [^/\s?#]+ includes colon. OK. It accepts https://user:pass@host. OK.
+Maybe it accepts https://example.com# (fragment empty). OK.
+Could it accept https://example.com/ with trailing slash. OK.
+Is there a missing https? It only allows https, not http. Fine.
+
+Potential bug in _need_conditions line 71: entry may be None if need_finding is not str, but need_if_positive check uses entry.type if entry not None? It short-circuits: entry is None or entry.type != "boolean". OK.
+
+But if need_finding is valid count, entry.type count, need_if_positive fails. Could be intended. But maybe need_if_positive should be validated independently: if need_if_positive present, it must be a count finding, regardless of need_finding. The current code also requires need_finding boolean. Is that a bug? Need infer from names. FunctionMapping has need_finding and need_if_positive. Could be: a mapping can say function is needed if a finding is positive. need_finding could be a count (e.g. number of users) and need_if_positive a count? Hmm.
+
+Let's think of domain: mappings map M365 functions to replacements. need_finding maybe a finding that indicates need for function, e.g. boolean "uses_sharepoint" or count "number_of_sites". need_if_positive maybe another finding that if positive indicates need? The validation: need_finding can be boolean or count with provided software_list/software_list_without_web_version. need_if_positive requires entry boolean and count count. Wait line 71: if entry is None or entry.type != "boolean" or count is None or count.type != "count". So need_if_positive must reference a count finding, but only valid if need_finding is boolean. What is purpose? Maybe need_if_positive is a count finding that, if >0, triggers need, and need_finding is a boolean that says whether the count is positive? Not clear.
+
+Could be a bug: It should check `need_finding` entry type is count? Let's parse name: need_if_positive: str | None. In _need_conditions, for need_if_positive, variable count = catalogue.finding(need_if_positive). It checks count.type != "count". So need_if_positive must be a count finding. It also checks entry.type != "boolean". Why would a count finding need_if_positive require the need_finding to be boolean? Maybe because need_if_positive is an optional count to evaluate only if a boolean finding is positive? E.g. need_finding: "uses_teams" boolean, need_if_positive: "teams_user_count" count. If boolean positive, count? Hmm.
+
+But could be a logic bug: It validates need_if_positive only if need_finding is boolean, but if need_finding is count with software_list, need_if_positive could still be valid? The field name need_if_positive: maybe if the need_finding is positive (count > 0), then need_if_positive is another count? No.
+
+Let's not over-report uncertain.
+
+Line 85: optional fields tuple includes references if not product_profile. Then line 98-100 fails if present. OK. But if product_profile false and reference_url/checked_on omitted, row.get(key) returns None. OK.
+
+Line 110: note=reader.bilingual(row["note"], ...) if "note" in row else None. If note key present but value None, maybe reader.bilingual fails. But maybe reader.fields omits optional fields with None? Not visible. Could be unhandled input if YAML has note: null. But likely validation handles. We can't see.
+
+Potential bug: `reader.fields` optional fields: For product_profile false, references are optional. But line 84 required tuple excludes references. line 85 optional includes references. Then line 98 checks `if row.get(key) is not None: reader.fail`. Good. But if key present with empty string? fail. OK.
+
+Potential bug: `reader.choice(row["workload"], ...)` after `reader.fields` required. If `row["workload"]` missing? fields would fail. OK.
+
+Potential bug: In load_mapping, `product_profile = root["product_profile"]`; if type is bool. But line 132 `reader.choice(root["profile"], "profile", (profile,))` returns? It probably returns the value if valid. But they don't assign. OK.
+
+Potential bug: Line 126: `directory / name if directory is not None else None`. If directory is Path, OK. If directory is str? parameter Path | None. OK.
+
+Potential contradicts-principle: principle 5 privacy? No.
+
+Need maybe find subtle bug with `covered.union(no_function) != set(workload_ids)`. If `workload_ids` is a tuple, set ok. But if `no_function` contains duplicate? duplicate checked. If `functions` workload duplicate? allowed? It doesn't check duplicate workload across functions. Could be intended multiple functions per workload. OK.
+
+Potential bug: `no_function` list stores workload strings. `covered` set of workload. `covered.intersection(no_function)` works. OK.
+
+Potential bug: If `functions` has a row with workload not in catalogue? reader.choice fails. OK.
+
+Potential bug: If `no_function` has an item that is a dict/list, reader.choice may fail or maybe returns? Not visible.
+
+Potential bug: `_MAPPING_REFERENCE` regex may match URLs with trailing punctuation? It accepts any non-space, so `https://example.com.` accepted. That's fine. But it may accept `https://example.com/path\n`? no. It may accept `https://example.com/path\`? no? backslash is non-space, accepted. Not a bug.
+
+Potential bug: It requires https, but reference_url may be allowed to be None? For product_profile, reference_url required. If null, reader.matches maybe fail. OK.
+
+Potential bug: `checked_on` is required for product_profile. `reader.calendar_date` maybe accepts date or string? OK.
+
+Need think about `need_if_positive` validation line 71: There is a possible NameError? `entry` is defined at line 56. OK.
+
+Potential bug: If `need_finding` is None, `entry` None. If `need_if_positive` is not None, fail. But what if `need_if_positive` present without `need_finding`? It fails. Is that plainly intended? The dataclass has both optional. The validation might intend need_if_positive can only be used with need_finding. But no comment. Could be a bug if they intended independent. But not concrete.
+
+Potential bug: If `need_finding` is a valid count (software_list), and `need_if_positive` is a count, line 71 fails because entry.type != "boolean". But maybe need_if_positive should be allowed for count need_finding? The field name suggests if positive (count > 0) maybe need_if_positive is a count? Let's examine: need_finding can be boolean or count. If count, "positive" could mean >0. need_if_positive maybe a finding to check if positive? Hmm.
+
+Maybe the intended semantics: `need_finding` is a finding that indicates a need. It can be boolean (true means need) or count (provided software list; if count > 0 means need). `need_if_positive` is a count finding that, if positive, means the function is needed even if the primary finding is not? Or a secondary condition? The validation requiring primary boolean seems odd. But could be: if `need_finding` is boolean, you can specify a count `need_if_positive` to refine? Not enough.
+
+Let's look at line 71: `if entry is None or entry.type != "boolean" or count is None or count.type != "count":` It uses `entry` (need_finding) and `count` (need_if_positive). If need_finding is None, fail. If need_finding is count, fail. So need_if_positive is only valid with boolean need_finding. Could be intended: need_if_positive is a count that is used only when a boolean finding is positive? Actually if need_finding boolean, count could be a count of something to include in report? Not sure.
+
+Need find faults that are concrete. Maybe there is a clear bug: line 152 uses `covered.union(no_function) != set(workload_ids)` but if `no_function` is a list, union returns set. OK. But if `workload_ids` is not a set but maybe a dict? `set(workload_ids)` works for iterable. If it's a Mapping, set gets keys. OK.
+
+Potential bug: `reader.rows(root["functions"], "functions")` may return rows but if `functions` is a dict? Not visible.
+
+Potential bug: `product_profile` is used to decide required references. But line 133 `product_profile = root["product_profile"]` then line 134 type check. If fail, reader.fail likely raises. OK.
+
+Potential bug: `load_mapping` passes `product_profile` to `_function_mapping` before checking type? It checks before loop. OK.
+
+Potential bug: In `_function_mapping`, for non-product profile, `references` are optional and if present fail. But line 85 includes references in optional tuple. If a non-product mapping includes `reference_url` with value null, row.get(key) is None, so not fail. Is null considered present? It is present but None. The code only fails if not None. Is that intended? It says omit? If YAML has `reference_url: null`, maybe should fail because present? But optional null often means absent. Not a fault.
+
+Potential bug: `note=reader.bilingual(row["note"], ...) if "note" in row else None`. If optional note is present but null, and reader.fields includes it, then "note" in row true. Could crash/fail. But maybe reader.bilingual(None) fails with InputError, not crash. We don't know. Could report unhandled-input? Need exact trigger: rule file with `note:` empty. But if reader.fields omits None optional values, no. Can't guess.
+
+Potential bug: `reader.fields` optional fields: It may only include keys that are present, but if present null, includes. Then bilingual might not accept None. But likely validation design: optional fields can be null? Not sure.
+
+Need maybe examine principles: "Honest figures. Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness." This file mappings doesn't handle figures.
+
+"Read-only" no.
+
+"Local processing" no.
+
+"Metadata only" no.
+
+"Privacy by construction" no.
+
+"Offline report" no.
+
+"One command" no.
+
+Could be contradicts-principle if reference_url external? It's just URL in report? Not sending.
+
+Need maybe identify that `_MAPPING_REFERENCE` regex allows URLs that are not valid due to missing host? Let's test: `https://` followed by `[^/\s?#]+`. It requires at least one char not slash, space, ?, #. So `https://example` valid. It allows `https://example.com/` etc. It allows `https://example.com?` etc. It allows `https://example.com#`. It allows `https://example.com/...`. It does not allow `https://example.com/ path` due space. Good.
+
+But it allows `https://example.com/path?query#fragment` but also allows `https://example.com/path?query#fragment extra`? no space. It allows `https://example.com/path?query#fragment
+`? no.
+
+Could it allow `https://example.com/path?query#fragment/` yes.
+
+Maybe regex is wrong because it doesn't anchor? `re.compile` and `reader.matches` likely uses fullmatch? If it uses `re.match` not fullmatch, then a string like `https://example.com bad` would match prefix and be accepted. But we don't see reader.matches. If `reader.matches` uses `pattern.fullmatch` likely. Can't guess. If it uses `pattern.match`, it's a bug. But not visible. We shouldn't report.
+
+Potential bug: The regex permits URLs with a fragment but no path, e.g. `https://example.com#section`. That's valid. It permits query but no path, valid. It permits `https://example.com?query#fragment`? The optional group starts with `[/?#]`, if first char ? then rest query#fragment. OK.
+
+Potential bug: It doesn't allow ports? It does because host char class includes colon. OK.
+
+Potential bug: It doesn't allow IPv6? `https://[::1]/` host char class excludes `[`? It doesn't exclude, so [^/\s?#]+ includes brackets, colon. It would accept. OK.
+
+Potential bug: It allows `https://example.com/ `? no.
+
+Maybe there is a bug with `COVERAGE_LADDER[4:]` for non-product. It excludes `component_vendor_solution`? Wait ladder: in_suite, in_suite_with_limits, announced, component_vendor_solution, open_source_community... For non-product profile, maybe should allow `component_vendor_solution`? The code excludes first four, including component_vendor_solution. Is that intended? Profiles: opendesk, nextcloud, generic. Product profile maybe true for opendesk/nextcloud? Generic non-product? If non-product, coverage steps start at open_source_community. Maybe component_vendor_solution is for product profiles only. OK.
+
+Potential bug: `PROFILES = ("opendesk", "nextcloud", "generic")`. `load_mapping` accepts any. OK.
+
+Potential bug: `name = f"mappings/{profile}.yaml"`. If profile is "generic", file mappings/generic.yaml. OK.
+
+Potential bug: `reader.choice(root["profile"], "profile", (profile,))`: If root profile is e.g. True? choice likely fails. OK.
+
+Potential bug: `root = reader.fields(data, "", (...))` field names. If data is not mapping, reader.fields likely fail. OK.
+
+Need maybe think about `checksums` parameter: MutableMapping[str,str] | None. Passed to read_rules. No issue.
+
+Potential bug: `file_name=reader.file_name` maybe not set? Not visible.
+
+Could there be a fault with `need_finding` validation: It allows count findings with provided in software_list... But if `need_finding` is a count and `need_if_positive` is None, OK. If `need_finding` is boolean but workload mismatch, fail. If count, workload not checked. Why? Maybe count findings are global? OK.
+
+Potential bug: line 56 `entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None`. If `need_finding` is a string not in catalogue, entry None, fail. Good. But if `need_finding` is a string and catalogue.finding returns an object with attributes. OK.
+
+Potential bug: line 70 `count = catalogue.finding(need_if_positive) if isinstance(need_if_positive, str) else None`. If need_if_positive is same as need_finding? If need_finding boolean and need_if_positive same boolean, count.type != count fail. OK.
+
+Potential bug: If `need_if_positive` is present but `need_finding` is an invalid non-string, entry None, fail with field need_if_positive, not need_finding. But need_finding invalid already failed at line 67. reader.fail likely raises, so no matter.
+
+Potential bug: If `reader.fail` doesn't raise but records? It likely raises. If not, code continues and may use invalid values. But Validator likely fail raises. Not visible. If fail doesn't raise, line 71 could use entry None? It short-circuits. But line 103 uses row.function etc. But if fail doesn't raise, many issues. Not visible. Assume raises.
+
+Need maybe find a clear unhandled input: `product_profile` in root could be a bool subclass? type(product_profile) is not bool rejects bool subclass. OK.
+
+`no_function` items: `reader.choice(item, field, workload_ids)`. If `item` is a list with one string? choice likely expects scalar. It may fail or crash? Not visible.
+
+`functions` row: `_function_mapping` expects item object. If item not mapping, reader.fields likely fail. OK.
+
+Potential bug: In `_function_mapping`, `row = reader.fields(item, field, required, optional)`. The optional tuple for non-product includes references. Then later if non-product and reference present not None fail. But for product_profile, references required. However, if product_profile is True and reference_url or checked_on is null, `reader.fields` required may treat null as present? Then `reader.matches(None)` may crash? But required field null should fail. Not visible.
+
+Potential bug: `reader.matches(row["reference_url"], ...)` if row["reference_url"] is not string. Could crash if regex.match called on non-string. But maybe reader.matches validates type. We don't see. Could report unhandled-input with confidence low? The task says do not report something you need to guess about; if fault depends on code you cannot see, say so in confidence. We can report if plain from this code? It calls regex on value from rule file. If value is e.g. integer 123, `re` pattern fullmatch expects string? `re.fullmatch` with pattern and non-string raises TypeError. But does `reader.matches` maybe first checks isinstance? Not visible. The code itself doesn't guard. But since it's a validator method, likely handles. Can't be certain. Need avoid if depends on unseen.
+
+Similarly `reader.calendar_date` may crash on non-date.
+
+Need maybe find a bug within visible logic independent of unseen helpers.
+
+Let's focus on line 152. It fails if `covered.union(no_function) != set(workload_ids)`. But `covered` is set of workloads from functions. `no_function` is list of workloads not having functions. This ensures partition of all workload IDs. However, if a workload appears in both functions and no_function, covered.intersection(no_function) true fail. Good.
+
+But what if `workload_ids` is a set and `no_function` is a list; `covered.union(no_function)` returns a set. OK.
+
+Potential bug: If `workload_ids` contains duplicates (tuple with duplicates), set removes. OK.
+
+Potential bug: If `functions` is empty and `no_function` empty and `workload_ids` empty, passes. But maybe should fail if no functions? Not necessarily.
+
+Potential bug: `reader.rows(root["functions"], "functions")` if functions is None? root required functions. If null, rows maybe fail. OK.
+
+Potential bug: `no_function` allow_empty=True. If root["no_function"] is None, rows allow_empty maybe returns empty. OK.
+
+Potential bug: `product_profile` root value used for all functions. If root product_profile is true, reference required. If false, reference forbidden. OK.
+
+Potential contradicts-comment? There are no comments/docstrings except license. So none.
+
+Need maybe find principle contradiction: "A skipped or denied collector never improves readiness." Not here.
+
+Could there be a bug with `need_finding` count validation: It checks `entry.provided in ("software_list", "software_list_without_web_version")`. If entry is count but provided is None, fail. OK.
+
+But line 60: `(entry.type == "boolean" and entry.workload == workload)`; if entry.type boolean but workload mismatch fail. For count, no workload check. Could be intended.
+
+Potential bug: If `need_finding` is a boolean finding but `workload` is a string not in entry.workload type? OK.
+
+Potential bug: If `need_if_positive` present and `need_finding` is boolean but `need_if_positive` count's workload not checked. Maybe should check? Not visible.
+
+Potential bug: If `need_if_positive` present and `need_finding` is boolean, but `need_if_positive` count's `provided` not checked. Maybe should be? Not visible.
+
+Potential bug: The validation for `need_if_positive` does not check that `need_if_positive` is a string before `catalogue.finding`? It does. If not string, count None, fail. OK.
+
+Potential bug: It does not check that `need_if_positive` is different from `need_finding`. If need_finding boolean and need_if_positive same ID but catalogue.finding returns boolean, count.type != count fail. OK.
+
+Potential bug: It does not check that `need_finding` and `need_if_positive` are not both None? They can both be None. OK.
+
+Potential bug: In `_function_mapping`, `need_finding, need_if_positive = _need_conditions(row, field, reader, catalogue, workload)`. But `_need_conditions` uses `row.get("need_finding")`. If `need_finding` optional field is absent, row.get None. OK. If `reader.fields` only returns required fields and not optional? It likely returns optional if present. OK.
+
+Potential bug: The optional tuple order: `("note", "need_finding", "need_if_positive") + (() if product_profile else references)`. For product_profile false, optional includes references. For product_profile true, optional doesn't. Good.
+
+Potential bug: For product_profile true, references are required. But line 84: `("function", "workload", "microsoft", "replacement", "coverage") + (references if product_profile else ())`. Good.
+
+Potential bug: For product_profile false, references optional but if present fail. However, if present with None, not fail. Could be considered wrong because field present but null. But optional null usually OK.
+
+Potential bug: `reference_url` regex requires https, but principle offline? It's just reference. No.
+
+Maybe the main fault is line 71: `entry` may be None if `need_finding` is None, but if `need_if_positive` is provided without `need_finding`, it fails with `need_if_positive` field. That's not a bug? It may be intended that need_if_positive requires need_finding. But the dataclass doesn't document. Could be unhandled-input? No, it handles by fail.
+
+Need maybe think of `reader.choice` return value. Line 87: `workload = reader.choice(row["workload"], f"{field}.workload", catalogue.workload_ids)`. If `reader.choice` returns None on invalid instead of raising? Then workload None. Later _need_conditions uses workload. If invalid but no raise, wrong. But Validator likely raises. Not visible.
+
+Could there be a bug with `reader.choice(root["profile"], "profile", (profile,))` not assigning validated profile. If root profile is a different string but choice returns? It should fail. OK.
+
+Potential bug: `load_mapping` checks profile in PROFILES, but then `reader.choice(root["profile"], "profile", (profile,))`. If profile is e.g. "opendesk" and file has profile "opendesk" ok. If file has profile "Opendesk" fail. OK.
+
+Potential bug: `name = f"mappings/{profile}.yaml"`; if directory is not None, `directory / name`. If directory is a relative path, OK. If directory is None, read_rules gets None path, maybe uses built-in. OK.
+
+Potential bug: `checksums` mutable mapping. If None, OK.
+
+Need maybe find a fault with `COVERAGE_LADDER` and `product_profile`: For product_profile false, `steps = COVERAGE_LADDER[4:]`. But line 85 optional references for non-product. If a non-product mapping has coverage "component_vendor_solution", it fails. Is that intended? The ladder name suggests coverage levels. Product profile maybe covers suite-level? Non-product maybe only third-party/open source. Could be intended.
+
+Potential bug: `PROFILES` includes "generic". If generic is product_profile? Unknown.
+
+Need maybe consider that `TargetMapping.product_profile` is bool, but `FunctionMapping` doesn't store product_profile. OK.
+
+Potential bug: `no_function` is tuple[str,...], but line 159 `no_function=tuple(no_function)`. OK.
+
+Potential bug: `functions=tuple(functions.values())` preserves insertion order. OK.
+
+Potential bug: `file_name=reader.file_name` but `reader` from read_rules. OK.
+
+Could there be a security/path issue: `directory / name` where name includes profile. Profile validated. OK.
+
+Could there be a bug with `type(product_profile) is not bool`: In Python, YAML may parse `true` as bool. OK. But if product_profile is a custom bool subclass? Not relevant.
+
+Need maybe identify that line 152 can produce a wrong result if `workload_ids` is not a set but e.g. a dict mapping IDs to metadata. `set(workload_ids)` gets keys. OK. If it's a string? `catalogue.workload_ids` likely tuple. If it's a string, set of chars. But not likely.
+
+Potential bug: If `catalogue.workload_ids` is a set, `set(workload_ids)` OK. If it's an iterator, set consumes. But property likely returns tuple/set. OK.
+
+Potential bug: `covered.union(no_function) != set(workload_ids)` if `workload_ids` is a `frozenset`, OK.
+
+Need maybe think about `reader.rows` with `allow_empty=True` for no_function. If `root["no_function"]` is an empty list, OK. If it's None, allow_empty maybe treats as empty? Not visible. If not, crash. But likely handles.
+
+Potential bug: If `no_function` contains a workload ID that is not in `workload_ids`, reader.choice fails. OK.
+
+Potential bug: If `functions` contains a function with workload in no_function, fail. OK.
+
+Potential bug: If a workload is neither in functions nor no_function, fail. OK.
+
+Maybe there is a subtle bug: Line 152: `covered.union(no_function) != set(workload_ids)`. Suppose `workload_ids` is a tuple with duplicates, e.g. ("a","a"). set is {"a"}. If functions cover "a" and no_function empty, union {"a"} equals set, ok. Duplicates in catalogue not issue.
+
+Potential bug: The check `covered.intersection(no_function)` uses `no_function` list. If no_function has duplicates, duplicate check prevents. OK.
+
+Potential bug: The duplicate check for no_function uses `if workload in no_function` where no_function is list of validated workload strings. OK.
+
+Potential bug: Duplicate function check uses `row.function in functions`. OK.
+
+Potential bug: It does not check duplicate workload in functions, but likely allowed.
+
+Potential bug: It does not check that `function` IDs are unique across no_function? no_function workloads, not function IDs. OK.
+
+Potential bug: It does not check that `need_finding`/`need_if_positive` are valid for the function's workload? It checks boolean workload match. For count no workload. OK.
+
+Potential bug: It does not check that `need_if_positive` count is provided by a collector? It checks type count only. Maybe should check provided? Not visible.
+
+Potential bug: It does not check that `need_finding` count's workload? Maybe count findings are global. OK.
+
+Need maybe consider the principle "Show missing evidence as unknown. A skipped or denied collector never improves readiness." In mappings, `need_finding` count with provided software_list. If missing, maybe treated as zero elsewhere. Not here.
+
+Could there be a bug with `checked_on` date: `reader.calendar_date` returns date. If checked_on is

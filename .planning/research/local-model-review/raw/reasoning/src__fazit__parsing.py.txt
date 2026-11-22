@@ -1,0 +1,169 @@
+We need answer user's request: review code, find concrete faults in parsing.py. Need output exact format. We must analyze thoroughly. Now think.
+
+We need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. Only concrete faults. Let's inspect code.
+
+File src/fazit/parsing.py.
+
+Principles: read-only, local processing, tokens in memory, metadata only, privacy by construction exclude names and emails, offline report, one command, honest figures. Parsing likely handles scan.json and inputs.yaml. Privacy: exclude collected person names and email addresses. Code checks @ in JSON and YAML to reject? It raises InputError contains_at_document/line/field. That aligns excluding emails? But maybe only checks @, not names. But principle says exclude collected person names and email addresses. The code only rejects @, maybe names not rejected. But is that a fault? The code's intent may be to reject email addresses, not names? Inputs.yaml may contain organisation name and app names, which can have @? No. But principle says exclude collected person names and email addresses. scan.json may contain names; code only rejects @, not names. But we can't know what data. Could be unhandled-input? It accepts names without @ and doesn't exclude them. But is that plainly intended? The code has _has_at_sign to detect emails. It doesn't reject names. But principle says exclude collected person names. However, maybe names are not in scan.json? It says collected person names and email addresses. The code only checks @ in JSON and YAML. Could be a contradicts-principle: accepts and parses person names (e.g. "value: John Smith") without exclusion. But we don't see report. Is that concrete? The input scan.json could contain person names; parse_json accepts them. But the code's purpose maybe to block emails only? The principle says exclude collected person names and email addresses. If parsing accepts names, that's a fault? But maybe names are not in scan.json? Need avoid guessing. But user says pay attention to writes/sends, missing value zero/good, skipped/unknown better, invented figure. This file doesn't have figures. Privacy by construction: exclude collected person names and email addresses. The code only blocks @. Could report? Confidence maybe medium/low because depends on scan.json containing names. But the code plainly accepts any string without @. If scan.json includes person names, they pass. But is there a rule file? We only see part. Need concrete faults in code below. Could be.
+
+Let's inspect for bugs.
+
+read_text:
+- path: Path | Traversable. If path.is_dir() raise InputError. For Traversable, is_dir exists? importlib.resources.abc.Traversable has is_dir? Yes. path.name? Traversable has name? I think Traversable has name? It may not have .name? Actually Traversable has .name? In importlib.resources.abc, Traversable has .name? It has __traverse__, is_dir, open, iterdir? I think name property? Not sure. But likely.
+- size check only for Path, not Traversable. Then open rb, read MAX+1, if len > max raise. For directory? is_dir catches. For Traversable maybe no stat, but size check via read.
+- except FileNotFoundError: path.name. For Traversable maybe FileNotFoundError? ok.
+- except (OSError, ValueError) includes InputError? InputError likely subclass of ValueError? Need check? Not visible. If InputError is subclass of ValueError, then the explicit raises inside try could be caught by except (OSError, ValueError) and re-raised as not_readable, losing code. This is a potential bug! Let's examine: In read_text, inside try: raise InputError("is_directory", ...), raise InputError("file_too_large", ...). Then except FileNotFoundError, IsADirectoryError, UnicodeDecodeError, except (OSError, ValueError): raise InputError("not_readable") from None. If InputError inherits from ValueError or Exception? We don't see errors.py. The import from .errors import InputError. Common custom exception may subclass Exception, not ValueError. If it subclasses ValueError, then the raised InputError would be caught by except (OEO, ValueError) and converted to not_readable. But code likely designed? Need know. Could be bug if InputError is ValueError? But we can't see. The user says if fault depends on code you cannot see, say confidence. We can report with medium? But maybe InputError is Exception. Need avoid guessing? The code uses InputError with kwargs; likely subclass of Exception. But not certain. Could be a real bug if InputError is ValueError. But is that "plainly intends"? It intends to raise specific errors; catching broad ValueError may swallow. But if InputError not ValueError, no. We need concrete. Maybe not.
+
+parse_json:
+- object_pairs: dict(pairs) collapses duplicates; if len row != len pairs raise duplicate_key_document. ok.
+- finite_float: float(literal), if not finite raise. parse_constant=finite_float handles NaN, Infinity? JSON standard doesn't allow? Python json allows NaN, Infinity if parse_constant. Good.
+- _has_at_sign(data): checks str, dict, list. It raises if any @ in keys or values. But JSON can have numbers, bools, null. ok. It does not check tuples, but json returns lists/dicts.
+- except json.JSONDecodeError: line error.lineno. except (ValueError, RecursionError): invalid_json_document. But InputError may be ValueError? If InputError subclass ValueError, then finite_float's InputError and contains_at_document InputError and object_pairs InputError would be caught by except (ValueError, RecursionError) and converted to invalid_json_document, losing codes. Again depends. In _check_yaml, fail raises InputError; parse_yaml catches (ValueError, OverflowError, RecursionError, LookupError, AttributeError). If InputError is ValueError, all InputErrors from _check_yaml become invalid_yaml_document. This would be a major bug. But likely InputError not ValueError? Need infer from code: they catch ValueError etc to convert YAML errors to InputError. They deliberately use InputError in fail. If InputError subclassed ValueError, they'd have to exclude it. Many custom errors subclass Exception. But could be ValueError? The code uses InputError("...") with kwargs. It might be a dataclass exception? We cannot see. The task says only see this part; if fault depends on code you cannot see, say confidence. Could report as potential bug with low/medium? But need concrete faults. Maybe there are definite ones.
+
+_check_yaml:
+- checked dict[Node, bool] = {}.
+- visit: if node in checked: if not checked[node] fail invalid_yaml; return. checked[node] = False. This detects cycles? YAML anchors can create shared nodes? With SafeLoader compose, anchors create nodes? PyYAML compose with anchors creates same Node object for aliases? It may produce aliases? Actually compose builds node tree; aliases are represented as AliasNode? Wait yaml.compose returns node tree with Anchor? PyYAML nodes: MappingNode, SequenceNode, ScalarNode, AliasNode. In compose, aliases are represented as AliasNode? Let's recall: yaml.compose uses Composer; for aliases, it creates AliasNode? The Composer has anchors dict mapping anchor to node; when alias token, it returns the node? In PyYAML, compose returns a node tree where aliases are represented as AliasNode? Let's check memory: yaml.nodes has AliasNode? Actually yaml.nodes has Node, ScalarNode, SequenceNode, MappingNode, AliasNode? I think yes? The import only MappingNode, Node, ScalarNode, SequenceNode, no AliasNode. In compose, an alias may be represented by the original node object? Let's recall PyYAML: Composer.compose_node: if alias_token: node = self.anchors[anchor]; if node is None: error; return node. It returns same node object, not AliasNode. So anchors produce shared node objects, not cycles necessarily. checked[node] logic: first visit sets False, if re-encountered before completion, fail invalid_yaml (cycle). If completed, return. This prevents anchors? But parse_yaml has allow_aliases default True. If allow_aliases True, it doesn't scan for anchors. But _check_yaml will fail on any node encountered twice (shared) because when first visit not completed? For a shared node referenced multiple times (not cycle), e.g. YAML:
+a: &x 1
+b: *x
+Compose: scalar node same object? visit root mapping: key a value scalar node, visit sets checked false, then scalar leaf sets checked true, returns. Then key b value same scalar node, checked true, return ok. For nested shared mapping:
+a: &x {b: 1}
+c: *x
+Root mapping: visit a value mapping node: checked false, visit its children, set checked true. Then c value same node: checked true, return. ok. For self-referential cycle:
+a: &x {b: *x}
+Compose? Can YAML have alias to anchor before defined? No, alias must after anchor, but can create cycle? a: &x {b: *x} is invalid because *x refers to anchor currently being composed? PyYAML might create cycle? It may return node before children? Let's think: Composer.compose_node for mapping: node = MappingNode(...); self.anchors['x'] = node; then compose children. Child alias *x returns self.anchors['x'] which is the node currently being composed (not completed). So node.value includes itself. visit(root mapping): checked false; visit child mapping same node: node in checked and checked false -> fail invalid_yaml. Good. If allow_aliases False, scan rejects anchors before compose. If True, cycles fail. Shared non-cycle ok.
+
+But there is a subtle bug: checked dict uses Node objects as keys. Are PyYAML Node instances hashable? Node class maybe no __hash__? They are objects, default hash. ok.
+
+MappingNode:
+- allowed = fields.get(path) if fields is not None else None.
+- keys set.
+- for key,item: if not ScalarNode or key.tag != _YAML_TEXT fail. This rejects non-string keys. But YAML implicit keys like true, 1 are not text? In compose, key scalar tag may be bool/int if unquoted? Yes. So rejected. Comment says text keys avoid implicit aliases such as true and 1 for same key. ok.
+- name = key.value.
+- member = None; if allowed is not None and name in allowed: member = f"{field}.{name}" if field else name.
+- if name in keys: fail duplicate_key_field if member else duplicate_key, member.
+- keys.add(name)
+- if allowed is not None and member is None: if unknown is None: unknown = key; continue. This skips unknown fields, but after loop fails unknown_field or contains_at_line. It only reports first unknown. ok.
+- if fields is not None and "@" in name: fail contains_at_line. Wait if allowed is not None and member is None, it continues before checking @ in name? Actually code: if allowed is not None and member is None: if unknown is None: unknown=key; continue. So for unknown field with @, it doesn't fail immediately; after loop unknown is not None, fail contains_at_line if @ in unknown.value else unknown_field. So ok.
+But for allowed field with @ in name, fail contains_at_line. However, if field itself contains @? field is built from parent names; parent names with @ would have failed earlier. ok.
+- visit(item, (*path, name), member)
+After loop if unknown not None fail. Note: if there are multiple unknown fields, only first reported. ok.
+Potential bug: For mapping with allowed fields, unknown fields are skipped (not visited) and then fail. But if unknown field has @ in key, fail contains_at_line. ok.
+Potential bug: If fields is not None but allowed is None (path not in fields), then for each key, member remains None, allowed is None? Wait allowed = fields.get(path) if fields is not None else None. If fields is not None but path not in fields, allowed is None. Then the condition if allowed is not None and name in allowed is false. member None. if name in keys duplicate. if allowed is not None and member is None false. if fields is not None and "@" in name fail. visit(item, (*path,name), None). So fields not None but path not in fields means no unknown field detection, but @ check and scalar checks? scalar_fields.get(path) maybe None. This may be intended: fields only specifies allowed keys for certain paths; other paths unrestricted. ok.
+
+SequenceNode:
+- for index,item: visit(item, (*path,None), f"{field}[{index}]" if field else None)
+Potential bug: If field is None, member None. ok.
+
+Scalar:
+- if fields is not None and "@" in node.value: fail contains_at_field if field else contains_at_line, field. But node.value could be non-string? For ScalarNode, value is always str? In PyYAML, scalar node value is str, tag indicates type. So ok.
+- expected = scalar_fields.get(path)
+- if node.tag == _YAML_FLOAT:
+    number = yaml.safe_load(f"!!float {json.dumps(node.value, ensure_ascii=False)}")
+    if not isfinite(number): fail non_finite...
+Potential bug: json.dumps(node.value) for string like '1e999' returns '"1e999"'. yaml.safe_load('!!float "1e999"')? Does that parse? PyYAML float resolver? With explicit !!float, it may construct float from string. For 'nan', 'inf'? node.tag float could be .nan, .inf? PyYAML SafeLoader resolves .nan to float tag with value '.nan'. json.dumps('.nan') -> '".nan"'. yaml.safe_load('!!float ".nan"')? Does explicit !!float with quoted string parse? It may call construct_yaml_float which uses float(value), but if value is '.nan', float('.nan')? ValueError? Let's check: PyYAML's float resolver pattern includes .nan, .inf. construct_yaml_float: if value == 'null': return None; try: return float(value); except ValueError: raise ConstructorError. float('.nan')? In Python, float('.nan')? Actually float('nan') works, but float('.nan')? Let's recall: Python float accepts 'nan', 'inf', but not '.nan'? I think float('.nan') raises ValueError. PyYAML may have special handling? construct_yaml_float: if value == 'null': None; else: try: return float(value); except ValueError: raise ConstructorError. So '.nan' would raise ConstructorError? But yaml.safe_load with explicit !!float '.nan' maybe resolves? Wait explicit tag !!float with scalar value .nan: constructor receives value '.nan'. It may not special-case. But PyYAML's SafeLoader has yaml_implicit_resolvers for float; explicit tag uses constructor. I think construct_yaml_float handles '.nan'? Let's check memory: PyYAML constructor.py:
+def construct_yaml_float(self, node):
+    value = self.construct_scalar(node)
+    if value == 'null':
+        return None
+    else:
+        try:
+            return float(value)
+        except ValueError:
+            raise ConstructorError(None, None, "float value not allowed", node.start_mark)
+No special .nan. But float('.nan')? Let's test mentally: Python's float from string uses PyOS_string_to_double; accepts 'nan', 'inf', maybe leading/trailing whitespace. Does it accept '.nan'? I think no, because 'nan' is a keyword, not a number. But PyYAML's resolver pattern for float includes `[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?` and `[-+]?(\.inf|\.Inf|\.INF)` and `(\.nan|\.NaN|\.NAN)`. The resolver matches .nan. But constructor float('.nan')? Maybe Python float does accept '.nan'? Let's check: In Python, float('nan') works. float('.nan')? I have used float('.nan')? I think it raises ValueError: could not convert string to float: '.nan'. Actually maybe CPython's string_to_double recognizes 'nan' only if entire string is 'nan' or 'inf' case-insensitive, not with dot. So .nan fails. But PyYAML must handle .nan somehow. Wait maybe construct_yaml_float has:
+if value in ('.nan', '.NaN', '.NAN'): return float('nan')
+I need recall. Let's search memory: PyYAML constructor.py:
+def construct_yaml_float(self, node):
+    value = self.construct_scalar(node)
+    if value == 'null':
+        return None
+    else:
+        try:
+            return float(value)
+        except ValueError:
+            raise ConstructorError(None, None, "float value not allowed", node.start_mark)
+Maybe they changed to handle .nan? I recall in PyYAML, yaml.safe_load('.nan') returns nan. So constructor must handle. How? Maybe float('.nan') actually works? Let's verify: Python docs: float accepts strings 'nan', 'inf'. It may accept leading dot? No, float('.1') works. float('.nan') maybe the tokenizer sees '.' then 'nan'? It might not. I can recall trying float('.nan')? I think ValueError. But maybe PyYAML's resolver for .nan returns tag float and value '.nan', and constructor uses float(value) which would fail, so safe_load('.nan') would fail? But I know yaml.safe_load('.nan') returns nan in PyYAML? Let's check memory: In Python, yaml.safe_load('.nan') -> nan. Yes. So constructor must handle or float('.nan') works. Let's not rely.
+
+But line 144: number = yaml.safe_load(f"!!float {json.dumps(node.value, ensure_ascii=False)}")
+Why do this? node.value is string representation from compose. For float tag, value could be '1e999'? Actually compose doesn't construct, just resolves tag. The scalar value is the original string. To check finite, they re-parse as YAML float. But if node.value is a string like '1.0', json.dumps gives '"1.0"', so text is '!!float "1.0"'. Does PyYAML accept explicit float tag with quoted scalar? It should, explicit tag overrides style. But if value contains special characters? ensure_ascii escapes. ok.
+Potential bug: For float values that are too large like 1e999, yaml.safe_load('!!float "1e999"') returns inf? Python float('1e999') returns inf? Actually float('1e999') returns inf? It may raise OverflowError? In Python, float('1e999') returns inf? Let's recall: float('1e999') -> inf? I think it returns inf, no OverflowError? Actually float('1e309') returns inf. float('1e999') returns inf. So isfinite false, fail. Good.
+But for value '1e400', same. For 'inf' tag float? node.value 'inf'? json.dumps('"inf"'), yaml.safe_load('!!float "inf"') returns inf, fail. Good.
+But if yaml.safe_load raises ConstructorError for malformed float? It is caught by parse_yaml's ConstructorError? This is inside _check_yaml called before safe_load. It raises yaml.constructor.ConstructorError, caught at line 190 -> invalid_yaml_document. ok. But if it raises ValueError? caught line 195. ok.
+Potential bug: json.dumps(node.value, ensure_ascii=False) for a string that is not valid JSON string? json.dumps always valid. But if node.value contains control chars? json.dumps escapes. ok.
+
+- elif strict_scalars:
+    pattern = _INPUT_SCALAR_SPELLINGS.get(node.tag)
+    if node.tag == _YAML_TEXT and expected == "integer": fail invalid_integer...
+    if pattern is not None and not pattern.fullmatch(node.value):
+       if node.tag == _YAML_INTEGER: fail invalid_integer...
+       fail invalid_scalar...
+    if node.tag == _YAML_TIMESTAMP or (expected == "date" and DATE.fullmatch(node.value)):
+       try date.fromisoformat(node.value) except ValueError fail invalid_scalar...
+    if expected == "quoted" and node.tag == _YAML_TEXT and node.style not in ("'", '"'): fail money_not_quoted...
+
+Need inspect _INPUT_SCALAR_SPELLINGS:
+_YAML_INTEGER: re.compile(r"0|[1-9][0-9]*")
+bool: true|false IGNORECASE
+null: null|~| (empty) IGNORECASE
+timestamp: DATE (from validation)
+No float pattern. So strict scalars: for float tag, pattern None, skip pattern. But then date check? node.tag float not timestamp, expected date maybe? If expected date and float value? DATE.fullmatch(node.value) maybe false. ok.
+For integer tag, pattern fullmatch. But YAML int can be negative, octal, hex, base? The pattern only decimal non-negative. If strict_scalars true, a negative integer like -1 with tag int fails invalid_integer. Is that intended? Maybe inputs.yaml costs can be negative? Honest figures? Maybe not. But if rule files allow negative? Need know. The comment? None. Could be bug/unhandled-input if inputs.yaml contains negative integer (e.g. cost -100) and strict_scalars true? It would reject. But is negative integer a valid input? The code's plain intent? _INPUT_SCALAR_SPELLINGS integer pattern excludes negative, plus sign, leading zeros. It might be intentionally only non-negative. But is that a fault? We need not report style/features. If inputs.yaml can have negative costs? Maybe not. But "supplied costs" could be negative? Discounts? Maybe. But not concrete.
+
+For null pattern r"null|~|" with IGNORECASE. It matches empty string, null, NULL, ~. But YAML null scalar can be empty, ~, null, Null, NULL. ok. But what about node.value '' and tag null? pattern fullmatch '' ok.
+For bool pattern true|false ignorecase. YAML bool can be True, False, TRUE, FALSE, true, false. Also maybe 'on'/'off' in YAML 1.1? SafeLoader? PyYAML bool resolver includes y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE? Actually PyYAML SafeLoader bool resolver: `^(?:y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE)$`? I think PyYAML's bool resolver includes yes/no? Let's recall: PyYAML 1.1? The SafeLoader resolves bool with pattern `^(?:y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE)$`? I think yes, PyYAML includes yes/no as bool? Actually PyYAML's resolver for bool:
+Resolver.add_implicit_resolver(
+    'tag:yaml.org,2002:bool',
+    re.compile(r'''^(?:yes|Yes|YES|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)$''', re.X),
+    list('yYnNtTfFoO'))
+Maybe. If so, a scalar 'yes' has tag bool, pattern true|false fails -> invalid_scalar. But is that unhandled-input? YAML accepts 'yes' as bool, but code rejects. Could be intended to require explicit true/false. But if inputs.yaml uses yes/no (common), it crashes with InputError, not crash? It's a controlled error. But "unhandled-input: input the code accepts ... leads to crash, traceback, or silently wrong result." It doesn't crash; it raises InputError, which is handled? The code accepts YAML that PyYAML accepts but rejects with error. Is that a fault? It might be intended strict scalars to reject YAML 1.1 bool spellings? But no comment. Could be unhandled-input if inputs.yaml can contain yes/no. But we don't know schema. It's a parsing validation. The code plainly intends to accept only true/false? Pattern says so. Not a bug.
+
+For timestamp: pattern = DATE. DATE from validation unknown. If node.tag timestamp and DATE.fullmatch fails? It fails invalid_scalar. Then date check: if node.tag timestamp or (expected date and DATE.fullmatch): date.fromisoformat. If DATE pattern maybe allows dates like 2024-02-30? date.fromisoformat catches. ok.
+But line 155-161: if node.tag == _YAML_TIMESTAMP or (expected == "date" and DATE.fullmatch(node.value)): try date.fromisoformat. For expected == "date" and node.tag is text with DATE pattern, ok. For node.tag timestamp, ok. For expected == "date" and node.tag int? DATE.fullmatch maybe false. ok.
+Potential bug: If expected == "date" and node.value is a valid date but node.tag is not text? E.g. unquoted 2024-01-01 becomes timestamp tag. ok. If quoted '2024-01-01' text, DATE fullmatch true, date.fromisoformat ok. ok.
+
+- if expected == "quoted" and node.tag == _YAML_TEXT and node.style not in ("'", '"'): fail money_not_quoted_field.
+Potential bug: node.style can be None (plain), single, double, literal, folded. For quoted, ok. But if expected quoted and value is a non-text scalar? e.g. number 100 -> no fail? But expected quoted probably for money strings; number should fail? It doesn't. But maybe scalar_fields expected quoted only for text. Could be unhandled-input: inputs.yaml money as number (100) with expected quoted: code doesn't fail, treats as number, maybe silently wrong? Let's examine. expected = scalar_fields.get(path). If expected == "quoted", and node.tag == _YAML_TEXT and style not quoted -> fail. If node.tag is int/float, no fail. But if the field is supposed to be quoted money, a number like 100 would pass. Is that a bug? The code's intent from error money_not_quoted_field: money must be quoted. It only checks if scalar is text and unquoted. If user writes 100 (int), it's not quoted, but not text, so no error. That could be a fault. But is it "plainly intends"? The condition specifically checks node.tag == _YAML_TEXT. Maybe because only text can be quoted; numbers are inherently unquoted and should be rejected? The error name money_not_quoted_field suggests any money value must be quoted, including numeric? But maybe money is always a string in inputs.yaml, e.g. "100.00". If user writes 100, YAML tag int; code would not reject. Could lead to silently wrong result downstream if expects string? But we don't see downstream. This file's parsing returns yaml.safe_load(text); if expected quoted but int, it returns int. If downstream expects str, may crash or wrong. But this function's purpose is validation; it fails to enforce quoted for numeric. Is that concrete? Need know scalar_fields "quoted" semantics. The code comment? None. Error code money_not_quoted_field. It plainly intends to require quoted money. It misses unquoted numeric money. Could report as bug/unhandled-input. Confidence medium? Let's hold.
+
+parse_yaml:
+- if not allow_aliases: scan tokens for AliasToken, AnchorToken raise yaml_anchors. But scan can raise errors; caught.
+- node = yaml.compose(text, Loader=yaml.SafeLoader)
+- if node is not None: _check_yaml(...)
+- return yaml.safe_load(text)
+Potential bug: It composes and safe_loads twice. If text has anchors, compose may create shared nodes; safe_load constructs. ok.
+Potential bug: For empty text, node None, safe_load returns None. ok.
+Potential bug: allow_aliases default True. _check_yaml rejects cycles but allows shared nodes. However, it also rejects any node encountered twice? We saw shared non-cycle ok. But what about a node shared as both ancestor and descendant? cycle fail. ok.
+Potential bug: checked[node] = False at start; for leaf scalar, set True. For mapping, after visiting children, set True. If a node is referenced again while still being visited (cycle) fail. If a node is referenced after completed, ok. Good.
+Potential bug: For MappingNode with duplicate keys, it fails after adding? It checks if name in keys before keys.add. ok. But if duplicate key is unknown and allowed is not None, it sets unknown first? Let's see: first unknown key: member None, name not in keys, keys.add, allowed not None and member None -> unknown=key, continue. Duplicate unknown key: name in keys -> fail duplicate_key (member None) before unknown check. So duplicate unknown reported duplicate_key, not unknown_field. ok.
+Potential bug: For unknown fields, it does not visit their values. That means a value with @ or invalid scalar under unknown field is not checked, but the document is rejected due unknown_field anyway. ok.
+Potential bug: For allowed fields, if name contains @, fail contains_at_line. But if field contains @ from parent? parent would fail. ok.
+Potential bug: For scalar, if fields is not None and "@" in node.value: fail contains_at_field if field else contains_at_line. But if node is a key? Keys checked separately. ok.
+Privacy: This rejects @ in YAML scalar values and JSON. But what about person names? It doesn't. Could be principle.
+
+Potential bug: _has_at_sign for JSON: It checks dict keys and values, list values. But it does not check if value is a dict key? It does. It does not check if value is a tuple? json no. It raises InputError inside try; except (ValueError, RecursionError) may catch if InputError is ValueError. Again.
+
+Potential bug: parse_json: _has_at_sign(data) after json.loads. If data is a string with @, raises. But if data is a list/dict with @ in keys/values. ok. But if data is a float? no.
+Potential bug: parse_json's finite_float as parse_float and parse_constant. parse_constant is called for 'NaN', 'Infinity', '-Infinity'. finite_float(literal) calls float(literal). For '-Infinity', float returns -inf, not finite, raises InputError. Good. But parse_float is called for any float literal, including '1e999'? In Python json, parse_float is called with the string literal; float('1e999') returns inf? It may not raise, isfinite false, raises. Good. But if float literal is too large, float may raise OverflowError? Actually float('1e999') returns inf, no OverflowError? Let's check: Python float('1e999') returns inf? I think yes. If it raises OverflowError, parse_json doesn't catch OverflowError (only ValueError, RecursionError). It would traceback. Is float('1e999') OverflowError? Let's recall: float('1e309') returns inf? In Python, float('1e309') -> inf. float('1e400') -> inf. I think no exception. But maybe for extremely long digit string, float can raise OverflowError? Example float('1e9999999999999999999999')? It may raise OverflowError? Let's check CPython: PyOS_string_to_double for exponent too large may set ERANGE and return inf? It may raise OverflowError? I know float('1e309') returns inf. For huge exponent string, maybe OverflowError: int too large to convert to float? Actually int('1'*10000) then float can OverflowError. But float('1e999999999')? I think returns inf. Need not.
+
+Potential bug: parse_json catches RecursionError for deep nesting. But json.loads may raise RecursionError; ok. But object_pairs and _has_at_sign can raise RecursionError for deep structures; caught? _has_at_sign after json.loads inside try? Yes _has_at_sign inside try, RecursionError caught. ok.
+
+Potential bug: read_text: if path is Path and stat size > MAX, raise. Then open read MAX+1. For Path, stat may race, but ok. For Traversable, no stat, read. But path.open("rb") for Traversable may not accept mode? Traversable.open(mode='r')? It supports 'rb'? I think yes. If not, AttributeError not caught -> traceback. But importlib Traversable.open signature open(mode='r', buffering=-1) maybe supports 'rb'. ok.
+
+Potential bug: read_text except (OSError, ValueError) catches InputError? as above. Also catches UnicodeDecodeError? UnicodeDecodeError subclass ValueError, but earlier except UnicodeDecodeError catches. ok.
+
+Potential bug: In read_text, if path.is_dir() is True, raises InputError. But for a Path to a directory, path.stat() would also be directory; but is_dir catches. For a broken symlink? is_dir false, stat raises FileNotFoundError? Actually Path.stat follows symlink; if broken, FileNotFoundError caught. ok.
+
+Potential bug: In parse_yaml, line 188: line = len(re.split(r"\r\n|[\r\n\x85\u2028\u2029]", text[: error.position]))
+This computes line number from error.position. If error.position is beyond len? ReaderError position likely int. re.split returns list; len gives number of lines? For text before position, if position at start, split('') -> [''] len 1. If text before ends with newline, e.g. '\n' -> ['', ''] len 2, line 2. Good. But if error.position is 0 and text empty? len([''])=1. ok.
+But ReaderError may have problem_mark? It catches separately? ReaderError is MarkedYAMLError? Actually yaml.reader.ReaderError is subclass of MarkedYAMLError? It has problem_mark? Maybe. But they catch ReaderError before MarkedYAMLError to compute line from position. ok.
+Potential bug: error.position may not be character index? In PyYAML ReaderError, position is int. ok.
+
+Potential bug: In parse_yaml, except yaml.constructor.ConstructorError: raise InputError("invalid_yaml_document") from None. But ConstructorError may be raised by yaml.safe_load for tags like binary? SafeLoader doesn't support binary? It may raise ConstructorError for unknown tag? ok.
+Potential bug: except yaml.MarkedYAMLError: line = error.problem_mark.line + 1. If problem_mark is None? MarkedYAMLError may have problem_mark None? For some errors, problem_mark could be None. Then AttributeError. Is that possible? PyYAML errors usually have marks. But maybe ComposerError for duplicate anchor? problem_mark? Could be None? Need consider. If error.problem_mark is None, line 193 crashes. Is that unhandled-input? Maybe. But PyYAML MarkedYAMLError always has problem_mark? The class __init__ sets context, context_mark, problem, problem_mark. Some errors may pass None. E.g. ScannerError? problem_mark maybe token start mark. Could be None? Not sure. We can't guess.
+
+Potential bug: _check_yaml scalar float check uses yaml.safe_load inside. If node.value is a string that is a valid YAML float but contains an @? It would have failed earlier if fields is not None. If fields is None, @ not checked. But parse_yaml may be used for rule files? If fields None, no @ check. Principle privacy? Rule files local, maybe not collected data. But scan.json uses parse_json with @ check. inputs.yaml uses parse_yaml with fields? likely. Rule files maybe parse_yaml without fields? If rule file contains @? Not collected. ok.
+
+Potential bug: _check_yaml with fields not None checks @ in scalar values. But if fields is None, no @ check. parse_yaml default fields None. If used to parse scan.json? No, scan.json uses parse_json. If used to parse inputs.yaml, likely fields provided. If used to parse rule files, maybe no @ check, but rule files are local judgement, not collected data. ok.
+
+Potential bug: _check_yaml MappingNode: if fields is not None and "@" in name: fail contains_at_line. But if name is not a string? key.value is string. ok.
+
+Potential bug: _check_yaml: For mapping keys, it requires key.tag == _YAML_TEXT. But YAML allows quoted string keys with tag text. ok. It rejects keys that are numbers/bools. Good. But what about a key that is a string but has an anchor? e.g. &anchor key: value. Key scalar node tag text, ok. Anchor token not rejected if allow_aliases True. The node may be shared? If key node anchored and alias later? Key alias? YAML key can be alias? e.g. *anchor: value. Compose key node maybe same as anchored scalar. visit root mapping: key node is ScalarNode (shared). It is not in checked yet? It may have been visited as value earlier? If

@@ -1,0 +1,42 @@
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 965-1001
+kind: contradicts-comment
+claim: The “no Teams” SKU lists Teams-related service plans as bundled.
+evidence: " 965    # Microsoft 365 E5 EEA (no Teams)"
+"1000        - MCOEV"
+"1001        - MCOMEETADV"
+why: The comment says this SKU has no Teams, but MCOEV and MCOMEETADV are Microsoft Teams service plans, so the rule file contradicts its own label and can make a no-Teams licence look like it includes Teams.
+confidence: high
+
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 1049-1085
+kind: contradicts-comment
+claim: The “no Teams” HUB SKU lists Teams-related service plans as bundled.
+evidence: "1049    # Microsoft 365 E5 EEA (no Teams) (500 seats min)_HUB"
+"1084        - MCOEV"
+"1085        - MCOMEETADV"
+why: The comment says this SKU has no Teams, but MCOEV and MCOMEETADV are Microsoft Teams service plans, so the rule file contradicts its own label and can make a no-Teams licence look like it includes Teams.
+confidence: high
+
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 1135-1162
+kind: contradicts-comment
+claim: The “no Teams” E5 SKU lists a Teams-related service plan as bundled.
+evidence: "1135    # Office 365 E5 EEA (no Teams) without Audio Conferencing"
+"1162        - MCOEV"
+why: The comment says this SKU has no Teams, but MCOEV is a Microsoft Teams service plan, so the rule file contradicts its own label and can make a no-Teams licence look like it includes Teams.
+confidence: high
+
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 1324-1352
+kind: contradicts-comment
+claim: The “no Teams” E5 SKU lists Teams-related service plans as bundled.
+evidence: "1324    # Office 365 E5 EEA (no Teams)"
+"1351        - MCOEV"
+"1352        - MCOMEETADV"
+why: The comment says this SKU has no Teams, but MCOEV and MCOMEETADV are Microsoft Teams service plans, so the rule file contradicts its own label and can make a no-Teams licence look like it includes Teams.
+confidence: high

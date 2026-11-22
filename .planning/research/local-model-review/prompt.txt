@@ -1,0 +1,33 @@
+You are reviewing one part of the source code of Fazit, a free command-line tool written in Python. Fazit reads an organisation's Microsoft 365 evidence (a scan.json file and an inputs.yaml file of answers and costs) and writes one offline HTML report on what moving off Microsoft 365 would take. Rule files in YAML hold the judgement: status rules, mappings, findings, risky file types and licence service plans.
+
+The project's principles, copied from DECISIONS.md:
+
+{principles}
+
+Your task: find concrete faults in the code below. Report only:
+
+1. bug: code that gives a wrong result, crashes, or does something other than what it plainly intends.
+2. unhandled-input: an input the code accepts (from scan.json, inputs.yaml, a rule file, the command line or the file system) that leads to a crash, a traceback, or a silently wrong result.
+3. contradicts-comment: behaviour that differs from what a comment or docstring in the same code says.
+4. contradicts-principle: behaviour that breaks one of the principles above. Pay special attention to: anything that writes or sends data off the computer, a missing value being treated as zero or as good news, a skipped or unknown input making a status look better, and any figure that is invented rather than supplied or measured.
+
+Do not report style, naming, missing type hints, missing tests, performance, or suggestions for new features. Do not report something you would need to guess about; you only see this part of the program, so if a fault depends on code you cannot see, say so in "confidence". Quote the exact line or lines.
+
+The code has line numbers at the start of each line. Use them.
+
+Answer in exactly this format, one block per finding, and nothing else:
+
+FINDING
+file: <path>
+line: <line number or range>
+kind: <bug | unhandled-input | contradicts-comment | contradicts-principle>
+claim: <one sentence: what is wrong>
+evidence: <the exact quoted line or lines>
+why: <one to three sentences: the input or situation that triggers it and what goes wrong>
+confidence: <high | medium | low>
+
+If you find no faults, answer exactly: NO FINDINGS
+
+File: {path}{part}
+
+{code}

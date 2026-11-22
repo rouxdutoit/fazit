@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/rules/service_plans.yaml
+line: 2
+kind: contradicts-principle
+claim: The file records a Microsoft Learn URL as the source for the roster, which conflicts with the offline/no-external-resources principle if that reference is fetched or embedded rather than merely cited.
+evidence: "reference_url: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference"
+why: The principles require live collection to contact only the Microsoft sign-in and Graph endpoints and require the offline report to omit external resources; an external licensing-reference URL in the rule file is only safe if it is never contacted or copied into the report, which cannot be verified from this file alone.
+confidence: low

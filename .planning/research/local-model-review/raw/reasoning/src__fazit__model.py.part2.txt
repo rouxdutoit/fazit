@@ -1,0 +1,343 @@
+We need answer user's request: review code part 2 of 2 lines 343-528, find concrete faults. Need output exact format or NO FINDINGS. Need analyze deeply. We only see this part, but can infer some functions not shown? Need be careful: report only faults that are concrete in code. Need quote exact lines. Need identify bugs/unhandled input/contradicts comment/principle.
+
+Let's inspect code.
+
+We have class _ScanReader? Methods check_evidence, check_finding_dates, findings, check_subsets, service_plan, product, licences, scan, load_scan_text, load_scan.
+
+Need know context? Part 1 not shown but can infer. Need not guess about unseen code? If fault depends on unseen code, say confidence. But can identify obvious.
+
+Line 344 check_evidence:
+```
+def check_evidence(self, row, field, provenance, collector):
+    if provenance == "unknown":
+        required, empty = ("missing_reason",), ("value",)
+    elif provenance == "provided":
+        required, empty = ("value", "source"), ("collector", "coverage", "missing_reason")
+    else:
+        if collector is None or collector.status == "skipped":
+            self.check.fail(f"{field}.collector", "invalid_collector")
+        required = ("value", "source", "collected_at", "coverage")
+        empty = ("missing_reason",)
+    for name in required:
+        if row[name] is None:
+            self.check.fail(f"{field}.{name}", "missing_field")
+    for name in empty:
+        if row[name] is not None:
+            self.check.fail(f"{field}.{name}")
+```
+Potential bug: if provenance is unknown, row may not have keys? It assumes row has all names. If row missing key, KeyError. But maybe check.rows/fields ensures? Need know. Could be unhandled input if row is dict missing keys. But check_evidence called after fields? Not in this part. It might be called on evidence rows where fields are checked? We don't see. If row is from self.fields? likely all keys present with None if missing. Need not guess.
+
+Potential principle: if collector skipped, for live provenance it fails invalid_collector. Good. But if provenance unknown? no collector required. If provided, collector empty. OK.
+
+Line 363 check_finding_dates:
+```
+if (collected_at := finding.collected_at) is None: return
+if finding.period is not None and finding.period[-10:] > collected_at[:10]: fail period_after_collection
+if _timestamp_after(collected_at, generated_at): fail collection_after_scan
+```
+Potential bug: period[-10:] > collected_at[:10] compares last 10 chars of period with first 10 chars of collected_at. Need know formats. If period is ISO date range? Maybe period[-10:] is end date? collected_at[:10] date. If period is like "2024-01-01/2024-01-31" then last 10 date. OK. If period can be shorter? Could crash? period[-10:] safe. If collected_at None handled. If collected_at shorter than 10? _timestamp_after maybe validates. But if collected_at invalid? timestamp method likely ensures. Could be OK.
+
+Line 371 findings:
+```
+for index, item in enumerate(self.check.rows(value, "findings", allow_empty=True)):
+    field = f"findings[{index}]"
+    if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+        self.check.fail(f"{field}.id")
+    finding_id = item["id"]
+    if finding_id in seen: ...
+    seen.add(finding_id)
+    entry = self.catalogue.finding(finding_id)
+    if entry is None: self.dropped_count += 1
+    else: finding = self.finding(item, field, entry, collectors); ...
+```
+Potential bug: If item not dict or id not str, it calls fail but then continues to `finding_id = item["id"]`. If item not dict -> AttributeError. If id not str but item dict with id maybe int, then item["id"] exists but not str; it continues, uses non-str id in seen and catalogue.finding? Could be TypeError? It should return/skip. This is concrete: line 379-381. It fails but doesn't stop, then line 381 `finding_id = item["id"]` crashes if item not dict. Also if id missing? item.get id None, then item["id"] KeyError. This is unhandled-input/bug. Need quote lines 379-381. Since check.fail presumably records but doesn't raise? It likely doesn't stop. So crash. This is strong.
+
+Line 382 duplicate: if finding_id not str? If item id not str but present, seen.add works if hashable; if list unhashable crash. But main.
+
+Potential bug: `seen.add(finding_id)` after duplicate check, but if item invalid and fail, still add? line 384 after 381. If id invalid but hashable, add. If duplicate invalid? not issue.
+
+Line 385 entry None: dropped_count +=1. Does this silently drop unknown finding IDs? Principle? Honest figures? Missing evidence unknown? But unknown finding id from rule file? If scan references unknown finding id, dropping it may make status look better? But maybe catalogue has all findings; scan can include extra? Dropping unknown findings could be OK? Need examine. It increments dropped_count. But if scan has finding id not in catalogue, it's dropped, not failed. Could be unhandled-input? It accepts unknown id and silently drops (with count). Is that wrong? The code plainly intends to drop unknown entries? `if entry is None: self.dropped_count += 1` suggests intended. Not report.
+
+Line 397 check_subsets:
+```
+by_id = {finding.id: finding for finding in findings}
+for related, subset, field in subsets:
+    population = by_id.get(related)
+    coverage = subset.coverage
+    total = coverage.total if coverage else None
+    bounds = [coverage.scanned, total] if coverage else []
+    if (
+        population is not None
+        and type(population.value) is int
+        and subset.source == population.source
+        and subset.period == population.period
+        and (
+            subset.period is not None
+            or same_collection_time(subset.collected_at, population.collected_at)
+        )
+    ):
+        exact = population.coverage is None or population.coverage.kind == "complete"
+        if total is not None and (
+            total < population.value or (exact and total > population.value)
+        ):
+            fail coverage_total_conflict
+        if exact:
+            bounds.append(population.value)
+    if type(subset.value) is int and any(bound is not None and subset.value > bound for bound in bounds):
+        fail subset_count_exceeds_population
+```
+Need understand semantics. subset.coverage.scanned? If coverage is not None, bounds include scanned and total. If coverage None, bounds empty. If population exact (coverage None or complete), append population.value. Then subset.value > bound fails. Potential issue: If coverage.scanned is None, bound None ignored. If total None ignored. OK.
+
+Potential bug: `bounds = [coverage.scanned, total] if coverage else []` uses coverage.scanned maybe not int? Could be None. OK.
+
+Potential bug: If population is not None but population.value not int, no bounds. If subset.value int and coverage total? bounds from coverage still applied. OK.
+
+Potential issue: `same_collection_time(subset.collected_at, population.collected_at)` only called if subset.period is None. If subset.period is not None, it does not check collection time. But condition also requires subset.period == population.period. If period not None, maybe OK. If period None, require same collection time. OK.
+
+Potential issue: if population.coverage.kind == "complete" but total > population.value fails. If population coverage None, exact True, but no total conflict. OK.
+
+Line 430 service_plan:
+```
+row = self.fields(value, field, _SERVICE_PLAN_FIELDS)
+name, guid = row["name"], row["guid"]
+return ServicePlan(
+    None if name is None else self.check.matches(name, f"{field}.name", IDENTIFIER),
+    None if guid is None else self.check.guid(guid, f"{field}.guid"),
+)
+```
+Potential unhandled input: if name not None but not string? check.matches maybe expects str? Could crash? Need know. If guid not None but not string? check.guid maybe. Not enough.
+
+Line 438 product:
+```
+row = self.fields(value, field, _PRODUCT_REQUIRED, _PRODUCT_OPTIONAL)
+raw_guid = row.get("sku_guid")
+sku_guid = None if raw_guid is None else self.check.guid(raw_guid, ...)
+sku_part_number = row.get("sku_part_number")
+if sku_part_number is not None and not self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid): fail
+plan_list = row.get("service_plans")
+plans = [] if plan_list is None else self.check.rows(plan_list, ..., allow_empty=True)
+return Product(
+ sku_part_number=sku_part_number,
+ sku_guid=sku_guid,
+ purchased=self.check.count(row["purchased"], ...),
+ assigned=self.check.count(row["assigned"], ...),
+ service_plans=tuple(...)
+)
+```
+Potential bug: If plan_list is not None but not list, check.rows probably fails? It may return []? Need unseen. If it returns [] maybe no crash. If check.rows raises? likely not.
+
+Potential issue: `sku_part_number` not validated as string? If not None and not accepted, fail. But if sku_part_number is not str, `accepts_sku_part_number` may crash? Could be unhandled. But maybe fields validate types? _PRODUCT_OPTIONAL? Not shown.
+
+Line 464 licences:
+```
+if value is None: return None
+row = self.fields(value, "licences", _LICENCE_FIELDS)
+collector = self.check.choice(row["collector"], "licences.collector", ("licences",))
+if collector not in collectors or collectors[collector].status == "skipped": fail invalid_collector
+source = self.check.choice(row["source"], "licences.source", self.catalogue.licence_sources)
+products = []
+parts: set[str] = set()
+guids: set[str] = set()
+for index, item in enumerate(self.check.rows(row["products"], "licences.products", allow_empty=True)):
+    field = ...
+    product = self.product(item, field)
+    part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
+    for name, identity, seen in (("sku_part_number", part_number, parts), ("sku_guid", guid, guids)):
+        if identity and identity in seen: fail duplicate_id
+        seen.add(identity)
+    products.append(product)
+licences = Licences(... collected_at=self.timestamp(row["collected_at"], ...), coverage=..., products=...)
+licences.check_coverage(self.check.file_name)
+return licences
+```
+Potential bug: `collector = self.check.choice(row["collector"], "licences.collector", ("licences",))` only allows collector "licences". If row collector is None? check.choice may return None? Then `collector not in collectors` true fail. OK.
+
+Potential bug: duplicate detection: `part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")`. If both empty, identity empty, not duplicate, seen.add("") adds empty. Then subsequent empty identities: `if identity and identity in seen` false because identity empty. OK. But adding empty to sets not harmful. However if a product has part_number empty and guid empty, it adds "" to both parts and guids. Then if later product has part_number ""? no duplicate. OK.
+
+Potential issue: If product.sku_part_number is not None but invalid type, `or ""` may produce invalid type? If sku_part_number is e.g. 0, `0 or ""` -> ""? If 0 is falsy, loses identity. But sku_part_number should string. If guid is 0? not.
+
+Potential bug: `seen.add(identity)` adds empty string; if identity is unhashable? sku_key probably returns strings. OK.
+
+Line 496 `licences.check_coverage(self.check.file_name)` - method likely checks coverage? Not shown. Could be principle? Not.
+
+Line 499 scan:
+```
+if not isinstance(value, dict): self.check.fail("", "invalid_field_document")
+version = self.schema_version(value.get("schema_version"))
+row = self.fields(value, "", _SCAN_FIELDS)
+collectors = self.collectors(row["collectors"])
+generated_at = self.timestamp(row["generated_at"], "generated_at")
+scan = Scan(...)
+if scan.source_kind != "sample" and scan.is_sample: fail sample_source_conflict
+if scan.licences and _timestamp_after(scan.licences.collected_at, generated_at): fail collection_after_scan
+return scan
+```
+Potential bug: If value not dict, fails but continues to `value.get` -> AttributeError. Concrete unhandled-input/bug. Lines 500-502. It should return? But scan expects dict. If top-level JSON not dict, crash. This is similar to findings. Strong.
+
+Potential bug: If `row["collectors"]` missing? fields likely returns None? self.collectors(None) maybe handles. Not shown.
+
+Potential bug: `if scan.licences and _timestamp_after(scan.licences.collected_at, generated_at)` if collected_at None? Licences.collected_at from timestamp maybe None if missing? timestamp likely returns None if None. `_timestamp_after(None, generated_at)` maybe crash? Need unseen. But if collected_at missing, timestamp may fail and return None. Then _timestamp_after with None? Could be bug. But maybe timestamp ensures non-None? Required field? Not sure.
+
+Line 523 load_scan_text:
+```
+return _ScanReader(file_name, catalogue).scan(parse_json(text, file_name))
+```
+Potential unhandled-input: parse_json may return non-dict, scan handles? But scan crashes if not dict as above. If parse_json returns None? scan value None not dict -> fail then crash. OK.
+
+Line 527 load_scan:
+```
+return load_scan_text(read_text(path), path.name, catalogue)
+```
+Potential unhandled-input: read_text may raise if file not readable? That's expected? Not report.
+
+Need identify faults that are concrete. The obvious ones: findings invalid item not dict leads crash; scan top-level not dict leads crash. Also check_evidence row[name] KeyError if missing keys? But likely fields ensures. Need decide.
+
+Need consider principle faults: missing value treated as zero/good? In check_evidence, for provenance unknown, required missing_reason, empty value. If value missing? row[name] is None? If row missing key, crash. If value present but missing_reason missing? fail. OK.
+
+Potential principle: skipped collector never improves readiness. In check_evidence, if provenance live and collector skipped, fail. In licences, if collector skipped, fail. Good.
+
+Potential principle: metadata only? no.
+
+Potential bug: `check_finding_dates`: if finding.period is not None and finding.period[-10:] > collected_at[:10]. If period is a date range string, comparing last 10 chars to collected_at date. But if period is e.g. "2024-01" (6 chars), period[-10:] is whole "2024-01", compare to "2024-01-01" maybe false? Not crash. If period is timestamp? maybe. But not concrete.
+
+Potential bug: `check_finding_dates` uses `collected_at[:10]` but if collected_at is not string? It is from timestamp, likely str or None. OK.
+
+Potential bug: In findings, if item invalid id, it still calls catalogue.finding with invalid id? Actually if item not dict, crash before. If item dict but id not str, line 381 gets non-str, line 382 seen, line 385 catalogue.finding(finding_id). If catalogue.finding expects str, may KeyError/TypeError. But if id is int, maybe works? But fail already. The plain intent is to reject invalid id and not process. It doesn't. Strong.
+
+Potential bug: In scan, if value not dict, same. Strong.
+
+Potential bug: In check_subsets, `bounds = [coverage.scanned, total] if coverage else []`. If coverage.scanned is not int but e.g. None, ok. But if coverage.scanned is a float? `subset.value > bound` works. If bound is string? crash? coverage likely validated.
+
+Potential bug: In check_subsets, if population exact and total > population.value fails. But if population.coverage is None, exact True. If total is not None and total > population.value, fails. Is that intended? If population has no coverage (exact?), total from subset greater than population value conflict. OK.
+
+Potential bug: In check_subsets, condition for applying population bound: `subset.source == population.source and subset.period == population.period and (subset.period is not None or same_collection_time(...))`. If subset.period is not None, it does not require same collection time. But if periods equal maybe OK. If subset.period is None and population.period is None, requires same collection time. OK.
+
+Potential bug: If population.value is bool? `type(population.value) is int` excludes bool. Good.
+
+Potential bug: If subset.value is bool, type is bool not int, no fail. But counts should int. If bool True is 1 but not checked. Could be unhandled? But check.count likely returns int? Not shown. If value True, maybe accepted as int? But type check excludes bool. Could be wrong if bool should be invalid. But not concrete.
+
+Potential bug: In product, `purchased=self.check.count(row["purchased"], ...)` and assigned. If row missing key? fields returns None? count(None) maybe returns None? OK.
+
+Potential bug: In product, `sku_part_number` can be non-None but not string; `self.catalogue.accepts_sku_part_number(sku_part_number, sku_guid)` may crash. But if fields validates type? Not shown. Could be unhandled input. Need decide if report. The code plainly: if sku_part_number is not None, passes to catalogue. If input has number, maybe accepts? Could crash. But depends on unseen accepts method. We can say confidence medium? But task says if fault depends on code you cannot see, say confidence. We can report unhandled-input if likely. But need concrete? It accepts from scan.json. If sku_part_number is e.g. 123, `or ""` later? Actually in licences: `product.sku_part_number or ""`, if int 123, sku_key(123, guid) maybe? sku_key unseen. Could crash. But product returns sku_part_number as given. Maybe Catalogue accepts only str? Not shown. We shouldn't guess.
+
+Potential bug: In licences duplicate detection: `part_number, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")`. If product.sku_part_number is None, uses "". If product.sku_part_number is 0, uses "" (falsy). But part numbers likely strings. If product.sku_guid is None uses "". If both empty, adds "". If product has sku_part_number empty string and another product has sku_part_number empty string, no duplicate because identity false. Is that intended? Empty identity not duplicate. OK.
+
+Potential bug: `seen.add(identity)` adds empty string, then if later identity empty? no duplicate. OK.
+
+Potential bug: In licences, `collector = self.check.choice(row["collector"], "licences.collector", ("licences",))`. If row["collector"] is None, choice may fail and return None. Then `collector not in collectors` true, fail invalid_collector. OK. If row["collector"] is "licences" but collectors dict doesn't contain it, fail. OK.
+
+Potential principle: In scan, if `value` not dict, it calls fail but continues and crashes. That's bug/unhandled.
+
+Potential principle: In findings, if `item` not dict, crash. unhandled-input.
+
+Need maybe identify `check_evidence` line 357 `if row[name] is None` can KeyError if row missing key. But likely row from fields with all keys. Let's infer from other methods: `self.fields(value, field, _SERVICE_PLAN_FIELDS)` probably returns dict with all required/optional keys, None if missing. `check.rows` returns list of rows? For evidence, maybe `check_evidence` called on row from `self.fields`? If so no KeyError. We don't see call. But line 357 uses row[name] not row.get. If row is dict missing key due to bug, crash. But plain intent? It might be called after fields that guarantees keys. Not report.
+
+Potential contradicts-comment? No comments/docstrings in this part except none. There are no comments. So none.
+
+Potential contradicts-principle: "A skipped or denied collector never improves readiness." In check_evidence, if provenance is "unknown", no collector needed. If evidence is unknown, missing_reason required. OK. If provenance "provided", collector must be empty. OK. If provenance live, collector skipped fails. OK.
+
+Potential principle: "Show missing evidence as unknown." In check_evidence, if provenance unknown and value present, fail. OK.
+
+Potential principle: "Use supplied costs and clearly labelled example amounts." Not here.
+
+Potential principle: "Exclude collected person names and email addresses." Not here.
+
+Potential bug: `findings` uses `self.check.rows(value, "findings", allow_empty=True)`. If value is None, allow_empty True likely returns []? OK. If value not list, check.rows maybe fail and returns []? Not shown. If it returns something not iterable? likely not.
+
+Potential bug: In `findings`, if `item` is dict but `id` missing, line 379 fail, line 381 KeyError. Strong.
+
+Potential bug: In `scan`, if `value` not dict, line 500 fail, line 502 `value.get` AttributeError. Strong.
+
+Potential bug: In `scan`, if `value` is dict but `schema_version` missing? schema_version handles. OK.
+
+Potential bug: In `scan`, after `self.check.fail("", "invalid_field_document")`, it continues. If value is e.g. list, crash. If value is string, crash. unhandled-input.
+
+Potential bug: In `findings`, after invalid id, if item is dict with id not str but hashable, it may not crash but passes invalid id to catalogue. Could produce wrong result. But crash is enough.
+
+Need consider if `self.check.fail` might raise? In many validators, fail records and maybe continues. If fail raises, then no crash? But likely not; code uses fail then continues in other places (e.g. check_evidence loops). It probably doesn't raise. We can assume. If fail raises, then invalid item would stop, but then line 381 not reached. But the code's pattern suggests fail is non-raising. Is that a guess? We see `self.check.fail` used and then code continues (e.g. line 353 then required, line 416 then if exact). It may be non-raising. So high.
+
+Need maybe report line 379-381 as unhandled-input. Claim: invalid finding item causes crash because after failing invalid id it still indexes item["id"]. Evidence exact lines. Why: scan.json with findings list containing non-dict or missing id triggers AttributeError/KeyError. Confidence high.
+
+Line 500-502: top-level scan not dict crashes. Evidence. Why: scan.json root array/string triggers AttributeError. Confidence high.
+
+Any other concrete? Let's scrutinize `check_subsets` for logical bug.
+
+The purpose: check subset counts don't exceed population. `bounds` initialized to coverage.scanned and total if coverage exists. If coverage doesn't exist, no bounds. If population exact, append population.value. But if population is not exact (coverage kind not complete), no population bound. However if subset.coverage.total exists, total bound applies regardless of population. If total < population.value or exact and total > population.value fail. Then if subset.value > total fail. OK.
+
+But if population is not exact (coverage kind partial) and total is None, no bounds, subset.value can exceed population.value. Is that intended? If population coverage not complete, population.value maybe scanned count? If subset from same source/period, can subset exceed population scanned? Maybe if population value is not total? Not sure.
+
+Potential bug: `bounds = [coverage.scanned, total] if coverage else []` uses subset.coverage.scanned. If coverage.scanned is less than subset.value? fail. OK.
+
+Potential bug: If `coverage.scanned` is None and `total` is None, bounds [None,None]; any ignores. OK.
+
+Potential bug: If population.coverage.kind == "complete" but population.coverage.total is None? exact True. If subset.coverage.total is not None and total > population.value fail. OK.
+
+Potential bug: If population.value is negative? counts should nonnegative. Not.
+
+Potential bug: In `check_subsets`, `population = by_id.get(related)`. If related id not found, no subset checks. But `subsets` only from entries with coverage_total_from. If related finding unknown/dropped, population None. OK.
+
+Potential bug: In `findings`, `subsets.append((entry.coverage_total_from, finding, field))`. If entry.coverage_total_from is empty string? `if entry.coverage_total_from:` false. OK.
+
+Potential bug: In `check_finding_dates`, `finding.period[-10:] > collected_at[:10]`. If period is e.g. "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z", last 10? "00:00:00Z" length 10? Actually last 10 chars of full string maybe "00:00:00Z"? Compare to date "2024-01-02" false? Could be wrong. But need know period format. Maybe period is "start/end" with dates, last 10 date. If period includes time, last 10 not date. But maybe period is date range only. Not concrete.
+
+Potential bug: In `check_finding_dates`, if `collected_at` is shorter than 10, collected_at[:10] whole. OK.
+
+Potential bug: In `check_evidence`, for provenance "unknown", empty = ("value",). If row value is None, OK. If row value is 0 (false but not None), fail? It requires value empty (None). If value 0 might be valid? But unknown evidence should not have value. OK.
+
+Potential bug: In `check_evidence`, for provenance "provided", required source, empty collector/coverage/missing_reason. If source is None fail. OK.
+
+Potential bug: In `check_evidence`, for live, if collector is None or skipped fail. But if collector.status is "denied"? Principle says skipped or denied collector never improves readiness. It only fails skipped, not denied. Wait! Important. Principle 8: "A skipped or denied collector never improves readiness." In check_evidence, line 352: `if collector is None or collector.status == "skipped":` It does not fail if status == "denied". In licences line 469: `if collector not in collectors or collectors[collector].status == "skipped":` also only skipped, not denied. Is "denied" a possible collector status? The principle mentions denied. The code accepts denied collector and treats evidence as valid if value etc present? That could make status look better. This is a contradicts-principle likely. Need check if collector.status can be "denied". The principle explicitly says skipped or denied. The code only checks skipped. If scan.json has collector status "denied", and evidence live has value/source/collected_at/coverage, check_evidence will not fail invalid_collector. That contradicts principle. Also licences. This is concrete if Collector.status enum includes denied. We don't see Collector definition, but principle says denied. The code plainly only handles skipped. Could be a fault. Need report? It depends on unseen Collector status possible values. But principle says denied collector; likely status can be "denied". The code does not treat denied as invalid. That's a principle contradiction. Confidence medium/high? We can say medium because we don't see Collector statuses, but principle explicitly names denied. The code comment? none. The task says pay special attention to skipped or unknown input making status look better. This is exactly. Need include.
+
+Line 352: `if collector is None or collector.status == "skipped":` missing denied. Line 469: `if collector not in collectors or collectors[collector].status == "skipped":` missing denied. Which one to report? Both. Could be one finding each. Need decide if same fault? Separate lines. Report both? The format one block per finding. Could report line 352 and line 469. But if Collector.status doesn't include denied, no. But principle says denied. The code likely has statuses: ok, skipped, denied? In Microsoft 365 scan, collector can be denied. So yes.
+
+Potential bug: In check_evidence, if collector is None for live, fail. If collector status denied, no fail. Then evidence may be considered present. That's wrong.
+
+Potential principle: "A skipped or denied collector never improves readiness." In `licences`, if collector denied, it fails? No, only skipped. It will parse licences and maybe status good. Wrong.
+
+Need maybe also in `check_evidence`, if collector.status is "unknown"? Principle says unknown input making status look better. If status unknown, code treats as not skipped, valid. Could be wrong. But principle says skipped or denied, not unknown. But "unknown input making status look better" maybe. However collector status likely known set. If unknown status, code accepts. Could be unhandled-input. But not concrete unless status can be unknown. The principle says "A skipped or denied collector never improves readiness." It doesn't say unknown collector status. But "a skipped or unknown input making a status look better" in task. If scan.json has collector.status "unknown", code accepts. But is "unknown" a valid status? Maybe not. Need not guess.
+
+Potential bug: In `scan`, `if scan.licences and _timestamp_after(scan.licences.collected_at, generated_at)`: if scan.licences.collected_at is None, _timestamp_after may crash or return? Not shown. But if collected_at missing, timestamp may fail and return None. Then _timestamp_after(None, generated_at) maybe TypeError. Could be unhandled-input. But maybe timestamp required and returns non-None? It might fail but continue with None. Let's inspect pattern: `self.timestamp(row["collected_at"], "licences.collected_at")` likely returns str or None. If missing, fails missing_field and returns None. Then line 518 calls _timestamp_after(None, generated_at). If _timestamp_after assumes str, crash. Is that concrete? Depends on _timestamp_after. But likely it compares ISO strings; None would crash. Could report unhandled-input with medium confidence. But we need only see this part. The line itself passes possibly None. But is collected_at required? In licences fields, _LICENCE_FIELDS likely required includes collected_at? If required, timestamp may still return None if invalid? It might fail and return None. But if required missing, it returns None. Then crash. However maybe timestamp returns a sentinel? Not shown. Need be cautious.
+
+Similarly check_finding_dates handles collected_at None by return. But scan line 518 does not. If licences.collected_at None, potential crash. But if collected_at missing, it already failed; but still may crash. This is a bug: missing collected_at can crash instead of just fail. But depends on _timestamp_after. We can say medium. But maybe _timestamp_after handles None? Not visible. The name suggests compare timestamps, maybe if either None returns False? Could be. We shouldn't guess. If we report, confidence low/medium. The task: if fault depends on code you cannot see, say confidence. We can include with medium? Need decide if worth.
+
+Potential bug: In `check_finding_dates`, if `finding.collected_at` is None return, so no crash. In scan, no None check. Could be intentional if timestamp ensures non-None? But if missing, maybe no licences? If collected_at None, scan.licences truthy, then _timestamp_after. If _timestamp_after not None-safe, crash. But maybe `timestamp` for required field never returns None? It might raise? It uses check.fail and returns None? Common. Not sure.
+
+Potential bug: In `scan`, `if scan.source_kind != "sample" and scan.is_sample:`. `scan.is_sample` maybe property that checks findings? If source_kind invalid? choice returns None if invalid? Then scan.source_kind None != sample and is_sample maybe? OK.
+
+Potential bug: In `scan`, if `value` not dict, fail then crash. Already.
+
+Potential bug: In `findings`, if `item` invalid, fail then crash. Already.
+
+Potential bug: In `findings`, if `item` is dict but id is not str, line 381 gets id. If id is e.g. list, line 382 `finding_id in seen` TypeError unhashable. Crash. If id is int, no crash maybe but catalogue.finding may fail. But the invalid id path should skip. We can mention non-dict or missing/non-string id. Evidence lines 379-381.
+
+Potential bug: In `findings`, after `self.check.fail(f"{field}.id")`, it doesn't guard. If id missing, KeyError. If item not dict, AttributeError. Good.
+
+Potential bug: In `scan`, after fail invalid_field_document, doesn't guard. If value not dict, AttributeError. Good.
+
+Potential bug: In `check_evidence`, if `collector.status == "skipped"` but collector is None? It checks None first. OK.
+
+Potential bug: In `check_evidence`, if provenance is not "unknown" or "provided" but collector is None, fail. If provenance invalid? It treats as live. Could be unhandled-input: scan.json evidence provenance "foo" with collector None fails invalid_collector; if collector exists, it requires live fields. Maybe intended? Provenance should be enum. Not report.
+
+Potential bug: In `check_evidence`, if provenance "unknown" and row missing "value" key, KeyError. But likely fields.
+
+Potential bug: In `check_evidence`, if provenance "provided" and row missing "collector" key, KeyError. But likely fields.
+
+Need maybe identify `check_evidence` missing denied as principle. Also `licences` missing denied. Could there be other places where skipped/denied collector should fail? `findings` passes collectors to finding; check_evidence handles. `licences` handles. Good.
+
+Potential principle: "Live collection may contact only login... graph..." Not in code.
+
+Potential principle: "Offline report" not.
+
+Potential bug: In `product`, `sku_part_number` is not validated as identifier; if not accepted, fail. But it still returns product with invalid sku_part_number. That's OK for validation.
+
+Potential bug: In `product`, if `plan_list` is not None but not list, `self.check.rows` may fail and return []? If it returns [] then no crash. If it raises, unhandled. Not visible.
+
+Potential bug: In `licences`, `collector = self.check.choice(row["collector"], "licences.collector", ("licences",))`. If row["collector"] is a list, choice may fail and return None? Then fail invalid_collector. OK.
+
+Potential bug: In `licences`, duplicate detection uses `sku_key(product.sku_part_number or "", product.sku_guid or "")`. If product.sku_part_number is None and product.sku_guid is None, part_number and guid maybe? sku_key unseen. If both empty, maybe returns ("", ""). It adds empty. OK.
+
+Potential bug: In `licences`, if product.sku_part_number is not None but product.sku_guid is None, and another product has sku_part_number None but sku_guid same? Duplicate by guid? `sku_key(part_number, guid)` maybe returns normalized? If part_number empty, guid maybe. It checks identity in seen. OK.
+
+Potential bug: In `licences`, if product.sku_part_number is 0 (falsy), `or ""` treats as empty, missing duplicate. But part number 0 unlikely.
+
+Potential bug: In `licences`, `seen.add(identity)` adds empty strings, but if identity is empty

@@ -1,0 +1,245 @@
+We need answer user's request. Need review code part of service_plans.yaml lines 125-499. Need find concrete faults only categories. We need analyze YAML data. Need identify bugs/unhandled-input/contradicts-comment/contradicts-principle. Since it's YAML data, possible faults: duplicate GUIDs? missing workload? inconsistent? We only see part 2 of 5, lines 125-499. Need quote exact lines. Need not guess. Need likely planted faults in this data. Let's inspect carefully.
+
+We have list of service plans (probably from line before 125) with name, guid, workload. Then products list mapping sku to add_on/bundled/no_workload. Need find concrete faults. We need compare names/guids? Could be duplicate service plan names/guids? Let's list from 125-165.
+125 PROJECT_O365_F3 guid 7f6f28c2...
+126 PROJECT_O365_P1 a55dfd10...
+127 PROJECT_O365_P2 31b4e2fc...
+128 PROJECT_O365_P3 b21a6b06...
+129 PROJECTWORKMANAGEMENT b737dad2...
+130 PURVIEW_DISCOVERY c948ea65...
+131 RECORDS_MANAGEMENT 65cc641f...
+132 RMS_S_BASIC 31cf2cfc...
+133 RMS_S_ENTERPRISE bea4c11e...
+134 RMS_S_PREMIUM 6c57d4b6...
+135 RMS_S_PREMIUM2 5689bec4...
+136 SAFEDOCS bf6f5520...
+137 SHAREPOINTDESKLESS 902b47e5...
+138 SHAREPOINTENTERPRISE 5dbe027f...
+139 SHAREPOINTENTERPRISE_MIDMARKET 6b5b6a67...
+140 SHAREPOINTSTANDARD c7699d2e...
+141 SHAREPOINTWAC e95bec33...
+142 STREAM_O365_E1 743dd19e...
+143 STREAM_O365_E3 9e700747...
+144 STREAM_O365_E5 6c6042f5...
+145 STREAM_O365_K 3ffba0d2...
+146 STREAM_O365_SMB 3c53ea51...
+147 SWAY a23b959c...
+148 TEAMS1 57ff2da0...
+149 TEAMS_DESKLESS a42de799...
+150 THREAT_INTELLIGENCE 8e0c0a52...
+151 UNIVERSAL_PRINT_01 795f6fe0...
+152 VIVA_LEARNING_SEEDED b76fb638...
+153 VIVAENGAGE_CORE a82fbf69...
+154 WHITEBOARD_FIRSTLINE1 36b29273...
+155 WHITEBOARD_PLAN1 b8afc642...
+156 WHITEBOARD_PLAN2 94a54592...
+157 WHITEBOARD_PLAN3 4a51bca5...
+158 WIN10_ENT_LOC_F1 e041597c...
+159 WIN10_PRO_ENT_SUB 21b439ba...
+160 WINBIZ 8e229017...
+161 WINDEFATP 871d91ec...
+162 Windows_Autopatch 9a6eeb79...
+163 WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE 7bf960f6...
+164 YAMMER_ENTERPRISE 7547a3fe...
+165 YAMMER_MIDSIZE 41bf139a...
+
+Need maybe product bundled references service plan names not defined in visible part? But part 1 may define earlier. Can't report if depends unseen. Need concrete within this part? Could be duplicate SKU GUIDs? Check products:
+168 AAD_PREMIUM guid 078d2b04...
+178 AAD_PREMIUM_P2 guid 84a661c4...
+189 BUSINESS_VOICE guid e5a17adf...
+197 BUSINESS_VOICE_DIRECTROUTING guid d52db95a...
+204 BUSINESS_VOICE_DIRECTROUTING_MED guid 8330dae3...
+211 BUSINESS_VOICE_MED2 guid a6051f20...
+219 BUSINESS_VOICE_MED2_TELCO guid 08d7bce8...
+226 ENTERPRISEPACK guid 6fd2c87f...
+268 ENTERPRISEPREMIUM guid c7df2760...
+330 EXCHANGEARCHIVE guid 90b5e015...
+335 FLOW_PER_USER guid 4a51bf65...
+344 INTUNE_A guid 061f9ace...
+349 INTUNE_A_D guid 2b317a4a...
+356 MCOEV guid e43b5b99...
+361 MCOMEETADV guid 0c266dff...
+366 MCOPSTN1 guid 0dab259f...
+371 MCOPSTN2 guid d3b4fe1f...
+378 MCOTEAMS_ESSENTIALS guid ae2343d1...
+384 Microsoft_365_Business_Basic_EEA_(no_Teams) guid b1f3042b...
+417 Microsoft_365_Business_Standard_EEA_(no_Teams) guid ffa3a2a0...
+454 Microsoft_365_E3_EEA_(no_Teams)_Unattended_License guid a23dbafb...
+No obvious duplicate.
+
+Potential issue: product comments mismatch? e.g. line 188 comment "Microsoft 365 Business Voice (UK" but sku BUSINESS_VOICE maybe not UK? Could be just comment. But contradicts-comment if behavior differs? This is data comment not code. Maybe planted comment says something false? Need consider.
+
+Maybe a product has add_on referencing a service plan that is not in service_plans list? But we only see part 2, part 1 may include many. Can't report unseen. However if reference to a name that is not in visible service plan list and likely not in part 1? We cannot know. But maybe a name is misspelled relative to service plan list: e.g. product bundled includes "Content_Explorer" line 277 and "ContentExplorer_Standard" line 278. Service plan list visible doesn't include ContentExplorer_Standard or Content_Explorer. Could be in part 1. Not report.
+
+Potential bug: In products, some items have add_on list including service plan names that are not in service plans? But again.
+
+Potential bug: In ENTERPRISEPREMIUM bundled includes "MCOEV" and "MCOMEETADV" (Teams Phone and Audio Conferencing) but not MCOPSTN1? E5 often includes calling? Actually E5 includes MCOEV and MCOMEETADV, not PSTN. OK.
+
+Potential bug: BUSINESS_VOICE_MED2_TELCO comment says "Microsoft 365 Business Voice (US)" but add_on only MCOPSTN1, no MCOEV. The comment says Business Voice (US) but product is without Teams Phone? Could be intended? Need not guess.
+
+Potential bug: "BUSINESS_VOICE_DIRECTROUTING_MED" comment line 203 says "Microsoft 365 Business Voice (without Calling Plan) for US" but add_on only MCOEV, bundled MCOMEETADV. OK.
+
+Maybe planted fault: product "BUSINESS_VOICE_MED2_TELCO" add_on MCOPSTN1 but missing MCOEV; if it's TELCO maybe should include MCOEV? But not plainly intended? Hard.
+
+Need focus on faults visible: YAML syntax? It seems valid. But maybe duplicate service plan GUID? Check visible: all unique? Let's compare. PROJECT_O365_F3 7f6f...; P1 a55d...; P2 31b4...; P3 b21a...; PROJECTWORKMANAGEMENT b737...; PURVIEW c948...; RECORDS 65cc...; RMS basic 31cf...; RMS ent bea4...; RMS premium 6c57...; RMS premium2 5689...; SAFEDOCS bf6f...; SharePointDeskless 902b...; SharePointEnt 5dbe...; MidMarket 6b5b...; Standard c769...; WAC e95b...; Stream E1 743d...; E3 9e70...; E5 6c60...; K 3ff...; SMB 3c53...; SWAY a23b...; TEAMS1 57ff...; TEAMS_DESKLESS a42d...; THREAT 8e0c...; UNIVERSAL 795f...; VIVA_LEARNING b76f...; VIVAENGAGE a82f...; WHITEBOARD FIRSTLINE 36b2...; PLAN1 b8af...; PLAN2 94a5...; PLAN3 4a51...; WIN10 ENT LOC F1 e041...; WIN10 PRO ENT SUB 21b4...; WINBIZ 8e22...; WINDEFATP 871d...; Windows Autopatch 9a6e...; WUFB 7bf9...; YAMMER_ENT 7547...; YAMMER_MIDSIZE 41bf...
+No duplicate.
+
+Maybe a service plan name appears in products but not in service plan list within same file? Could be a typo: product ENTERPRISEPACK bundled includes "MESH_AVATARS_ADDITIONAL_FOR_TEAMS", "MESH_AVATARS_FOR_TEAMS", "MESH_IMMERSIVE_FOR_TEAMS". Are these service plan names? Not visible. Could be in part 1. Not report.
+
+Maybe "no_workload" lists names not service plans? no_workload likely workloads, not service plan names? It lists "Bing_Chat_Enterprise", "Deskless", "KAIZALA_O365_P3", etc. Some are service plan names? KAIZALA_O365_P3 probably service plan. "Deskless" is workload? In service plans, TEAMS_DESKLESS workload teams, SHAREPOINTDESKLESS workload sharepoint. But no_workload: Deskless (capital D) maybe workload name. OK.
+
+Potential principle contradictions: This is data file, no network. Missing value? Not here.
+
+Maybe line 141: SHAREPOINTWAC workload office_files, but SharePoint WAC is online editing, maybe should be sharepoint? Could be misclassification? But not plainly bug? The rule file holds judgement; if workload wrong could affect report. But need concrete. Could be planted: SHAREPOINTWAC should be sharepoint not office_files? Let's think. In Microsoft, SharePointWAC is SharePoint Online, part of SharePoint. Workload categories in Fazit? We don't know. It might be office_files? WAC = Word Access? Actually SharePointWAC is SharePoint Online (formerly WAC). Workload likely sharepoint. If classified office_files, could misreport. But is that a concrete fault? Need not guess. Could be intended.
+
+Maybe line 137 SHAREPOINTDESKLESS workload sharepoint. OK.
+
+Maybe line 162 Windows_Autopatch has lowercase Windows, while others uppercase. Could cause case-sensitive lookup? If code expects uppercase? But name is actual service plan name? Microsoft service plan names often Windows_Autopatch? Could be. Not bug unless code case-sensitive. We cannot see.
+
+Potential duplicate SKU part number? None visible.
+
+Maybe product "Microsoft_365_Business_Standard_EEA_(no_Teams)" bundled includes OFFICE_BUSINESS but not OFFICESUBSCRIPTION. OK. It includes FLOW_O365_P1 and POWERAPPS_O365_P1 (P1) while other is P2? Business Standard maybe should have P2? Let's compare Business Basic vs Standard:
+Basic EEA (no Teams) bundled:
+BPOS_S_TODO_1, CDS_O365_P1, DYN365_CDS_O365_P1, EXCHANGE_S_STANDARD, FLOW_O365_P1, FORMS_PLAN_E1, INTUNE_O365, MCOSTANDARD, MICROSOFTBOOKINGS, OFFICEMOBILE_SUBSCRIPTION, POWER_VIRTUAL_AGENTS_O365_P1, POWERAPPS_O365_P1, PROJECT_O365_P1, PROJECTWORKMANAGEMENT, RMS_S_BASIC, SHAREPOINTSTANDARD, SHAREPOINTWAC, STREAM_O365_SMB, SWAY, VIVA_LEARNING_SEEDED, VIVAENGAGE_CORE, WHITEBOARD_PLAN1, YAMMER_ENTERPRISE.
+Standard EEA (no Teams) bundled:
+BPOS_S_TODO_1, CDS_O365_P2, CLIPCHAMP, DYN365_CDS_O365_P2, EXCHANGE_S_STANDARD, FLOW_O365_P1, FORMS_PLAN_E1, INTUNE_O365, MCOSTANDARD, MICROSOFTBOOKINGS, OFFICE_BUSINESS, POWER_VIRTUAL_AGENTS_O365_P2, POWERAPPS_O365_P1, PROJECT_O365_P2, PROJECTWORKMANAGEMENT, RMS_S_BASIC, SHAREPOINTSTANDARD, SHAREPOINTWAC, STREAM_O365_SMB, SWAY, VIVA_LEARNING_SEEDED, VIVAENGAGE_CORE, WHITEBOARD_PLAN1, YAMMER_ENTERPRISE.
+It has mix P1/P2: FLOW_O365_P1 and POWERAPPS_O365_P1 while CDS/PowerVirtual/Project P2. Is that wrong? Microsoft Business Standard includes Power Apps P2? Maybe yes, Flow P2? Actually Business Standard includes Power Apps P2 and Power Automate P2? But maybe not. Could be planted inconsistency? But no comment says. Hard.
+
+Maybe product "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License" bundled includes both INTUNE_A and INTUNE_O365, plus MDE_LITE, WIN10_PRO_ENT_SUB, Windows_Autopatch, WUFB. E3 unattended includes Intune? OK.
+
+Potential bug: product "ENTERPRISEPACK" (Office 365 E3) bundled includes "ATP_ENTERPRISE" but E3 does not include ATP? Actually E3 includes Defender for Office? It includes ATP? Maybe yes? E3 includes Microsoft Defender for Office 365? It may. E5 includes. OK.
+
+Potential bug: product "ENTERPRISEPACK" no_workload includes "KAIZALA_O365_P3" but E3 should have KAIZALA_O365_P2? It's no_workload, meaning not included? If E3 includes Kaizala P2? Hmm.
+
+Need infer from file purpose: service plans list names/guids/workload. products list SKUs with add_on, bundled, no_workload. The report likely maps assigned SKUs to workloads. Faults could be:
+- A service plan GUID is wrong (not matching known GUID). We can compare known Microsoft service plan GUIDs? Maybe one is wrong. Need find. We can use knowledge? Let's check some known GUIDs:
+PROJECT_O365_F3 guid? I don't know.
+PROJECT_O365_P1 a55dfd10-0864-46d9-a3cd-da5991a3e0e2 maybe.
+PROJECT_O365_P2 31b4e2fc-4cd6-4e7d-9c1b-41407303bd66 maybe.
+PROJECT_O365_P3 b21a6b06-1988-436e-a07b-51ec6d9f52ad maybe.
+PROJECTWORKMANAGEMENT b737dad2-2f6c-4c65-90e3-ca563267e8b9 maybe.
+PURVIEW_DISCOVERY c948ea65-2053-4a5a-8a62-9eaaaf11b522 maybe.
+RECORDS_MANAGEMENT 65cc641f-cccd-4643-97e0-a17e3045e541 maybe.
+RMS_S_BASIC 31cf2cfc-6b0d-4adc-a336-88b724ed8122 maybe.
+RMS_S_ENTERPRISE bea4c11e-220a-4e6d-8eb8-8ea15d019f90 maybe.
+RMS_S_PREMIUM 6c57d4b6-3b23-47a5-9bc9-69f17b4947b3 maybe.
+RMS_S_PREMIUM2 5689bec4-755d-4753-8b61-40975025187c maybe.
+SAFEDOCS bf6f5520-59e3-4f82-974b-7dbbc4fd27c7 maybe.
+SHAREPOINTDESKLESS 902b47e5-dcb2-4fdc-858b-c63a90a2bdb9 maybe.
+SHAREPOINTENTERPRISE 5dbe027f-2339-4123-9542-606e4d348a72 maybe.
+SHAREPOINTENTERPRISE_MIDMARKET 6b5b6a67-fc72-4a1f-a2b5-beecf05de761 maybe.
+SHAREPOINTSTANDARD c7699d2e-19aa-44de-8edf-1736da088ca1 maybe.
+SHAREPOINTWAC e95bec33-7c88-4a70-8e19-b10bd9d0c014 maybe.
+STREAM_O365_E1 743dd19e-1ce3-4c62-a3ad-49ba8f63a2f6 maybe.
+STREAM_O365_E3 9e700747-8b1d-45e5-ab8d-ef187ceec156 maybe.
+STREAM_O365_E5 6c6042f5-6f01-4d67-b8c1-eb99d36eed3e maybe.
+STREAM_O365_K 3ffba0d2-38e5-4d5e-8ec0-98f2b05c09d9 maybe.
+STREAM_O365_SMB 3c53ea51-d578-46fa-a4c0-fd0a92809a60 maybe.
+SWAY a23b959c-7ce8-4e57-9140-b90eb88a9e97 maybe.
+TEAMS1 57ff2da0-773e-42df-b2af-ffb7a2317929 maybe.
+TEAMS_DESKLESS a42de799-58ae-4e6a-aa1d-948e7abec726 maybe.
+THREAT_INTELLIGENCE 8e0c0a52-6a6c-4d40-8370-dd62790dcd70 maybe.
+UNIVERSAL_PRINT_01 795f6fe0-cc4d-4773-b050-5dde4dc704c9 maybe.
+VIVA_LEARNING_SEEDED b76fb638-6ba6-402a-b9f9-83d28acb3d86 maybe.
+VIVAENGAGE_CORE a82fbf69-b4d7-49f4-83a6-915b2cf354f4 maybe.
+WHITEBOARD_FIRSTLINE1 36b29273-c6d0-477a-aca6-6fbe24f538e3 maybe.
+WHITEBOARD_PLAN1 b8afc642-032e-4de5-8c0a-507a7bba7e5d maybe.
+WHITEBOARD_PLAN2 94a54592-cd8b-425e-87c6-97868b000b91 maybe.
+WHITEBOARD_PLAN3 4a51bca5-1eff-43f5-878c-177680f191af maybe.
+WIN10_ENT_LOC_F1 e041597c-9c7f-4ed9-99b0-2663301576f7 maybe.
+WIN10_PRO_ENT_SUB 21b439ba-a0ca-424f-a6cc-52f954a5b111 maybe.
+WINBIZ 8e229017-d77b-43d5-9305-903395523b99 maybe.
+WINDEFATP 871d91ec-ec1a-452b-a83f-bd76c7d770ef maybe.
+Windows_Autopatch 9a6eeb79-0b4b-4bf0-9808-39d99a2cd5a3 maybe.
+WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE 7bf960f6-2cd9-443a-8046-5dbff9558365 maybe.
+YAMMER_ENTERPRISE 7547a3fe-08ee-4ccb-b430-5077c5041653 maybe.
+YAMMER_MIDSIZE 41bf139a-4e60-409f-9346-a1361efc6dfb maybe.
+These likely all correct.
+
+Maybe product GUIDs wrong? Known SKU GUIDs:
+AAD_PREMIUM 078d2b04-f1bd-4111-bbd4-b4b1b354cef4 correct? I think AAD Premium P1 SKU GUID is 078d2b04-f1bd-4111-bbd4-b4b1b354cef4 yes.
+AAD_PREMIUM_P2 84a661c4-e949-4bd2-a560-ed7766fcaf2b correct? likely.
+BUSINESS_VOICE e5a17adf-8f0d-4b57-bc14-d331235f9307? maybe.
+BUSINESS_VOICE_DIRECTROUTING d52db95a-5ecb-46b6-beb0-190ab5cda4a8? maybe.
+BUSINESS_VOICE_DIRECTROUTING_MED 8330dae3-d349-44f7-9cad-1b23c64baabe? maybe.
+BUSINESS_VOICE_MED2 a6051f20-9cbc-47d2-930d-419183bf6cf1? maybe.
+BUSINESS_VOICE_MED2_TELCO 08d7bce8-6e16-490e-89db-1d508e5e9609? maybe.
+ENTERPRISEPACK 6fd2c87f-b296-42f0-b197-1e91e994b900 correct (Office 365 E3).
+ENTERPRISEPREMIUM c7df2760-2c81-4ef7-b578-5b5392b571df correct (E5).
+EXCHANGEARCHIVE 90b5e015-709a-4b8b-b08e-3200f994494c maybe.
+FLOW_PER_USER 4a51bf65-409c-4a91-b845-1121b571cc9d maybe.
+INTUNE_A 061f9ace-7d42-4136-88ac-31dc755f143f correct.
+INTUNE_A_D 2b317a4a-77a6-4188-9437-b68a77b4e2c6 maybe.
+MCOEV e43b5b99-8dfb-405f-9987-dc307f34bcbd correct? Teams Phone Standard SKU GUID e43b5b99-8dfb-405f-9987-dc307f34bcbd yes.
+MCOMEETADV 0c266dff-15dd-4b49-8397-2bb16070ed52 correct? Audio Conferencing.
+MCOPSTN1 0dab259f-bf13-4952-b7f8-7db8f131b28d correct? Calling Plan Domestic.
+MCOPSTN2 d3b4fe1f-9992-4930-8acb-ca6ec609365e correct? International.
+MCOTEAMS_ESSENTIALS ae2343d1-0999-43f6-ae18-d816516f6e78 correct? Teams Phone with Calling Plan.
+Microsoft_365_Business_Basic_EEA_(no_Teams) b1f3042b-a390-4b56-ab61-b88e7e767a97 maybe.
+Microsoft_365_Business_Standard_EEA_(no_Teams) ffa3a2a0-3820-462a-aa81-8a4d741f0cba maybe.
+Microsoft_365_E3_EEA_(no_Teams)_Unattended_License a23dbafb-3396-48b3-ad9c-a304fe206043 maybe.
+Probably correct.
+
+Maybe there is a duplicate service plan name in products? no.
+
+Could be a YAML unquoted SKU part number with parentheses? Lines 384, 417, 454 are quoted. Good.
+
+Maybe line 188 comment is broken: "# Microsoft 365 Business Voice (UK" missing closing parenthesis. Not a code fault? It's a comment, not behavior. Not report.
+
+Maybe product "BUSINESS_VOICE_MED2_TELCO" add_on only MCOPSTN1, but as a product SKU, it should itself be an add-on? It has no add_on for MCOEV. If it's "Teams Phone with Calling Plan" maybe should include MCOEV and MCOPSTN1. But comment says Business Voice (US), maybe includes calling plan only? Need not.
+
+Maybe product "MCOTEAMS_ESSENTIALS" comment "Teams Phone with Calling Plan" add_on MCOEV + MCOPSTN1, no bundled MCOMEETADV. OK.
+
+Potential bug: In products, "add_on" lists service plan names. For a SKU that is itself a service plan, add_on should include the service plan name? E.g. MCOEV product has add_on MCOEV. But BUSINESS_VOICE product add_on MCOEV and MCOPSTN1, not BUSINESS_VOICE? Is that intended? The SKU part number BUSINESS_VOICE may not correspond to a service plan name in list? There may be no service plan named BUSINESS_VOICE. It bundles MCOMEETADV. OK.
+
+Potential bug: "INTUNE_A_D" add_on INTUNE_A, no_workload EXCHANGE_S_FOUNDATION. OK.
+
+Potential bug: "EXCHANGEARCHIVE" add_on EXCHANGE_S_ARCHIVE. Is EXCHANGE_S_ARCHIVE a service plan? Not visible. Could be in part 1. OK.
+
+Maybe there are service plan entries with workload values not in allowed set? We don't know allowed set. Could be "small_apps", "security_compliance", "sharepoint", "office_files", "teams", "device_management". All plausible.
+
+Maybe "WINBIZ" workload device_management? Windows Biz? OK.
+
+Need think of planted faults in data: often in these tasks, they insert subtle errors: duplicate GUID, missing field, wrong key (e.g. bundled vs add_on), wrong case, missing hyphen, duplicate SKU, a service plan referenced by product not present. We need find within visible segment. Let's systematically inspect for anomalies.
+
+YAML structure:
+- list of service plans from before line 125 to 165.
+- products: list from 166.
+Each product has sku_part_number, sku_guid, optional add_on, bundled, no_workload.
+Potential malformed: line 168 sku_part_number: "AAD_PREMIUM" quoted, line 178 quoted, line 189 quoted, etc. Some later quoted. OK.
+Potential missing colon? no.
+Potential indentation? consistent 4 spaces for list items under products? Actually line 167 "    # Microsoft Entra ID P1" 4 spaces. line 168 "    - sku_part_number: ..." 4 spaces. Under sku, fields 6 spaces. OK.
+
+Could be a product with duplicate sku_guid? Let's compare all GUIDs again. None visible duplicate. But maybe a service plan GUID duplicates a SKU GUID? Check: service plan GUIDs vs product GUIDs. Product AAD_PREMIUM guid 078d2b04 not in service plans. AAD_PREMIUM_P2 84a661c4 not. BUSINESS_VOICE e5a17adf not. BUSINESS_VOICE_DIRECTROUTING d52db95a not. etc. No.
+
+Could be a service plan name duplicate with product sku_part_number? e.g. MCOEV is both service plan and product. That's intended.
+
+Potential issue: product "AAD_PREMIUM" bundled includes ADALLOM_S_DISCOVERY and MFA_PREMIUM. Is MFA_PREMIUM a service plan? not visible. OK.
+
+Potential issue: product "AAD_PREMIUM_P2" bundled includes AAD_PREMIUM, ADALLOM_S_DISCOVERY, MFA_PREMIUM. But AAD_PREMIUM is a SKU part number, not a service plan? It is also a service plan? In service plans, there may be AAD_PREMIUM? Not visible (part 1 maybe). It also has add_on AAD_PREMIUM_P2. If AAD_PREMIUM is a SKU, bundling a SKU is odd; bundled should list service plan names, not SKU part numbers. But in ENTERPRISEPACK bundled lists service plan names (ATP_ENTERPRISE etc). AAD_PREMIUM is a service plan name? Microsoft service plan name for Entra ID P1 is AAD_PREMIUM? Yes maybe. OK.
+
+Potential issue: product "BUSINESS_VOICE" add_on includes MCOEV and MCOPSTN1, bundled MCOMEETADV. It does not include the service plan for Business Voice? There may be no service plan. OK.
+
+Potential issue: product "BUSINESS_VOICE_MED2_TELCO" add_on only MCOPSTN1, bundled MCOMEETADV. If it's a "Business Voice" product, should include MCOEV? The TELCO variant maybe for telco direct routing? Hmm.
+
+Could be a wrong GUID for a service plan: Let's verify some known GUIDs from memory:
+- TEAMS1 GUID: 57ff2da0-773e-42df-b2af-ffb7a2317929 correct.
+- SHAREPOINTENTERPRISE: 5dbe027f-2339-4123-9542-606e4d348a72 correct.
+- SHAREPOINTSTANDARD: c7699d2e-19aa-44de-8edf-1736da088ca1 correct.
+- EXCHANGE_S_ENTERPRISE maybe in part 1.
+- OFFICESUBSCRIPTION maybe part 1.
+- YAMMER_ENTERPRISE: 7547a3fe-08ee-4ccb-b430-5077c5041653 correct? I think yes.
+- SWAY: a23b959c-7ce8-4e57-9140-b90eb88a9e97 correct.
+- STREAM_O365_E3: 9e700747-8b1d-45e5-ab8d-ef187ceec156 correct.
+- STREAM_O365_E5: 6c6042f5-6f01-4d67-b8c1-eb99d36eed3e correct.
+- STREAM_O365_SMB: 3c53ea51-d578-46fa-a4c0-fd0a92809a60 correct.
+- PROJECT_O365_P2: 31b4e2fc-4cd6-4e7d-9c1b-41407303bd66 correct? maybe.
+- PROJECT_O365_P3: b21a6b06-1988-436e-a07b-51ec6d9f52ad correct? maybe.
+- PROJECTWORKMANAGEMENT: b737dad2-2f6c-4c65-90e3-ca563267e8b9 correct.
+- RMS_S_ENTERPRISE: bea4c11e-220a-4e6d-8eb8-8ea15d019f90 correct.
+- RMS_S_BASIC: 31cf2cfc-6b0d-4adc-a336-88b724ed8122 correct.
+- RECORDS_MANAGEMENT: 65cc641f-cccd-4643-97e0-a17e3045e541 correct.
+- PURVIEW_DISCOVERY: c948ea65-2053-4a5a-8a62-9eaaaf11b522 correct.
+- THREAT_INTELLIGENCE: 8e0c0a52-6a6c-4d40-8370-dd62790dcd70 correct.
+- WINDEFATP: 871d91ec-ec1a-452b-a83f-bd76c7d770ef correct.
+- WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE: 7bf960f

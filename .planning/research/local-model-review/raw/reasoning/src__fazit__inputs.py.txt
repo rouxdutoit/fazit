@@ -1,0 +1,273 @@
+We need answer user's request: review code, find concrete faults. Must output exactly format findings or NO FINDINGS. Need analyze code for bugs, unhandled-input, contradicts-comment, contradicts-principle. Need only this file. Need be careful.
+
+We have code src/fazit/inputs.py. Need identify concrete faults. Let's inspect.
+
+Principles: read-only, local processing, tokens in memory, metadata only, privacy by construction, offline report, one command, honest figures. Inputs file parsing.
+
+Look for bugs.
+
+Line 45: _DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
+Line 46: _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
+Line 125-132 decimal: if value is None return None; if not isinstance(value, str): fail money_not_quoted; return Decimal(self.validator.matches(value, field, pattern)). The pattern _DECIMAL has no fullmatch? Need know validator.matches likely uses pattern.fullmatch? Not visible. But regex _DECIMAL: alternatives: "0" or [1-9][0-9]* or [0-9]+\.[0-9]+. It doesn't anchor? If validator.matches uses fullmatch, okay. But [0-9]+\.[0-9]+ allows leading zeros in decimal part? e.g. 01.2 matches? [0-9]+ includes 01. It also allows 0.0? yes. It does not allow negative (good). It does not limit length. For amounts _AMOUNT limits 15 digits integer part and 1-2 decimals. But _DECIMAL used for training_days_per_person? Actually scenario line 157-159: training_days_per_person=(Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field)). This handles if days is int from YAML? scalar_fields says training_days_per_person is quoted? In scalar_fields for target_costs scenario keys includes (*_SCENARIO_AMOUNTS, "training_days_per_person") as "quoted". So expected quoted string. But code accepts int if non_negative_integer(days), then Decimal(days) directly. If days is bool? non_negative_integer likely checks int? Need not visible. If days is True? non_negative_integer maybe type is int? Unknown. Could be bug? But maybe validation handles.
+
+Line 158: Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field). If days is None, non_negative_integer(None) false, self.decimal(None) returns None. If days is string "1.5", non_negative_integer false, decimal validates with _DECIMAL. If days is int 1, Decimal(1). But scalar_fields says quoted, so unquoted integer may be rejected by parse_yaml before? If strict scalars, maybe integer expected? Actually scalar_fields says "quoted" for training_days_per_person, so unquoted integer likely invalid. But code has fallback maybe for programmatic? Could be not fault.
+
+Line 150: if months is not None and months > 60: fail. Is parallel_running_months max 60? Maybe intentional. Not bug.
+
+Line 140: if currency is None and any(value is not None for value in amounts.values()): fail currency missing. Good.
+
+Line 105 fields: return {} if value is None else self.validator.fields(value, field, (), optional=None). Need see validator.fields signature? It takes (value, field, allowed, optional=None). For top-level row, fields(data, "") with allowed=() optional=None. For nested, allowed=() optional=None? Wait line 106 calls self.validator.fields(value, field, (), optional=None). But parse_yaml already validated field names? Maybe validator.fields checks extra fields? If allowed=() and optional=None, how does it allow known fields? Maybe validator.fields uses field names from parse? Not visible. Could be bug? But likely validator.fields returns dict and validates scalar? Hmm.
+
+Line 120 boolean: if value is not None and type(value) is not bool: fail; return value. If value None returns None. Good.
+
+Line 125 decimal: pattern default _DECIMAL. For amounts, pattern _AMOUNT. If value is str but not matching, validator.matches likely fails. If value is empty string? isinstance str, pattern fullmatch? empty fails. Good.
+
+Potential issue: Decimal(self.validator.matches(...)) if matches returns string; Decimal can parse. But _AMOUNT allows up to 15 digits integer and 2 decimals. Decimal precision? okay.
+
+Line 45 _DECIMAL: [0-9]+\.[0-9]+ allows decimal with no integer digits? No, [0-9]+ before dot. Allows "00.00", "01.2". Is that a bug? It may accept leading zeros. Not necessarily wrong. It also allows "0" only for integer zero, but not "00"? [1-9][0-9]* excludes 00, [0-9]+\.[0-9]+ includes 00.00. Inconsistent but not necessarily wrong. Could be unhandled? Decimal accepts.
+
+Line 152-159: training_days_per_person: if non_negative_integer(days) then Decimal(days), else decimal. But scalar_fields says quoted. If days is a string like "1", non_negative_integer likely false (since not int), decimal with _DECIMAL accepts "1". Good. If days is a float from YAML? parse_yaml strict scalars maybe rejects? If not, non_negative_integer false, decimal not str -> fail money_not_quoted. Good.
+
+Line 242: language, profile, as_of = (row.get(name) for name in (...)). If row missing keys? row is dict; get returns None. okay.
+
+Line 248: check_language(language, file=validator.file_name, field="language") if language not None. If language not str? check_language likely validates. Could crash if not? Need not guess.
+
+Line 251: validator.choice(profile, "target_profile", PROFILES, "unsupported_profile") if profile not None. If profile not str? choice likely handles.
+
+Line 252: as_of=None if as_of is None else validator.calendar_date(as_of, "as_of").isoformat(). scalar_fields says as_of date. If as_of is string? calendar_date likely parses. If date object? maybe. Not visible.
+
+Potential principle: honest figures. amounts_are_invented boolean. If missing treated False? Line 255-256: amounts_are_invented=reader.boolean(...) is True. If missing None -> False. Is missing value treated as zero/good news? For honesty, if amounts are not supplied, maybe amounts_are_invented should be unknown? But principle says show missing evidence as unknown. However amounts_are_invented is a flag about supplied costs? If missing, default False could mean not invented, maybe okay because no amounts? But if amounts present and flag missing, report may show supplied? Actually amounts_are_invented likely indicates whether amounts are invented/example. If missing, default False could be wrong? But inputs.yaml answers and costs; if user supplies costs but forgets amounts_are_invented, code treats as not invented. Is that a missing value treated as good news? Need think. The dataclass default False. The principle: Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. If amounts_are_invented is missing, should it be unknown? But flag is boolean answer. If not supplied, maybe cannot assume false? However many boolean confirmations default None? Here amounts_are_invented and answers_are_sample default False. If missing, false. Could be a fault? But maybe these are not evidence, they are metadata; missing means false by schema? Need not over-report.
+
+Line 87: amounts_are_invented: bool = False. If inputs missing, false. If amounts supplied but flag missing, report may not label as example? But amounts_are_invented likely user explicitly says amounts are invented. If missing, maybe they are supplied real? Not necessarily. But code plainly intends default false. Could be contradicts-principle? "missing value treated as zero or as good news" - false for invented means good news? Maybe. But is it a missing value? The field is optional in YAML? _INPUT_KEYS includes it. If omitted, default false. Could be considered missing evidence. But if no amounts, false is fine. If amounts present, missing flag could make invented amounts look real. But user is supposed to set. The principle says clearly labelled example amounts. If user supplies example amounts but forgets flag, code won't label. But that's user error? The code accepts missing flag and treats as not invented. Is that a concrete fault? Maybe yes under contradicts-principle: missing value treated as good news. But need be careful: boolean flags often default false. The dataclass says bool = False, not Optional. The principle says missing evidence unknown, but this is not evidence? It's a label. Hmm.
+
+Line 94 answers_are_sample default False. If missing, answer_source "inputs_yaml". If sample answers missing flag, report may treat as real? Could be missing value good news. But maybe answers_are_sample is only relevant if using sample file; if omitted false. Not sure.
+
+Look for more concrete.
+
+Line 180: rows = self.validator.rows(value, "windows_only_software", allow_empty=True). If value is empty list, returns empty tuple. okay.
+
+Line 166 software_entry: row = self.fields(value, field). If value None? rows likely not None. name required. users optional_count. boolean.
+
+Line 168: name = self.name(row.get("name"), f"{field}.name", 80). name method: if value None return None. if not str or not strip or len > limit or not isprintable fail. It returns value (with whitespace). It doesn't strip. Limit len(value) > limit before strip. If value has trailing spaces, len includes them. okay. If value is printable? isprintable returns False for control chars. Good. But if value is empty string, not value.strip() fails. Good.
+
+Line 108 name: if value is None return None. If value is not str, fail. But if value is bytes? fail. Good.
+
+Line 125 decimal: if not isinstance(value, str): fail "money_not_quoted". This means all amounts must be quoted strings in YAML. scalar_fields enforces quoted. Good.
+
+Potential bug: _AMOUNT regex allows no decimal separator, up to 15 digits. But Decimal can parse "000000000000000" (15 zeros) okay. It doesn't allow plus/minus. Good.
+
+Potential bug: _DECIMAL regex for training_days_per_person allows arbitrary length and many decimals. But scalar_fields says quoted; no length limit. Could be unhandled-input: huge decimal string causes Decimal construction memory/time? But not performance? Could be DoS? They said don't report performance. But unhandled input leading to crash? Decimal("1" * 10**7) maybe memory, but not likely. Not report performance.
+
+Potential bug: non_negative_integer imported from validation. If days is a string that looks like integer? It checks non_negative_integer(days) then Decimal(days). If days is string "1", non_negative_integer likely false if type int required. If it accepts string? Then Decimal("1") okay. If days is string "1.0", non_negative_integer false, decimal. okay.
+
+Potential bug: line 158 uses Decimal(days) without validation if non_negative_integer returns true. If non_negative_integer accepts bool True? In Python bool is int subclass. If non_negative_integer doesn't exclude bool, then days=True -> Decimal(True)=1. But scalar_fields quoted would reject unquoted true? If YAML true unquoted, strict scalar expected quoted maybe fail. If programmatic, maybe. Not visible. Could be unhandled-input? Need not guess.
+
+Potential bug: currency validation. Line 235 currency = row.get("currency"); if not None: currency = validator.matches(currency, "currency", _CURRENCY). _CURRENCY = [A-Z]{3}. If currency is not str? validator.matches likely fails. If currency is lowercase, fail. Good. But amounts() called with currency variable after validation. If currency invalid, validator.matches may fail and raise? likely. If currency missing but amounts present, fail. Good.
+
+Potential bug: current_costs amounts use currency from top-level. If currency missing and current amounts present, fail. Good. But scenario amounts also fail. Good.
+
+Potential bug: provided_counts keys from count_ids. parse_yaml fields restricts to count_ids. But if count_ids empty, fields has ("provided_counts",): empty tuple. If provided_counts has any keys, parse_yaml likely fails. Good.
+
+Potential bug: confirmations keys from boolean_ids. Good.
+
+Potential bug: line 197-205 FieldNames mapping. For target_costs, fields: ("target_costs",): _SCENARIOS, and for each scenario _SCENARIO_KEYS. This means target_costs can only contain partial_exit/full_exit. Good. For current_costs only _CURRENT_AMOUNTS. For top-level _INPUT_KEYS. For windows_only_software list entries _SOFTWARE_KEYS. For provided_counts count_ids. For confirmations boolean_ids.
+
+Potential bug: scalar_fields: for target_costs scenario, keys in _SCENARIO_COUNTS are "integer". _SCENARIO_COUNTS = users, training_staff, parallel_running_months. Good. But training_days_per_person is in _SCENARIO_KEYS but not in _SCENARIO_COUNTS; scalar_fields quoted. Good.
+
+Potential bug: _SCENARIO_KEYS = (*_SCENARIO_AMOUNTS, *_SCENARIO_COUNTS, "training_days_per_person"). _SCENARIO_AMOUNTS includes training_day_rate, productivity_loss, etc. Good.
+
+Potential bug: _CURRENT_AMOUNTS = microsoft_licences_per_year, other_it_per_year. CurrentCosts fields same. Good.
+
+Potential bug: line 213 scalar_fields current_costs keys quoted. Good.
+
+Potential bug: line 224 windows_only_software users integer. Good.
+
+Potential bug: line 225 provided_counts keys integer. Good.
+
+Potential bug: line 226 as_of date. Good.
+
+Potential bug: line 234 row = reader.fields(data, ""). If data is None? parse_yaml maybe returns dict? If empty file? If data None, reader.fields returns {}. Then Inputs defaults. Is empty inputs valid? Maybe. If no organisation name etc. okay.
+
+Potential bug: line 238 current = reader.fields(row.get("current_costs"), "current_costs"). If current_costs is None returns {}. If current_costs is scalar? parse_yaml fields would fail? Maybe validator.fields handles.
+
+Potential bug: line 239 targets = reader.fields(row.get("target_costs"), "target_costs"). If target_costs is None returns {}. If target_costs has scenario keys. Good.
+
+Potential bug: line 260 partial_exit=reader.scenario(targets.get("partial_exit"), ...). If targets missing partial_exit, value None -> fields returns {} -> scenario with all None. Good.
+
+Potential bug: line 267 provided_counts mapping: for key, value in counts.items(): validator.optional_count(value, f"provided_counts.{key}"). If value None? optional_count likely returns None. Good.
+
+Potential bug: line 273 confirmations mapping: reader.boolean(value, ...). If value None returns None. Good.
+
+Need consider privacy by construction: inputs.py may allow organisation_name and windows_only_software names. Principle 5: Reports may show organisation name and Windows-only application names entered in inputs.yaml. So okay. It excludes person names/email addresses? There is no field for those. Good.
+
+Local processing: read_text path local. No network. Good.
+
+Honest figures: missing values as None, not zero. Good. But amounts_are_invented default false? Let's examine.
+
+The code's dataclass Inputs has amounts_are_invented: bool = False, answers_are_sample: bool = False. In _read_inputs, if row.get missing, boolean returns None, is True -> False. So missing flag false. If amounts_are_sample? Actually answers_are_sample. If using sample inputs but missing flag, answer_source inputs_yaml. Could be misleading. But is that "missing value treated as good news"? Maybe. But the field is a flag, not evidence. The principle says missing evidence unknown. If answers_are_sample missing, not evidence? It indicates whether answers are sample. If omitted, default false could make sample answers appear real. But if user is using sample file, they should set. However code accepts any inputs.yaml; if an organisation omits answers_are_sample, false. Is that a fault? The dataclass intentionally bool not Optional. The principle "Show missing evidence as unknown" maybe applies to findings counts/confirmations, not metadata. I'd lean not report unless clear.
+
+Another possible principle: "Use supplied costs and clearly labelled example amounts." If amounts_are_invented missing, example amounts not labelled. But if user supplied invented amounts and forgot flag, code doesn't label. But that's not missing value? It is missing flag. Could be a fault: missing amounts_are_invented treated as False, so invented amounts not labelled. But the code's plain intent? It says amounts_are_invented: bool = False. It intends default false. The principle might require unknown if missing. But is that a concrete fault? Need decide.
+
+Look for bug in regex _DECIMAL: It is used for decimal values (training_days_per_person) but not for amounts? Amounts use _AMOUNT. _DECIMAL pattern: r"0|[1-9][0-9]*|[0-9]+\.[0-9]+". If validator.matches uses re.match not fullmatch, then "1abc" matches? Need know. The name matches likely uses pattern.fullmatch? Not visible. Could be a fault if not anchored. But we can't see validation. We should not guess. But regex itself lacks anchors. If validator.matches uses fullmatch, fine. If uses search, bad. The code says validator.matches(value, field, pattern). Likely a helper that fullmatches and fails if not. We can't see. Need not report because depends on unseen code. But maybe the regex itself is flawed even with fullmatch: It allows "0" but not "0.0"? It allows [0-9]+\.[0-9]+, so "0.0" okay. It allows "00.0". It allows "1.2.3"? fullmatch no. It allows "1."? no. ".1"? no. Good. It doesn't limit scale. Not bug.
+
+_Amount regex: [0-9]{1,15}(?:\.[0-9]{1,2})? fullmatch. Allows "000000000000000" 15 zeros. Allows "999999999999999.99". Decimal precision? okay. It doesn't allow "1." or ".1". Good. It doesn't allow negative. Good.
+
+Potential bug: line 140 currency check: if currency is None and any(value is not None for value in amounts.values()): fail. But if currency is present but invalid, validator.matches at line 237 likely fails. If currency is present but not used? okay.
+
+Potential bug: amounts() uses row.get(key). If row has key with None, decimal None. Good.
+
+Potential bug: scenario() passes **amounts to ScenarioInputs. amounts keys are _SCENARIO_AMOUNTS. ScenarioInputs has those fields. Good.
+
+Potential bug: scenario() training_days_per_person: Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field). If days is a string with leading plus? non_negative_integer false, decimal pattern doesn't allow plus -> fail. Good. If days is a string with exponent "1e2"? non_negative_integer false, decimal pattern no exponent -> fail. Good. If days is int negative? non_negative_integer false, decimal not str -> fail money_not_quoted. Good. If days is float 1.0? non_negative_integer false, decimal not str -> fail. Good.
+
+Potential bug: optional_count for users/training_staff/parallel_running_months. If value is bool? optional_count likely rejects? Not visible. scalar_fields integer maybe rejects bool? In YAML bool is not integer. Good.
+
+Potential bug: line 150 months > 60 fail. If months is None no. If months negative? optional_count likely non-negative. Good.
+
+Potential bug: line 168 name limit 80. If name length exactly 80 okay. If name contains non-printable, fail. Good.
+
+Potential bug: line 115 not value.isprintable(). For str, isprintable returns True for spaces? Actually space is printable? Yes. It returns False for control chars. If value is "abc\n", isprintable false. Good. If value is "abc\u200b" zero-width? isprintable? maybe true? Could be not. Not relevant.
+
+Potential bug: line 114 len(value) > limit. If value is None? handled. If value is str with multibyte? len characters. okay.
+
+Potential bug: line 106 self.validator.fields(value, field, (), optional=None). The allowed fields tuple is empty. Could this cause all nested fields to fail? But parse_yaml already restricts fields; validator.fields may be used to validate types? If allowed=() maybe means no extra check? Need not guess.
+
+Potential bug: line 187 count_ids from catalogue.findings where entry.provided == "answer" and entry.type == "count". If catalogue.findings has duplicate ids? set. okay.
+
+Potential bug: line 192 boolean_ids similarly.
+
+Potential bug: line 203 fields for provided_counts uses count_ids. If count_ids is empty, and provided_counts is present with no keys? empty mapping okay? If provided_counts: {} maybe parse_yaml fields with empty tuple? likely okay. If provided_counts: null, reader.fields returns {}. Good.
+
+Potential bug: line 204 confirmations boolean_ids. Good.
+
+Potential bug: line 206 parse_yaml text file_name allow_aliases=False fields=fields strict_scalars=True scalar_fields=... If YAML has duplicate keys? parse_yaml likely handles. Not visible.
+
+Potential bug: line 281 load_inputs returns load_inputs_text(read_text(path), path.name, catalogue). read_text may handle encoding. Not visible.
+
+Need find concrete faults likely planted. Let's look for subtle contradictions.
+
+Line 45 _DECIMAL = re.compile(r"0|[1-9][0-9]*|[0-9]+\.[0-9]+")
+This pattern for decimal does not allow a decimal number with no integer part? It requires digits before dot. okay. But it allows "0" only, not "00". Inconsistent. But not wrong.
+
+Line 46 _AMOUNT = re.compile(r"[0-9]{1,15}(?:\.[0-9]{1,2})?")
+This pattern allows integer amounts with up to 15 digits. But Decimal can represent. However for currency amounts, maybe should allow more? Not bug.
+
+Line 125 decimal default pattern _DECIMAL. It is used for training_days_per_person only? Also maybe other code? In this file only amounts with _AMOUNT and training_days_per_person via decimal. If training_days_per_person is an amount? It's days, not money. The error message "money_not_quoted" for non-str. For training days, message money_not_quoted maybe misleading but not fault? It's a comment? No.
+
+Line 158: Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field). If days is an int, it bypasses the quoted scalar validation. But parse_yaml scalar_fields says quoted, so unquoted integer should be rejected before. However if parse_yaml's scalar_fields "quoted" means value must be a string, then days will never be int. The fallback is dead code. Not a fault. But if non_negative_integer accepts a string that is an integer? Then Decimal(days) okay. If non_negative_integer accepts a string with leading zeros? Decimal okay.
+
+Potential bug: training_days_per_person is included in scalar_fields as "quoted", but scenario() also accepts int via non_negative_integer. If YAML has unquoted integer, parse_yaml may fail due to scalar_fields, so code's fallback not used. Not bug.
+
+Potential bug: _SCENARIO_COUNTS includes "users", "training_staff", "parallel_running_months". scalar_fields says integer. But scenario() uses optional_count for users/training_staff/parallel_running_months. optional_count likely expects int or None. Good.
+
+Potential bug: _SCENARIO_KEYS includes training_days_per_person after counts. But scalar_fields for target_costs scenario keys: for key in (*_SCENARIO_AMOUNTS, "training_days_per_person") quoted; for key in _SCENARIO_COUNTS integer. Good.
+
+Potential bug: _CURRENT_AMOUNTS are quoted. CurrentCosts fields Decimal | None. Good.
+
+Potential bug: line 244 organisation_name limit 120. If value is None, name returns None. Good.
+
+Potential bug: line 248 check_language(language, file=validator.file_name, field="language"). If language is not str, check_language may not handle and crash? Need see? Not visible. But parse_yaml fields top-level doesn't specify scalar type for language; could be any scalar. If language: 123, check_language might fail? It likely validates. If it expects str and does language.lower() maybe AttributeError. Is that unhandled-input? We only see this file. Could be a fault if check_language doesn't handle non-str. But depends on unseen code. The code's plain intent: language should be string. parse_yaml strict_scalars maybe allows any scalar? It might not restrict. If input language: 123, then check_language might crash. But we can't see check_language. Should we report? The task says if fault depends on code you cannot see, say confidence. But need concrete. Could be unhandled-input: non-string language leads to crash in check_language? But not in this code unless check_language known. We shouldn't guess.
+
+Similarly target_profile: validator.choice likely handles non-str? Not visible. as_of: validator.calendar_date likely handles.
+
+Potential bug: line 237 currency = validator.matches(currency, "currency", _CURRENCY). If currency is not str, validator.matches might crash? Not visible. But likely handles.
+
+Potential bug: line 121 boolean: type(value) is not bool. This rejects bool subclasses? type is exact. Good. If value is None returns None. If value is 1, fail. Good.
+
+Potential bug: line 125 decimal: if not isinstance(value, str): fail. If value is a custom str subclass? isinstance true. okay.
+
+Potential bug: line 130 if not isinstance(value, str) fail money_not_quoted. For training_days_per_person, if unquoted integer, fail money_not_quoted, but line 158 would have Decimal(days) if non_negative_integer. However line 158 calls non_negative_integer first. If days is int, it doesn't call decimal. So unquoted integer accepted? But parse_yaml scalar_fields may reject. If not, accepting unquoted integer for training_days_per_person contradicts scalar_fields? But scalar_fields is in same code: it says quoted. If parse_yaml enforces, no issue. If parse_yaml doesn't enforce for this because fields? It should. Not visible.
+
+Potential bug: line 158: Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field). If days is a string "1", non_negative_integer likely false, decimal validates. If days is a string "01", decimal pattern _DECIMAL: [0-9]+\.[0-9]+? no dot, [1-9][0-9]*? no, 0? no. So "01" fails. Good. If days is int 1, Decimal(1). If days is bool True and non_negative_integer true, Decimal(True)=1. Could be unhandled-input if bool accepted as count? But scalar_fields quoted, so bool not. If programmatic, maybe. Not concrete.
+
+Potential bug: line 150 months > 60. If months is Decimal? optional_count returns int? likely. If months is None. Good.
+
+Potential bug: line 147 months = self.validator.optional_count(row.get("parallel_running_months"), ...). If row.get returns string "12" due to YAML unquoted? scalar_fields integer, parse_yaml maybe converts to int? If string, optional_count likely fails. Good.
+
+Potential bug: line 156 users=self.validator.optional_count(row.get("users"), ...). If users missing, None. Good.
+
+Potential bug: line 160 training_staff optional_count. Good.
+
+Potential bug: line 173 software users optional_count. Good.
+
+Potential bug: line 174 boolean vendor_has_web_version. If missing None. Good.
+
+Potential bug: line 169 if name is None fail missing_field. But name method already fails if value not str/empty/nonprintable. If value None, returns None, then fail missing_field. Good. If value invalid, name fails and then still fails missing_field? Actually name calls validator.fail, which likely raises? If fail raises, no second. If fail doesn't raise? Validator.fail likely raises. If not, then name returns value even invalid? It returns value after fail. If fail doesn't raise, invalid name would be returned, then if not None no missing. But validator.fail likely raises. We can assume? Not visible. But code pattern: fail then return. If fail doesn't raise, many invalid values still returned. But validator likely raises. Not report.
+
+Potential bug: line 106 fields: if value is None returns {}. If value is not mapping, validator.fields likely fails. Good.
+
+Potential bug: line 180 rows = validator.rows(value, "windows_only_software", allow_empty=True). If value is not list, fails. Good.
+
+Potential bug: line 182 tuple(... for i, item in enumerate(rows)). If rows is dict? validator.rows likely list. Good.
+
+Potential bug: line 265 provided_counts=MappingProxyType({key: validator.optional_count(value, ...) for key, value in counts.items()}). If counts has key with value None, optional_count None. Good. If counts has key not in count_ids? parse_yaml fields restricts. Good.
+
+Potential bug: line 271 confirmations similar.
+
+Potential bug: line 92 provided_counts default MappingProxyType({}). frozen dataclass with mutable default? MappingProxyType is immutable but field default_factory creates new. Good.
+
+Potential bug: line 91 windows_only_software tuple | None default None. Good.
+
+Potential bug: line 88 current_costs default CurrentCosts(). frozen dataclass with mutable? CurrentCosts immutable. Good.
+
+Potential bug: line 89 partial_exit default ScenarioInputs(). Good.
+
+Potential bug: line 97 answer_source property: returns "sample.inputs_yaml" if self.answers_are_sample else "inputs_yaml". If answers_are_sample missing false. okay.
+
+Potential bug: line 253 answers_are_sample=reader.boolean(...) is True. If boolean invalid, validator.fail. If None, False. Good.
+
+Potential bug: line 255 amounts_are_invented similarly.
+
+Potential bug: principle 8: "A skipped or denied collector never improves readiness." Not relevant inputs.
+
+Potential bug: principle 2: Live collection endpoints. Not relevant.
+
+Potential bug: principle 6: offline report. Not relevant.
+
+Maybe there is a fault with currency missing check: amounts() fails if currency is None and any amount not None. But in _read_inputs, currency variable is validated before current and scenario. If currency is missing, current amounts fail. Good. But what if currency is present but top-level currency is not in _INPUT_KEYS? It is. Good.
+
+Potential bug: line 235 currency = row.get("currency"); if currency is not None: currency = validator.matches(currency, "currency", _CURRENCY). If currency is an empty string, matches fails. Good. If currency is a string with lowercase, fails. Good.
+
+Potential bug: line 140 if currency is None and any(value is not None for value in amounts.values()): fail. But if currency is not None but invalid, validator.matches at line 237 likely fails before amounts. If validator.matches returns None instead of fail? It likely fails. Not visible.
+
+Potential bug: line 138 amounts dict comprehension uses row.get(key). If row is not dict? fields returns dict. Good.
+
+Potential bug: line 139 pattern=_AMOUNT. _AMOUNT does not allow decimal with more than 2 digits. Good for currency. But _DECIMAL for training days allows more. okay.
+
+Potential bug: line 46 _AMOUNT allows 15 digits before decimal. If amount is "1234567890123456" (16 digits) fails. Maybe too restrictive? Not a bug unless intended. It plainly intends 15 digits. okay.
+
+Potential bug: line 45 _DECIMAL used for training_days_per_person; training days could be fractional. It allows arbitrary decimals. Good.
+
+Potential bug: line 158 Decimal(days) if non_negative_integer(days) else self.decimal(days, days_field). If days is a string with a decimal point, non_negative_integer false, decimal validates with _DECIMAL. But _DECIMAL does not limit decimal places. Could allow "1."? no. Good.
+
+Potential bug: line 158 if days is a negative integer, non_negative_integer false, decimal not str -> fail money_not_quoted. Good.
+
+Potential bug: line 158 if days is a string "-1", non_negative_integer false, decimal pattern no minus -> fail. Good.
+
+Potential bug: line 158 if days is a string "1e2", non_negative_integer false, decimal pattern no e -> fail. Good.
+
+Potential bug: line 158 if days is a string "1,000" (with comma), fail. Good.
+
+Potential bug: line 158 if days is a string " 1" with spaces, isinstance str, non_negative_integer false, decimal pattern fullmatch fails due spaces. Good.
+
+Potential bug: line 168 name limit 80. If name is exactly 80 plus newline? isprintable false. Good.
+
+Potential bug: line 168 name = self.name(row.get("name"), f"{field}.name", 80). If name is None, name returns None, then fail missing_field. Good.
+
+Potential bug: line 168 if name is "" name fails empty, then if name is None? no, name returns ""? Wait name method: if value is None return None. If value is "" then not value.strip() true -> self.validator.fail(field). If fail raises, no return. If fail doesn't raise, returns "". Then name is not None, so no missing_field. But if fail doesn't raise, invalid empty accepted. But fail likely raises. Not report.
+
+Potential bug: line 108 name returns value even if invalid after fail. Same pattern.
+
+Potential bug: line 120 boolean returns value even if invalid after fail. Same.
+
+Potential bug: line 132 decimal returns Decimal(matches) even if matches? validator.matches likely fails if no match. If not, could return None? Not visible.
+
+Need maybe find planted contradiction with comments? There are no comments/docstrings except SPDX. So contradicts-comment unlikely.
+
+Need maybe find contradicts-principle: "Privacy by construction. Exclude collected person names and email addresses. The v1 CLI omits --include-names. Reports may show the organisation name and Windows-only application names entered in inputs.yaml." Inputs.py accepts windows_only_software names and organisation_name. okay. It does not accept person names. Good.
+
+"Metadata only. Collect counts, sizes and coded evidence. Leave mail bodies and file contents unopened." Inputs.py not collecting.
+
+"Local processing. Assessment data stays on the computer, provided its input and output files are on local storage (a network share sends them over the network)." load_inputs(path) reads path. It does not check if path is local storage. If path is a network share, read_text will access network, violating local processing? The principle says provided its input and output files are on local storage (a network share sends them over the network). Does code need to ensure local? It just reads any Path. If user passes network share, it will send over network. Is that a fault? The principle says assessment data stays on computer, provided input/output files are on local storage. It might be user responsibility. But "provided" suggests if files on local storage, okay; if network share, violates. The code doesn't check. Is that a contradicts-principle? It accepts a path that may be network share and reads it, sending data over network. But command-line path could be network. The principle says local processing: assessment data stays on computer, provided its input and output files are on local storage. It doesn't explicitly require code to reject network shares. It says provided, so if user uses network share, principle broken by user. But code accepts it. Could be unhandled-input? It leads to network access. But is that a fault in code? Maybe they expect no check because CLI can pass local only? Hmm.
+
+"Live collection may contact only login.microsoftonline.com and graph.microsoft.com. Import usage reports

@@ -1,0 +1,26 @@
+FINDING
+file: src/fazit/status.py
+line: 346
+kind: contradicts-principle
+claim: A missing or non-`"no"` `provided` value is treated as provided, which can make missing evidence look supplied.
+evidence: `provided_ids = {item for item in ids if item in entries and entries[item].provided != "no"}`
+why: If `entries[item].provided` is absent, `None`, or another value such as an unknown marker, the comparison is true, so the finding is added to `provided_ids` instead of being treated as missing/unknown.
+confidence: medium
+
+FINDING
+file: src/fazit/status.py
+line: 361
+kind: unhandled-input
+claim: A dispute keyed by a finding id that is absent from `findings` and not in `ids` causes a `KeyError`.
+evidence: `if finding_id in ids or findings[finding_id].workload == workload`
+why: If `disputes` contains a finding id that is not in `ids` and not present in the `findings` mapping, Python evaluates the right-hand side and raises `KeyError` instead of handling the unknown input.
+confidence: medium
+
+FINDING
+file: src/fazit/status.py
+line: 395
+kind: unhandled-input
+claim: A catalogue workload with no matching status-rule block causes a `KeyError`.
+evidence: `rule_set.workloads[workload],`
+why: The loop iterates over `catalogue.workload_ids`; if the status rule set does not contain that workload, the direct mapping lookup crashes instead of producing an unknown status or another handled result.
+confidence: medium

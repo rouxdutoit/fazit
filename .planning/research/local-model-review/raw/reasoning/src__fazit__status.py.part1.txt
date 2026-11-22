@@ -1,0 +1,292 @@
+We need answer user's request: review code part 1 of 2, find concrete faults. Need output only findings in exact format. Need analyze thoroughly. We need identify bugs, unhandled-input, contradicts-comment, contradicts-principle. Need quote exact lines. Need confidence. We only see lines 1-340 of 403. Need not guess? If fault depends on unseen code, say confidence. Need likely focus on visible code.
+
+Let's parse code.
+
+File src/fazit/status.py.
+
+Principles: read-only, local processing, tokens memory, metadata only, privacy, offline report, one command, honest figures. Special: missing value treated as zero or good, skipped/denied collector never improves readiness, invented figures.
+
+Need inspect for faults.
+
+Line 14 _OPERATORS = ("exists", "==", ">", ">=")
+Line 15 STATUSES = ("ready", "needs_work", "blocker", "unknown")
+Condition dataclass.
+
+Conditions validation:
+- _conditions: for each row, fields required finding, op; optional value, provenance, accept_partial_true.
+- finding_id = reader.choice(row["finding"], ..., types.keys())
+- op = reader.choice(row["op"], ..., _OPERATORS)
+- kind = types[finding_id]
+- literal = row.get("value")
+- if op in (">", ">=") and kind == "boolean": fail
+- if op == "exists": if "value" in row: fail
+- elif kind == "boolean": if type(literal) is not bool: fail
+- elif not non_negative_integer(literal): fail
+This means for numeric types, value must be non-negative integer. For string? types maybe only boolean/integer? Could be string? If kind string? non_negative_integer(literal) likely fails for strings? Maybe only boolean/integer. Not a fault.
+- provenance: if in row, choice measured/provided else None.
+- accept_partial default False; if type bool and (accept_partial and kind != boolean) fail. So accept_partial_true only for boolean.
+Potential issue: For op == "exists" and kind boolean, literal may be None because value absent, ok. For op exists and kind numeric, value absent literal None. But later _matches_condition for exists returns value is not None. ok.
+For op == "==" and kind boolean, value must bool. For numeric, non_negative_integer. For string? maybe not.
+
+_workload_rules:
+- block fields ready, rules.
+- ready fields evidence, reason.
+- conditions from ready evidence.
+- reason bilingual.
+- rules entries allow_empty.
+- row fields id, when, status, reason.
+- status choice STATUSES[1:3] => ("needs_work", "blocker"). So rules cannot set ready or unknown? Maybe intended: status rules only for problems; ready from ready block, unknown if no rules? ok.
+- rule_id duplicate check across all workloads.
+
+load_status_rules:
+- read_rules("status.yaml", path, checksums)
+- root fields data "", ("workloads",)
+- workload_ids = catalogue.workload_ids
+- blocks = reader.fields(root["workloads"], "workloads", workload_ids)
+- types from catalogue.findings and licence_finding_types.
+- workloads dict comprehension for workload in workload_ids: _workload_rules(blocks[workload], ...). If blocks doesn't contain some workload? reader.fields with workload_ids likely requires all? Need know Validator.fields behavior. It likely returns mapping of specified fields, maybe missing fails? Could be. If not, blocks[workload] KeyError. But likely validation ensures. Need not guess.
+
+_skipped_gap:
+- if finding None or finding.collector None return None.
+- collector = collectors.get(finding.collector)
+- if collector not None and collector.status == "skipped": return MissingEvidence(finding.id, finding.missing_reason or "collector_skipped", collector.id)
+- else None.
+This only handles skipped, not denied? Collector status maybe "ok", "skipped", "denied"? Principle: skipped or denied collector never improves readiness. In _collector_gaps, fallback for non-ok: "collector_skipped" if status == "skipped" else "coverage_partial". If status denied? fallback coverage_partial. But _skipped_gap only skipped. Could be a bug if denied collector with finding? Need see Collector statuses. Could be "ok", "skipped", "failed"? The principle says skipped or denied. Maybe statuses include "denied"? If collector.status == "denied", _skipped_gap returns None, but _collector_gaps yields coverage_partial. But _gap may not call _collector_gaps? _gap uses _skipped_gap only. If finding exists from denied collector? Maybe finding missing_reason? Hmm.
+
+_observation_disputes:
+- for alternatives, primary = findings.get
+- if provided_answers_conflict -> provided_answers_conflict
+- elif evidence_conflicts -> confirmation_conflict.
+Ok.
+
+_collector_gaps:
+- recorded set of observed (finding_id, collector)
+- for finding_id in finding_ids:
+  entry = entries.get
+  if None continue
+  for collector_id in sorted({method for method, _ in entry.measured_by}):
+     collector = collectors.get
+     if collector is None or collector.status == "ok": continue
+     if (finding_id, collector_id) not in recorded:
+        fallback = "collector_skipped" if collector.status == "skipped" else "coverage_partial"
+        yield MissingEvidence(finding_id, collector.reason or fallback, collector_id)
+Potential: If collector status is "denied" or "failed", reason could be None => coverage_partial. Is that honest? A denied collector should not improve readiness; coverage_partial maybe missing evidence. ok.
+
+_gap:
+- expected_answer = condition.provenance == "provided" or (condition.provenance is None and condition.finding in provided_ids)
+- if skipped := _skipped_gap(finding, collectors): return skipped
+- collector_id = finding.collector if finding else None
+- if finding is None: code = answer_not_provided if expected_answer else not_in_scan
+- elif finding.missing_reason is not None: code = finding.missing_reason
+- elif finding.provenance == "unknown": code = not_established
+- elif condition.provenance is not None and condition.provenance != finding.provenance: code = answer_not_provided if expected_answer else not_in_scan; collector_id=None
+- elif is_complete(finding): return None
+- elif finding.provenance == "provided": code = answer_not_provided
+- elif finding.coverage is not None and finding.coverage.kind == "partial": code = coverage_partial
+- else: code = coverage_unknown
+Return MissingEvidence(condition.finding, code, collector_id)
+
+Potential issue: If condition.provenance is None and finding.provenance is "provided" but finding not in provided_ids? expected_answer false. Then after missing_reason/unknown/provenance mismatch? condition.provenance is None so no mismatch. If is_complete false, finding.provenance == provided => code answer_not_provided. ok.
+If condition.provenance == "measured" and finding.provenance == "provided", mismatch => code not_in_scan? expected_answer false. collector_id None. ok.
+If condition.provenance == "provided" and finding.provenance == "measured", expected_answer true => answer_not_provided. ok.
+
+Potential bug: _gap returns skipped gap for any skipped collector even if condition.provenance mismatch? It checks _skipped_gap first. If finding from skipped collector but condition expects provided, maybe should answer_not_provided? But skipped collector means evidence not collected; if condition expects provided answer, maybe missing answer? But if finding exists with collector skipped? A finding from skipped collector? Could be. Not obvious.
+
+_matches_condition:
+- value, literal = finding.value, condition.value
+- exists: value is not None
+- ==: type(value) is type(literal) and value == literal
+- if type(value) is not int or type(literal) is not int: return False
+- return value > literal if op == ">" else value >= literal
+Potential bug: For op == "==" with boolean, type(value) is type(literal) works; but in Python bool is subclass int. For numeric == with bool? If finding value True and literal 1? type mismatch false. ok.
+For op >/>=, if value bool and literal int? type(value) is not int? bool is not int? type(True) is bool, so false. ok.
+But if op is "exists" and literal maybe None. ok.
+If op is "==" and literal None? For non-boolean? validation prevents value None? For exists no value. For == boolean/numeric requires value. ok.
+Potential: For op == "==" and value None? type(None) is type(literal)? false unless literal None (not allowed). ok.
+
+_problem_result:
+- if finding is None: return None
+- if gap is None: return _matches_condition
+- if condition.provenance not in (None, finding.provenance): return None
+- if gap.reason_code in coverage_partial/unknown and accept_partial_true and finding.value is True: return _matches_condition
+- if gap.reason_code in (coverage_partial, coverage_unknown, answer_not_provided, confirmation_conflict) and condition.op != "==" and finding.is_lower_bound and _matches_condition: return True
+- return None
+
+Need think semantics. If gap exists, normally unknown/None. But if accept_partial_true and partial coverage with value True, can match. Also if lower bound and op != == and matches, return True. This may treat missing/partial as good news? Let's examine principle: missing value missing as unknown; skipped/denied collector never improves readiness. But lower_bound maybe measured lower bound. If finding.is_lower_bound true and value > threshold, then even with coverage_unknown? It returns True for answer_not_provided, confirmation_conflict, coverage_partial/unknown. Is that honest? If lower bound is supplied/measured and exceeds threshold, then condition true? For example finding is lower bound count 10, condition > 5, coverage unknown? If lower bound says at least 10, then condition true. That may be okay if lower bound is evidence. But for answer_not_provided? If answer not provided, how can finding.is_lower_bound? Maybe provided answer with lower bound? Could be. For confirmation_conflict (evidence conflicts), using lower bound to mark true might be too good? Need inspect.
+
+The special attention: missing value treated as zero or good news, skipped/unknown making status look better. _problem_result returns True for lower_bound when gap includes answer_not_provided or confirmation_conflict. If a provided answer conflicts with measured evidence, but provided answer is lower bound and matches condition, it returns True. That may make status better despite conflict. But maybe lower bound from measured evidence? confirmation_conflict means primary and alternative conflict. If one is lower bound? Hmm.
+
+Need identify concrete faults likely planted. Let's look for subtle bugs.
+
+Line 246: `return type(value) is type(literal) and value == literal`. For equality of integers, if value is bool and literal bool ok. But if value is 1 and literal True? type mismatch false. Good. But for `==` with numeric, if literal is bool? validation for numeric kind non_negative_integer(literal) would reject bool? non_negative_integer maybe accepts bool? Need know. If bool is instance of int, non_negative_integer(True) might return True if not type strict. But line 89 handles boolean kind. For numeric kind, if literal True, non_negative_integer maybe True? Could allow bool as integer? Could be validation bug. But not visible.
+
+Line 247: `if type(value) is not int or type(literal) is not int:`. For numeric comparisons, rejects bool. Good. But what about `value` being `int` subclass? ok.
+
+Line 259: `if condition.provenance not in (None, finding.provenance): return None`. If finding.provenance is None? Maybe possible. If condition.provenance None, tuple (None, None) ok. If finding.provenance None, condition.provenance measured not in (None, None) -> None. ok.
+
+Line 261-266: accept_partial_true only for coverage partial/unknown and value True. It returns _matches_condition. If condition op exists, _matches_condition returns value is not None. If value True, true. If op ==, type bool true. If op >? validation prevents boolean >. ok.
+
+Line 267-274: lower_bound condition. It returns True if op != "==" and finding.is_lower_bound and _matches_condition. This includes gap reason answer_not_provided, confirmation_conflict. If condition.op is ">" or ">=" and lower bound value meets threshold, true. If condition.op is "exists"? op != ==, is_lower_bound and _matches_condition (value is not None) returns True. So if gap answer_not_provided but finding exists? answer_not_provided can happen when finding.provenance provided but incomplete? Then exists true. Could make exists condition true despite answer not provided? But if finding exists, exists is true. Maybe okay? But if answer_not_provided due to provenance mismatch? _gap sets collector_id None but finding may exist. _problem_result line 259 returns None if condition.provenance mismatch before lower_bound. So only if condition.provenance None or matches finding.provenance. answer_not_provided can occur when finding is None? No finding None returns None earlier. It can occur when finding.provenance provided but incomplete? Or expected answer but finding None? finding None returns None. So lower_bound with answer_not_provided maybe provided answer incomplete? Could be.
+
+Potential contradiction principle: A skipped or denied collector never improves readiness. _collector_gaps uses collector.status == "skipped" else coverage_partial. But _skipped_gap only skipped. What about denied? If collector.status is "denied", _gap won't produce skipped gap; if finding is None, code not_in_scan/answer_not_provided. If finding exists? Maybe collector denied but finding exists? Not likely. But _collector_gaps for non-ok includes denied as coverage_partial. However _gap does not consult _collector_gaps. Maybe _evaluate_workload uses _collector_gaps separately? We only see part. Need not guess.
+
+Look at _unknown_code:
+```
+def _unknown_code(gaps, bundled, provided_ids) -> str:
+    for code in (
+        "licence_assignments_conflict",
+        *PLAN_GAP_REASONS,
+        "provided_answers_conflict",
+        "confirmation_conflict",
+    ):
+        if any(gap.reason_code == code for gap in gaps):
+            return code
+    if bundled is not None and bundled.value is True and is_complete(bundled):
+        if any(gap.finding_id in provided_ids for gap in gaps):
+            return "licensed_use_not_measured"
+    return gaps[0].reason_code if gaps else "not_established"
+```
+Potential bug: `gaps[0]` if gaps empty? It checks if gaps else. ok. But if gaps not empty but all reason_code maybe None? MissingEvidence reason_code str. ok.
+Potential: If bundled.value is True and complete, and any gap finding_id in provided_ids, returns licensed_use_not_measured. But if gaps include conflict codes, loop returns earlier. ok.
+
+_condition_results:
+```
+for condition in conditions:
+    evidence = alternatives.get(condition.finding)
+    if evidence is None or evidence.provenance != condition.provenance:
+        evidence = findings.get(condition.finding)
+    gap = disputes.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)
+    results[condition] = _problem_result(condition, evidence, gap), gap
+```
+Potential bug: If condition.provenance is None, evidence.provenance != None? If alternative exists with provenance measured, then evidence.provenance != None true, so falls back to findings. That means when condition has no provenance, it ignores alternatives? Maybe intended? If condition doesn't specify provenance, should consider either primary or alternative? But code only uses alternative if its provenance equals condition.provenance. If condition.provenance None, it will never equal alternative.provenance (unless alternative.provenance None? likely not). So alternatives ignored for unspecified provenance. Could be intended: alternatives are for provided answers? Need know. `alternatives` likely provided answers? If condition provenance None, maybe should use alternative if primary missing? But code chooses primary. Could be bug? Need not guess.
+
+Potential bug: `gap = disputes.get(condition.finding) or _gap(...)`. If disputes has MissingEvidence, _gap not called. But disputes only for alternatives conflicts. If dispute exists, gap reason provided_answers_conflict or confirmation_conflict. Then _problem_result may use finding evidence and gap. ok.
+
+_matching_rules:
+```
+missing = dict.fromkeys(gap for condition in block.ready if (gap := results[condition][1]) is not None)
+fired = []
+for rule in block.rules:
+    matches = [results[condition] for condition in rule.when]
+    if any(match is False for match, _ in matches):
+        continue
+    missing.update(dict.fromkeys(gap for _, gap in matches if gap is not None))
+    if all(match for match, _ in matches):
+        fired.append(rule)
+return fired, missing
+```
+Potential bug: `all(match for match, _ in matches)` where match is bool | None. In Python, None is falsy, False falsy, True truthy. So all true only if all True. ok. But if matches empty? all([]) True. A rule with empty `when` would fire. Is empty when allowed? _conditions on row["when"]; reader.rows maybe allow empty? If when empty, rule fires unconditionally. Could be intended? Maybe status rules require when? Not visible. Could be unhandled-input: rule file with empty when list causes rule to fire unconditionally, maybe not intended. But `reader.rows` maybe doesn't allow empty? For ready evidence maybe? For when, likely list. If empty, _conditions returns empty. Could be a fault? Need see plain intent: status rule when conditions; empty when probably invalid but not validated. Could report unhandled-input? But maybe rule files expected to have non-empty when. The code accepts empty list and fires. Is that a bug? It might be a concrete fault: `all()` on empty matches returns True, so a rule with no `when` conditions fires and can set needs_work/blocker without evidence. But is empty when accepted? `reader.rows` likely accepts list; if `when: []`, no rows. No validation non-empty. Could be. But do we know it's wrong? It plainly intends rules to have when conditions. Could report medium.
+
+Also missing dict: For rules that don't fire due to any False, they continue and do not add gaps from that rule. But should missing evidence from conditions in a non-firing rule count? Maybe not, only ready and fired rules? But if a rule is not fired because one condition false, other conditions may have gaps; do they matter? Status maybe ready? Hmm.
+
+Potential bug: `missing.update(dict.fromkeys(gap for _, gap in matches if gap is not None))` after any False continue. For rules with some False, gaps not added. Could underreport missing evidence. But maybe missing evidence should be considered only for rules that could fire? Not sure.
+
+Need look at _evaluate_workload not fully visible (line 333-340 only). We can't see rest. Need only report visible. But maybe faults in visible part.
+
+Let's think of planted bugs likely:
+- `STATUSES[1:3]` maybe should be `STATUSES[1:]`? Status rules can only needs_work/blocker, not unknown. But unknown is computed, not rule. ok.
+- In `_conditions`, for op == "exists", if "value" in row fail. But for boolean kind, if value absent, literal None. Later for op exists ok. For op == boolean, value required. But if value key absent, `type(literal) is not bool` (None) fail. ok.
+- In `_conditions`, for numeric kind and op exists, value absent ok. But if value present? It fails due exists. ok.
+- For op >/>= and kind boolean fail. But for op == and kind boolean ok. For op exists and kind boolean ok.
+- `non_negative_integer(literal)` for numeric: If literal is bool True, maybe passes? Need check likely function in validation. It might be `isinstance(value, int) and not isinstance(value, bool) and value >= 0`. If so ok. If not, not visible. Can't report.
+- `accept_partial_true` validation: `if type(accept_partial) is not bool or (accept_partial and kind != "boolean"):`. If accept_partial true and kind boolean ok. If false and kind numeric ok. Good.
+- `_workload_rules`: `reader.fields(block["ready"], f"{field}.ready", ("evidence", "reason"))`. If ready block missing evidence? validation.
+- `rules = []`; entries = reader.rows(block["rules"], ..., allow_empty=True). If block["rules"] is None? allow_empty maybe handles. ok.
+- `status` choice STATUSES[1:3] excludes "ready". If a rule intended to set ready? But ready is separate. ok.
+- `load_status_rules`: `blocks = reader.fields(root["workloads"], "workloads", workload_ids)`. If `workload_ids` is a tuple, ok. If catalogue.workload_ids maybe list. ok.
+- `types = {entry.id: entry.type for entry in catalogue.findings}` then update licence_finding_types. If duplicate finding ids? maybe not.
+- `_skipped_gap`: uses `finding.missing_reason or "collector_skipped"`. If finding.missing_reason is not None but collector skipped, uses finding.missing_reason. Could be okay. But if collector skipped and finding has missing_reason "not_established"? Then reason code not collector_skipped. Could affect _unknown_code? Maybe.
+- `_collector_gaps`: `sorted({method for method, _ in entry.measured_by})`. If entry.measured_by contains duplicate methods with different something, set. ok. If method not str? maybe.
+- `collector.reason or fallback`: If collector.reason is empty string, fallback. ok.
+- `_gap`: expected_answer uses `condition.finding in provided_ids`. If condition.provenance is None and finding in provided_ids, expected answer. But if condition.provenance is "measured" and finding in provided_ids, expected_answer false. ok.
+- In `_gap`, if finding is None and expected_answer false, code not_in_scan. If condition.provenance is "provided" but finding None, expected true -> answer_not_provided. ok.
+- If finding.missing_reason is not None, code = finding.missing_reason. This bypasses provenance mismatch and skipped? skipped checked before. If finding has missing_reason and collector skipped, _skipped_gap returns finding.missing_reason or collector_skipped. ok.
+- If finding.provenance == "unknown", code not_established. ok.
+- If condition.provenance mismatch, code answer_not_provided/not_in_scan, collector_id None. But if finding.missing_reason was set, earlier returns missing_reason, not mismatch. Could be okay.
+- If is_complete(finding) return None. But what if finding is complete but condition.provenance mismatch? mismatch checked before, so gap. ok.
+- If finding.provenance == "provided" and incomplete, code answer_not_provided. But what if coverage partial? It returns answer_not_provided before coverage_partial. ok.
+- If coverage kind partial -> coverage_partial, else coverage_unknown. If coverage None -> coverage_unknown. ok.
+
+Potential bug: `_gap` uses `condition.finding` for MissingEvidence finding_id, not `finding.id`. If finding is alternative? In _condition_results, evidence can be alternative with same finding_id? alternatives keyed by finding_id. ok.
+
+`_matches_condition` equality: `type(value) is type(literal) and value == literal`. For integers, if value is `int` and literal is `int`, ok. For booleans, ok. But for numeric comparison, `type(value) is not int` rejects bool. Good. But for `==` with integer and bool, type mismatch. Good. However, for `==` with `value` None and `literal` None? Not allowed. ok.
+
+Potential bug: For `op == "=="` and condition.value is `None` due to missing value? validation should fail. But if kind is "string" maybe non_negative_integer fails? Hmm.
+
+Potential bug: `_problem_result` lower_bound: `condition.op != "=="` includes "exists". If gap is coverage_unknown and finding.is_lower_bound and value is not None, returns True for exists. If a finding is lower bound but coverage unknown, exists true. That's probably okay: if lower bound value exists, evidence exists. But if gap reason answer_not_provided, and condition op exists, it returns True. Could make missing answer look like exists. But if finding exists, exists is true. The gap answer_not_provided may be because provenance expected provided but finding provenance measured? But line 259 would return None if condition.provenance mismatch. If condition.provenance None and finding provenance measured, expected_answer maybe false if not provided_ids; gap not answer_not_provided? _gap: finding not None, missing_reason None, provenance not unknown, condition.provenance None no mismatch, is_complete maybe false, finding.provenance provided? no, coverage maybe partial/unknown -> coverage_partial/unknown. So answer_not_provided only if finding.provenance provided and incomplete or condition expects provided and mismatch? If condition.provenance None and finding provenance provided but finding not in provided_ids? expected false, but finding.provenance provided => code answer_not_provided (line 233). Then _problem_result lower_bound exists could return True. So a provided finding not in provided_ids? weird.
+
+Potential principle: "A skipped or denied collector never improves readiness." In `_problem_result`, if gap reason is `coverage_unknown` or `coverage_partial` and lower_bound, returns True. If collector skipped, gap reason from _skipped_gap is finding.missing_reason or "collector_skipped". Not in list (unless finding.missing_reason is coverage_partial/unknown?). If collector skipped but finding.missing_reason is "coverage_partial"? Could return True? _skipped_gap uses finding.missing_reason or collector_skipped. If finding.missing_reason is "coverage_partial" and collector skipped, gap reason coverage_partial. Then lower_bound can return True, making skipped collector improve readiness. But is that possible? A skipped collector finding with missing_reason coverage_partial? Maybe.
+
+But more direct: `_collector_gaps` fallback for collector.status not ok and not skipped is "coverage_partial". If collector denied, gap reason coverage_partial. Then `_problem_result` can return True for lower_bound or accept_partial_true. So a denied collector (non-ok) with partial coverage can make condition true if value True or lower bound. That may violate principle. But is `coverage_partial` from denied collector considered partial coverage? If collector denied, no coverage. It should be unknown/bad, not partial. The code treats any non-ok non-skipped as coverage_partial. That could make status better than unknown? It still gap, but _problem_result allows partial true. If denied collector, should not improve. Could be a planted fault: fallback should be "coverage_unknown" or "collector_denied", not "coverage_partial". Line 203-205:
+```
+fallback = (
+    "collector_skipped" if collector.status == "skipped" else "coverage_partial"
+)
+```
+If status is "denied" or "failed", fallback coverage_partial. Principle says skipped or denied collector never improves readiness. coverage_partial can improve via accept_partial_true/lower_bound. So contradicts-principle. But need know collector.status values. Could be "ok", "skipped", "denied"? The principle explicitly mentions denied. Likely statuses include denied. We can report with medium/high? Since code only sees status string, if denied occurs, fallback partial. But do we know denied is possible? Principle says skipped or denied collector. So yes.
+
+Also `_skipped_gap` only handles skipped, not denied. If collector.status == "denied", and finding exists with collector id, _gap won't produce skipped gap. But _collector_gaps may produce coverage_partial. However _gap is used per condition and doesn't call _collector_gaps. If finding is None, code not_in_scan/answer_not_provided. If finding exists but incomplete, coverage_partial maybe. But denied collector with finding? maybe not.
+
+Look at line 200: `if collector is None or collector.status == "ok": continue`. If collector status is "denied", it yields gap. ok.
+
+Potential bug: `_collector_gaps` uses `collector.reason or fallback`. If collector.status == "skipped" but collector.reason is e.g. "denied"? weird.
+
+Potential bug: `_unknown_code` priority: It checks `licence_assignments_conflict`, PLAN_GAP_REASONS, provided_answers_conflict, confirmation_conflict. Then bundled licensed_use_not_measured. Then gaps[0]. If gaps include `collector_skipped` and `coverage_partial`, returns first. ok.
+
+Potential bug: `_condition_results` uses `evidence = alternatives.get(condition.finding)`. If condition.provenance is "provided", it will use alternative if alternative.provenance == "provided". If alternative is None, fallback primary. If alternative exists but provenance != condition.provenance, fallback primary. Good. If condition.provenance is None, fallback primary always. If condition.provenance is "measured", alternative likely provided, so fallback primary. ok.
+
+Potential bug: `gap = disputes.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)`. If disputes has gap for finding, it ignores _gap. But if dispute exists and evidence is None? disputes only if primary not None. ok. If dispute exists but condition.provenance mismatch? It still uses dispute gap. _problem_result line 259 checks provenance and returns None. ok.
+
+Potential bug: In `_matching_rules`, `missing` initially from ready conditions. Then for each rule, if any match is False, continue (do not add gaps). But if a rule has a False condition, the workload cannot be that rule's status. However missing evidence from other conditions in that rule might still be relevant to overall missing? Maybe not. But if no rule fires and ready not met, status unknown, missing should include gaps from all considered conditions? The code only includes gaps from ready and fired rules. If a rule almost fires but one condition false, gaps from its other conditions are omitted. Could underreport missing evidence. Is that a bug? Need plain intent: WorkloadStatus.missing should list missing evidence. It should probably include missing evidence for all conditions that were evaluated? But maybe only those that matter for status. Hard to know.
+
+Potential bug: `all(match for match, _ in matches)` with `match` bool|None. If matches empty, rule fires. Already considered.
+
+Potential bug: `fired.append(rule)` for rules where all matches True. But if rule.when empty, fires. Could be unhandled-input.
+
+Potential bug: In `_conditions`, `literal = row.get("value")`. For op exists, value must absent. For op == boolean, value must bool. For numeric, non_negative_integer. But for op >/>= and kind numeric, if literal is None (value absent), non_negative_integer(None) likely false -> fail. ok.
+
+Potential bug: In `_conditions`, for kind boolean and op exists, `literal` None. Condition value None. In _matches_condition exists returns value is not None. ok. But in _problem_result accept_partial_true: `finding.value is True` and _matches_condition. ok.
+
+Potential bug: In `_matches_condition`, for op `==` with `value` and `literal` both `True`/`False`, ok. But for op `==` with numeric, if value is `1` and literal `1`, ok. If value is `1.0`? finding value likely int. ok.
+
+Potential bug: In `_problem_result`, for gap reason `confirmation_conflict` and lower_bound, returns True. If evidence conflicts, should be unknown, not true. But if lower bound from one source? Let's examine: alternatives conflict with primary. disputes gap reason confirmation_conflict. evidence in _condition_results: if alternative provenance matches condition, evidence=alternative else primary. gap=dispute. If finding.is_lower_bound true and condition > threshold, returns True. This means a conflict between provided and measured evidence can still yield true if one value is lower bound. Principle: honest figures, missing/conflict should unknown? The code explicitly includes confirmation_conflict in lower_bound true list. Is that intended? Maybe if measured lower bound confirms condition despite conflict? But conflict means evidence_conflicts primary/alternative. If one is lower bound, maybe not conflict? Need know evidence_conflicts. Could be if values differ. If lower bound 5 and measured 10? Not conflict? Maybe lower bound can be less. If conflict, using lower bound may be optimistic. But not sure.
+
+Potential bug: `_unknown_code` line 289: `if bundled is not None and bundled.value is True and is_complete(bundled):` If bundled.value is True but type bool, ok. If bundled.value is 1? maybe not. ok.
+
+Potential bug: `_unknown_code` line 290: `if any(gap.finding_id in provided_ids for gap in gaps): return "licensed_use_not_measured"`. If gaps include a provided finding that is missing, and bundled licensed use true complete, code licensed_use_not_measured. ok.
+
+Potential bug: `_gap` line 227: `elif condition.provenance is not None and condition.provenance != finding.provenance:`. If condition.provenance is None and finding.provenance is None? no. If finding.provenance is None? Could be. Then if condition.provenance measured, mismatch, code not_in_scan/answer_not_provided. ok.
+
+Potential bug: `_gap` line 230: `elif is_complete(finding): return None`. If finding is complete but condition.op is > and value not int? _matches_condition false. But no gap. ok.
+
+Potential bug: `_problem_result` line 257: if gap is None return _matches_condition. If finding complete but condition false, returns False. Good.
+
+Potential bug: `_problem_result` line 261: if gap reason coverage_partial/unknown and accept_partial_true and finding.value is True: return _matches_condition. If condition op exists and finding.value True, true. If condition op == True, true. If condition op == False? finding.value is True, _matches_condition false. ok. If condition op >? boolean not allowed. ok.
+
+Potential bug: line 267-274: lower_bound with op != "==" includes exists. If finding.is_lower_bound and value not None, exists true. Could be ok.
+
+Need maybe find more concrete: line 246 equality uses `type(value) is type(literal)`. For integers, if value is `int` and literal is `int`, ok. But for `bool`, `type(True) is type(1)` false. Good. But for `value` being `False` and `literal` being `0`? false. Good.
+
+Potential bug: In `_conditions`, `reader.choice(row["finding"], ..., types.keys())`. `types.keys()` is a dict_keys view. If reader.choice expects Collection maybe ok. But if types empty? no.
+
+Potential bug: In `load_status_rules`, `workload_ids = catalogue.workload_ids`. If workload_ids is a set, dict comprehension order arbitrary. Not style.
+
+Potential bug: In `_workload_rules`, `reader.fields(item, field, ("ready", "rules"))`. If `rules` missing, maybe default? ok.
+
+Potential bug: In `_conditions`, for `op == "exists"`, it fails if "value" in row. But if value is explicitly null in YAML, row may contain key with None? `reader.fields` optional fields likely include key if present. So fail. ok.
+
+Potential bug: In `_conditions`, for `op == "exists"`, it does not validate `literal` type; but later Condition.value None. ok.
+
+Potential bug: In `_conditions`, for `op == "=="` and kind boolean, if literal is bool ok. For op == and kind numeric, non_negative_integer. But for op >/>= and kind numeric, non_negative_integer. ok.
+
+Potential bug: In `_conditions`, for `op == "exists"` and kind boolean, if value absent, ok. But if value present bool, fail. ok.
+
+Potential bug: In `_conditions`, for `op == "exists"` and kind numeric, if value absent, ok. But if value present non-negative int, fail. ok.
+
+Potential bug: In `_conditions`, for `op == "=="` and kind boolean, if value missing, type(None) is not bool fail. ok.
+
+Potential bug: In `_conditions`, for `op == "=="` and kind numeric, if value missing, non_negative_integer(None) fail. ok.
+
+Potential bug: In `_conditions`, for `op == "=="` and kind string? non_negative_integer(string) fail. But maybe no string findings.
+
+Potential bug: In `_

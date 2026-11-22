@@ -1,0 +1,8 @@
+FINDING
+file: src/fazit/mappings.py
+line: 84-85
+kind: bug
+claim: The required/optional field lists are inverted for `reference_url` and `checked_on` when `product_profile` is false.
+evidence: "        ("function", "workload", "microsoft", "replacement", "coverage")\n        + (references if product_profile else ()),\n        ("note", "need_finding", "need_if_positive") + (() if product_profile else references),\n    )"
+why: When `product_profile` is false, the code later forbids `reference_url` and `checked_on` if they are present, but the field list puts them in the optional tuple. Depending on `reader.fields` semantics, fields that should be absent can be accepted as optional, or the validation intent is inconsistent; the plainly intended split is required for product profiles and forbidden otherwise, not optional.
+confidence: medium

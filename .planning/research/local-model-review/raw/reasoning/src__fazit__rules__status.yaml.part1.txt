@@ -1,0 +1,384 @@
+We need answer user's request. Need review code part status.yaml lines 1-226. Need output findings exact format or NO FINDINGS. Need identify concrete faults: bug, unhandled-input, contradicts-comment, contradicts-principle. Need only from visible code. Need pay attention to principles: read-only, local, tokens, metadata, privacy, offline report, one command, honest figures. Rule file YAML holds judgement: status rules, mappings, findings, risky file types and licence service plans.
+
+We need inspect status.yaml. It defines workloads with ready evidence and rules. Need infer semantics? We only see YAML. Need find faults in code below. It's YAML rule file. Potential bugs: logic inconsistencies, missing evidence, contradictions with reasons, missing handling of missing values causing status look better? Need understand expected semantics: likely a workload is ready if all evidence conditions true? Rules maybe override? The file has for each workload: ready: evidence: list of conditions. rules: list of when/status/reason. Need know if rules are evaluated before ready? If a rule matches, status needs_work. Ready evidence maybe if no rule matches and evidence true? If evidence missing, what status? Principle: missing evidence unknown, skipped/denied never improves readiness. Need see if ready evidence uses op: exists for counts, but for booleans uses == false. If missing boolean, not ready? It won't satisfy ready, but rules also won't match (unless == true). What status? Unknown? But maybe if no rule matches and ready evidence not met, status maybe unknown? Not visible. But within YAML, potential contradictions: ready reason says no external sharing, but rule only flags true; missing value not ready? OK.
+
+Need find concrete faults in this part. Let's parse each workload.
+
+licences:
+ready evidence: product_count exists, contract_terms_known == true.
+rules: terms-unknown when contract_terms_known == false -> needs_work.
+If contract_terms_known missing, ready false, rule false. likely unknown? OK.
+
+directory:
+ready: user_count exists, guest_count == 0, account_list_reviewed == true.
+rules: guests when guest_count > 0; accounts-not-reviewed when account_list_reviewed == false.
+If guest_count missing, ready false; rule false. OK.
+
+mail:
+ready: mailbox_count exists, shared_mailbox_count exists, other_systems_send_mail == false.
+rules: other-systems when == true.
+If missing false? OK.
+
+onedrive:
+ready: account_count exists, storage_bytes exists, external_sharing_in_use == false.
+rules: external-sharing when == true.
+
+sharepoint:
+ready: site_count exists, custom_solutions_in_use == false.
+rules: custom-solutions when == true.
+
+teams:
+ready: team_count exists, teams_with_guests_count == 0, chat_history_must_be_kept == false.
+rules: guests when teams_with_guests_count > 0; chat-history when chat_history_must_be_kept == true; audio-conferencing when licence_add_on_assigned == true accept_partial_true: true.
+Potential issue: ready evidence doesn't include licence_add_on_assigned == false, but rule flags assigned true. If missing add-on, ready can be true if other conditions met, even though unknown whether add-on assigned. Principle: missing evidence unknown, skipped/denied never improves readiness. If licence_add_on_assigned is missing/unknown, ready evidence does not require it, so status may be ready despite unknown add-on. Is that a fault? The ready reason says "The teams have been counted, there are no guests, and the chat history does not need to be kept." It doesn't mention add-on. But rule for audio-conferencing only triggers if assigned true. If missing, no needs_work. Does that make status look better? Potentially contradicts principle 8: missing evidence unknown, skipped/denied never improves readiness. But maybe add-on is optional? The rule says assigned licence requires checking. If unknown, should not be ready? Need infer from other workloads: device_management ready includes licence_add_on_assigned == false. power_platform ready includes licence_add_on_assigned == false. teams ready does NOT include licence_add_on_assigned == false, only rule true. That asymmetry may be a bug/contradicts-principle: missing add-on evidence doesn't prevent ready, making unknown look like ready. But is that intended? The ready reason omits add-on, maybe they intentionally don't require false? But rule exists for true. If unknown, no rule, ready could be true. Principle says missing evidence as unknown; skipped/denied never improves readiness. So if add-on status unknown, status should not be ready. This could be a finding.
+
+Similarly device_management ready: in_use == false, windows_device_count == 0, licence_add_on_assigned == false. rules: in_use true, windows >0, add-on true accept_partial_true. OK.
+
+windows_software:
+ready: application_count == 0, without_web_version_count == 0.
+rules: software-no-web-version when without_web_version_count > 0; software-present when application_count > 0.
+Potential issue: ready requires application_count == 0, but rule software-present when >0. If missing, not ready. OK. However reason for software-no-web-version says "At least one Windows-only application has no web version and blocks a move away from Windows desktops." But condition is without_web_version_count > 0. If application_count > 0 but without_web_version_count == 0, ready false because application_count not 0, rule software-present triggers needs_work. OK.
+
+power_platform:
+ready: in_use == false, licence_add_on_assigned == false.
+rules: premium-licences when add-on true accept_partial_true; in-use when in_use true.
+OK.
+
+Potential contradictions with comments/reasons:
+- office_files ready evidence: macro==0, access==0, publisher==0, visio==0, onenote==0. Reason: "The counts show no files of the types listed for review." OK.
+Rules reasons:
+office-macro: "These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform." Condition macro > 0. OK.
+office-access: "Review how the organisation uses its Access databases before planning the move." OK.
+office-publisher, visio, onenote OK.
+
+- device_management ready reason: "The evidence shows no Windows devices, Microsoft device management or separate device-management licences." Conditions: in_use false, windows_device_count 0, licence_add_on_assigned false. OK.
+
+- teams ready reason: "The teams have been counted, there are no guests, and the chat history does not need to be kept." It doesn't mention audio conferencing add-on. If ready can be true while add-on assigned? No rule triggers if true. If add-on unknown? ready true. Is that a fault? The ready reason not claiming add-on. But principle maybe.
+
+Need inspect YAML syntax? It's part 1 of 2, lines 1-226. Maybe there is missing top-level keys? It starts workloads: licences... No issues.
+
+Potential bug: line 110: `accept_partial_true: true` on teams audio-conferencing. What does accept_partial_true mean? Maybe for findings with partial true? It may be a custom op parameter. If not recognized? But likely rule engine supports. Need not guess.
+
+Potential bug: line 91: `teams.teams_with_guests_count, op: '==', value: 0` ready evidence. Rule line 98 `op: '>', value: 0`. If teams_with_guests_count missing, ready false, rule false. OK.
+
+Potential bug: line 160 device_management ready: `device_management.in_use, op: '==', value: false`. But if in_use missing, not ready. Rule only true. OK.
+
+Potential bug: line 188 windows_software ready: application_count == 0. But if application_count missing, not ready. OK.
+
+Potential bug: line 200 software-present when application_count > 0, status needs_work. But ready requires application_count == 0. If application_count > 0, both ready false and rule true. OK.
+
+Potential bug: line 209 power_platform ready: in_use == false and add_on == false. Rule add-on true accept_partial_true, in-use true. OK.
+
+Potential bug: line 6 licences ready requires product_count exists and contract_terms_known true. Rule terms-unknown when false. If product_count missing but contract_terms_known true, not ready. OK.
+
+Potential unhandled-input: YAML uses `op: '=='` with value true/false. If scan.json provides string "true" not bool? Not visible. Could be unhandled input if finding value string? But rule file expects bool. Not enough.
+
+Potential contradicts-principle: "missing value being treated as zero or as good news". Need look for conditions where missing value can satisfy ready? `op: exists` requires exists. `== 0` requires value 0, missing not equal. `== false` requires false. No missing treated as zero. Except maybe `accept_partial_true`? If value partial? Not missing.
+
+Potential "skipped or unknown input making a status look better": teams add-on unknown as above. Also maybe mail ready: other_systems_send_mail == false. If missing, not ready. OK. onedrive external_sharing_in_use == false, missing not ready. sharepoint custom_solutions_in_use == false, missing not ready. device_management in_use false, add_on false. power false. So only teams add-on not in ready.
+
+Could there be other missing evidence not in ready but rule only true: directory guest_count? ready requires ==0, so missing not ready. account_list_reviewed == true. mail other_systems == false. onedrive external false. sharepoint custom false. teams chat_history false. So only add-on.
+
+But is it possible that ready evidence is only used to generate reason when no rules match, and if evidence not met but no rule matches, status is "unknown" not ready. Then missing add-on would not make ready; it would make unknown because ready evidence not met? Wait ready evidence for teams doesn't include add-on. If add-on missing but other three true, ready evidence all true, so status ready. If add-on unknown, ready. That is status better.
+
+Need decide if this is a fault. The rule for teams audio-conferencing says if assigned true, needs_work. It doesn't require false for ready. Could be intentional: audio conferencing add-on is not a readiness blocker unless assigned. But if unknown, principle says unknown should not improve readiness. However if the finding is not collected, maybe it's optional? The principle: "Show missing evidence as unknown. A skipped or denied collector never improves readiness." If a collector for licence add-on is skipped, then teams status could be ready, improving readiness. That seems a clear contradiction. But is it "plainly intends"? The rule file includes a rule for add-on true, but not ready false. It may intend that unknown add-on doesn't block. But principle says skipped/denied never improves readiness. Need report with medium/high? Since we don't see how status computed, but from YAML, ready conditions don't include add-on false. Could be a design choice. The task specifically says pay attention to missing value treated as zero/good news, skipped/unknown input making status look better. This is likely intended finding.
+
+Need look for other similar: `teams.licence_add_on_assigned` in rule line 110 but not in ready. Maybe if value is `partial_true`? `accept_partial_true: true` means if partial true, rule triggers. If value missing, no. If value false, no. OK.
+
+Potential bug: line 110 `accept_partial_true: true` maybe should be on ready? No.
+
+Potential contradicts-comment: line 94 reason says "there are no guests, and the chat history does not need to be kept." It doesn't mention audio conferencing. Not a contradiction.
+
+Potential bug: line 118-122 office_files ready uses findings `office_files.kind.macro`, etc. Rule IDs `office-macro`, etc. OK.
+
+Potential bug: line 129 status needs_work for macro >0. Reason says "These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform." It says files may contain macros, but finding kind.macro likely count of macro-enabled file types. OK.
+
+Potential bug: line 161 ready `device_management.windows_device_count == 0`. Rule line 174 `windows_device_count > 0`. If missing, not ready. OK.
+
+Potential unhandled-input: If `device_management.windows_device_count` is non-numeric string, op > may crash. But that's scan.json input. Rule file doesn't validate. But likely engine handles. Need not report unless plainly. Could be unhandled-input: YAML accepts any value, if count is null? `op: exists` for some, but for `== 0` null false. If count is string, comparison error? Not visible.
+
+Potential bug: line 22 `directory.guest_count == 0` ready, line 29 `guest_count > 0` rule. If guest_count is boolean true? > 0 maybe error? Not likely.
+
+Potential bug: line 45 mail ready `other_systems_send_mail == false`. If value is missing, not ready. OK.
+
+Potential bug: line 61 onedrive ready `external_sharing_in_use == false`. OK.
+
+Potential bug: line 76 sharepoint ready `custom_solutions_in_use == false`. OK.
+
+Potential bug: line 92 teams ready `chat_history_must_be_kept == false`. OK.
+
+Potential bug: line 160 device_management ready `in_use == false`. OK.
+
+Potential bug: line 209 power ready `in_use == false`. OK.
+
+Potential bug: line 188 windows_software ready `application_count == 0`, line 189 `without_web_version_count == 0`. If `without_web_version_count` missing but application_count 0, ready false. OK.
+
+Potential bug: line 195 rule `software-no-web-version` when without_web_version_count > 0. If application_count missing but without >0, rule triggers. OK.
+
+Potential bug: line 200 rule `software-present` when application_count > 0. If without_web_version_count >0 and application_count >0, both rules trigger. OK.
+
+Potential bug: line 215 power-premium-licences when add-on true accept_partial_true. ready requires add-on false. OK.
+
+Potential bug: line 221 power-in-use when in_use true. ready requires false. OK.
+
+Potential bug: line 13 licences rule terms-unknown when contract_terms_known false. ready requires true. OK.
+
+Potential bug: line 34 directory-accounts-not-reviewed when account_list_reviewed false. ready true. OK.
+
+Potential bug: line 50 mail-other-systems when true. ready false. OK.
+
+Potential bug: line 66 onedrive-external-sharing when true. ready false. OK.
+
+Potential bug: line 81 sharepoint-custom-solutions when true. ready false. OK.
+
+Potential bug: line 97 teams-guests when >0. ready 0. OK.
+
+Potential bug: line 103 teams-chat-history when true. ready false. OK.
+
+Potential bug: line 109 teams-audio-conferencing when true accept_partial_true. ready doesn't require false. This is main.
+
+Could there be a contradiction: line 113 reason "An assigned licence for audio conferencing requires checking how participants dial in to meetings." But if `accept_partial_true` true, it triggers on partial true. What is partial true? Maybe finding has value true for some plans? OK.
+
+Potential bug: line 180 devices-add-on uses accept_partial_true true. ready line 162 requires false. If partial true, ready false? `== false` with partial true likely false. rule true. OK.
+
+Potential bug: line 216 power-premium-licences accept_partial_true true. ready requires false. OK.
+
+Potential bug: line 110 teams add-on accept_partial_true true, but ready doesn't require false. If partial true, rule triggers. If missing, ready. If false, ready. OK.
+
+Need consider "licence service plans" rule files. Maybe `licence_add_on_assigned` finding can be true/false/partial_true? `accept_partial_true` indicates if any add-on assigned? If partial true, rule triggers. If no evidence, maybe unknown.
+
+Potential contradicts-principle: "Honest figures. Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown." The status.yaml doesn't show figures. But status could be wrong.
+
+Potential bug: line 118-122 ready evidence for office_files: all counts == 0. But if a count is missing, not ready. However rule for each type >0. If one count missing and others 0, not ready; no rule. Unknown. OK.
+
+Potential bug: line 124 reason "The counts show no files of the types listed for review." If counts are 0. OK.
+
+Potential bug: line 191 reason "The supplied inventory confirms there are no Windows-only applications." Conditions application_count == 0 and without_web_version_count == 0. If application_count 0, without_web_version_count 0. OK. But if application_count missing? not ready.
+
+Potential bug: line 212 reason "The organisation reports no Power Platform use, and there are no assigned separate licences." Conditions in_use false, add_on false. OK.
+
+Potential unhandled-input: YAML line 110 `accept_partial_true: true` maybe only valid for op `==` value true? It is. OK.
+
+Potential bug: line 91 ready `teams_with_guests_count == 0`, line 98 rule `> 0`. If `teams_with_guests_count` is null, not ready. OK.
+
+Potential bug: line 22 ready `guest_count == 0`, line 29 rule `>0`. OK.
+
+Potential bug: line 161 ready `windows_device_count == 0`, line 174 rule `>0`. OK.
+
+Potential bug: line 188 ready `application_count == 0`, line 201 rule `>0`. OK.
+
+Potential bug: line 189 ready `without_web_version_count == 0`, line 195 rule `>0`. OK.
+
+Potential bug: line 118-122 ready `kind... == 0`, rules `>0`. OK.
+
+Potential bug: line 6 ready `product_count exists`, no rule for product_count missing. If missing, not ready. OK.
+
+Potential bug: line 21 ready user_count exists, no rule. If missing, not ready. OK.
+
+Potential bug: line 43-44 mail counts exists, no rules. If missing, not ready. OK.
+
+Potential bug: line 59-60 onedrive counts exists, no rules. OK.
+
+Potential bug: line 75 site_count exists, no rule. OK.
+
+Potential bug: line 90 team_count exists, no rule. OK.
+
+Potential bug: line 159? device_management no exists for counts, but booleans and count. If windows_device_count missing, not ready. OK.
+
+Potential bug: line 188 windows_software no exists, but ==0. If missing, not ready. OK.
+
+Potential bug: line 208 power no exists, booleans. OK.
+
+Potential bug: line 160 device_management.in_use == false. If in_use is missing, not ready. OK.
+
+Potential bug: line 162 device_management.licence_add_on_assigned == false. If partial true? not false. OK.
+
+Potential bug: line 210 power add-on == false. OK.
+
+Potential bug: line 110 teams add-on rule: if value is `partial_true`, `op: '==' value: true, accept_partial_true: true` triggers. If value is `partial_false`? no. OK.
+
+Could there be a bug in `accept_partial_true` semantics: It might mean accept partial true as true for the condition. But if value is a list of booleans? Not visible.
+
+Need think about "Read-only" etc. YAML no network.
+
+Could there be privacy issue? Reasons mention organisation? No names.
+
+Could there be offline report? No.
+
+Could there be "one command"? No.
+
+Need maybe find contradictions between ready reason and rules: For teams, ready reason says "there are no guests, and the chat history does not need to be kept." But ready evidence also requires team_count exists. OK. It doesn't mention audio conferencing. Not contradiction.
+
+For device_management, ready reason says "no Windows devices, Microsoft device management or separate device-management licences." Conditions include in_use false, windows count 0, add-on false. OK.
+
+For windows_software, ready reason says "no Windows-only applications." Conditions application_count 0 and without_web_version_count 0. OK. But rule software-no-web-version reason says "At least one Windows-only application has no web version and blocks a move away from Windows desktops." If without_web_version_count >0 but application_count maybe 0? Could be inconsistent input: without_web_version_count > 0 implies application_count should be >0, but if not, rule triggers. OK.
+
+Potential bug: windows_software ready requires `without_web_version_count == 0`, but if there are Windows-only applications all with web versions, application_count >0, without_web_version_count ==0. Ready false due application_count, rule software-present triggers needs_work. Reason: "Check how staff will use the Windows-only applications after the move." OK. So all Windows-only apps need review, even if web version exists. Good.
+
+Potential bug: power_platform ready requires in_use false and add-on false. If in_use true but add-on false, rule in-use triggers. OK.
+
+Potential bug: licences ready requires product_count exists and contract_terms_known true. If product_count 0? exists true. Is zero products ready? Reason: "The licence products have been recorded and the contract terms have been reviewed." If no licence products recorded, maybe should not be ready? But product_count exists could be 0. Is that a missing value treated as zero/good news? If organisation has no licence products? In M365 evidence, product_count likely number of licence products. If 0, maybe no licences, ready? But if product_count is 0 due missing? It exists. Could be wrong: ready should require product_count > 0? The rule file says evidence product_count exists, not >0. If scan has product_count 0, status ready (assuming terms known). Is that a fault? The reason says "The licence products have been recorded" - zero products could be recorded? But if there are no licence products, maybe no licences to review. However M365 organisation likely has licence products. If collector skipped, product_count might be 0? Principle: skipped collector never improves readiness. If product_count collector skipped, maybe value absent, not 0. But if it returns 0 erroneously, ready. Not enough.
+
+Potential unhandled-input: `op: exists` with value 0 exists. OK.
+
+Potential bug: `directory.user_count` exists, but no rule if user_count 0. If zero users, ready if guest 0 and reviewed true. Is that plausible? Organisation with zero users? Maybe not. But not a fault.
+
+Potential bug: `mail.mailbox_count` exists, `shared_mailbox_count` exists. If both 0, ready if other systems false. OK.
+
+Potential bug: `onedrive.account_count` exists, storage_bytes exists. If 0, ready if no external sharing. OK.
+
+Potential bug: `sharepoint.site_count` exists. If 0, ready if no custom solutions. OK.
+
+Potential bug: `teams.team_count` exists. If 0, ready if guests 0, chat false. OK.
+
+Potential bug: `office_files.kind.macro` etc. If all 0, ready. OK.
+
+Potential bug: `device_management.windows_device_count` ==0. If missing, not ready. OK.
+
+Potential bug: `windows_software.application_count` ==0. If missing, not ready. OK.
+
+Potential bug: `power_platform.in_use` == false. If missing, not ready. OK.
+
+Need maybe identify that `teams.licence_add_on_assigned` is not required false in ready, unlike other add-ons. This is likely the intended finding. Need formulate as contradicts-principle or bug? It's a rule file judgement. It leads to unknown/skipped add-on making status ready. Kind: contradicts-principle (principle 8). Could also be bug: does something other than plainly intends? The rule for add-on true suggests assigned add-on needs work, but missing doesn't. The plain intent maybe only true blocks. But principle says unknown shouldn't improve. I think kind contradicts-principle.
+
+Need quote exact lines. For finding, line range maybe 87-114? Need quote ready evidence lines 88-95 and rule line 109-114? The claim: Teams can be ready when licence add-on evidence is missing because ready evidence does not require `teams.licence_add_on_assigned` to be false, while other workloads do. Evidence exact lines: 
+88        evidence:
+89          - {finding: teams.team_count, op: exists}
+90          - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+91          - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+... maybe line 91? Wait line numbers: In provided:
+87    teams:
+88      ready:
+89        evidence:
+90          - {finding: teams.team_count, op: exists}
+91          - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+92          - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+...
+109        - id: teams-audio-conferencing
+110          when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
+Need quote exact. Could quote lines 89-92 and 110. But format evidence: exact quoted line or lines. We can include multiple lines with line numbers? It says quote exact line or lines. We can quote without line numbers? Probably include as in code. Need ensure exact. Use:
+evidence:
+          - {finding: teams.team_count, op: exists}
+          - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+          - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+...
+          when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
+But maybe too long. Could quote line 92 and 110? Need show missing in ready. Maybe quote lines 89-92 and 110. Exact indentation? The code has two spaces? Let's preserve.
+
+Line numbers in file:
+89        evidence:
+90          - {finding: teams.team_count, op: exists}
+91          - {finding: teams.teams_with_guests_count, op: '==', value: 0}
+92          - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+110          when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
+Actually line 89 is `        evidence:` under ready. The evidence list lines 90-92. Good.
+
+Why: If `teams.licence_add_on_assigned` is absent/skipped, none of the teams rules match and the three ready evidence conditions can all be true, so the workload is reported ready despite unknown add-on status; principle 8 requires missing evidence to be unknown and not improve readiness. Confidence: high? We don't see status engine, but YAML plainly shows ready conditions. Could be medium if engine might treat unmet optional? But ready conditions all true. I'd say high.
+
+Are there other findings? Need be thorough. Let's examine potential issue: `teams.licence_add_on_assigned` rule has `accept_partial_true: true`, but ready does not require false. If value is `partial_true`, rule triggers. If value is `partial_false`? no. If value is unknown? no.
+
+Potential issue: `device_management.licence_add_on_assigned` ready requires false, but rule line 180 uses accept_partial_true. If value is `partial_true`, ready false, rule true. OK.
+
+Potential issue: `power_platform.licence_add_on_assigned` ready requires false, rule accept_partial_true. OK.
+
+Potential issue: `teams` ready includes `chat_history_must_be_kept == false`. If missing, not ready. OK.
+
+Potential issue: `mail.other_systems_send_mail` ready false, rule true. If missing, not ready. OK.
+
+Potential issue: `sharepoint.custom_solutions_in_use` ready false, rule true. OK.
+
+Potential issue: `onedrive.external_sharing_in_use` ready false, rule true. OK.
+
+Potential issue: `directory.guest_count` ready 0, rule >0. If missing, not ready. OK.
+
+Potential issue: `directory.account_list_reviewed` ready true, rule false. If missing, not ready. OK.
+
+Potential issue: `licences.contract_terms_known` ready true, rule false. If missing, not ready. OK.
+
+Potential issue: `windows_software.without_web_version_count` ready 0, rule >0. If missing, not ready. OK.
+
+Potential issue: `windows_software.application_count` ready 0, rule >0. If missing, not ready. OK.
+
+Potential issue: `power_platform.in_use` ready false, rule true. If missing, not ready. OK.
+
+Potential issue: `device_management.in_use` ready false, rule true. If missing, not ready. OK.
+
+Potential issue: `device_management.windows_device_count` ready 0, rule >0. If missing, not ready. OK.
+
+Potential issue: office_files counts ready 0, rules >0. If missing, not ready. OK.
+
+Could there be a bug: `office_files.kind.macro` etc. ready evidence uses `op: '==' value: 0`, but if finding is missing, not ready. However if scan.json contains a null value, `exists`? For ==0, null !=0. OK.
+
+Potential unhandled-input: YAML uses `op: exists` but no value. If engine expects value? Not visible.
+
+Potential bug: line 110 `accept_partial_true: true` might be invalid key for `when` condition? If engine doesn't support, maybe ignored. But likely supports. Not report.
+
+Potential bug: line 110 condition `op: '==' value: true, accept_partial_true: true` with a finding that can be `partial_true`. If `accept_partial_true` means accept partial true as true, OK. If not, maybe not.
+
+Potential bug: line 180 and 216 similar. OK.
+
+Potential contradicts-comment: line 113 reason says "An assigned licence for audio conferencing requires checking how participants dial in to meetings." But condition triggers on `teams.licence_add_on_assigned` true, not specifically audio conferencing? The finding name is `licence_add_on_assigned`, maybe generic add-on assigned. The rule ID is teams-audio-conferencing. If the finding indicates any licence add-on assigned, not necessarily audio conferencing, reason may be wrong. But we don't know finding semantics. It might be specifically audio conferencing add-on. The name `teams.licence_add_on_assigned` generic, but maybe in Teams context it's audio conferencing add-on. Not enough.
+
+Potential contradicts-principle: line 113 reason mentions "assigned licence" but if `accept_partial_true` true, it also triggers on partial true, which may not be an assigned licence? Partial true maybe some users assigned? Still assigned. OK.
+
+Potential bug: line 110 rule status needs_work if add-on assigned. But ready evidence doesn't require false, so if add-on assigned true, rule triggers, status needs_work. OK.
+
+Potential bug: line 91 ready `teams_with_guests_count == 0`. If there are teams with guests count missing? not ready. OK.
+
+Potential bug: line 98 rule `teams_with_guests_count > 0`. If value is boolean true, >0? In Python True > 0 True. OK.
+
+Potential unhandled-input: If counts are negative? e.g., guest_count -1. Ready `==0` false, rule `>0` false, status unknown. Negative count silently not ready. OK not better.
+
+Potential bug: If counts are non-integer floats? OK.
+
+Potential bug: If `guest_count` is string "0", `== 0` false, `>0` maybe TypeError. But scan.json likely typed. Not report.
+
+Potential bug: If `contract_terms_known` is string "true", `== true` false, `== false` false, unknown. OK.
+
+Potential bug: If `other_systems_send_mail` is string "false", ready false, rule false, unknown. OK.
+
+Potential bug: If `external_sharing_in_use` is string "false", unknown. OK.
+
+Potential bug: If `custom_solutions_in_use` string, unknown. OK.
+
+Potential bug: If `chat_history_must_be_kept` string, unknown. OK.
+
+Potential bug: If `in_use` string, unknown. OK.
+
+Potential bug: If `application_count` string, unknown/crash. Not visible.
+
+Need consider "file system" input: YAML file itself. Could there be duplicate keys? No.
+
+Need maybe part 1 of 2, lines 1-226 of 333. There may be a fault due to missing closing? No.
+
+Potential bug: top-level `workloads:` has keys. No `status:` definitions? Not visible.
+
+Potential bug: The `ready` block uses `evidence` and `reason`. The `rules` block uses `when`, `status`, `reason`. For `licences`, ready evidence includes `contract_terms_known == true`. Rule `terms-unknown` when false. If contract_terms_known missing, no rule, ready false. OK.
+
+Potential bug: For `licences`, if product_count exists but contract_terms_known missing, no rule. Unknown. OK.
+
+Potential bug: For `directory`, if user_count missing but guest_count 0 and reviewed true, no rule, ready false. Unknown. OK.
+
+Potential bug: For `mail`, if mailbox_count missing but shared exists and other false, no rule. Unknown. OK.
+
+Potential bug: For `onedrive`, if account_count missing but storage exists and external false, no rule. Unknown. OK.
+
+Potential bug: For `sharepoint`, if site_count missing but custom false, no rule. Unknown. OK.
+
+Potential bug: For `teams`, if team_count missing but guests 0, chat false, add-on false, no rule, ready false. Unknown. OK.
+
+Potential bug: For `office_files`, if all counts missing, no rule, ready false. Unknown. OK.
+
+Potential bug: For `device_management`, if all missing, no rule, ready false. Unknown. OK.
+
+Potential bug: For `windows_software`, if all missing, no rule, ready false. Unknown. OK.
+
+Potential bug: For `power_platform`, if all missing, no rule, ready false. Unknown. OK.
+
+Thus only teams add-on missing can ready.
+
+Could there be a similar issue with `teams` ready not requiring `teams.licence_add_on_assigned == false` but the rule is only needs_work if true. If missing, ready. Yes.
+
+Need maybe report as unhandled-input? Input scan.json missing finding leads to silently wrong result (ready). Kind could be unhandled-input because input scan.json missing value leads to wrong result. But the fault is in rule file not handling missing. The categories: unhandled-input: an input the code accepts (from scan.json...) that leads to crash, traceback, or silently wrong result. Missing `teams.licence_add_on_assigned` is an input (absent) accepted, leads to silently wrong result (ready). Could be unhandled-input. But also contradicts-principle. Which is more appropriate? The task says pay attention to missing value treated as zero/good news, skipped/unknown making status look better. That is principle. I can choose contradicts-principle. It is behavior that breaks principle 8. The evidence is rule file. Kind: contradicts-principle. Good.
+
+Need maybe include confidence high. But if status engine has a generic rule that any missing evidence prevents ready regardless of ready evidence? Not visible. But the YAML ready evidence is likely the conditions for ready. If engine instead requires all findings for workload to be present? Not visible. But principle says report only if depends on code you cannot see, say confidence. We can say confidence medium because we cannot see how

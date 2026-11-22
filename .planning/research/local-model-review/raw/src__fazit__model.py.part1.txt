@@ -1,0 +1,26 @@
+FINDING
+file: src/fazit/model.py
+line: 206
+kind: bug
+claim: `_ScanReader.fields` ignores its `optional` argument when calling the validator, so fields declared optional are not treated as allowed by the underlying field check.
+evidence: "row = self.check.fields(value, field, required, optional=None)"
+why: The wrapper accepts `optional` and uses it on the next line to compute dropped fields, but passes `None` to `Validator.fields`; if the validator uses that argument to permit optional keys, rows such as a collector with `reason` are mishandled.
+confidence: medium
+
+FINDING
+file: src/fazit/model.py
+line: 63
+kind: bug
+claim: `_timestamp_after` silently removes timezone information when comparing a timestamped value against a naive reference, producing wrong ordering for offset-bearing timestamps.
+evidence: "if time.tzinfo is None or limit.tzinfo is None:\n        time, limit = time.replace(tzinfo=None), limit.replace(tzinfo=None)"
+why: `_TIMESTAMP` accepts optional UTC offsets, so an input like `2020-01-01T23:00:00+02:00` can be compared against a naive timestamp; stripping the offset changes the actual point in time and can make the comparison wrong.
+confidence: high
+
+FINDING
+file: src/fazit/model.py
+line: 69
+kind: unhandled-input
+claim: `same_collection_time` rejects timestamps that differ only by timezone representation, so equivalent collection times can be treated as different.
+evidence: "if first is None or second is None or (len(first) == 10) != (len(second) == 10):\n        return False"
+why: `_TIMESTAMP` allows both naive and timezone-aware full timestamps; `2020-01-01T00:00:00` and `2020-01-01T00:00:00Z` have different lengths, so the function returns `False` before comparing the actual times.
+confidence: high

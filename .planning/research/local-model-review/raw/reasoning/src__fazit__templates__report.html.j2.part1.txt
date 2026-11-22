@@ -1,0 +1,412 @@
+We need answer user's request. Need review code part 1 of template. Need find concrete faults. Need final exactly findings or NO FINDINGS. Need analyze thoroughly.
+
+We have template report.html.j2 lines 1-378. Need identify bugs/unhandled-input/contradicts-comment/contradicts-principle. Only this part. Need quote exact lines. Need not report style etc.
+
+Let's inspect code.
+
+Line 2 macro column:
+{% macro column(text) -%}
+   <th scope="col" role="columnheader" data-label="{{ text }}">{{ text }}</th>
+{%- endmacro %}
+OK.
+
+reason_detail:
+{% set reason, fix = reason_text(code) %}
+<span data-reason="{{ code }}">{{ reason }} {{ fix }}</span>
+If reason_text returns maybe one? unknown. Not visible. Could be unhandled? no.
+
+finding_date:
+{% if finding.collected_at %}{{ format.date(finding.collected_at) }}
+{%- elif finding.provenance == 'provided' or finding.source in provided_sources %}{{ strings.common.date_not_supplied }}
+{%- else %}{{ strings.common.unavailable }}{% endif %}
+OK.
+
+finding_source:
+{{ code_label('source', finding.source) if finding.source else strings.common.unavailable }}
+OK.
+
+finding_coverage:
+{{ coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source in provided_sources) }}
+OK.
+
+evidence_summary:
+<div data-provenance="{{ finding.provenance }}">
+  {% if finding.value is not none %}{{ value_text(finding) }}{% endif %}
+  <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
+  {% set provided = finding.provenance == 'provided' %}
+  {% set partial = finding.coverage and finding.coverage.kind != 'complete' %}
+  {% if not compact and (finding.source or finding.collected_at or finding.period or finding.coverage or provided) %}
+...
+    {% if finding.source %}<span>{{ strings.found.source }} · {{ finding_source(finding) }}</span>{% endif %}
+    {% if finding.collected_at or provided %}<span>{{ strings.found.collected }} · {{ finding_date(finding) }}</span>{% endif %}
+...
+  {% elif compact and (provided or partial) %}
+    <small class="evidence-meta">
+      {% if finding.provenance == 'provided' %}
+        <span>{{ finding_source(finding) }} · {{ finding_date(finding) }}</span>
+      {% endif %}
+      {% if partial %}<span>{{ finding_coverage(finding) }}</span>{% endif %}
+    </small>
+  {% endif %}
+</div>
+
+Potential issue: if compact and provided true but finding.provenance == 'provided', it prints source and date. If source missing, finding_source returns unavailable; date if provided returns date_not_supplied. OK.
+
+But if compact and partial true, prints coverage. OK.
+
+Alternative_evidence:
+{% if finding.id in alternatives %}
+  <small>{{ strings.found.comparison }}</small>
+  {{ evidence_summary(alternatives[finding.id], compact) }}
+  {% if finding.id in conflicts %}
+    <small>{{ strings.readiness.conflict if finding.is_lower_bound else strings.reason.confirmation_conflict.label }}</small>
+  {% endif %}
+  {% if finding.id in answer_conflicts %}<small>{{ strings.reason.provided_answers_conflict.label }}</small>{% endif %}
+{% endif %}
+
+Potential: if finding.id in alternatives but alternatives[finding.id] is none? evidence_summary expects finding. Could be unhandled? Not know.
+
+evidence_pair:
+{{ evidence_summary(finding) }}
+{{ alternative_evidence(finding) }}
+
+attention_evidence:
+{% if finding %}
+  {{ evidence_pair(finding) }}
+  {% if finding.missing_reason %}
+    <small>{{ reason_detail(finding.missing_reason) }}</small>
+  {% elif finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial' %}
+    <small>{{ reason_detail('answer_not_provided') }}</small>
+  {% endif %}
+{% else %}
+  <div data-provenance="unknown">
+    <span class="prov">{{ strings.provenance.unknown }}</span>
+    <small>{{ reason_detail('answer_not_provided') }}</small>
+  </div>
+{% endif %}
+
+Potential contradicts principle? Missing finding shows unknown and answer_not_provided. OK.
+
+missing_answer:
+<span data-provenance="unknown">
+  {{ strings.common.not_stated }}
+  <small>{{ reason_detail('answer_not_provided') }}</small>
+</span>
+OK.
+
+icon:
+<svg ...><path d="{{ icons[name] }}"/></svg>
+If name not in icons? KeyError. But statuses use known names. Other code maybe. Not in this part? Could be unhandled-input if icon name from rule? But not visible where called. In this part status_label uses fixed dict. OK.
+
+status_label:
+<span class="status {{ status }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {{ strings.status[status] }}</span>
+If status not one of keys -> KeyError. Is status from scan/rule? Could be unhandled-input. But likely statuses constrained. Need consider if code accepts input leading crash. status could be from status_rules? The template uses row.status. If a rule file has unknown status, crash. But maybe validation elsewhere. We only see part. Should we report? It's a template, status_label called with row.status. If rule file has status not in dict, crash. But maybe statuses are fixed. The task says find concrete faults in code below. We can report unhandled-input if input accepted from rule file leads crash. But do we know rule files can have arbitrary status? Status rules hold judgement. Likely status values are ready/needs_work/blocker/unknown. But not guaranteed. Need avoid guessing. Maybe not report.
+
+workload_status:
+{{ status_label(row.status) }}
+{% if row.incomplete %}<small>{{ strings.readiness.incomplete }}</small>{% endif %}
+OK.
+
+status_reason:
+{% if row.deciding %}{{ row.deciding.reason[lang] }}
+{% elif row.reason_code %}{{ reason_detail(row.reason_code) }}
+{% else %}{{ status_rules.workloads[row.workload].ready_reason[lang] }}{% endif %}
+Potential: if row.deciding exists but row.deciding.reason doesn't have lang -> KeyError. If row.workload missing from status_rules.workloads -> KeyError. Could be unhandled. But likely validated.
+
+mapping_date:
+{% if row.checked_on %}
+  {% set day = row.checked_on.isoformat() %}
+  <time datetime="{{ day }}">{{ format.date(day) }}</time>
+{% else %}{{ strings.moves.no_project_check }}{% endif %}
+OK.
+
+conditions_list:
+<ul>
+  {% for condition in conditions %}
+    <li>
+      {{ finding_labels[condition.finding] }}
+      {% if condition.op == 'exists' %}{{ strings.appendix.condition_exists }}
+      {% else %}{{ condition.op }} {{ literal_text(condition.value) }}{% endif %}
+      {% if condition.provenance %}<span class="prov">{{ strings.provenance[condition.provenance] }}</span>{% endif %}
+    </li>
+  {% endfor %}
+</ul>
+Potential: condition.provenance if not in strings.provenance -> KeyError. Could be unhandled. But likely fixed.
+
+costs = strings.costs
+prices_invented = inputs and inputs.amounts_are_invented
+macro cost_columns(label):
+<thead role="rowgroup">
+  <tr role="row">
+    {{ column(label) }}
+    {% for result in scenarios %}{{ column(costs[result.id]) }}{% endfor %}
+  </tr>
+</thead>
+Potential: costs[result.id] KeyError if scenario id not in strings.costs. Could be unhandled but likely fixed.
+
+cost_caption:
+{% if prices_invented %}<caption data-invented-amounts>{{ costs.invented_amounts }}</caption>{% endif %}
+OK.
+
+cost_input_row(field, amounts, shared=false):
+{% set quantity = field in ('users', 'training_staff', 'training_days_per_person', 'parallel_running_months') %}
+<tr data-cost-input="{{ field }}" role="row">
+  <th scope="row" role="rowheader" data-label="{{ costs.input }}">
+    {{ costs.input_fields[field] }}
+    {% if amounts|reject('none')|list %}
+      {% set origin = 'invented' if prices_invented and not quantity else ('sample_input' if sample_inputs and quantity else 'provided') %}
+      <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
+    {% endif %}
+  </th>
+  {% for result in scenarios %}
+    {% set amount = amounts[loop.index0] %}
+    <td role="cell" data-label="{{ costs[result.id] }}">
+      {% if loop.first and not shared %}{{ costs.not_applicable }}
+      {% elif amount is none %}<span data-provenance="unknown">{{ costs.not_provided }}</span>
+      {% elif amount is integer %}{{ format.integer(amount) }}
+      {% elif quantity %}{{ format.number(amount) }}
+      {% else %}{{ format.money(amount, cost_currency) }}{% endif %}
+    </td>
+  {% endfor %}
+</tr>
+
+Potential bug: amounts|reject('none')|list: In Jinja, reject('none') filters out items equal to none? Need check. Jinja's reject('none')? The test 'none' exists? There is 'none' test? In Jinja, yes? Actually Jinja has test 'none' maybe? Let's recall: Jinja tests include callable, defined, divisibleby, even, false, filter, float, integer, iterable, lower, mapping, none, number, odd, sameas, sequence, string, test, true, undefined, upper. Yes 'none' test returns true if value is None. reject('none') removes None. OK.
+
+But `amounts|reject('none')|list` checks if any non-none amounts. If amounts is a list of values. If amounts is dict? It iterates keys. But likely list.
+
+Potential bug: `amounts[loop.index0]` if amounts length less than scenarios -> IndexError. Could be unhandled. But likely amounts list aligned.
+
+Potential principle: missing value treated as not_provided, unknown, not zero. OK.
+
+But line 137: `{% if loop.first and not shared %}{{ costs.not_applicable }}` This means for first scenario, if not shared, amount not displayed, not applicable. But if shared false and loop.first, it ignores amount even if amount is none? It shows not_applicable. Is that intended? Maybe first scenario (e.g. no parallel running) not applicable for some inputs? Need know. Could be correct.
+
+Potential bug: origin logic: `origin = 'invented' if prices_invented and not quantity else ('sample_input' if sample_inputs and quantity else 'provided')`. If prices_invented and quantity true, origin sample_input if sample_inputs else provided. But if prices_invented and quantity, amounts might be invented? Wait `amounts_are_invented` maybe indicates all amounts invented? For quantities (users, training staff, days, months) they are sample inputs, not invented prices. If prices_invented true and quantity true, origin sample_input if sample_inputs true else provided. If sample_inputs false but quantity and prices_invented true, origin provided. But if amount is invented? Could be wrong? Need understand. `inputs.amounts_are_invented` likely flag if costs are example/invented, not quantities. `sample_inputs` likely flag if sample inputs.yaml used. For quantity fields, if sample_inputs true, origin sample_input. If not sample_inputs, provided. If prices_invented and not quantity, invented. OK.
+
+But if prices_invented false and quantity and sample_inputs false, origin provided. OK.
+
+Potential: if amounts contain non-none but all are zero? origin shown. OK.
+
+cost_heading:
+<th scope="row" role="rowheader" data-label="{{ costs.category }}">
+  {{ text }}
+  {% if known %}
+    {% set origin = 'calculated_with_examples' if prices_invented else 'calculated' %}
+    <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
+  {% endif %}
+</th>
+OK.
+
+cost_amount:
+{{ strings.status.unknown if amount is none else format.money(amount, cost_currency) }}
+OK.
+
+HTML head: CSP default-src none; style-src unsafe-inline; font-src data:; base-uri none; form-action none. Embedded fonts data. OK. No JS. OK.
+
+Fonts: @font-face Figtree src data base64 fonts['figtree-latin']; Geist Mono. OK.
+
+CSS: comment line 179-180: "Same tokens as the website. Light: apple.com neutrals and link blue. Dark: Fazit's green on black. Status: iOS system colours. A test keeps both in step." But CSS light --accent: #1d1d1f (not link blue). It says link blue? Maybe not a fault? It's comment about tokens? Could be contradicts-comment if behaviour differs? The comment says Light: apple.com neutrals and link blue. The CSS doesn't use link blue; accent is black. But maybe link blue is not in this part? There is a { color: var(--accent); } not blue. Comment might refer to website tokens not actual? But it's in code. Is it a concrete fault? Probably not, style comment. But kind contradicts-comment? The comment says "Light: apple.com neutrals and link blue." The CSS light accent is #1d1d1f, not blue. But could be "link blue" refers to some other token not shown? The code has --accent: #1d1d1f. Links use accent. So not blue. But is that a fault? It's a comment mismatch but not behavior? The task includes contradicts-comment: behaviour differs from comment/docstring in same code. This could be a mismatch. But likely not intended as bug; comments can be outdated. However they ask find concrete faults. Could report? Need be careful. The comment says "Same tokens as the website. Light: apple.com neutrals and link blue. Dark: Fazit's green on black. Status: iOS system colours. A test keeps both in step." The CSS light uses neutrals, accent black. Dark uses green on black. Status colors are iOS? #34c759 etc. But link blue missing. Maybe the comment is aspirational or inaccurate. But is it a "fault"? It's not code giving wrong result. Could be contradicts-comment. But likely not worth? Let's keep in mind.
+
+Line 163 CSP: `font-src data:` allows data fonts. OK.
+
+Line 169: `src: url(data:font/woff2;base64,{{ fonts['figtree-latin'] }}) format("woff2");` If fonts dict missing key -> error. But likely.
+
+Line 170: `font-weight: 300 900;` CSS font-weight range valid. OK.
+
+Line 228: font: 400 var(--fs-body)/1.47 Figtree, system-ui... OK.
+
+Line 240: a { color: var(--accent); text-decoration: none; transition... } OK.
+
+Line 242: :where(p, li, dd, td) > a:not([class]) { text-decoration: underline 1px var(--muted); ... } OK.
+
+Line 244: a:hover { text-shadow: 0 0 12px rgb(196 247 208 / 45%); } dark only. OK.
+
+Line 304 comment: Material Symbols (Apache-2.0), inline so report needs no other file. OK.
+
+Line 305: .icon { flex: none; width: 1.2em; height: 1.2em; fill: currentColor; } OK.
+
+Line 311: .status .icon { color: var(--status-fill); } OK.
+
+Line 320: .status-segment { background: var(--status-fill); } But --status-fill is defined only inside .ready, .needs_work, .blocker, .unknown. If .status-segment not inside those classes? It may be in readiness-bar with class status-segment ready? Not visible. OK.
+
+Line 331: .readiness, .licences, .moves { table-layout: fixed; } OK.
+
+Line 332: .readiness thead th:first-child, .readiness thead th:nth-child(2) { width: 15%; }
+Line 333: .readiness thead th:nth-child(3) { width: 34%; }
+Potential: readiness table may have more columns? If 4 columns, last width auto. OK.
+
+Line 334: .moves thead th:nth-child(-n+3) { width: 17%; } OK.
+
+Line 335: .licences thead th:first-child { width: 29%; }
+Line 336: .licences thead th:nth-child(2), .licences thead th:nth-child(3) { width: 12%; } OK.
+
+Line 338-340 risky-files widths: 18+16+31=65, rest auto. OK.
+
+Line 345: .workload-evidence, .cost-inputs { border-block-end: 1px solid var(--line); } OK.
+
+Line 346-354 summary styles. OK.
+
+Line 357: details[open] > summary .icon { transform: rotate(90deg); } OK.
+
+Line 362: .cost-table .subtotals > *, .cost-table .totals > * { background: var(--surface); } OK.
+
+Line 375 reduced motion. OK.
+
+Need focus on principles. Template offline, no JS. It uses <details> and summary, CSS only, no JS. OK.
+
+Potential issue: `data-provenance` attributes with provenance values. OK.
+
+Potential bug: In `evidence_summary`, line 22: `{% if finding.value is not none %}{{ value_text(finding) }}{% endif %}`. If finding.value is 0, is not none true, displays value_text. OK.
+
+Potential bug: line 25: `{% set partial = finding.coverage and finding.coverage.kind != 'complete' %}`. If finding.coverage is false/None, partial false. OK. But if finding.coverage.kind missing? AttributeError. Could be unhandled. But likely coverage object has kind.
+
+Potential bug: line 26: non-compact condition includes `finding.coverage or provided`. If finding.coverage is truthy but kind complete, it will show coverage meta. OK.
+
+Potential bug: line 29: `{% if finding.collected_at or provided %}` prints collected date. If provided but no collected_at, finding_date returns date_not_supplied if provided or source in provided_sources. OK.
+
+Potential bug: line 33: `elif compact and (provided or partial)`. If compact and provided true, prints source/date. If compact and partial true but provided false, prints coverage. If compact and provided true but source missing and collected_at missing, prints "unavailable · date_not_supplied"? Actually finding_source returns unavailable if no source; finding_date returns date_not_supplied if provided. So "unavailable · date not supplied". OK.
+
+Potential bug: line 48: `strings.readiness.conflict if finding.is_lower_bound else strings.reason.confirmation_conflict.label`. If finding.is_lower_bound missing? AttributeError. But likely.
+
+Potential principle: skipped/denied collector never improves readiness. Template doesn't show status? Not here.
+
+Potential unhandled input: `provided_sources` used in finding_date and finding_coverage. If not defined in context? Template likely has it. Not report.
+
+Potential bug: `strings.provenance[finding.provenance]` if provenance not in strings -> KeyError. Provenance from scan? Could be unhandled. But likely fixed.
+
+Need identify concrete faults likely planted. Let's look for subtle logic errors.
+
+Line 112: `{% set prices_invented = inputs and inputs.amounts_are_invented %}`. If inputs is a dict/object, truthy. If inputs is None, false. OK. But if inputs is empty dict? false. Could be wrong if inputs present but empty? If inputs is empty dict, amounts_are_invented missing. But inputs likely object.
+
+Line 129: `{% if amounts|reject('none')|list %}`. In Jinja, `reject('none')`? Need verify exact. Actually Jinja's `reject` takes a test name. The test 'none' maybe named 'none'? Yes. But there is also `rejectattr`? OK.
+
+Potential bug: `amounts|reject('none')|list` if amounts is not iterable (e.g. single value) -> error. But macro expects list.
+
+Line 130: origin. Let's analyze deeply. `prices_invented` means inputs.amounts_are_invented. `sample_inputs` maybe global flag if sample inputs. For cost input row: If any amount non-none, show origin. Origin categories: invented, sample_input, provided. For non-quantity fields (prices), if prices_invented true -> invented, else provided. For quantity fields (users etc.), if sample_inputs true -> sample_input, else provided. But what if prices_invented true and sample_inputs true and quantity? It chooses sample_input (because first condition false due not quantity false? Wait `prices_invented and not quantity` false if quantity true, then inner: `sample_inputs and quantity` true -> sample_input). Good.
+
+But what if prices_invented true and quantity true and sample_inputs false? origin provided. But if prices are invented, quantities may also be invented? The flag `amounts_are_invented` might indicate all amounts (including quantities) are invented examples, not sample_inputs? The name `amounts_are_invented` could mean the amounts in inputs are invented (example) rather than supplied. Then for quantity fields, if prices_invented true, they should be 'invented' or 'sample_input'? The code treats quantity as sample_input only if sample_inputs. If sample_inputs false but prices_invented true, quantity origin provided, which may be wrong if amounts are invented. But maybe `amounts_are_invented` only for price amounts, not quantities. Need not guess.
+
+Line 139: `{% elif amount is integer %}{{ format.integer(amount) }}`. In Jinja, `integer` test? There is test 'integer' for int? It returns true for int? But also for bool? In Python bool is int. If amount is True, `amount is integer` true? Jinja integer test maybe `isinstance(value, int) and not isinstance(value, bool)`? Not sure. If amount is float 1.0, not integer, then if quantity format.number else money. OK.
+
+Potential bug: For cost input row, if `loop.first and not shared`, it always shows not_applicable, even if amount is not none. But maybe first scenario is "keep Microsoft 365" where costs not applicable. OK.
+
+Potential bug: `cost_input_row` shows origin if any amount non-none. But if first scenario not applicable and other scenarios have amounts, origin shown. OK. If all amounts none, no origin. OK.
+
+Potential bug: In `cost_input_row`, if `amounts` length is less than scenarios, `amounts[loop.index0]` will raise. Could be unhandled-input from inputs.yaml? But likely generated with exact length.
+
+Potential bug: In `cost_columns`, `costs[result.id]` for each scenario. If scenario id not in strings.costs, KeyError. Could be unhandled.
+
+Potential bug: In `status_reason`, line 91: `status_rules.workloads[row.workload].ready_reason[lang]`. If row.status is not ready? It uses ready_reason as fallback for any row without deciding/reason_code. If row.status is needs_work/blocker/unknown but no reason_code, it will show ready_reason, which is wrong. Is that a bug? Let's examine. `status_reason(row)` presumably returns reason for workload status. If row.deciding exists, use deciding.reason. Else if row.reason_code, use reason_detail. Else use `status_rules.workloads[row.workload].ready_reason[lang]`. That fallback only makes sense if row.status is ready. But if row has no deciding and no reason_code and status is not ready, it will display ready reason, making status look better? This could be a planted fault. Need know context: `row` likely workload row. `row.deciding` maybe the finding that decided status? `row.reason_code` maybe reason. If status is unknown or needs_work, there should be deciding or reason_code. But if missing, fallback to ready_reason. Could be wrong. But is it plainly intended? The macro is named status_reason; fallback to ready_reason suggests it is only called for ready status? But workload_status calls status_label and incomplete; status_reason maybe called only when status ready? We don't see call. Could be used in readiness table for all workloads. Need not guess? The code itself: else branch unconditionally uses ready_reason. If row.status not ready and no reason, wrong. But maybe row.reason_code always set for non-ready. Could be not fault.
+
+Potential bug: `status_reason` uses `row.deciding.reason[lang]`. If row.deciding is a finding, reason maybe dict. OK.
+
+Potential bug: `mapping_date` uses `row.checked_on.isoformat()`. If checked_on is string, AttributeError. But likely date object.
+
+Potential bug: `conditions_list`: `{{ condition.op }} {{ literal_text(condition.value) }}` for op not exists. If op is 'greater_than' etc, displays raw op not human label. But maybe intended? It might be a bug: should use strings.appendix.condition_ops[condition.op]? But not visible. The comment? No.
+
+Potential bug: `cost_caption` only caption if prices_invented. If prices_invented false but sample_inputs true, no caption? Maybe OK.
+
+Potential principle: "Honest figures. Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness." Template shows `not_provided` for missing amounts, unknown. OK.
+
+Potential principle: "Privacy by construction. Exclude collected person names and email addresses." Template doesn't show names/emails. OK.
+
+Potential principle: "Offline report. one self-contained HTML file with inline CSS and embedded fonts. Omit JavaScript and external resources." Template uses no JS. But CSS uses `@font-face` with data fonts. OK. CSP disallows external. OK.
+
+Potential bug: CSP `font-src data:` but @font-face uses `url(data:font/woff2;base64,...)`. OK. But CSP `default-src 'none'` and `style-src 'unsafe-inline'` allows inline style. OK.
+
+Potential bug: `base-uri 'none'` OK.
+
+Potential bug: `form-action 'none'` no forms. OK.
+
+Potential bug: meta color-scheme light dark. OK.
+
+Potential bug: `font-display: swap` with data font OK.
+
+Potential bug: CSS variable `--status-fill` used in `.status-segment` but not defined for status-segment unless it has status class. If not, background invalid. But not in this part? Could be.
+
+Potential bug: `.status .icon { color: var(--status-fill); }` but .icon uses `fill: currentColor`. OK.
+
+Potential bug: `svg` icon has `viewBox="0 -960 960 960"` and path from icons. OK.
+
+Potential bug: `icon` macro uses `icons[name]`. If name missing, Jinja Undefined? In Jinja, `icons[name]` with Undefined? If icons is dict, missing key raises KeyError? In Jinja, dict subscript with missing key returns Undefined? Let's recall: In Jinja, `foo[bar]` uses getitem, if KeyError returns Undefined? I think Jinja's environment catches UndefinedError? Actually for undefined variables, `foo[bar]` where foo is dict and key missing returns Undefined (I think). Then `{{ icons[name] }}` prints empty, not crash. But `icon({'...'}[status])` if status missing: the dict literal subscript in Jinja? `{'ready': ...}[status]` if status not in dict returns Undefined? In Python would KeyError, but Jinja maybe Undefined. Then icon(Undefined) -> `icons[Undefined]` maybe Undefined. No crash. But `strings.status[status]` if missing maybe Undefined. So not crash. But wrong output. However likely statuses fixed.
+
+Need think about Jinja behavior: In Jinja, undefined in dict lookup? Example: `{{ {"a":1}["b"] }}` renders empty? I believe yes, Jinja's sandbox? Actually default Jinja: `{{ foo.bar }}` undefined -> ''. `{{ foo['bar'] }}` if foo dict missing -> ''? It uses `jinja2.runtime.Undefined` for missing attributes and items? I think yes. So no crash. But if using `reject('none')` with undefined? OK.
+
+Potential bug: `strings.provenance[finding.provenance]` if missing renders empty, not crash. But wrong.
+
+Need identify planted faults likely obvious.
+
+Let's inspect for off-by-one or wrong variable.
+
+Line 11: `{%- elif finding.provenance == 'provided' or finding.source in provided_sources %}` If finding.source is None, `None in provided_sources` maybe false if provided_sources is list. OK. If provided_sources is None? `in None` TypeError. But likely defined.
+
+Line 18: `coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source in provided_sources)` same.
+
+Line 23: `strings.provenance[finding.provenance]` if provenance undefined? OK.
+
+Line 26: condition includes `provided` but `provided` set line 24. OK.
+
+Line 29: if `finding.collected_at or provided` print collected. If finding.collected_at is false (None) and provided false, no. OK.
+
+Line 33: `elif compact and (provided or partial)`. If compact and provided false partial false, no small. OK.
+
+Line 35: `{% if finding.provenance == 'provided' %}` but provided variable same. OK.
+
+Line 48: conflict label: if finding.id in conflicts, show readiness.conflict if finding.is_lower_bound else confirmation_conflict.label. What is `strings.readiness.conflict`? Might be a string or object? If it's a string, OK. If it's a dict? Not know.
+
+Line 62: `finding.provenance == 'provided' and finding.coverage and finding.coverage.kind == 'partial'` shows answer_not_provided. If provided partial coverage, reason answer_not_provided. OK.
+
+Line 79: icon path. OK.
+
+Line 82: status_label dict maps 'blocker': 'report'. Icon name 'report'? OK.
+
+Line 86: if row.incomplete show incomplete. OK.
+
+Line 89: `row.deciding.reason[lang]` if row.deciding is not dict? OK.
+
+Line 91: fallback ready_reason. Potential.
+
+Line 95: `row.checked_on.isoformat()` if checked_on is date. OK.
+
+Line 103: `finding_labels[condition.finding]` if missing undefined. OK.
+
+Line 105: `{{ condition.op }} {{ literal_text(condition.value) }}` For op not exists, it prints operator code, e.g. `>= 5`. Maybe intended. But `condition.op` could be 'gte' not human. But no comment.
+
+Line 106: `strings.provenance[condition.provenance]` if provenance truthy. OK.
+
+Line 112: `inputs and inputs.amounts_are_invented`. If inputs is a dict, `inputs.amounts_are_invented` attribute? In Jinja, dict attribute falls back to item? Yes, `inputs.amounts_are_invented` works for dict key. OK.
+
+Line 122: caption only if prices_invented. OK.
+
+Line 125: quantity fields tuple. OK.
+
+Line 128: `costs.input_fields[field]` if missing undefined. OK.
+
+Line 129: `amounts|reject('none')|list`. If amounts is undefined? Filter on undefined? It may iterate undefined? If amounts undefined, `reject` maybe fails? But macro called with amounts. OK.
+
+Line 130: origin. Let's scrutinize. It sets origin only if any non-none amount. But if `prices_invented` true and quantity false -> invented. If `prices_invented` false and quantity false -> provided. If quantity true and sample_inputs true -> sample_input regardless of prices_invented. If quantity true and sample_inputs false -> provided. What if `prices_invented` true and quantity true and sample_inputs false? It says provided, but amounts might be invented (example) not provided. But maybe sample_inputs is true whenever quantities are sample. The flag `amounts_are_invented` may be set when inputs are example, and `sample_inputs` maybe separate. Could be a bug: for quantity fields, if amounts are invented but sample_inputs false, origin should be invented? But the categories maybe: invented for prices, sample_input for quantities. If inputs.amounts_are_invented true, all amounts (including quantities) are invented, but code labels quantities as provided unless sample_inputs. Hmm.
+
+Let's infer from names: `inputs.amounts_are_invented` likely a boolean in inputs.yaml indicating amounts are invented (example) because user didn't supply costs? `sample_inputs` maybe a template variable true if the inputs file is the sample inputs. The macro `cost_input_row` labels origin of input fields. For non-quantity (costs), if prices_invented, origin invented; else provided. For quantity fields, if sample_inputs, origin sample_input; else provided. It does not use prices_invented for quantities. If sample inputs are used, amounts_are_invented likely true? Maybe. If a user supplies quantities but invented prices, quantities are provided. OK.
+
+Line 135: `amounts[loop.index0]`. If `amounts` is a tuple/list. OK.
+
+Line 137: `if loop.first and not shared` shows not_applicable. But if shared true, first scenario amount shown. What is shared? Maybe for costs shared across scenarios, first scenario not not-applicable. OK.
+
+Line 138: `elif amount is none` unknown not_provided. OK.
+
+Line 139: `amount is integer` uses Jinja test. But if amount is a float representing integer? It will go to money/number. OK.
+
+Line 140: `elif quantity %}{{ format.number(amount) }}` If amount is integer but quantity, previous integer branch catches, format.integer. For training_days_per_person could be decimal, format.number. OK.
+
+Line 141: else format.money. OK.
+
+Line 156: cost_amount unknown if none else money. OK.
+
+Potential bug: `cost_amount` uses `strings.status.unknown` for missing amount. But `cost_input_row` uses `costs.not_provided` with data-provenance unknown. OK.
+
+Potential bug: `cost_heading` known origin: if known and prices_invented -> calculated_with_examples else calculated. If known false, no origin. OK.
+
+Potential principle: if known false but amount shown? Not here.
+
+CSS: line 179 comment "Light: apple.com neutrals and link blue." But no link blue. Could be a planted contradicts-comment? Let's see other comments: line 304 "Material Symbols (Apache-2.0), inline so the report needs no other file." OK. Line 179 maybe too specific. The CSS variables: light --accent: #1d1d1f; --accent-hover: #424245. No blue. Dark --accent: #c4f7d0 (green). The comment says light link blue, but actual accent is black. However maybe "link blue" refers to `--status-ready`? No, status-ready green. Apple.com link blue is #0066cc. Not present. Could be a fault if comment says test keeps both in step, but not. But is it a "concrete fault"? It's a comment mismatch, but not affecting report? The task includes contradicts-comment, so yes maybe. But they likely expect code logic faults, not outdated comment. Need decide.
+
+Look for more subtle:

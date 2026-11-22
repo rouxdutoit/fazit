@@ -1,0 +1,37 @@
+FINDING
+file: src/fazit/parsing.py
+line: 56-61
+kind: contradicts-principle
+claim: The parser only blocks email-like values containing `@`, so collected person names without `@` are accepted instead of excluded.
+evidence: def _has_at_sign(value: object) -> bool:
+    if isinstance(value, str):
+        return "@" in value
+    if isinstance(value, dict):
+        return any("@" in key or _has_at_sign(item) for key, item in value.items())
+    return isinstance(value, list) and any(_has_at_sign(item) for item in value)
+why: Principle 5 requires excluding collected person names and email addresses, but a scan.json value such as `"John Smith"` passes because the check only looks for `@`.
+confidence: medium
+
+FINDING
+file: src/fazit/parsing.py
+line: 147-163
+kind: bug
+claim: `strict_scalars` validation is skipped entirely for float scalars, so non-finite or malformed float spellings are not rejected in strict mode.
+evidence:             if node.tag == _YAML_FLOAT:
+                number = yaml.safe_load(f"!!float {json.dumps(node.value, ensure_ascii=False)}")
+                if not isfinite(number):
+                    fail(node, "non_finite_number_field" if field else "non_finite_number", field)
+                elif strict_scalars:
+                    pattern = _INPUT_SCALAR_SPELLINGS.get(node.tag)
+why: A float-tagged scalar such as `.nan` or `.inf` takes the `if node.tag == _YAML_FLOAT` branch and never reaches the `strict_scalars` block; if the re-parsed value is finite or the re-parse unexpectedly succeeds, strict scalar spellings are not checked.
+confidence: medium
+
+FINDING
+file: src/fazit/parsing.py
+line: 162-163
+kind: bug
+claim: A field marked `quoted` is not rejected when the YAML scalar is an unquoted number, so numeric money values bypass the quoted-money requirement.
+evidence:                 if expected == "quoted" and node.tag == _YAML_TEXT and node.style not in ("'", '"'):
+                    fail(node, "money_not_quoted_field", field)
+why: For input like `cost: 100`, `node.tag` is `tag:yaml.org,2002:int`, so the `node.tag == _YAML_TEXT` condition is false and no `money_not_quoted_field` error is raised even though the value is unquoted.
+confidence: medium

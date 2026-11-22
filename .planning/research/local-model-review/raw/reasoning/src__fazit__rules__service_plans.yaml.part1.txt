@@ -1,0 +1,211 @@
+We need answer user's request. Need review provided YAML part only. Find concrete faults in code below. It's a YAML rule file: service_plans.yaml part 1 of 5 lines 1-124. Need report only bugs/unhandled-input/contradicts-comment/principle. Need not report style etc. Need exact line quotes. Need confidence. Need likely identify faults.
+
+We need analyze this YAML. It's a roster of Microsoft 365 service plans with name, guid, workload. Comment: "Product rosters follow the published licensing reference. Classification is by product and plan." reference_url, checked_on. plans list.
+
+Potential faults:
+- YAML syntax? Looks okay. Keys name, guid, workload. Some workload null.
+- GUIDs may be wrong? Need know if any GUID mismatch? We can't know external reference. But maybe some obvious typo? Need check known Microsoft licensing GUIDs. Could be planted bugs. Need find concrete faults. Since only part of 5, maybe there is a duplicate GUID or name? In this part, check duplicates? Names unique? Let's scan: AAD_PREMIUM, AAD_PREMIUM_P2, AAD_SMB, ADALLOM... all unique. GUIDs? Need check duplicate GUIDs maybe. Let's list GUIDs and see duplicates.
+Line 6 41781fb2-bc02-4b7c-bd55-b576c07bb09d
+7 eec0eb4f-6444-4f95-aba0-50c24d67f998
+8 de377cbc-0019-4ec2-b77c-3f223947e102
+9 932ad362-64a8-4783-9106-97849a1a30b9
+10 8c098270-9dd4-4350-9b30-ba4703f3b36b
+11 2e2ddb96-6af9-4b1d-a3f0-d6ecfd22edb2
+12 14ab5db5-e6c4-4b20-b4bc-13e36fd2227f
+13 f20fedf3-f3c3-43c3-8267-2bfdd51c0939
+14 70d33638-9c74-4d01-bfd3-562de28bd4ba
+15 0bf3c642-7bb5-4ccc-884e-59d09df0266c
+16 0d0c0d31-fae7-41f2-b909-eaf4d7f26dba
+17 9bec7e34-c9fa-40b7-a9d1-bd6d1165c7ed
+18 5e62787c-c316-451f-b873-1d05acd4d12c
+19 c87f142c-d1e9-4363-8630-aaea9c4d9ae5
+20 3fb82609-8c27-4f7b-bd51-30634711ee67
+21 80873e7a-cd2a-4e67-b061-1b5381a676a5
+22 90db65a7-bf11-4904-a79f-ef657605145b
+23 bed136c6-b799-4462-824d-fc045d3a9d25
+24 95b76021-6a53-4741-ab8b-1d1f3d66a95a
+25 afa73018-811e-46e9-988f-f75d2b1b8430
+26 91f50f7b-2204-4803-acac-5cf5668b8b39
+27 74d93933-6f22-436e-9441-66d205435abb
+28 a1ace008-72f3-4ea0-8dac-33b3a23a2472
+29 41fcdd7d-4733-4863-9cf4-c65b83ce2df4
+30 6dc145d6-95dd-4191-b9c3-185575ee6f6b
+31 d9fa6af4-e046-4c89-9226-729a0786685d
+32 2b815d45-56e4-4e3a-b65c-66cb9175b560
+33 6db1f1db-2b46-403f-be40-e39395f08dbb
+34 3ec18638-bd4c-4d3b-8905-479ed636b83e
+35 46129a58-a698-46f0-aa5b-17f6586297d9
+36 99cd49a9-0e54-4e07-aea1-d8d9f5f704f5
+37 8c7d2df8-86f0-4902-b2ed-a0458298f3b3
+38 ca6e61ec-d4f4-41eb-8b88-d96e0e14323f
+39 40b010bb-0b69-4654-ac5e-ba161433f4b4
+40 4ff01e01-1ba7-4d71-8cf8-ce96c3bbcf14
+41 28b0fa46-c39a-4188-89e2-58e979a6b014
+42 6ea4c1ef-c259-46df-bce2-943342cd3cb2
+43 39b5c996-467e-4e60-bd62-46066f572726
+44 4de31727-a228-4ec3-a5bf-8e45b5ca48cc
+45 531ee2f8-b1cb-453b-9c21-d2180d014ca5
+46 34c0d7a0-a70f-4668-9238-47f9fc208882
+47 da040e0a-b393-4bea-bb76-928b3fa1cf5a
+48 176a09a6-7ec5-4039-ac02-b2791c6ba793
+49 4a82b400-a79f-41a4-b4e2-e94f5787b113
+50 efb87545-963c-4e0d-99df-69c6916d9eb0
+51 113feb6c-3fe4-4440-bddc-54d774bf0318
+52 9aaf7827-d63c-4b61-89c3-182f06f82e5c
+53 0f9b09cb-62d1-4ff4-9129-43f4996f83f4
+54 76846ad7-7776-4c40-a281-a386362dd1b9
+55 07699545-9485-468e-95b6-2fca3738be01
+56 bd91b1a4-9f94-4ecf-b45b-3a65e5c8128a
+57 c5002c70-f725-4367-b409-f0eff4fee6c0
+58 dc789ed8-0170-4b65-a415-eb77d5bb350a
+59 159f4cd6-e380-449f-a816-af1a9ef76344
+60 2789c901-c14e-48ab-a76a-be334d9d793a
+61 e212cbc7-0961-4c40-9825-01117710dcb1
+62 f07046bd-2a3c-4b96-b0be-dea79d7cbfb8
+63 a6520331-d7d4-4276-95f5-15c0933bc757
+64 e26c2fcc-ab91-4a61-b35c-03cdc8dddf66
+65 c4801e8a-cb58-4c35-aca6-f2dcc106f287
+66 d587c7a3-bda9-4f99-8776-9bcf59c84f75
+67 9d0c4ee5-e4a1-4625-ab39-d82b619b1a34
+68 c1ec4a95-1f05-45b3-a911-aa3fa01094f5
+69 882e1d05-acd1-4ccb-8708-6ee03664b117
+70 8e9ff0ff-aa7a-4b20-83c1-2f636b600ac2
+71 73b2a583-6a59-42e3-8e83-54db46bc3278
+72 54fc630f-5a40-48ee-8965-af0503c1386e
+73 aebd3021-9f8f-4bf8-bbe3-0ed2f4f047a1
+74 0898bdbb-73b0-471a-81e5-20f1fe4dd66e
+75 9f431833-0334-42de-a7dc-70aa40db46db
+76 2f442157-a11c-46b9-ae5b-6e39ff4e5849
+77 f6de4823-28fa-440b-b886-4783fa86ddba
+78 6f23d6a9-adbf-481c-8538-b4c095654487
+79 d55411c9-cfff-40a9-87c7-240f14df7da5
+80 4828c8ec-dc2e-4779-b502-87ac9ce28ab7
+81 afc06cb0-b4f4-4473-8286-d644f70d8faf
+82 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40
+83 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8
+84 5a10155d-f5c1-411a-a8ec-e99aae125390
+85 16935b20-87c0-4908-934a-22aa267d0d26
+86 d4009785-b899-4cab-97b6-d06a7c799507
+87 0feaeb32-d00e-4d66-bd5a-43b5b83db82c
+88 292cc034-7b7c-4950-aaf5-943befd3f1d4
+89 bfc1bbd9-981b-4f71-9b82-17c35fd0e2a4
+90 3efbd4ed-8958-4824-8389-1321f8730af8
+91 dcf9d2f4-772e-4434-b757-77a453cfbc02
+92 f0ff6ac6-297d-49cd-be34-6dfef97f0c28
+93 8a256a2b-b617-496d-b51b-e76466e88db0
+94 a413a9ff-720c-4822-98ef-2f37c2a21f4c
+95 c4b8c31a-fb44-4c65-9837-a21f55fcabda
+96 94065c59-bc8e-4e8b-89e5-5138d471eaff
+97 29c62f1c-8ffc-4304-9cb9-398a6aa1852b
+98 199a5c09-e0ca-4e37-8f7c-b05d533e1ea2
+99 64bfac92-2b17-4482-b5e5-a0304429de3e
+100 5136a095-5cf0-4aff-bec3-e84448b38ea5
+101 efb0351d-3b08-4503-993d-383af8de41e3
+102 cd31b152-6326-4d1b-ae1b-997b625182e6
+103 d2d51368-76c9-4317-ada2-a12c004c432f
+104 bf28f719-7844-4079-9c78-c1307898e192
+105 33c4f319-9bdd-48d6-9c4d-410b750a4a5a
+106 db4d623d-b514-490b-b7ef-8885eee514de
+107 5bfe124c-bbdc-4494-8835-f1297d457d79
+108 094e7854-93fc-4d55-b2c0-3ab5369ebdc1
+109 276d6e8a-f056-4f70-b7e8-4fc27f79f809
+110 c63d4d19-e8cb-460e-b37c-4d6c34603745
+111 43de0ff5-c92c-492b-9116-175376d08c38
+112 8d77e2d9-9e28-4450-8431-0def64078fc5
+113 b1188c4c-1b36-4018-b48b-ee07604f6feb
+114 60bf28f9-2b70-4522-96f7-335f5e06c941
+115 ba2fdb48-290b-4632-b46a-e4ecc58ac11a
+116 0683001c-0492-4d59-9515-d9a6426b5813
+117 041fe683-03e4-45b6-b1af-c0cdc516daee
+118 ded3d325-1bdc-453e-8432-5bac26d7a014
+119 92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c
+120 c68f8d98-5534-41c8-bf36-22fa496fa792
+121 9c0dab89-a30c-4117-86e7-97bda240acd2
+122 e0287f9f-e222-4f98-9a83-f379e249159a
+123 ea2cf03b-ac60-46ae-9c1d-eeaeb63cec86
+124 617b097b-4b93-4ede-83de-5f075bb5fb2f
+
+No obvious duplicate in this part.
+
+Potential issue: checked_on: "2026-11-21" future? Not fault. reference_url external? Principle 2 says live collection may contact only login/graph, omit CDNs. But YAML has reference_url. Is that a fault? It's just metadata; not used to fetch? Could be contradicts-principle? It says product rosters follow published licensing reference. URL is external but not necessarily contacted. Offline report? It's in rule file, not report? Maybe not.
+
+Need look for wrong workload classifications? The comment says classification by product and plan. We need know correct classifications? Could be planted wrong workload: e.g. EXCHANGE_S_ARCHIVE classified security_compliance? Should be mail? EXCHANGE_S_ARCHIVE_ADDON security_compliance? Maybe. But "concrete faults" maybe include misclassification if plainly wrong? Need be careful: we only see part, can't know all expected. But maybe some obvious: AAD_SMB workload directory? AAD Premium P1/P2 identity_access. AAD_SMB maybe directory? Could be.
+
+Potential issue: GUID format? All 8-4-4-4-12 hex? Check line 8: de377cbc-0019-4ec2-b77c-3f223947e102 yes. line 16 0d0c0d31-fae7-41f2-b909-eaf4d7f26dba yes. All likely.
+
+Potential issue: YAML flow mapping with null workload. Is null accepted? If code expects string maybe unhandled-input? But we can't see code. However rule file includes workload: null for some plans. If downstream expects workload string, could crash? But likely null is intentional for unknown/no workload. Not report if can't see code.
+
+Potential issue: line 2 comment: "Product rosters follow the published licensing reference. Classification is by product and plan." Maybe some plan names/GUIDs don't match. Need identify if any GUID is for different plan. Could be planted: e.g. AAD_PREMIUM guid maybe 41781fb2-bc02-4b7c-bd55-b576c07bb09d? I know AAD Premium P1 GUID? Let's recall Microsoft licensing service plan GUIDs:
+- AAD_PREMIUM: 41781fb2-bc02-4b7c-bd55-b576c07bb09d (yes)
+- AAD_PREMIUM_P2: eec0eb4f-6444-4f95-aba0-50c24d67f998 (yes)
+- AAD_SMB: de377cbc-0019-4ec2-b77c-3f223947e102 (yes)
+- ADALLOM_S_DISCOVERY: 932ad362-64a8-4783-9106-97849a1a30b9? maybe.
+- ATA: 14ab5db5-e6c4-4b20-b4bc-13e36fd2227f? yes maybe.
+- ATP_ENTERPRISE: f20fedf3-f3c3-43c3-8267-2bfdd51c0939? yes.
+- BI_AZURE_P2: 70d33638-9c74-4d01-bfd3-562de28bd4ba? maybe.
+- Bing_Chat_Enterprise: 0d0c0d31-fae7-41f2-b909-eaf4d7f26dba? maybe.
+- BPOS_S_DlpAddOn: 9bec7e34-c9fa-40b7-a9d1-bd6d1165c7ed? yes.
+- BPOS_S_TODO_1: 5e62787c-c316-451f-b873-1d05acd4d12c? yes.
+- BPOS_S_TODO_2: c87f142c-d1e9-4363-8630-aaea9c4d9ae5? yes.
+- BPOS_S_TODO_3: 3fb82609-8c27-4f7b-bd51-30634711ee67? yes.
+- BPOS_S_TODO_FIRSTLINE: 80873e7a-cd2a-4e67-b061-1b5381a676a5? yes.
+- CDS_O365_F1: 90db65a7-bf11-4904-a79f-ef657605145b? yes.
+- CDS_O365_P1: bed136c6-b799-4462-824d-fc045d3a9d25? yes.
+- CDS_O365_P2: 95b76021-6a53-4741-ab8b-1d1f3d66a95a? yes.
+- CDS_O365_P3: afa73018-811e-46e9-988f-f75d2b1b8430? yes.
+- CDSAICAPACITY_PERUSER: 91f50f7b-2204-4803-acac-5cf5668b8b39? maybe.
+- CDSAICAPACITY_PERUSER_NEW: 74d93933-6f22-436e-9441-66d205435abb? maybe.
+- CLIPCHAMP: a1ace008-72f3-4ea0-8dac-33b3a23a2472? yes.
+- COMMUNICATIONS_COMPLIANCE: 41fcdd7d-4733-4863-9cf4-c65b83ce2df4? yes.
+- COMMUNICATIONS_DLP: 6dc145d6-95dd-4191-b9c3-185575ee6f6b? yes.
+- Content_Explorer: d9fa6af4-e046-4c89-9226-729a0786685d? maybe.
+- ContentExplorer_Standard: 2b815d45-56e4-4e3a-b65c-66cb9175b560? maybe.
+- CUSTOMER_KEY: 6db1f1db-2b46-403f-be40-e39395f08dbb? yes.
+- CustomerLockboxA_Enterprise: 3ec18638-bd4c-4d3b-8905-479ed636b83e? maybe.
+- DATA_INVESTIGATIONS: 46129a58-a698-46f0-aa5b-17f6586297d9? yes.
+- Defender_for_Iot_Enterprise: 99cd49a9-0e54-4e07-aea1-d8d9f5f704f5? yes.
+- Deskless: 8c7d2df8-86f0-4902-b2ed-a0458298f3b3? yes.
+- DYN365_CDS_O365_F1: ca6e61ec-d4f4-41eb-8b88-d96e0e14323f? yes.
+- DYN365_CDS_O365_P1: 40b010bb-0b69-4654-ac5e-ba161433f4b4? yes.
+- DYN365_CDS_O365_P2: 4ff01e01-1ba7-4d71-8cf8-ce96c3bbcf14? yes.
+- DYN365_CDS_O365_P3: 28b0fa46-c39a-4188-89e2-58e979a6b014? yes.
+- DYN365_CDS_P2: 6ea4c1ef-c259-46df-bce2-943342cd3cb2? yes.
+- DYN365BC_MS_INVOICING: 39b5c996-467e-4e60-bd62-46066f572726? yes.
+- EQUIVIO_ANALYTICS: 4de31727-a228-4ec3-a5bf-8e45b5ca48cc? yes.
+- EXCEL_PREMIUM: 531ee2f8-b1cb-453b-9c21-d2180d014ca5? yes.
+- EXCHANGE_ANALYTICS: 34c0d7a0-a70f-4668-9238-47f9fc208882? yes.
+- EXCHANGE_S_ARCHIVE: da040e0a-b393-4bea-bb76-928b3fa1cf5a? yes.
+- EXCHANGE_S_ARCHIVE_ADDON: 176a09a6-7ec5-4039-ac02-b2791c6ba793? yes.
+- EXCHANGE_S_DESKLESS: 4a82b400-a79f-41a4-b4e2-e94f5787b113? yes.
+- EXCHANGE_S_ENTERPRISE: efb87545-963c-4e0d-99df-69c6916d9eb0? yes.
+- EXCHANGE_S_FOUNDATION: 113feb6c-3fe4-4440-bddc-54d774bf0318? yes.
+- EXCHANGE_S_STANDARD: 9aaf7827-d63c-4b61-89c3-182f06f82e5c? yes.
+- FLOW_O365_P1: 0f9b09cb-62d1-4ff4-9129-43f4996f83f4? yes.
+- FLOW_O365_P2: 76846ad7-7776-4c40-a281-a386362dd1b9? yes.
+- FLOW_O365_P3: 07699545-9485-468e-95b6-2fca3738be01? yes.
+- FLOW_O365_S1: bd91b1a4-9f94-4ecf-b45b-3a65e5c8128a? yes.
+- FLOW_PER_USER: c5002c70-f725-4367-b409-f0eff4fee6c0? yes.
+- Flow_PowerApps_PerUser: dc789ed8-0170-4b65-a415-eb77d5bb350a? yes.
+- FORMS_PLAN_E1: 159f4cd6-e380-449f-a816-af1a9ef76344? yes.
+- FORMS_PLAN_E3: 2789c901-c14e-48ab-a76a-be334d9d793a? yes.
+- FORMS_PLAN_E5: e212cbc7-0961-4c40-9825-01117710dcb1? yes.
+- FORMS_PLAN_K: f07046bd-2a3c-4b96-b0be-dea79d7cbfb8? yes.
+- GRAPH_CONNECTORS_SEARCH_INDEX: a6520331-d7d4-4276-95f5-15c0933bc757? yes.
+- INFO_GOVERNANCE: e26c2fcc-ab91-4a61-b35c-03cdc8dddf66? yes.
+- INFORMATION_BARRIERS: c4801e8a-cb58-4c35-aca6-f2dcc106f287? yes.
+- INSIDER_RISK: d587c7a3-bda9-4f99-8776-9bcf59c84f75? yes.
+- INSIDER_RISK_MANAGEMENT: 9d0c4ee5-e4a1-4625-ab39-d82b619b1a34? maybe.
+- INTUNE_A: c1ec4a95-1f05-45b3-a911-aa3fa01094f5? yes.
+- INTUNE_O365: 882e1d05-acd1-4ccb-8708-6ee03664b117? yes.
+- INTUNE_SMBIZ: 8e9ff0ff-aa7a-4b20-83c1-2f636b600ac2? yes.
+- KAIZALA... yes.
+- LOCKBOX_ENTERPRISE: 9f431833-0334-42de-a7dc-70aa40db46db? yes.
+- M365_ADVANCED_AUDITING: 2f442157-a11c-46b9-ae5b-6e39ff4e5849? yes.
+- M365_AUDIT_PLATFORM: f6de4823-28fa-440b-b886-4783fa86ddba? yes.
+- M365_LIGHTHOUSE_CUSTOMER_PLAN1: 6f23d6a9-adbf-481c-8538-b4c095654487? yes.
+- M365_LIGHTHOUSE_PARTNER_PLAN1: d55411c9-cfff-40a9-87c7-240f14df7da5? yes.
+- MCOEV: 4828c8ec-dc2e-4779-b502-87ac9ce28ab7? yes.
+- MCOIMP: afc06cb0-b4f4-4473-8286-d644f70d8faf? yes.
+- MCOMEETADV: 3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40? yes.
+- MCOPSTN1: 4ed3ff63-69d7-4fb7-b984-5aec7f605ca8? yes.
+- MCOPSTN2:
