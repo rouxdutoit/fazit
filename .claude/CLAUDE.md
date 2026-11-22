@@ -65,4 +65,4 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 ## Engineering standards
 
-Read [AGENTS.md](../AGENTS.md) before changing code. It covers code, report, test and verification standards. Claude and Codex assist with writing and reviewing changes under the direction of the human maintainer.
+Read [AGENTS.md](../AGENTS.md) before changing code. It covers code, report, test and verification standards. Read [DESIGN.md](../DESIGN.md) before changing the website or the report: its design and copy rules are binding, so work is built to them rather than fixed in review. Claude and Codex assist with writing and reviewing changes under the direction of the human maintainer.

@@ -6,6 +6,7 @@ Instructions for anyone, human or AI, who changes this repository. Short on purp
 
 1. [Principles](DECISIONS.md#principles) — the eight rules every change must follow. The rest of `DECISIONS.md` records decisions and overrides `HANDOFF.md`.
 2. `.planning/PROJECT.md` — scope and constraints.
+3. [DESIGN.md](DESIGN.md) — binding design and copy rules for the website and the report. Build to them from the start.
 
 ## What this tool must never do
 
@@ -59,7 +60,7 @@ uv run fazit demo --lang en
 uv run python site/check_site.py
 ```
 
-All six succeed, and the two reports open with the network off.
+All six succeed, and the two reports open with the network off. Changes to the website or the report follow [DESIGN.md](DESIGN.md).
 
 If report output changes, copy the HTML from the two demo runs above to `site/demo/de/index.html` and `site/demo/en/index.html`, using the matching language for each file.
 
