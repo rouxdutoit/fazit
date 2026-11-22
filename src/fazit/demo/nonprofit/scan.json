@@ -309,6 +309,19 @@
       "missing_reason": "not_collected_in_this_version"
     },
     {
+      "id": "sharepoint.workflows_in_use",
+      "workload": "sharepoint",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "answer_not_provided"
+    },
+    {
       "id": "teams.team_count",
       "workload": "teams",
       "value": 6,
@@ -365,6 +378,19 @@
       "period": null,
       "coverage": null,
       "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "teams.apps_in_use",
+      "workload": "teams",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "answer_not_provided"
     },
     {
       "id": "office_files.kind.macro",
@@ -430,6 +456,19 @@
       "period": null,
       "coverage": null,
       "missing_reason": "not_collected_in_this_version"
+    },
+    {
+      "id": "office_files.vba_macros_in_use",
+      "workload": "office_files",
+      "value": null,
+      "unit": null,
+      "provenance": "unknown",
+      "collector": null,
+      "source": null,
+      "collected_at": null,
+      "period": null,
+      "coverage": null,
+      "missing_reason": "answer_not_provided"
     },
     {
       "id": "device_management.device_count",

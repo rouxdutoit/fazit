@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import Never
 
 import pytest
+from helpers import ROOT, rebuild_report
 
+from fazit import model
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
 from fazit.i18n import error_sentence, load_locale
@@ -571,6 +573,41 @@ def test_schema_version_support_and_additive_compatibility(
     sentence = error_sentence(load_locale("en"), caught.value)
     assert all(text in sentence for text in ("scan.json", "schema_version", "2.0", "1.x"))
     assert caught.value.field == "schema_version"
+
+
+def test_scan_format_document_matches_the_loader(tmp_path: Path, catalogue: Catalogue) -> None:
+    document = ROOT / "docs" / "scan-format.md"
+    assert document.is_file()
+    text = read_text(document)
+    (example,) = re.findall(r"^```json\n(.*?)^```$", text, re.M | re.S)
+    scan = load_scan_text(example, "scan.json", catalogue)
+    assert not scan.is_sample
+
+    names = set(re.findall(r"`([^`\n]+)`", text))
+    required = {
+        *model._SCAN_FIELDS,
+        *model._TOOL_FIELDS,
+        *model._FINDING_FIELDS,
+        *model._COLLECTOR_REQUIRED,
+        *model._COLLECTOR_OPTIONAL,
+        "kind",
+        *model._COVERAGE_COUNTS,
+        *model._LICENCE_FIELDS,
+        *model._PRODUCT_REQUIRED,
+        *model._PRODUCT_OPTIONAL,
+        *model._SERVICE_PLAN_FIELDS,
+        *model.SOURCE_KINDS,
+        *model.COLLECTOR_STATUSES,
+        *model.PROVENANCES,
+        *model.COVERAGE_KINDS,
+    }
+    assert required <= names, sorted(required - names)
+    assert "D31" in text and "findings.yaml" in text
+
+    source = tmp_path / "scan.json"
+    source.write_text(example, encoding="utf-8")
+    html = rebuild_report(source, tmp_path / "out", "en")
+    assert 'data-finding="telephony.in_use" data-provenance="provided"' in html
 
 
 @pytest.mark.parametrize(

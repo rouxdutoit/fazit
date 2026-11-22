@@ -283,20 +283,8 @@ def _mapping_gaps(
             reasons = tuple(code for code in reasons if code in dispute_codes)
         if reasons:
             need = "unknown"
-        if item.need_if_positive and need != "yes":
-            count = by_id.get(item.need_if_positive)
-            disputes = tuple(
-                code for code in dispute_codes if code in missing[item.need_if_positive]
-            )
-            if disputes:
-                finding, need, reasons = count, "unknown", disputes
-            elif count is not None and type(count.value) is int and count.value > 0:
-                if need == "no":
-                    need, reasons = "unknown", ("desktop_requirements_conflict",)
-                elif finding is None or finding.value is None:
-                    finding, need, reasons = count, "yes", ()
         if need == "unknown" and not reasons:
-            default = "answer_not_provided" if item.need_if_positive else "not_established"
+            default = "answer_not_provided" if item.need_finding else "not_established"
             reasons = ((finding.missing_reason if finding else None) or default,)
         gaps.append((item, finding, need, reasons))
     return gaps

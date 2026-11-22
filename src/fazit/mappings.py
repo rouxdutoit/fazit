@@ -35,7 +35,6 @@ class FunctionMapping:
     checked_on: date | None
     note: Mapping[str, str] | None
     need_finding: str | None = None
-    need_if_positive: str | None = None
 
 
 @dataclass(frozen=True)
@@ -51,7 +50,7 @@ class TargetMapping:
 
 def _need_conditions(
     row: dict, field: str, reader: Validator, catalogue: Catalogue, workload: str
-) -> tuple[str | None, str | None]:
+) -> str | None:
     need_finding = row.get("need_finding")
     entry = catalogue.finding(need_finding) if isinstance(need_finding, str) else None
     if need_finding is not None and (
@@ -65,12 +64,7 @@ def _need_conditions(
         )
     ):
         reader.fail(f"{field}.need_finding")
-    need_if_positive = row.get("need_if_positive")
-    if need_if_positive is not None:
-        count = catalogue.finding(need_if_positive) if isinstance(need_if_positive, str) else None
-        if entry is None or entry.type != "boolean" or count is None or count.type != "count":
-            reader.fail(f"{field}.need_if_positive")
-    return need_finding, need_if_positive
+    return need_finding
 
 
 def _function_mapping(
@@ -82,7 +76,7 @@ def _function_mapping(
         field,
         ("function", "workload", "microsoft", "replacement", "coverage")
         + (references if product_profile else ()),
-        ("note", "need_finding", "need_if_positive") + (() if product_profile else references),
+        ("note", "need_finding") + (() if product_profile else references),
     )
     workload = reader.choice(row["workload"], f"{field}.workload", catalogue.workload_ids)
     steps = COVERAGE_LADDER if product_profile else COVERAGE_LADDER[4:]
@@ -98,7 +92,7 @@ def _function_mapping(
         for key in references:
             if row.get(key) is not None:
                 reader.fail(f"{field}.{key}")
-    need_finding, need_if_positive = _need_conditions(row, field, reader, catalogue, workload)
+    need_finding = _need_conditions(row, field, reader, catalogue, workload)
     return FunctionMapping(
         function=reader.matches(row["function"], f"{field}.function", RULE_ID),
         workload=workload,
@@ -109,7 +103,6 @@ def _function_mapping(
         checked_on=checked_on,
         note=reader.bilingual(row["note"], f"{field}.note") if "note" in row else None,
         need_finding=need_finding,
-        need_if_positive=need_if_positive,
     )
 
 

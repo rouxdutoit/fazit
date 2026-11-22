@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
+from collections import Counter
 from dataclasses import asdict, replace
 from datetime import date
 from html import unescape
@@ -144,6 +145,7 @@ def test_generic_mapping_names_no_target_products() -> None:
         ("unknown_need", "functions[0].need_finding"),
         ("count_as_need", "functions[0].need_finding"),
         ("other_workload_need", "functions[0].need_finding"),
+        ("inferred_need", "functions[0]"),
     ],
 )
 def test_bad_mapping_names_the_file_and_field(
@@ -188,6 +190,9 @@ def test_bad_mapping_names_the_file_and_field(
             first["need_finding"] = "directory.user_count"
         case "other_workload_need":
             first["need_finding"] = "telephony.in_use"
+        case "inferred_need":
+            first["need_finding"] = "directory.account_list_reviewed"
+            first["need_if_positive"] = "directory.user_count"
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
 
     with pytest.raises(InputError) as caught:
@@ -542,6 +547,55 @@ def test_onedrive_requires_external_sharing_answer(
 
     assert row.status == "unknown" and row.incomplete
     assert row.missing == (MissingEvidence(answer.id, "answer_not_provided", None),)
+
+
+@pytest.mark.parametrize(
+    ("workload", "finding_id", "rule_id", "other_finding"),
+    [
+        (
+            "sharepoint",
+            "sharepoint.workflows_in_use",
+            "sharepoint-workflows",
+            "sharepoint.custom_solutions_in_use",
+        ),
+        (
+            "teams",
+            "teams.apps_in_use",
+            "teams-apps",
+            "teams.chat_history_must_be_kept",
+        ),
+    ],
+)
+def test_sharepoint_and_teams_require_the_new_answers_for_ready(
+    catalogue: Catalogue,
+    status_rules: StatusRuleSet,
+    complete_evidence: dict[str, Finding],
+    workload: str,
+    finding_id: str,
+    rule_id: str,
+    other_finding: str,
+) -> None:
+    ready = _status(workload, complete_evidence, status_rules, catalogue)
+    assert ready.status == "ready" and not ready.incomplete
+
+    answer = complete_evidence.pop(finding_id, None)
+    missing = (MissingEvidence(finding_id, "answer_not_provided", None),)
+    unknown = _status(workload, complete_evidence, status_rules, catalogue)
+    assert unknown.status == "unknown" and unknown.incomplete and unknown.missing == missing
+
+    assert answer is not None and answer.value is False
+    complete_evidence[finding_id] = replace(answer, value=True)
+    problem = _status(workload, complete_evidence, status_rules, catalogue)
+    assert problem.status == "needs_work" and not problem.incomplete
+    assert problem.deciding is not None and problem.deciding.id == rule_id
+    step = problem.deciding.next_step
+    assert step.kind == "clarify" and set(step.text) == {"en", "de"} and all(step.text.values())
+
+    del complete_evidence[finding_id]
+    _set_value(complete_evidence, other_finding, True)
+    incomplete = _status(workload, complete_evidence, status_rules, catalogue)
+    assert incomplete.status == "needs_work" and incomplete.incomplete
+    assert incomplete.missing == missing
 
 
 @pytest.mark.parametrize(
@@ -1061,6 +1115,20 @@ def test_all_problem_rules_have_bilingual_product_neutral_next_steps(
                 assert not any(word in text.casefold() for word in banned), (rule.id, lang)
 
 
+@pytest.mark.parametrize(
+    ("lang", "banned"), [("en", ("block",)), ("de", ("hindernis", "verhinder", "blockier"))]
+)
+def test_only_blocker_rules_can_describe_a_blocker(
+    status_rules: StatusRuleSet, lang: str, banned: tuple[str, ...]
+) -> None:
+    for workload, block in status_rules.workloads.items():
+        assert not any(word in block.ready_reason[lang].casefold() for word in banned), workload
+        for rule in block.rules:
+            if rule.status != "blocker":
+                for text in (rule.reason[lang], rule.next_step.text[lang]):
+                    assert not any(word in text.casefold() for word in banned), (rule.id, text)
+
+
 def test_next_step_kind_reaches_the_town_report_context(
     catalogue: Catalogue, status_rules: StatusRuleSet
 ) -> None:
@@ -1307,6 +1375,15 @@ def test_shipped_risky_extensions(catalogue: Catalogue) -> None:
             "ppam",
             "ppsm",
             "sldm",
+            "xls",
+            "xlt",
+            "xla",
+            "doc",
+            "dot",
+            "ppt",
+            "pot",
+            "pps",
+            "ppa",
         ),
         "access": ("accdb", "mdb"),
         "publisher": ("pub",),
@@ -1325,6 +1402,15 @@ def test_shipped_risky_extensions(catalogue: Catalogue) -> None:
         "ppam",
         "ppsm",
         "sldm",
+        "xls",
+        "xlt",
+        "xla",
+        "doc",
+        "dot",
+        "ppt",
+        "pot",
+        "pps",
+        "ppa",
         "accdb",
         "mdb",
         "pub",
@@ -1431,9 +1517,15 @@ def test_attention_shows_provided_counts_and_zero_explicitly(catalogue: Catalogu
     figures = evidence.split('aria-labelledby="software-title"', 1)[0]
     assert figures.count('data-provenance="provided"') == 4
     assert evidence.count("data-software-entry") == len(software)
-    for function in ("desktop_operating_system", "windows_applications"):
-        gap = re.search(rf'<li data-gap="{function}" data-need="yes">.*?</li>', gaps, re.S)
-        assert gap is not None and 'data-provenance="provided"' in gap[0]
+    applications = re.search(
+        r'<li data-gap="windows_applications" data-need="yes">.*?</li>', gaps, re.S
+    )
+    assert applications is not None and 'data-provenance="provided"' in applications[0]
+    desktop = re.search(
+        r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', gaps, re.S
+    )
+    assert desktop is not None and 'data-provenance="unknown"' in desktop[0]
+    assert 'data-reason="answer_not_provided"' in desktop[0]
 
 
 def test_removing_an_extension_changes_the_next_demo(
@@ -1521,6 +1613,47 @@ def test_gap_need_uses_only_its_declared_complete_answer(
     for row in profile.functions:
         if row.coverage == "not_available" and row.need_finding is None:
             assert f'data-gap="{row.function}" data-need="unknown"' in section
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize(
+    ("workflow_answer", "macro_answer", "workflow_need", "macro_need"),
+    [(True, False, "yes", "no"), (False, None, "no", "unknown"), (None, True, "unknown", "yes")],
+)
+def test_workflow_and_vba_gaps_follow_their_own_answers(
+    catalogue: Catalogue,
+    profile: str,
+    workflow_answer: bool | None,
+    macro_answer: bool | None,
+    workflow_need: str,
+    macro_need: str,
+) -> None:
+    inputs = Inputs(
+        confirmations={
+            "sharepoint.workflows_in_use": workflow_answer,
+            "office_files.vba_macros_in_use": macro_answer,
+        }
+    )
+    html = render_report(sample_scan("town", catalogue), lang="en", profile=profile, inputs=inputs)
+    attention = report_section(html, "attention")
+
+    assert f'data-gap="sharepoint_workflows" data-need="{workflow_need}"' in attention
+    assert f'data-gap="vba_macros" data-need="{macro_need}"' in attention
+
+
+def test_town_transfer_gap_counts_and_incomplete_sharepoint(catalogue: Catalogue) -> None:
+    scan = sample_scan("town", catalogue)
+    inputs = load_inputs(sample_inputs_path("town"), catalogue)
+    html = render_report(scan, lang="en", profile="opendesk", inputs=inputs)
+
+    assert Counter(re.findall(r'<li data-gap="[^"]+" data-need="([^"]+)"', html)) == {
+        "yes": 4,
+        "no": 1,
+        "unknown": 3,
+    }
+    sharepoint = readiness_row(html, "sharepoint")
+    assert 'data-status="needs_work" data-incomplete' in sharepoint
+    assert 'data-missing="sharepoint.workflows_in_use"' in sharepoint
 
 
 def test_marking_a_mapping_unavailable_adds_it_to_the_gap_list(

@@ -7,9 +7,11 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from helpers import report_section
+import yaml
+from helpers import report_section, runner, sample_scan_path
 
 from fazit.catalogue import Catalogue, load_catalogue
+from fazit.cli import app
 from fazit.errors import InputError
 from fazit.evidence import combine, provided_findings
 from fazit.i18n import error_sentence, load_locale
@@ -30,6 +32,9 @@ from fazit.status import load_status_rules
 
 COUNT_ID = "office_files.kind.macro"
 BOOLEAN_ID = "onedrive.external_sharing_in_use"
+DEVICE_COUNT = "device_management.device_count"
+WINDOWS_DEVICE_COUNT = "device_management.windows_device_count"
+CONTRADICTORY_COUNTS = f"provided_counts:\n  {DEVICE_COUNT}: 10\n  {WINDOWS_DEVICE_COUNT}: 20\n"
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -259,6 +264,63 @@ confirmations: {{{BOOLEAN_ID}: null}}
     assert not inputs.amounts_are_invented and inputs.answers_are_sample
     assert inputs.partial_exit == ScenarioInputs(users=30, parallel_running_months=0)
     assert inputs.confirmations == {BOOLEAN_ID: None}
+
+
+def test_inputs_refuse_a_subset_above_its_population(catalogue: Catalogue) -> None:
+    with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
+        load_inputs_text(CONTRADICTORY_COUNTS, "inputs.yaml", catalogue)
+
+    assert (caught.value.file, caught.value.field) == (
+        "inputs.yaml",
+        f"provided_counts.{WINDOWS_DEVICE_COUNT}",
+    )
+
+
+@pytest.mark.parametrize(
+    "counts",
+    [
+        {DEVICE_COUNT: 10, WINDOWS_DEVICE_COUNT: 10},
+        {DEVICE_COUNT: 10},
+        {WINDOWS_DEVICE_COUNT: 20},
+        {DEVICE_COUNT: None, WINDOWS_DEVICE_COUNT: 20},
+    ],
+    ids=["equal-counts", "population-only", "subset-only", "unknown-population"],
+)
+def test_inputs_accept_counts_within_scope_or_without_a_comparable_count(
+    catalogue: Catalogue, counts: dict[str, int | None]
+) -> None:
+    text = yaml.safe_dump({"provided_counts": counts})
+    inputs = load_inputs_text(text, "inputs.yaml", catalogue)
+
+    assert inputs.provided_counts == counts
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_report_refuses_contradictory_input_counts(tmp_path: Path, lang: str) -> None:
+    inputs = tmp_path / "inputs.yaml"
+    inputs.write_text(CONTRADICTORY_COUNTS, encoding="utf-8")
+    out = tmp_path / "out"
+
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            str(sample_scan_path("town")),
+            "--inputs",
+            str(inputs),
+            "--lang",
+            lang,
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 2 and not result.stdout, result.output
+    assert not out.exists()
+    assert len(result.stderr.splitlines()) == 1
+    assert (
+        inputs.name in result.stderr and f"provided_counts.{WINDOWS_DEVICE_COUNT}" in result.stderr
+    )
 
 
 @pytest.mark.parametrize("name", ['""', '"   "', f'"{"x" * 81}"', '"Two\\nLines"'])
@@ -657,7 +719,7 @@ def test_checklist_matches_inputs_and_catalogue(catalogue: Catalogue, suffix: st
     assert sorted(key for _, key in questions) == sorted(leaves | answer_ids)
     for kind in load_risky_file_types(catalogue):
         line = next(line for line in text.splitlines() if f"`{kind.finding_id}`" in line)
-        assert set(re.findall(r"`\.([a-z0-9]+)`", line)) == set(kind.extensions)
+        assert tuple(re.findall(r"`\.([a-z0-9]+)`", line)) == kind.extensions
     if suffix == ".de":
         assert not re.search(r"\b(?:du|dich|dir|dein(?:e[rmns]?)?)\b", text, re.IGNORECASE)
 
@@ -680,11 +742,14 @@ def test_every_provided_finding_is_used_by_the_report(catalogue: Catalogue) -> N
         for entry in catalogue.findings
         if entry.provided != "no" and not entry.headline and entry.id not in rule_ids
     }
-    assert mapping_only == {"device_management.windows_desktops_required"}
+    expected_mappings = {
+        "desktop_operating_system": "device_management.windows_desktops_required",
+        "vba_macros": "office_files.vba_macros_in_use",
+    }
+    assert mapping_only == set(expected_mappings.values())
     for profile in PROFILES:
-        desktop = next(
-            item
+        assert {
+            item.function: item.need_finding
             for item in load_mapping(profile, catalogue).functions
-            if item.function == "desktop_operating_system"
-        )
-        assert {desktop.need_finding} == mapping_only
+            if item.function in expected_mappings
+        } == expected_mappings

@@ -56,7 +56,10 @@ confirmations:
   mail.other_systems_send_mail: false
   onedrive.external_sharing_in_use: true
   sharepoint.custom_solutions_in_use: false
+  sharepoint.workflows_in_use: false
   teams.chat_history_must_be_kept: false
+  teams.apps_in_use: false
+  office_files.vba_macros_in_use: false
   device_management.in_use: false
   power_platform.in_use: false
   telephony.in_use: false

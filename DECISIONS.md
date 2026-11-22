@@ -38,6 +38,7 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 - A reporting period ends by the collection date, or by the scan date when the evidence is undated. Evidence is collected by the time the scan was generated. Date-only stamps give the calendar day for these ordering checks.
 - Measured snapshots and the licence inventory carry a clock time. Every clock time includes a UTC offset or `Z`. Date-only collection stamps are accepted for period-based measurements and for provided or unknown evidence. A date alone never establishes a shared instant.
 - Licence reconciliation still requires a complete inventory and a complete measured licensed headcount from the same instant. The headcount must be at least the largest user-SKU assignment count and at most the sum of assigned user seats. A missing, mistimed, incomplete or conflicting headcount leaves inferred licence absences unknown and preserves positive assignments.
+- Counts supplied together in one `inputs.yaml` follow the same subset rule: a subset count fits within its population when both are given.
 
 ## 2026-11-21 — M0 complete (demo and report)
 

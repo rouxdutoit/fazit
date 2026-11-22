@@ -222,6 +222,14 @@ findings:
     label: finding.sharepoint.custom_solutions_in_use
     provided: answer
     headline: false
+  - id: sharepoint.workflows_in_use
+    workload: sharepoint
+    owner: service_owner
+    type: boolean
+    unit: null
+    label: finding.sharepoint.workflows_in_use
+    provided: answer
+    headline: false
   - id: teams.team_count
     workload: teams
     owner: it_team
@@ -258,6 +266,14 @@ findings:
     type: boolean
     unit: null
     label: finding.teams.chat_history_must_be_kept
+    provided: answer
+    headline: false
+  - id: teams.apps_in_use
+    workload: teams
+    owner: it_team
+    type: boolean
+    unit: null
+    label: finding.teams.apps_in_use
     provided: answer
     headline: false
   - id: office_files.kind.macro
@@ -303,6 +319,14 @@ findings:
     unit: files
     label: finding.office_files.kind.onenote
     measured_by: {office_files: [sample.office_files]}
+    provided: answer
+    headline: false
+  - id: office_files.vba_macros_in_use
+    workload: office_files
+    owner: service_owner
+    type: boolean
+    unit: null
+    label: finding.office_files.vba_macros_in_use
     provided: answer
     headline: false
   - id: device_management.device_count

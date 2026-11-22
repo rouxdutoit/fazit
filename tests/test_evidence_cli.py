@@ -878,6 +878,7 @@ def test_unlisted_plan_prevents_an_absence_conclusion_but_preserves_known_assign
     answers = """
 confirmations:
   teams.chat_history_must_be_kept: false
+  teams.apps_in_use: false
   telephony.in_use: false
   telephony.replacement_available: false
 """
@@ -1336,16 +1337,15 @@ def test_header_shows_both_file_dates_when_samples_are_mixed(
 
 
 @pytest.mark.parametrize(
-    ("software", "status", "desktop_need", "applications_need"),
+    ("software", "status", "applications_need"),
     [
-        ("null", "unknown", "unknown", "unknown"),
-        ("[]", "ready", "unknown", "no"),
-        ("[{name: Records, vendor_has_web_version: true}]", "needs_work", "unknown", "yes"),
-        ("[{name: Records}]", "needs_work", "unknown", "yes"),
+        ("null", "unknown", "unknown"),
+        ("[]", "ready", "no"),
+        ("[{name: Records, vendor_has_web_version: true}]", "needs_work", "yes"),
+        ("[{name: Records}]", "needs_work", "yes"),
         (
             "[{name: Records, vendor_has_web_version: false}, {name: Permits}]",
             "needs_work",
-            "yes",
             "yes",
         ),
     ],
@@ -1355,18 +1355,24 @@ def test_windows_dependency_is_scoped_to_the_desktop_move(
     town_scan: dict,
     software: str,
     status: str,
-    desktop_need: str,
     applications_need: str,
 ) -> None:
+    town_scan["findings"].remove(_finding(town_scan, "device_management.windows_desktops_required"))
     html = _html(_report(tmp_path / "desktop", town_scan, f"windows_only_software: {software}"))
     row = readiness_row(html, "windows_software")
 
     assert f'data-status="{status}"' in row
-    assert f'data-gap="desktop_operating_system" data-need="{desktop_need}"' in html
+    desktop = re.search(
+        r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S
+    )
+    assert desktop is not None and 'data-reason="answer_not_provided"' in desktop[0]
     assert f'data-gap="windows_applications" data-need="{applications_need}"' in html
     if "vendor_has_web_version: false" in software:
-        assert "blocks a move away from Windows desktops" in row
-        assert "Microsoft 365 exit" in row
+        assert (
+            "needs Windows to run, either on staff workstations or on a separate Windows system"
+            in row
+        )
+        assert "move away from Microsoft 365" in row
         assert 'data-status="needs_work" data-incomplete' in row
         assert "At least 1 application" in row and 'data-reason="answer_not_provided"' in row
 
@@ -1391,7 +1397,7 @@ confirmations:
 
 
 @pytest.mark.parametrize("profile", ["opendesk", "nextcloud"])
-def test_desktop_gap_shows_disputed_software_count_from_another_workload(
+def test_desktop_gap_keeps_its_answer_when_software_counts_disagree(
     tmp_path: Path, town_scan: dict, profile: str
 ) -> None:
     finding = _finding(town_scan, "windows_software.without_web_version_count")
@@ -1414,14 +1420,13 @@ confirmations:
 
     row = readiness_row(html, "windows_software")
     assert 'data-reason="provided_answers_conflict"' in row
-    gap = re.search(
-        r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S
-    )
-    assert gap is not None and 'data-reason="provided_answers_conflict"' in gap[0]
+    gap = re.search(r'<li data-gap="desktop_operating_system" data-need="no">.*?</li>', html, re.S)
+    assert gap is not None and 'data-provenance="provided"' in gap[0]
+    assert 'data-reason="provided_answers_conflict"' not in gap[0]
 
 
 @pytest.mark.parametrize("profile", ["opendesk", "nextcloud"])
-def test_desktop_gap_shows_disagreement_between_confirmation_and_software_list(
+def test_desktop_gap_keeps_a_no_answer_with_windows_only_software(
     tmp_path: Path, town_scan: dict, profile: str
 ) -> None:
     answers = f"""
@@ -1433,14 +1438,14 @@ windows_only_software:
 confirmations:
   device_management.windows_desktops_required: false
 """
-    html = _html(_report(tmp_path / "desktop-disagreement", town_scan, answers))
+    html = _html(_report(tmp_path / "separate-windows-system", town_scan, answers))
 
-    gap = re.search(
-        r'<li data-gap="desktop_operating_system" data-need="unknown">.*?</li>', html, re.S
-    )
-    assert gap is not None and 'data-reason="desktop_requirements_conflict"' in gap[0]
-    assert "Windows desktops are unnecessary" in gap[0]
-    assert "Windows-only applications without a web version" in gap[0]
+    gap = re.search(r'<li data-gap="desktop_operating_system" data-need="no">.*?</li>', html, re.S)
+    assert gap is not None and 'data-provenance="provided"' in gap[0]
+    assert "data-reason=" not in gap[0]
+    assert "Windows desktops required for applications, devices or peripherals" in gap[0]
+    assert "Windows desktops are unnecessary" not in html
+    assert 'data-gap="windows_applications" data-need="yes"' in html
     assert "2 applications" in readiness_row(html, "windows_software")
     desktop_evidence = re.search(
         r'<tr data-finding="device_management\.windows_desktops_required"'

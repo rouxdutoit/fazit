@@ -46,6 +46,7 @@ functions:
       de: Team Folders bietet gemeinsame Ordner mit Zugriffsregeln. Prüfen Sie die Struktur der SharePoint-Websites und die Regeln der Bibliotheken gesondert.
   - function: sharepoint_workflows
     workload: sharepoint
+    need_finding: sharepoint.workflows_in_use
     microsoft: {en: SharePoint workflows, de: SharePoint-Workflows}
     replacement: {en: Rebuild supported workflows with Nextcloud Flow, de: Unterstützte Arbeitsabläufe mit Nextcloud Flow neu erstellen}
     coverage: not_available
@@ -91,6 +92,7 @@ functions:
       de: Das Administrationshandbuch beschreibt die Bearbeitung im Browser mit Euro-Office oder Collabora Online. Dafür ist ein Bearbeitungsdienst erforderlich. Prüfen Sie komplexe Dokumente mit dem gewählten Editor.
   - function: vba_macros
     workload: office_files
+    need_finding: office_files.vba_macros_in_use
     microsoft: {en: VBA macros in Office files, de: VBA-Makros in Office-Dateien}
     replacement: {en: Separate conversion or redevelopment, de: Gesonderte Konvertierung oder Neuentwicklung}
     coverage: not_available
@@ -113,7 +115,6 @@ functions:
   - function: desktop_operating_system
     workload: device_management
     need_finding: device_management.windows_desktops_required
-    need_if_positive: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Separately managed workstation operating system, de: Separat verwaltetes Betriebssystem für Arbeitsplatzrechner}
     coverage: not_available

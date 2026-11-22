@@ -75,9 +75,10 @@ workloads:
       evidence:
         - {finding: sharepoint.site_count, op: exists}
         - {finding: sharepoint.custom_solutions_in_use, op: '==', value: false}
+        - {finding: sharepoint.workflows_in_use, op: '==', value: false}
       reason:
-        en: The SharePoint sites have been counted, and the organisation uses no custom solutions.
-        de: Die SharePoint-Websites sind erfasst, und die Organisation setzt keine individuell angepassten Lösungen ein.
+        en: The SharePoint sites have been counted, and the organisation reports neither custom solutions nor workflows on them.
+        de: Die SharePoint-Websites sind erfasst. Nach Angaben der Organisation werden dort weder individuell angepasste Lösungen noch Workflows genutzt.
     rules:
       - id: sharepoint-custom-solutions
         when: [{finding: sharepoint.custom_solutions_in_use, op: '==', value: true}]
@@ -89,15 +90,26 @@ workloads:
           kind: clarify
           en: The service owner records which processes rely on the custom site solutions.
           de: Die fachlich verantwortliche Stelle erfasst, welche Arbeitsabläufe von den individuell angepassten Lösungen abhängen.
+      - id: sharepoint-workflows
+        when: [{finding: sharepoint.workflows_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Workflows on SharePoint sites, lists or libraries need to be rebuilt or replaced before the sites move.
+          de: Workflows auf SharePoint-Websites, in Listen oder Bibliotheken müssen vor dem Umstieg neu eingerichtet oder ersetzt werden.
+        next_step:
+          kind: clarify
+          en: The service owner of each affected site lists the workflows and approvals that staff still rely on.
+          de: Die fachlich verantwortliche Stelle jeder betroffenen Website erfasst die Workflows und Genehmigungen, auf die die Beschäftigten noch angewiesen sind.
   teams:
     ready:
       evidence:
         - {finding: teams.team_count, op: exists}
         - {finding: teams.teams_with_guests_count, op: '==', value: 0}
         - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+        - {finding: teams.apps_in_use, op: '==', value: false}
       reason:
-        en: The teams have been counted, there are no guests, and the chat history does not need to be kept.
-        de: Die Teams sind erfasst, es gibt keine Gäste und der Chatverlauf muss nicht erhalten bleiben.
+        en: The teams have no guests and no added apps, tabs, bots or connectors, and the chat history does not need to be kept.
+        de: In den Teams gibt es keine Gäste und keine eingebundenen Apps, Registerkarten, Bots oder Konnektoren. Der Chatverlauf muss nicht aufbewahrt werden.
     rules:
       - id: teams-guests
         when: [{finding: teams.teams_with_guests_count, op: '>', value: 0}]
@@ -119,6 +131,16 @@ workloads:
           kind: clarify
           en: The data protection officer reviews which chat records the organisation is required to retain.
           de: Die oder der Datenschutzbeauftragte prüft, welche Chatverläufe die Organisation aufbewahren muss.
+      - id: teams-apps
+        when: [{finding: teams.apps_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Apps, tabs, bots or connectors added to teams need a replacement after the move.
+          de: Für in Teams eingebundene Apps, Registerkarten, Bots oder Konnektoren ist nach dem Umstieg Ersatz nötig.
+        next_step:
+          kind: clarify
+          en: The IT team lists the apps, tabs, bots and connectors added to teams and asks each service owner which of them staff still use.
+          de: Die IT-Abteilung erfasst die in Teams eingebundenen Apps, Registerkarten, Bots und Konnektoren und klärt mit den fachlich verantwortlichen Stellen, welche davon die Beschäftigten noch nutzen.
       - id: teams-audio-conferencing
         when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
@@ -244,12 +266,12 @@ workloads:
         when: [{finding: windows_software.without_web_version_count, op: '>', value: 0}]
         status: needs_work
         reason:
-          en: At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
-          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und verhindert die Ablösung von Windows auf den Arbeitsplatzrechnern. Planen Sie beim Wechsel von Microsoft 365 den Weiterbetrieb unter Windows oder eine Ersatzlösung.
+          en: At least one Windows-only application has no web version and needs Windows to run, either on staff workstations or on a separate Windows system. For the move away from Microsoft 365, plan how staff will keep using it or arrange a replacement.
+          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und benötigt Windows, entweder auf den Arbeitsplatzrechnern der Beschäftigten oder auf einem gesonderten Windows-System. Planen Sie für den Umstieg von Microsoft 365 den Weiterbetrieb der Anwendung oder eine Ersatzlösung.
         next_step:
-          kind: decide
-          en: The service owner decides which applications without a web version must remain available after the move.
-          de: Die fachlich verantwortliche Stelle entscheidet, welche Anwendungen ohne Webversion nach dem Umstieg verfügbar bleiben müssen.
+          kind: clarify
+          en: The IT team asks the service owner of each such application whether staff need it on their own workstations or can use it on a separate Windows system.
+          de: Die IT-Abteilung klärt für jede betroffene Anwendung mit der fachlich verantwortlichen Stelle, ob die Beschäftigten sie auf ihren Arbeitsplatzrechnern benötigen oder auf einem gesonderten Windows-System nutzen können.
       - id: software-present
         when: [{finding: windows_software.application_count, op: '>', value: 0}]
         status: needs_work

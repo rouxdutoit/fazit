@@ -41,6 +41,7 @@ summary:
   scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob sie hier benötigt werden, ist unbekannt.'
 found:
   title: Was Fazit erfasst hat
+  title_sample: Was Fazit für eine fiktive Organisation erfasst hat
   finding: Merkmal
   value: Wert
   provenance: Herkunft des Werts
@@ -277,6 +278,7 @@ source_kind:
   live: Live-Erhebung
 provenance:
   measured: Erhoben
+  measured_sample: Erhoben (simuliert)
   provided: Bereitgestellt
   unknown: Unbekannt
 collector:
@@ -378,11 +380,6 @@ reason:
   provided_answers_conflict:
     label: Die eingetragenen Antworten widersprechen einander.
     fix: Klären Sie beide Antworten mit der zuständigen Stelle und korrigieren Sie die Angaben in den Dateien.
-  desktop_requirements_conflict:
-    label: >-
-      Laut Ihrer Angabe sind keine Windows-Arbeitsplätze erforderlich.
-      Die Anwendungsliste enthält Programme, die nur unter Windows laufen und für die keine Webversion verfügbar ist.
-    fix: Klären Sie mit der zuständigen Stelle, ob für diese Programme weiterhin Windows-Arbeitsplätze benötigt werden.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
@@ -458,15 +455,18 @@ finding:
   sharepoint.storage_bytes: Speicherbedarf in SharePoint
   sharepoint.file_count: Dateien in SharePoint
   sharepoint.custom_solutions_in_use: Individuell angepasste SharePoint-Lösungen im Einsatz
+  sharepoint.workflows_in_use: Workflows auf SharePoint-Websites, in Listen oder Bibliotheken im Einsatz
   teams.team_count: Teams
   teams.channel_count: Kanäle
   teams.teams_with_guests_count: Teams mit Gästen
   teams.chat_history_must_be_kept: Chatverlauf aus Teams muss erhalten bleiben
+  teams.apps_in_use: In Teams eingebundene Apps, Registerkarten, Bots oder Konnektoren
   office_files.kind.macro: Dateien, die Makros enthalten können
   office_files.kind.access: Access-Datenbanken
   office_files.kind.publisher: Publisher-Dateien
   office_files.kind.visio: Visio-Dateien
   office_files.kind.onenote: OneNote-Dateien
+  office_files.vba_macros_in_use: VBA-Makros, auf die die Beschäftigten angewiesen sind
   device_management.device_count: Geräte
   device_management.windows_device_count: Windows-Geräte
   device_management.in_use: Geräteverwaltung von Microsoft im Einsatz

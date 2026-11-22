@@ -400,6 +400,43 @@ def test_sample_measurement_labels_and_directory_note() -> None:
     assert "data-sample" in relabeled
 
 
+@pytest.mark.parametrize(
+    ("lang", "measurement_label", "title"),
+    [
+        ("en", "Measured (simulated)", "What Fazit recorded for a fictional organisation"),
+        ("de", "Erhoben (simuliert)", "Was Fazit für eine fiktive Organisation erfasst hat"),
+    ],
+)
+def test_sample_reports_label_simulated_measurements_and_fictional_inventory(
+    lang: str, measurement_label: str, title: str
+) -> None:
+    html = render_report(_sample_scan("town"), lang=lang)
+    labels = re.findall(r'<(?:span|small) class="prov">([^<]+)</(?:span|small)>', html)
+    strings = load_locale(lang)["provenance"]
+
+    assert measurement_label in labels and strings["measured"] not in labels
+    found = report_section(html, "found")
+    assert f"<h2>{title}</h2>" in found
+    assert 'data-provenance="measured"' in found
+    assert f'<small class="prov">{measurement_label}</small>' in found
+    assert f'<span class="prov">{strings["provided"]}</span>' in report_section(html, "appendix")
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_scan_format_example_has_no_sample_labels(lang: str) -> None:
+    document = ROOT / "docs" / "scan-format.md"
+    assert document.is_file()
+    (example,) = readme_code_blocks(read_text(document))
+    scan = model.load_scan_text(example, "scan.json", load_catalogue())
+    html = render_report(scan, lang=lang)
+    strings = load_locale(lang)
+
+    assert not scan.is_sample
+    assert strings["provenance"]["measured_sample"] not in html
+    assert strings["found"]["title_sample"] not in html
+    assert f"<h2>{strings['found']['title']}</h2>" in report_section(html, "found")
+
+
 def test_provided_answer_source_is_independent_of_scan_source() -> None:
     scan = _sample_scan("town")
     strings = load_locale("en")

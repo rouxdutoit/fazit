@@ -41,6 +41,7 @@ summary:
   scope_unknown: '{n} more are outside {profile} and still Unknown here.'
 found:
   title: What Fazit recorded
+  title_sample: What Fazit recorded for a fictional organisation
   finding: Finding
   value: Value
   provenance: How we know
@@ -277,6 +278,7 @@ source_kind:
   live: Live collection
 provenance:
   measured: Measured
+  measured_sample: Measured (simulated)
   provided: Provided
   unknown: Unknown
 collector:
@@ -378,11 +380,6 @@ reason:
   provided_answers_conflict:
     label: The supplied answers disagree.
     fix: Check both answers with the service owner and correct the source files.
-  desktop_requirements_conflict:
-    label: >-
-      The supplied answer says Windows desktops are unnecessary.
-      The software list identifies Windows-only applications without a web version.
-    fix: Confirm with the service owner whether these applications still require Windows desktops.
   not_established:
     label: The available evidence leaves the answer open.
     fix: Review the finding with the person responsible for the service.
@@ -458,15 +455,18 @@ finding:
   sharepoint.storage_bytes: SharePoint storage
   sharepoint.file_count: SharePoint files
   sharepoint.custom_solutions_in_use: Custom SharePoint solutions in use
+  sharepoint.workflows_in_use: Workflows on SharePoint sites, lists or libraries in use
   teams.team_count: Teams
   teams.channel_count: Channels
   teams.teams_with_guests_count: Teams with guests
   teams.chat_history_must_be_kept: Teams chat history must be kept
+  teams.apps_in_use: Apps, tabs, bots or connectors added to teams
   office_files.kind.macro: Files that may contain macros
   office_files.kind.access: Access databases
   office_files.kind.publisher: Publisher files
   office_files.kind.visio: Visio files
   office_files.kind.onenote: OneNote files
+  office_files.vba_macros_in_use: VBA macros that staff rely on
   device_management.device_count: Devices
   device_management.windows_device_count: Windows devices
   device_management.in_use: Microsoft device management in use

@@ -186,12 +186,37 @@ class _InputsReader:
             self.software_entry(item, f"windows_only_software[{i}]") for i, item in enumerate(rows)
         )
 
+    def provided_counts(
+        self, value: object, subset_parents: Mapping[str, frozenset[str]]
+    ) -> Mapping[str, int | None]:
+        counts = {
+            key: self.validator.optional_count(raw_count, f"provided_counts.{key}")
+            for key, raw_count in self.fields(value, "provided_counts").items()
+        }
+        for finding_id, parents in subset_parents.items():
+            count = counts.get(finding_id)
+            population = [counts.get(parent) for parent in parents]
+            if (
+                count is not None
+                and None not in population
+                and count > sum(part for part in population if part is not None)
+            ):
+                self.validator.fail(
+                    f"provided_counts.{finding_id}", "subset_count_exceeds_population"
+                )
+        return MappingProxyType(counts)
+
 
 def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
     count_ids = {
         entry.id
         for entry in catalogue.findings
         if entry.provided == "answer" and entry.type == "count"
+    }
+    subset_parents = {
+        entry.id: entry.subset_of
+        for entry in catalogue.findings
+        if entry.id in count_ids and entry.subset_of and entry.subset_of <= count_ids
     }
     boolean_ids = {
         entry.id
@@ -230,10 +255,12 @@ def load_inputs_text(text: str, file_name: str, catalogue: Catalogue) -> Inputs:
             ("as_of",): "date",
         },
     )
-    return _read_inputs(data, Validator(file_name))
+    return _read_inputs(data, Validator(file_name), subset_parents)
 
 
-def _read_inputs(data: object, validator: Validator) -> Inputs:
+def _read_inputs(
+    data: object, validator: Validator, subset_parents: Mapping[str, frozenset[str]]
+) -> Inputs:
     reader = _InputsReader(validator)
     row = reader.fields(data, "")
     currency = row.get("currency")
@@ -241,7 +268,6 @@ def _read_inputs(data: object, validator: Validator) -> Inputs:
         currency = validator.matches(currency, "currency", _CURRENCY)
     current = reader.fields(row.get("current_costs"), "current_costs")
     targets = reader.fields(row.get("target_costs"), "target_costs")
-    counts = reader.fields(row.get("provided_counts"), "provided_counts")
     confirmations = reader.fields(row.get("confirmations"), "confirmations")
     language, profile, as_of = (row.get(name) for name in ("language", "target_profile", "as_of"))
     return Inputs(
@@ -266,12 +292,7 @@ def _read_inputs(data: object, validator: Validator) -> Inputs:
         ),
         full_exit=reader.scenario(targets.get("full_exit"), "target_costs.full_exit", currency),
         windows_only_software=reader.software_list(row.get("windows_only_software")),
-        provided_counts=MappingProxyType(
-            {
-                key: validator.optional_count(value, f"provided_counts.{key}")
-                for key, value in counts.items()
-            }
-        ),
+        provided_counts=reader.provided_counts(row.get("provided_counts"), subset_parents),
         confirmations=MappingProxyType(
             {
                 key: reader.boolean(value, f"confirmations.{key}")

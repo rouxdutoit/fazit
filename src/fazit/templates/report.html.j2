@@ -17,10 +17,13 @@
 {% macro finding_coverage(finding) -%}
   {{ coverage_text(finding.coverage, provided=finding.provenance == 'provided' or finding.source in provided_sources) }}
 {%- endmacro %}
+{% macro provenance_word(provenance) -%}
+  {{ strings.provenance.measured_sample if sample_scan and provenance == 'measured' else strings.provenance[provenance] }}
+{%- endmacro %}
 {% macro evidence_summary(finding, compact=false) -%}
   <div data-provenance="{{ finding.provenance }}">
     {% if finding.value is not none %}{{ value_text(finding) }}{% endif %}
-    <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
+    <span class="prov">{{ provenance_word(finding.provenance) }}</span>
     {% set provided = finding.provenance == 'provided' %}
     {% set partial = finding.coverage and finding.coverage.kind != 'complete' %}
     {% if not compact and (finding.source or finding.collected_at or finding.period or finding.coverage or provided) %}
@@ -468,14 +471,14 @@
   </header>
   <main>
     <section data-section="found">
-      <h2>{{ strings.found.title }}</h2>
+      <h2>{{ strings.found.title_sample if sample_scan else strings.found.title }}</h2>
       <ul class="headlines" role="list">
         {% for entry, finding in headlines %}
           {% set provenance = finding.provenance if finding else 'unknown' %}
           <li data-provenance="{{ provenance }}">
             <strong>{{ label(entry.label) }}</strong>
             {% if finding and finding.value is not none %}<span class="figure">{{ value_text(finding) }}</span>{% endif %}
-            <span class="prov">{{ strings.provenance[provenance] }}</span>
+            <span class="prov">{{ provenance_word(provenance) }}</span>
             {% if provenance == 'unknown' %}
               {% set code = finding.missing_reason if finding else ('not_in_scan' if entry.provided == 'no' else 'answer_not_provided') %}
               {% set reason, fix = reason_text(code) %}
@@ -489,9 +492,10 @@
       </ul>
       <h3 id="licences-title">{{ strings.licences.title }}</h3>
       {% if product_count %}
+        {% set licence_provenance = provenance_word(product_count.provenance) %}
         <p data-provenance="{{ product_count.provenance }}">
           {% if product_count.value is not none %}{{ strings.licences.product_count.format(count=format.integer(product_count.value)) }}{% endif %}
-          <span class="prov">{{ strings.provenance[product_count.provenance] }}</span>
+          <span class="prov">{{ licence_provenance }}</span>
           {% if product_count.missing_reason %}
             <small>{{ reason_detail(product_count.missing_reason) }}</small>
           {% elif product_count.coverage.kind in ('partial', 'unknown') %}
@@ -518,7 +522,7 @@
                 {% for product in licences %}
                   {% set matches = product.plans %}
                   <tr data-product="{{ product.id }}" data-provenance="measured" role="row">
-                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ strings.provenance.measured }}</small>{% if product.sku_guid %}<small><code>{{ product.sku_guid }}</code></small>{% endif %}</th>
+                    <th scope="row" role="rowheader" data-label="{{ strings.licences.product }}">{{ product.label }} <small class="prov">{{ licence_provenance }}</small>{% if product.sku_guid %}<small><code>{{ product.sku_guid }}</code></small>{% endif %}</th>
                     <td role="cell" data-label="{{ strings.licences.purchased }}">{{ format.integer(product.purchased) }}</td>
                     <td role="cell" data-label="{{ strings.licences.assigned }}">{{ format.integer(product.assigned) }}{% if product.assigned > product.purchased %}
                       <small data-reason="assigned_exceeds_purchased">{{ strings.licences.assigned_exceeds_purchased.format(count=format.integer(product.assigned - product.purchased)) }}</small>
@@ -883,7 +887,7 @@
                     {% for reason in reasons %}<small>{{ reason_detail(reason) }}</small>{% endfor %}
                   {% else %}
                     <small>
-                      {{ finding_labels[finding.id] }} · <span class="prov">{{ strings.provenance[finding.provenance] }}</span>
+                      {{ finding_labels[finding.id] }} · <span class="prov">{{ provenance_word(finding.provenance) }}</span>
                       · {{ finding_source(finding) }} · {{ finding_date(finding) }}
                     </small>
                   {% endif %}
