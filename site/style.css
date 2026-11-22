@@ -1574,7 +1574,14 @@ code {
 }
 
 .icon-mail { --icon: url("icons/mail.svg"); }
-.icon-calendar { --icon: url("icons/calendar-month.svg"); }
+.icon-call { --icon: url("icons/call.svg"); }
+
+/* LinkedIn's mark fills its whole box, so it is drawn smaller to match the symbols' optical size. */
+.foot-icons .icon-linkedin {
+  width: 16px;
+  height: 16px;
+  --icon: url("icons/linkedin.svg");
+}
 
 .foot-fine {
   display: flex;

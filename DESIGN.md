@@ -32,6 +32,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 - Google Material Symbols, rounded, from `site/icons/` (the report inlines the same paths). Apache-2.0; keep the licence file.
 - A symbol sits on the first line of its text, sized in `em`, with wrapped lines aligned after it.
+- The one exception is LinkedIn's [in] mark in the footer, in the text colour, which links only to the maintainer's profile.
 - Never reuse a status symbol (check, warning triangle, stop octagon, question mark) for anything but status.
 
 ## Links and buttons
