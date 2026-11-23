@@ -1,5 +1,7 @@
 # RR-09 summary
 
+**Founder decision, 2026-11-23.** RR-11 reverts item 1. The section index moves back into RR-04's sticky top bar, and the report restores the website's section grid. See [RR-11 summary](RR-11-SUMMARY.md).
+
 Completed all RR-09 items in plan order, with the command component (17) before the final review (16). The work started from a clean working tree at `5261f77`. All changes are local to the working tree.
 
 ## Changes by task

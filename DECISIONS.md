@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Report navigation and section layout
+
+**D37. Use the sticky top bar and the website's section grid.**
+
+The founder reverted RR-09 item 1. The section links stay in the sticky bar. A compact “On this page” disclosure holds the links when the inline row would overflow on phones. The website's section grid places headings to the left and content to the right from 880 px. At narrower widths each heading sits above its content. This updates the phone behaviour in D33.
+
 ## 2026-11-22 — Report polish
 
 **D36. Area cards use badges for status and incomplete evidence.**
@@ -28,7 +34,7 @@ The founder chose the area name as the anchor on both the website and the report
 - Status counts appear in the summary and on the status filter. The founder removed the readiness bar from the entire report. Radio inputs and CSS filter the area cards on screen. Counts, statuses, the summary and printed pages cover every assessed area.
 - Catalogue data supplies the categories. Rule data supplies each action and its kind (`clarify`, `decide` or `replace`). What to do next puts actions and evidence requests worth doing even if the organisation stays before the actions needed for a move. Actions based on findings replace the stock steps and timeline.
 - The summary shows three five-year totals in whole currency units, the Stay assumption and the annual target operations cost at which each move would cost the same as staying, where calculable. It uses the existing cost model. Known totals set one scale for the chart. An unknown total has a marker in place of a bar.
-- The report shares the site's tokens and components, with six exceptions. (1) The report embeds both fonts and leaves script-dependent styles and icon masks to the site. (2) Symbols are inline SVG. (3) The report bar uses a `div` and scrolls horizontally on phones. (4) Link hover uses `--accent-hover`. (5) Coverage labels stay visible beside their symbols. (6) In grouped cards the area name is the anchor, the status is body size, Ready cards are compact and the evidence lists live in disclosures.
+- The report shares the site's tokens and components, with six exceptions. (1) The report embeds both fonts and leaves script-dependent styles and icon masks to the site. (2) Symbols are inline SVG. (3) The report bar uses a `div`. D37 records the phone behaviour. (4) Link hover uses `--accent-hover`. (5) Coverage labels stay visible beside their symbols. (6) In grouped cards the area name is the anchor, the status is body size, Ready cards are compact and the evidence lists live in disclosures.
 - The filled circle marks in-suite coverage on the site and in the report. Coverage symbols and status symbols have distinct paths. `site/icons/` holds every symbol the report inlines. The site checker and report tests enforce the design rules.
 
 **D34. Licences is recorded inventory.**

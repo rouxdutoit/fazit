@@ -512,7 +512,7 @@ def test_known_move_total_with_unknown_cost_comparison(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])
-def test_seven_digit_cost_tile_has_one_unbroken_figure(tmp_path: Path, lang: str) -> None:
+def test_seven_digit_cost_tile_shows_full_amount(tmp_path: Path, lang: str) -> None:
     html = _town_with_cost_edits(
         tmp_path, ('one_time_migration: "15000"', 'one_time_migration: "1115000"'), lang=lang
     )
@@ -520,7 +520,6 @@ def test_seven_digit_cost_tile_has_one_unbroken_figure(tmp_path: Path, lang: str
     amount = Formatter(lang).money(Fraction(1627800), "EUR", whole=True)
 
     assert re.findall(r'class="figure-num">([^<]+)</', tile) == [amount]
-    assert re.search(r"\.figure-num\s*\{[^}]*white-space:\s*nowrap", html)
 
 
 def test_cost_tile_keeps_cents_for_a_small_nonzero_difference(tmp_path: Path) -> None:

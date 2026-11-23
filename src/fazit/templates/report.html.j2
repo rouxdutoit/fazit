@@ -107,15 +107,17 @@
   ('summary', 'summary'), ('path', 'next_steps'), ('readiness', 'areas'),
   ('costs', 'costs'), ('moves', 'replacements'), ('attention', 'closer_look'), ('appendix', 'appendix')
 ) %}
-{% macro index_links() -%}
-  <ul class="index-links" role="list">
-    {% for section, key in index_sections %}
-      <li><a href="#{{ section }}-title">{{ strings.nav[key] }}</a></li>
-    {% endfor %}
-  </ul>
+{% macro bar_links() -%}
+  <nav class="bar-links" aria-label="{{ strings.nav.label }}">
+    <div class="bar-links-in">
+      {% for section, key in index_sections %}
+        <a href="#{{ section }}-title">{{ strings.nav[key] }}</a>
+      {% endfor %}
+    </div>
+  </nav>
 {%- endmacro %}
-{% macro status_label(status, badge=false) -%}
-  <span class="status {{ status }}{{ ' badge' if badge }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {% if badge %}<span>{{ strings.status[status] }}</span>{% else %}{{ strings.status[status] }}{% endif %}</span>
+{% macro status_label(status, badge=false, linked=false) -%}
+  <span class="status {{ status }}{{ ' badge' if badge }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {% if badge %}<span>{{ strings.status[status] }}{% if linked %}{{ icon('chevron-right') }}{% endif %}</span>{% else %}{{ strings.status[status] }}{% endif %}</span>
 {%- endmacro %}
 {% macro incomplete_badge() -%}
   <span class="badge"><span>{{ strings.readiness.incomplete }}</span></span>
@@ -436,6 +438,7 @@
       --card-padding: 24px;
       --max: 1120px;
       --measure: 42.5rem;
+      --bar-h: 52px;
       --hit: 44px;
       --radius: 8px;
       --radius-pill: 999px;
@@ -461,7 +464,11 @@
       font: 400 var(--fs-body) / 1.47 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    html { scroll-padding-block-start: 24px; hyphens: manual; }
+    html {
+      scroll-padding-block-start: calc(var(--bar-h) + 16px);
+      scrollbar-width: none;
+      hyphens: manual;
+    }
     code {
       font-family: var(--mono);
       font-size: 0.9em;
@@ -502,88 +509,89 @@
       color: var(--solid-fg);
     }
     .skip:hover { color: var(--solid-fg); text-shadow: none; }
-    .report-layout {
-      width: 100%;
-      max-width: var(--max);
-      margin-inline: auto;
-      padding-inline: var(--gutter);
+    .bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 10;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: saturate(180%) blur(20px);
     }
-    .report-layout main { min-width: 0; }
-    .section-index { display: none; }
-    .index-disclosure {
-      margin-block-start: 16px;
-      border: 0;
-    }
-    .index-disclosure > summary {
-      align-items: center;
-      width: fit-content;
-      padding: 0 16px;
-      border-radius: var(--radius-pill);
-      background: var(--fill);
-      font-size: var(--fs-subhead);
-      font-weight: 600;
-    }
-    .index-disclosure > summary > .icon { margin: 0; }
-    .index-disclosure nav { margin-block-start: 8px; }
-    .section-index, .index-disclosure nav {
-      padding: var(--card-padding);
-      border-radius: var(--radius-card);
-      background: var(--fill);
-    }
-    .index-title {
-      margin-block-end: 8px;
-      font-size: var(--fs-subhead);
-      font-weight: 600;
-    }
-    .index-links { margin: 0; padding: 0; list-style: none; }
-    .index-links a {
+    .bar-in {
+      position: relative;
       display: flex;
       align-items: center;
+      gap: 24px;
+      max-width: var(--max);
+      min-height: var(--bar-h);
+      margin: 0 auto;
+      padding: 4px var(--gutter);
+    }
+    .wordmark, .wordmark:hover { color: var(--fg); }
+    .wordmark:hover { text-shadow: none; }
+    .wordmark {
+      font-weight: 600;
+      line-height: 36px;
+    }
+    .bar-links, .bar-menu { margin-inline-start: auto; }
+    .bar-links-in {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .wordmark, .bar-links a {
+      display: inline-flex;
+      align-items: center;
       min-height: var(--hit);
-      padding-inline: 8px;
-      border-radius: var(--radius);
-      font-size: var(--fs-subhead);
-      color: var(--link-quiet);
     }
-    .index-links a:hover { color: var(--fg); }
-    @media screen and (min-width: 880px) {
-      .report-layout {
+    .bar-links a {
+      color: color-mix(in srgb, var(--fg) 80%, transparent);
+      font-size: var(--fs-footnote);
+      white-space: nowrap;
+    }
+    .bar-links a:hover { color: var(--fg); }
+    .bar :focus-visible { outline-offset: 2px; }
+    {% for section, key in index_sections %}
+      body:has([data-section={{ section }}] :target) .bar-links a[href="#{{ section }}-title"]{{ ',' if not loop.last }}
+    {% endfor %} {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .bar-menu { display: none; border: 0; }
+    @media screen and (width < 40rem) {
+      .bar-in > .bar-links { display: none; }
+      .bar-menu { display: block; }
+      .bar-menu > summary {
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+        background: var(--fill);
+        font-size: var(--fs-footnote);
+        font-weight: 600;
+      }
+      .bar-menu > summary > .icon { margin: 0; }
+      .bar-menu .bar-links {
+        position: absolute;
+        inset: 100% var(--gutter) auto;
+        padding: 8px;
+        border-radius: var(--radius-card);
+        background: var(--bg);
+        box-shadow: 0 8px 24px var(--segment-shadow);
+      }
+      .bar-menu .bar-links-in {
         display: grid;
-        grid-template-columns: 12rem minmax(0, 1fr);
-        gap: 48px;
+        gap: 0;
       }
-      .section-index {
-        display: block;
-        position: sticky;
-        inset-block-start: 24px;
-        align-self: start;
-        margin-block-start: 32px;
-        max-block-size: calc(100dvh - 48px);
-        overflow: auto;
+      .bar-menu .bar-links a {
+        padding-inline: 12px;
+        border-radius: var(--radius);
+        font-size: var(--fs-subhead);
       }
-      .index-disclosure { display: none; }
-    }
-    @media screen {
-      @supports (scroll-target-group: auto) and selector(:target-current) {
-        .index-links { scroll-target-group: auto; }
-        .index-links a:target-current {
-          background: var(--bg);
-          color: var(--fg);
-          font-weight: 600;
-        }
-      }
-      @supports not ((scroll-target-group: auto) and selector(:target-current)) {
-        {% for section, key in index_sections %}
-          body:has([data-section={{ section }}] :target) .index-links a[href="#{{ section }}-title"]{{ ',' if not loop.last }}
-        {% endfor %} {
-          background: var(--bg);
-          color: var(--fg);
-          font-weight: 600;
-        }
-      }
+      .bar-menu .bar-links a:is(:hover, :focus-visible) { background: var(--fill); }
     }
     .page-intro {
-      padding-block: 24px;
+      max-width: var(--max);
+      margin-inline: auto;
+      padding: 24px var(--gutter);
     }
     @media screen and (min-width: 880px) {
       .page-intro { padding-block: 32px 16px; }
@@ -616,7 +624,11 @@
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding-inline: var(--gutter);
+      gap: 16px 48px;
     }
     .sec {
       position: relative;
@@ -624,7 +636,7 @@
     }
     .sec::before {
       position: absolute;
-      inset: 0 0 auto;
+      inset: 0 var(--gutter) auto;
       height: 1px;
       background: var(--rule);
       content: "";
@@ -634,6 +646,19 @@
       font-size: var(--fs-headline);
       line-height: 1.25;
       text-wrap: balance;
+    }
+    @media screen and (min-width: 880px) {
+      .grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+      .sec::before {
+        grid-column: 2 / 3;
+        inset-inline: 0;
+      }
+      .sec-label {
+        position: sticky;
+        inset-block-start: calc(var(--bar-h) + 24px);
+        align-self: start;
+        scroll-margin-block-start: 8px;
+      }
     }
     .sec-body {
       min-width: 0;
@@ -771,16 +796,13 @@
       font: 600 var(--fs-title) / 1.1 var(--sans);
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.03em;
-    }
-    .tiles .figure-num {
-      white-space: nowrap;
-      overflow-x: auto;
+      overflow-wrap: anywhere;
     }
     .tiles-3 .figure-num { font-size: var(--fs-headline); }
     .summary-costs .tiles { margin-top: 0; }
     .summary-costs .cost-origin { margin: 0 0 12px; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
-    .cost-value { white-space: nowrap; }
+    .cost-value { overflow-wrap: anywhere; }
     .cost-notes {
       display: grid;
       gap: 8px;
@@ -801,8 +823,14 @@
     .muted, small { color: var(--muted); }
     small { display: block; font-size: var(--fs-footnote); line-height: 1.33; }
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
-    .table-scroll { overflow-x: auto; margin-block: 12px 24px; }
-    table { width: 100%; border-collapse: collapse; font-size: var(--fs-subhead); line-height: 1.43; }
+    .table-scroll { margin-block: 12px 24px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-subhead);
+      line-height: 1.43;
+      overflow-wrap: anywhere;
+    }
     tbody th { font-weight: 600; }
     th[scope="rowgroup"] { padding-block-start: 24px; color: var(--text); font-size: var(--fs-body); }
     caption { padding-block-end: 8px; color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
@@ -827,7 +855,6 @@
       font-weight: 600;
     }
     .coverage th > .prov { display: block; margin-block-start: 4px; }
-    .replacements :is(th, td) { overflow-wrap: normal; }
     .replacement-name {
       display: block;
       padding-inline-start: calc(1.2em + 8px);
@@ -835,17 +862,15 @@
     .checked-on { display: block; }
     .replacement-status {
       display: flex;
-      align-items: center;
       width: fit-content;
-      gap: 4px;
     }
+    .replacement-status > .status { color: inherit; }
     .replacement-status + .badge { margin-block-start: 4px; }
     @media screen and (min-width: 70rem) {
-      .replacements { table-layout: fixed; }
-      .replacements thead th:nth-child(1) { width: 24%; min-width: 12rem; }
-      .replacements thead th:nth-child(2) { width: 27%; min-width: 14rem; }
+      .replacements thead th:nth-child(1) { width: 29%; }
+      .replacements thead th:nth-child(2) { width: 27%; }
       .replacements thead th:nth-child(3) { width: 12%; }
-      .replacements thead th:nth-child(4):not(:last-child) { width: 17%; }
+      .replacements thead th:nth-child(4):not(:last-child) { width: 1%; }
       .replacements tbody th { width: auto; }
       .replacements :is(th, td):is(:nth-child(3), :nth-child(4)) { padding-inline-end: 8px; }
     }
@@ -875,7 +900,7 @@
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
-    .status .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
+    .status > .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
     .finding {
       padding: var(--card-padding);
       border-radius: var(--radius-card);
@@ -951,10 +976,11 @@
       color: var(--link-quiet);
     }
     .more:hover { color: var(--link); }
-    .more > .icon {
+    .more > .icon, .replacement-status .badge > span > .icon {
       width: 1em;
       height: 1em;
-      vertical-align: -0.2em;
+      vertical-align: -0.15em;
+      vertical-align: calc((1cap - 1em) / 2);
     }
     .area-link { color: var(--fg); }
     .area-link:hover { color: var(--link-hover); }
@@ -1264,7 +1290,7 @@
     }
     .cost-table thead th:first-child { width: 34%; }
     .cost-table thead th:not(:first-child), .cost-table td { text-align: end; }
-    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; }
     .cost-table .totals { background: var(--fill); }
     .cost-table :is(.subtotals, .totals) td { font-weight: 600; }
     .cost-table th:first-child { padding-inline-start: 16px; }
@@ -1396,7 +1422,7 @@
       .cost-table tbody th { margin-bottom: 8px; }
       .cost-table td {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) max-content;
+        grid-template-columns: minmax(0, 1fr) fit-content(60%);
         align-items: baseline;
         gap: 8px;
         text-align: end;
@@ -1420,7 +1446,7 @@
         --fs-subhead: 9pt;
         --fs-footnote: 8pt;
       }
-      .section-index, .index-disclosure, .skip, .filters, .areas-empty { display: none; }
+      .bar, .skip, .filters, .areas-empty { display: none; }
       body {
         display: block;
         print-color-adjust: exact;
@@ -1428,8 +1454,8 @@
       .page-intro, .sec { padding: 16pt 0; }
       .page-intro { padding-block: 0 4pt; }
       .page-intro h1 { font-size: var(--fs-title); }
-      .report-layout { padding: 0; }
-      .grid { display: block; }
+      .grid { display: block; padding-inline: 0; }
+      .sec::before { inset-inline: 0; }
       .report-meta { gap: 4pt 12pt; margin-top: 8pt; }
       .page-intro .note { margin-top: 4pt; padding: 4pt 12pt; }
       .sec-label { margin-bottom: 8pt; }
@@ -1484,7 +1510,6 @@
       }
       [data-section=summary] .cost-notes { gap: 0; margin-top: 4pt; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
-      .tiles .figure-num { overflow: visible; }
       .tiles li, .finding { padding: 12pt; }
       .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8pt; }
       .tiles-3 li { gap: 2pt; padding-block: 8pt; }
@@ -1493,7 +1518,6 @@
       .sec-body .tiles-3 p + p { margin-top: 0; }
       a, a:hover, .more, .more:hover { color: var(--fg); text-shadow: none; }
       footer { width: 100%; padding-block-end: 0; }
-      .table-scroll { overflow: visible; }
       thead { display: table-header-group; break-after: avoid; }
       .coverage th, .coverage td, .cost-table th, .cost-table td {
         padding: 4pt 8pt 4pt 0;
@@ -1519,11 +1543,16 @@
 </head>
 <body>
   <a class="skip" href="#main">{{ strings.nav.skip }}</a>
-  <div class="report-layout">
-    <nav class="section-index" aria-label="{{ strings.nav.label }}">
-      <p class="index-title">{{ strings.nav.on_this_page }}</p>
-      {{ index_links() }}
-    </nav>
+  <div class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="#main">{{ project_name }}</a>
+      {{ bar_links() }}
+      <details class="bar-menu">
+        <summary>{{ icon('chevron-right') }}{{ strings.nav.on_this_page }}</summary>
+        {{ bar_links() }}
+      </details>
+    </div>
+  </div>
   <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
@@ -1544,10 +1573,6 @@
         <div><dt>{{ strings.header.target_profile }}</dt><dd>{{ mapping.label[lang] }}</dd></div>
       </dl>
       {% if sample_scan %}<p class="note">{{ strings.header.sample }}</p>{% endif %}
-      <details class="index-disclosure">
-        <summary>{{ icon('chevron-right') }}{{ strings.nav.on_this_page }}</summary>
-        <nav aria-label="{{ strings.nav.label }}">{{ index_links() }}</nav>
-      </details>
     </div>
   </header>
     <section data-section="summary">
@@ -1980,7 +2005,7 @@
                     </td>
                     {% if not shared_check %}<td role="cell" data-label="{{ strings.appendix.mapping_date }}">{{ mapping_date(item) }}</td>{% endif %}
                     <td role="cell" data-label="{{ strings.moves.workload_status }}">
-                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}" class="area-link more replacement-status">{{ status_label(row.status, badge=true) }}{{ icon('chevron-right') }}</a>
+                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}" class="area-link more replacement-status">{{ status_label(row.status, badge=true, linked=true) }}</a>
                       {% if row.incomplete %}{{ incomplete_badge() }}{% endif %}
                     </td>
                   </tr>
@@ -2337,7 +2362,6 @@
       </div>
     </section>
   </main>
-  </div>
   <footer data-section="footer">
     <p>{{ project_name }} · {{ repository_url }}</p>
   </footer>

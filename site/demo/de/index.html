@@ -81,6 +81,7 @@
       --card-padding: 24px;
       --max: 1120px;
       --measure: 42.5rem;
+      --bar-h: 52px;
       --hit: 44px;
       --radius: 8px;
       --radius-pill: 999px;
@@ -106,7 +107,11 @@
       font: 400 var(--fs-body) / 1.47 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    html { scroll-padding-block-start: 24px; hyphens: manual; }
+    html {
+      scroll-padding-block-start: calc(var(--bar-h) + 16px);
+      scrollbar-width: none;
+      hyphens: manual;
+    }
     code {
       font-family: var(--mono);
       font-size: 0.9em;
@@ -147,100 +152,101 @@
       color: var(--solid-fg);
     }
     .skip:hover { color: var(--solid-fg); text-shadow: none; }
-    .report-layout {
-      width: 100%;
-      max-width: var(--max);
-      margin-inline: auto;
-      padding-inline: var(--gutter);
+    .bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 10;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: saturate(180%) blur(20px);
     }
-    .report-layout main { min-width: 0; }
-    .section-index { display: none; }
-    .index-disclosure {
-      margin-block-start: 16px;
-      border: 0;
-    }
-    .index-disclosure > summary {
-      align-items: center;
-      width: fit-content;
-      padding: 0 16px;
-      border-radius: var(--radius-pill);
-      background: var(--fill);
-      font-size: var(--fs-subhead);
-      font-weight: 600;
-    }
-    .index-disclosure > summary > .icon { margin: 0; }
-    .index-disclosure nav { margin-block-start: 8px; }
-    .section-index, .index-disclosure nav {
-      padding: var(--card-padding);
-      border-radius: var(--radius-card);
-      background: var(--fill);
-    }
-    .index-title {
-      margin-block-end: 8px;
-      font-size: var(--fs-subhead);
-      font-weight: 600;
-    }
-    .index-links { margin: 0; padding: 0; list-style: none; }
-    .index-links a {
+    .bar-in {
+      position: relative;
       display: flex;
       align-items: center;
+      gap: 24px;
+      max-width: var(--max);
+      min-height: var(--bar-h);
+      margin: 0 auto;
+      padding: 4px var(--gutter);
+    }
+    .wordmark, .wordmark:hover { color: var(--fg); }
+    .wordmark:hover { text-shadow: none; }
+    .wordmark {
+      font-weight: 600;
+      line-height: 36px;
+    }
+    .bar-links, .bar-menu { margin-inline-start: auto; }
+    .bar-links-in {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .wordmark, .bar-links a {
+      display: inline-flex;
+      align-items: center;
       min-height: var(--hit);
-      padding-inline: 8px;
-      border-radius: var(--radius);
-      font-size: var(--fs-subhead);
-      color: var(--link-quiet);
     }
-    .index-links a:hover { color: var(--fg); }
-    @media screen and (min-width: 880px) {
-      .report-layout {
+    .bar-links a {
+      color: color-mix(in srgb, var(--fg) 80%, transparent);
+      font-size: var(--fs-footnote);
+      white-space: nowrap;
+    }
+    .bar-links a:hover { color: var(--fg); }
+    .bar :focus-visible { outline-offset: 2px; }
+
+      body:has([data-section=summary] :target) .bar-links a[href="#summary-title"],
+
+      body:has([data-section=path] :target) .bar-links a[href="#path-title"],
+
+      body:has([data-section=readiness] :target) .bar-links a[href="#readiness-title"],
+
+      body:has([data-section=costs] :target) .bar-links a[href="#costs-title"],
+
+      body:has([data-section=moves] :target) .bar-links a[href="#moves-title"],
+
+      body:has([data-section=attention] :target) .bar-links a[href="#attention-title"],
+
+      body:has([data-section=appendix] :target) .bar-links a[href="#appendix-title"]
+     {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .bar-menu { display: none; border: 0; }
+    @media screen and (width < 40rem) {
+      .bar-in > .bar-links { display: none; }
+      .bar-menu { display: block; }
+      .bar-menu > summary {
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+        background: var(--fill);
+        font-size: var(--fs-footnote);
+        font-weight: 600;
+      }
+      .bar-menu > summary > .icon { margin: 0; }
+      .bar-menu .bar-links {
+        position: absolute;
+        inset: 100% var(--gutter) auto;
+        padding: 8px;
+        border-radius: var(--radius-card);
+        background: var(--bg);
+        box-shadow: 0 8px 24px var(--segment-shadow);
+      }
+      .bar-menu .bar-links-in {
         display: grid;
-        grid-template-columns: 12rem minmax(0, 1fr);
-        gap: 48px;
+        gap: 0;
       }
-      .section-index {
-        display: block;
-        position: sticky;
-        inset-block-start: 24px;
-        align-self: start;
-        margin-block-start: 32px;
-        max-block-size: calc(100dvh - 48px);
-        overflow: auto;
+      .bar-menu .bar-links a {
+        padding-inline: 12px;
+        border-radius: var(--radius);
+        font-size: var(--fs-subhead);
       }
-      .index-disclosure { display: none; }
-    }
-    @media screen {
-      @supports (scroll-target-group: auto) and selector(:target-current) {
-        .index-links { scroll-target-group: auto; }
-        .index-links a:target-current {
-          background: var(--bg);
-          color: var(--fg);
-          font-weight: 600;
-        }
-      }
-      @supports not ((scroll-target-group: auto) and selector(:target-current)) {
-
-          body:has([data-section=summary] :target) .index-links a[href="#summary-title"],
-
-          body:has([data-section=path] :target) .index-links a[href="#path-title"],
-
-          body:has([data-section=readiness] :target) .index-links a[href="#readiness-title"],
-
-          body:has([data-section=costs] :target) .index-links a[href="#costs-title"],
-
-          body:has([data-section=moves] :target) .index-links a[href="#moves-title"],
-
-          body:has([data-section=attention] :target) .index-links a[href="#attention-title"],
-
-          body:has([data-section=appendix] :target) .index-links a[href="#appendix-title"]
-         {
-          background: var(--bg);
-          color: var(--fg);
-          font-weight: 600;
-        }
-      }
+      .bar-menu .bar-links a:is(:hover, :focus-visible) { background: var(--fill); }
     }
     .page-intro {
-      padding-block: 24px;
+      max-width: var(--max);
+      margin-inline: auto;
+      padding: 24px var(--gutter);
     }
     @media screen and (min-width: 880px) {
       .page-intro { padding-block: 32px 16px; }
@@ -273,7 +279,11 @@
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding-inline: var(--gutter);
+      gap: 16px 48px;
     }
     .sec {
       position: relative;
@@ -281,7 +291,7 @@
     }
     .sec::before {
       position: absolute;
-      inset: 0 0 auto;
+      inset: 0 var(--gutter) auto;
       height: 1px;
       background: var(--rule);
       content: "";
@@ -291,6 +301,19 @@
       font-size: var(--fs-headline);
       line-height: 1.25;
       text-wrap: balance;
+    }
+    @media screen and (min-width: 880px) {
+      .grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+      .sec::before {
+        grid-column: 2 / 3;
+        inset-inline: 0;
+      }
+      .sec-label {
+        position: sticky;
+        inset-block-start: calc(var(--bar-h) + 24px);
+        align-self: start;
+        scroll-margin-block-start: 8px;
+      }
     }
     .sec-body {
       min-width: 0;
@@ -428,16 +451,13 @@
       font: 600 var(--fs-title) / 1.1 var(--sans);
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.03em;
-    }
-    .tiles .figure-num {
-      white-space: nowrap;
-      overflow-x: auto;
+      overflow-wrap: anywhere;
     }
     .tiles-3 .figure-num { font-size: var(--fs-headline); }
     .summary-costs .tiles { margin-top: 0; }
     .summary-costs .cost-origin { margin: 0 0 12px; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
-    .cost-value { white-space: nowrap; }
+    .cost-value { overflow-wrap: anywhere; }
     .cost-notes {
       display: grid;
       gap: 8px;
@@ -458,8 +478,14 @@
     .muted, small { color: var(--muted); }
     small { display: block; font-size: var(--fs-footnote); line-height: 1.33; }
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
-    .table-scroll { overflow-x: auto; margin-block: 12px 24px; }
-    table { width: 100%; border-collapse: collapse; font-size: var(--fs-subhead); line-height: 1.43; }
+    .table-scroll { margin-block: 12px 24px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-subhead);
+      line-height: 1.43;
+      overflow-wrap: anywhere;
+    }
     tbody th { font-weight: 600; }
     th[scope="rowgroup"] { padding-block-start: 24px; color: var(--text); font-size: var(--fs-body); }
     caption { padding-block-end: 8px; color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
@@ -484,7 +510,6 @@
       font-weight: 600;
     }
     .coverage th > .prov { display: block; margin-block-start: 4px; }
-    .replacements :is(th, td) { overflow-wrap: normal; }
     .replacement-name {
       display: block;
       padding-inline-start: calc(1.2em + 8px);
@@ -492,17 +517,15 @@
     .checked-on { display: block; }
     .replacement-status {
       display: flex;
-      align-items: center;
       width: fit-content;
-      gap: 4px;
     }
+    .replacement-status > .status { color: inherit; }
     .replacement-status + .badge { margin-block-start: 4px; }
     @media screen and (min-width: 70rem) {
-      .replacements { table-layout: fixed; }
-      .replacements thead th:nth-child(1) { width: 24%; min-width: 12rem; }
-      .replacements thead th:nth-child(2) { width: 27%; min-width: 14rem; }
+      .replacements thead th:nth-child(1) { width: 29%; }
+      .replacements thead th:nth-child(2) { width: 27%; }
       .replacements thead th:nth-child(3) { width: 12%; }
-      .replacements thead th:nth-child(4):not(:last-child) { width: 17%; }
+      .replacements thead th:nth-child(4):not(:last-child) { width: 1%; }
       .replacements tbody th { width: auto; }
       .replacements :is(th, td):is(:nth-child(3), :nth-child(4)) { padding-inline-end: 8px; }
     }
@@ -532,7 +555,7 @@
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
-    .status .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
+    .status > .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
     .finding {
       padding: var(--card-padding);
       border-radius: var(--radius-card);
@@ -608,10 +631,11 @@
       color: var(--link-quiet);
     }
     .more:hover { color: var(--link); }
-    .more > .icon {
+    .more > .icon, .replacement-status .badge > span > .icon {
       width: 1em;
       height: 1em;
-      vertical-align: -0.2em;
+      vertical-align: -0.15em;
+      vertical-align: calc((1cap - 1em) / 2);
     }
     .area-link { color: var(--fg); }
     .area-link:hover { color: var(--link-hover); }
@@ -970,7 +994,7 @@
     }
     .cost-table thead th:first-child { width: 34%; }
     .cost-table thead th:not(:first-child), .cost-table td { text-align: end; }
-    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cost-table td, .cost-value { font-variant-numeric: tabular-nums; }
     .cost-table .totals { background: var(--fill); }
     .cost-table :is(.subtotals, .totals) td { font-weight: 600; }
     .cost-table th:first-child { padding-inline-start: 16px; }
@@ -1102,7 +1126,7 @@
       .cost-table tbody th { margin-bottom: 8px; }
       .cost-table td {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) max-content;
+        grid-template-columns: minmax(0, 1fr) fit-content(60%);
         align-items: baseline;
         gap: 8px;
         text-align: end;
@@ -1126,7 +1150,7 @@
         --fs-subhead: 9pt;
         --fs-footnote: 8pt;
       }
-      .section-index, .index-disclosure, .skip, .filters, .areas-empty { display: none; }
+      .bar, .skip, .filters, .areas-empty { display: none; }
       body {
         display: block;
         print-color-adjust: exact;
@@ -1134,8 +1158,8 @@
       .page-intro, .sec { padding: 16pt 0; }
       .page-intro { padding-block: 0 4pt; }
       .page-intro h1 { font-size: var(--fs-title); }
-      .report-layout { padding: 0; }
-      .grid { display: block; }
+      .grid { display: block; padding-inline: 0; }
+      .sec::before { inset-inline: 0; }
       .report-meta { gap: 4pt 12pt; margin-top: 8pt; }
       .page-intro .note { margin-top: 4pt; padding: 4pt 12pt; }
       .sec-label { margin-bottom: 8pt; }
@@ -1190,7 +1214,6 @@
       }
       [data-section=summary] .cost-notes { gap: 0; margin-top: 4pt; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
-      .tiles .figure-num { overflow: visible; }
       .tiles li, .finding { padding: 12pt; }
       .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8pt; }
       .tiles-3 li { gap: 2pt; padding-block: 8pt; }
@@ -1199,7 +1222,6 @@
       .sec-body .tiles-3 p + p { margin-top: 0; }
       a, a:hover, .more, .more:hover { color: var(--fg); text-shadow: none; }
       footer { width: 100%; padding-block-end: 0; }
-      .table-scroll { overflow: visible; }
       thead { display: table-header-group; break-after: avoid; }
       .coverage th, .coverage td, .cost-table th, .cost-table td {
         padding: 4pt 8pt 4pt 0;
@@ -1225,27 +1247,52 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <div class="report-layout">
-    <nav class="section-index" aria-label="Abschnitte des Berichts">
-      <p class="index-title">Auf dieser Seite</p>
-      <ul class="index-links" role="list">
+  <div class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="#main">fazit</a>
+      <nav class="bar-links" aria-label="Abschnitte des Berichts">
+    <div class="bar-links-in">
 
-      <li><a href="#summary-title">Überblick</a></li>
+        <a href="#summary-title">Überblick</a>
 
-      <li><a href="#path-title">Nächste Schritte</a></li>
+        <a href="#path-title">Nächste Schritte</a>
 
-      <li><a href="#readiness-title">Bereiche</a></li>
+        <a href="#readiness-title">Bereiche</a>
 
-      <li><a href="#costs-title">Kosten</a></li>
+        <a href="#costs-title">Kosten</a>
 
-      <li><a href="#moves-title">Ersatzlösungen</a></li>
+        <a href="#moves-title">Ersatzlösungen</a>
 
-      <li><a href="#attention-title">Prüfbedarf</a></li>
+        <a href="#attention-title">Prüfbedarf</a>
 
-      <li><a href="#appendix-title">Anhang</a></li>
+        <a href="#appendix-title">Anhang</a>
 
-  </ul>
-    </nav>
+    </div>
+  </nav>
+      <details class="bar-menu">
+        <summary><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Auf dieser Seite</summary>
+        <nav class="bar-links" aria-label="Abschnitte des Berichts">
+    <div class="bar-links-in">
+
+        <a href="#summary-title">Überblick</a>
+
+        <a href="#path-title">Nächste Schritte</a>
+
+        <a href="#readiness-title">Bereiche</a>
+
+        <a href="#costs-title">Kosten</a>
+
+        <a href="#moves-title">Ersatzlösungen</a>
+
+        <a href="#attention-title">Prüfbedarf</a>
+
+        <a href="#appendix-title">Anhang</a>
+
+    </div>
+  </nav>
+      </details>
+    </div>
+  </div>
   <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
@@ -1264,26 +1311,6 @@
         <div><dt>Zielprofil</dt><dd>openDesk</dd></div>
       </dl>
       <p class="note">Die Messwerte der Erhebung in diesem Bericht sind simuliert.</p>
-      <details class="index-disclosure">
-        <summary><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Auf dieser Seite</summary>
-        <nav aria-label="Abschnitte des Berichts"><ul class="index-links" role="list">
-
-      <li><a href="#summary-title">Überblick</a></li>
-
-      <li><a href="#path-title">Nächste Schritte</a></li>
-
-      <li><a href="#readiness-title">Bereiche</a></li>
-
-      <li><a href="#costs-title">Kosten</a></li>
-
-      <li><a href="#moves-title">Ersatzlösungen</a></li>
-
-      <li><a href="#attention-title">Prüfbedarf</a></li>
-
-      <li><a href="#appendix-title">Anhang</a></li>
-
-  </ul></nav>
-      </details>
     </div>
   </header>
     <section data-section="summary">
@@ -5141,7 +5168,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-directory" aria-label="Verzeichnisdienst: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-directory" aria-label="Verzeichnisdienst: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5165,7 +5192,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-mail" aria-label="E-Mail: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-mail" aria-label="E-Mail: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5189,7 +5216,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-onedrive" aria-label="OneDrive: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-onedrive" aria-label="OneDrive: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5213,7 +5240,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5237,7 +5264,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5261,7 +5288,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5285,7 +5312,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5309,7 +5336,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5334,7 +5361,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5358,7 +5385,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5382,7 +5409,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5406,7 +5433,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5430,7 +5457,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5455,7 +5482,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5479,7 +5506,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5504,7 +5531,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-windows_software" aria-label="Reine Windows-Anwendungen: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-windows_software" aria-label="Reine Windows-Anwendungen: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5529,7 +5556,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-power_platform" aria-label="Power Platform: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-power_platform" aria-label="Power Platform: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5554,7 +5581,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-telephony" aria-label="Telefonie: Hindernis" class="area-link more replacement-status"><span class="status blocker badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> <span>Hindernis</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-telephony" aria-label="Telefonie: Hindernis" class="area-link more replacement-status"><span class="status blocker badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> <span>Hindernis<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5578,7 +5605,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-identity_access" aria-label="Identitäten und Zugriff: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-identity_access" aria-label="Identitäten und Zugriff: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5602,7 +5629,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-security_compliance" aria-label="Sicherheit und Regelkonformität: Unbekannt" class="area-link more replacement-status"><span class="status unknown badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> <span>Unbekannt</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-security_compliance" aria-label="Sicherheit und Regelkonformität: Unbekannt" class="area-link more replacement-status"><span class="status unknown badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> <span>Unbekannt<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
                       <span class="badge"><span>Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5626,7 +5653,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-small_apps" aria-label="Kleinere Anwendungen: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-small_apps" aria-label="Kleinere Anwendungen: Bereit" class="area-link more replacement-status"><span class="status ready badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> <span>Bereit<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5650,7 +5677,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-integrations" aria-label="Anwendungsanbindungen: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-integrations" aria-label="Anwendungsanbindungen: Handlungsbedarf" class="area-link more replacement-status"><span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -7528,7 +7555,6 @@
       </div>
     </section>
   </main>
-  </div>
   <footer data-section="footer">
     <p>fazit · https://github.com/rouxdutoit/fazit</p>
   </footer>

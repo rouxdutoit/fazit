@@ -81,7 +81,7 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
         strings["nav"]["label"],
         strings["nav"]["label"],
     ]
-    indexes = re.findall(r'<ul class="index-links" role="list">(.*?)</ul>', html, re.S)
+    indexes = re.findall(r'<div class="bar-links-in">(.*?)</div>', html, re.S)
     expected_links = [
         (f"{section}-title", strings["nav"][key])
         for section, key in (
@@ -158,6 +158,8 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         for coverage in codes
     }
     status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
+    chevron_icon = ROOT / "site" / "icons" / "chevron-right.svg"
+    chevron = re.search(r'<path d="([^"]+)"', chevron_icon.read_text(encoding="utf-8"))[1]
     for item in mapping.functions:
         row = rows[item.function]
         status = re.search(r'data-status="([^"]+)"', row)[1]
@@ -195,6 +197,8 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
             area=strings["workload"][item.workload], status=strings["status"][status]
         )
         assert f'<span class="status {status} badge">' in link[3]
+        label = re.search(r'<span>([^<]+)<svg[^>]*><path d="([^"]+)"', link[3])
+        assert label and (unescape(label[1]), label[2]) == (strings["status"][status], chevron)
         for _, attrs in ReportDocument(row.replace(link[0], "")).tags:
             assert not ({"status", *DISPLAY_ORDER} & set(attrs.get("class", "").split()))
 
@@ -1046,7 +1050,7 @@ def test_print_hides_controls_opens_disclosures_and_starts_working_sections_on_n
             hidden.update(names)
         if re.search(r"break-before:\s*page", declarations):
             page_starts.update(names)
-    assert {".section-index", ".index-disclosure", ".skip", ".filters", ".areas-empty"} <= hidden
+    assert {".bar", ".skip", ".filters", ".areas-empty"} <= hidden
     assert page_starts == {"[data-section=path]", "[data-section=costs]", "[data-section=appendix]"}
     disclosure = re.search(r"details::details-content\s*\{([^}]+)\}", print_css)
     assert disclosure

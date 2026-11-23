@@ -97,6 +97,7 @@ main {
 
 html {
   scroll-padding-block-start: calc(var(--bar-h) + 16px);
+  scrollbar-width: none;
   hyphens: manual;
   -webkit-tap-highlight-color: transparent;
 
@@ -1346,7 +1347,8 @@ code {
 .more::after, .more > .icon {
   width: 1em;
   height: 1em;
-  vertical-align: -0.2em;
+  vertical-align: -0.15em;
+  vertical-align: calc((1cap - 1em) / 2);
 }
 
 .more:not(:has(> .icon))::after {
