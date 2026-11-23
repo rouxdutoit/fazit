@@ -82,6 +82,8 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
         strings["nav"]["label"],
         strings["nav"]["label"],
     ]
+    menu = re.search(r'<details class="bar-menu">\s*<summary[^>]*>(.*?)</summary>', html)
+    assert menu and f'<span class="sr-only">{strings["nav"]["on_this_page"]}</span>' in menu[1]
     indexes = re.findall(r'<div class="bar-links-in">(.*?)</div>', html, re.S)
     expected_links = [
         (f"{section}-title", strings["nav"][key])
@@ -1124,29 +1126,40 @@ def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
 def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[str, str]) -> None:
     (report,) = ReportDocument(style_references["en"]).styles
     site = (ROOT / "site" / "style.css").read_text("utf-8")
+    template = (ROOT / "src" / "fazit" / "templates" / "report.html.j2").read_text("utf-8")
     palettes = {
         "": {
-            "blocker": "light-dark(#ff9500,#ff9f0a)",
-            "needs-work": "light-dark(#ffcc00,#ffd60a)",
+            "blocker": "light-dark(#ff8d28,#ff9230)",
+            "needs-work": "light-dark(#ffcc00,#ffd600)",
             "ready": "light-dark(#34c759,#30d158)",
             "unknown": "#8e8e93",
         },
-        "@media (prefers-contrast: more), print": {
-            "blocker": "light-dark(#c93400,#ffb340)",
-            "needs-work": "light-dark(#b25000,#ffd426)",
-            "ready": "light-dark(#248a3d,#30db5b)",
+        "@media screen and (prefers-contrast: more)": {
+            "blocker": "light-dark(#c55300,#ffa056)",
+            "needs-work": "light-dark(#a16a00,#fedf43)",
+            "ready": "light-dark(#008932,#4ad968)",
             "unknown": "light-dark(#6c6c70,#aeaeb2)",
         },
     }
-    for css in (site, report):
+    for css in (site, template, report):
         for media, expected in palettes.items():
             start = re.escape(media) + r"\s*\{\s*" if media else ""
             root = re.search(start + r":root\s*\{([^}]+)\}", css)
             assert root, media
             values = re.findall(r"--status-([\w-]+):\s*([^;]+);", root[1])
-            assert {key: re.sub(r"\s+", "", value) for key, value in values} == expected
+            assert {key: re.sub(r"\s+", "", value.lower()) for key, value in values} == expected
+        for status in palettes[""]:
+            assert len(re.findall(rf"--status-{status}\s*:", css)) == len(palettes)
+            selector = status.replace("-", "_")
+            assert f".{selector} {{ --status-fill: var(--status-{status}); }}" in css
+        assert re.search(r"@media print\s*\{\s*:root\s*\{\s*color-scheme:\s*light;", css)
         assert re.search(
-            r"\.status > \.icon:not\(\.chevron\)\s*\{\s*color:\s*var\(--status-fill\)", css
+            r"\.status > \.icon:not\(\.chevron\)\s*\{\s*color:\s*var\(--status-fill\);\s*\}", css
+        )
+        assert re.search(
+            r"\.badge\.status\s*\{\s*background:\s*color-mix\(in srgb,\s*"
+            r"var\(--status-fill\)\s*\d+%,\s*var\(--fill\)\);\s*\}",
+            css,
         )
 
 

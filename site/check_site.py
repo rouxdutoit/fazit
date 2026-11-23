@@ -68,6 +68,20 @@ CSS_COMMENTS = re.compile(r"/\*.*?\*/", re.S)
 CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
 CSS_COVERAGE = re.compile(r"[^{};]*\.cov(?:-[\w-]+)?(?![\w-])[^{};]*\{([^{}]*)\}")
 CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+STATUS_PALETTES = {
+    "": {
+        "--status-blocker": "light-dark(#ff8d28,#ff9230)",
+        "--status-needs-work": "light-dark(#ffcc00,#ffd600)",
+        "--status-ready": "light-dark(#34c759,#30d158)",
+        "--status-unknown": "#8e8e93",
+    },
+    "screen and (prefers-contrast: more)": {
+        "--status-blocker": "light-dark(#c55300,#ffa056)",
+        "--status-needs-work": "light-dark(#a16a00,#fedf43)",
+        "--status-ready": "light-dark(#008932,#4ad968)",
+        "--status-unknown": "light-dark(#6c6c70,#aeaeb2)",
+    },
+}
 # These neutral shadows give the menu and cards depth in either palette.
 SHADOW_COLOURS = {"rgb(0 0 0 / 4%)", "rgb(0 0 0 / 8%)", "rgb(0 0 0 / 18%)"}
 
@@ -729,9 +743,8 @@ def _svg_paths(svg: bytes) -> set[str]:
     }
 
 
-def _check_coverage_symbols(css: str) -> Iterator[str]:
+def _check_coverage_symbols(css: str, template: str) -> Iterator[str]:
     package = ROOT.parent / "src" / "fazit"
-    template = (package / "templates" / "report.html.j2").read_text(encoding="utf-8")
     macro = template.partition("macro status_contents(")[2].split("endmacro", 1)[0]
     names = dict(re.findall(r"'([\w]+)'\s*:\s*'([\w-]+)'", macro))
     if set(names) != set(STATUSES):
@@ -763,7 +776,29 @@ def _check_coverage_symbols(css: str) -> Iterator[str]:
                 yield f"Coverage symbol {name} reuses the path of status symbol {status_icon}.svg."
 
 
-def check_design(css: str) -> list[str]:
+def check_status_palette(css: str, filename: str) -> Iterator[str]:
+    source = CSS_COMMENTS.sub("", css)
+    for media, expected in STATUS_PALETTES.items():
+        start = rf"@media\s+{re.escape(media)}\s*\{{\s*" if media else ""
+        root = re.search(start + r":root\s*\{[^{}]*\}", source)
+        actual = {
+            name: re.sub(r"\s+", "", value.lower())
+            for name, value in CSS_DECLARATION.findall(root[0] if root else "")
+            if name.startswith("--status-")
+        }
+        for token in sorted(expected.keys() | actual.keys()):
+            if actual.get(token) != expected.get(token):
+                mode = "increased contrast" if media else "default"
+                yield f"{filename}: {token} differs from the Apple {mode} palette."
+    names = STATUS_PALETTES[""].keys()
+    declarations = Counter(name for name, _ in CSS_DECLARATION.findall(source) if name in names)
+    if declarations != dict.fromkeys(names, len(STATUS_PALETTES)):
+        yield f"{filename}: Status tokens belong in the default and increased contrast palettes."
+    if not re.search(r"@media\s+print\s*\{\s*:root\s*\{\s*color-scheme:\s*light;", source):
+        yield f"{filename}: Print must use the default light palette."
+
+
+def check_design(css: str, template: str) -> list[str]:
     source = CSS_COMMENTS.sub("", CSS_REFS.sub("", css))
     errors = []
     for prop, value in CSS_DECLARATION.findall(CSS_ROOT.sub("", source)):
@@ -772,7 +807,7 @@ def check_design(css: str) -> list[str]:
                 errors.append(f"{prop}: {value.strip()} uses colour {colour} outside :root.")
     errors.extend(check_font_families(source))
     errors.extend(_check_design_urls(css))
-    errors.extend(_check_coverage_symbols(css))
+    errors.extend(_check_coverage_symbols(css, template))
     return [f"style.css: {error}" for error in errors]
 
 
@@ -825,7 +860,12 @@ def main() -> int:
     references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"
     css = stylesheet.read_text(encoding="utf-8")
-    errors.extend(check_design(css))
+    template_path = ROOT.parent / "src" / "fazit" / "templates" / "report.html.j2"
+    template = template_path.read_text(encoding="utf-8")
+    errors.extend(check_design(css, template))
+    errors.extend(check_status_palette(css, stylesheet.name))
+    report_css = template.partition("<style>")[2].partition("</style>")[0]
+    errors.extend(check_status_palette(report_css, template_path.name))
     references.extend((stylesheet, ref) for ref in css_references(css, 1))
     for path, ref in references:
         if error := check_reference(route_for(path), ref, pages):

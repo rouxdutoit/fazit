@@ -19,14 +19,16 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - Never colour a heading, a tile or a background to decorate it.
 - Status is never colour alone: every status shows its symbol and its word.
 - Status symbols use Apple's system colours at full strength. A status badge tints its background with the same colour and keeps its text in the main text colour.
-- With `prefers-contrast: more`, use Apple's Increase Contrast colours for the current theme. Print uses the light Increase Contrast palette.
+- With `prefers-contrast: more`, use Apple's increased contrast colours for the current screen theme. Print uses the default light palette.
 
-| Status | Light | Dark | Increase Contrast light | Increase Contrast dark |
-| --- | --- | --- | --- | --- |
-| Blocker | `#FF9500` | `#FF9F0A` | `#C93400` | `#FFB340` |
-| Needs work | `#FFCC00` | `#FFD60A` | `#B25000` | `#FFD426` |
-| Ready | `#34C759` | `#30D158` | `#248A3D` | `#30DB5B` |
-| Unknown | `#8E8E93` | `#8E8E93` | `#6C6C70` | `#AEAEB2` |
+| Status | Apple colour | Light | Dark | Increased contrast, light | Increased contrast, dark |
+| --- | --- | --- | --- | --- | --- |
+| Blocker | Orange | `#FF8D28` | `#FF9230` | `#C55300` | `#FFA056` |
+| Needs work | Yellow | `#FFCC00` | `#FFD600` | `#A16A00` | `#FEDF43` |
+| Ready | Green | `#34C759` | `#30D158` | `#008932` | `#4AD968` |
+| Unknown | Gray (`systemGray`) | `#8E8E93` | `#8E8E93` | `#6C6C70` | `#AEAEB2` |
+
+Apple updated these values on 9 June 2025. Accessed on 23 November 2026. [Apple Human Interface Guidelines, Color](https://developer.apple.com/design/human-interface-guidelines/color#System-colors)
 
 ## Structure
 

@@ -34,8 +34,8 @@
   --solid-fg: light-dark(#ffffff, #050906);
   /* Shared status palette: the report uses all four; a test keeps both in step. */
   --status-ready: light-dark(#34c759, #30d158);
-  --status-needs-work: light-dark(#ffcc00, #ffd60a);
-  --status-blocker: light-dark(#ff9500, #ff9f0a);
+  --status-needs-work: light-dark(#ffcc00, #ffd600);
+  --status-blocker: light-dark(#ff8d28, #ff9230);
   --status-unknown: #8e8e93;
   --fs-display: clamp(2.5rem, 5vw, 3.5rem);
   --fs-title: clamp(2rem, 3.6vw, 2.5rem);
@@ -55,16 +55,17 @@
   --measure: 42.5rem;
   --bar-h: 52px;
   --hit: 44px;
+  --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
   --radius: 8px;
   --radius-card: 14px;
   --radius-pill: 999px;
 }
 
-@media (prefers-contrast: more), print {
+@media screen and (prefers-contrast: more) {
   :root {
-    --status-ready: light-dark(#248a3d, #30db5b);
-    --status-needs-work: light-dark(#b25000, #ffd426);
-    --status-blocker: light-dark(#c93400, #ffb340);
+    --status-ready: light-dark(#008932, #4ad968);
+    --status-needs-work: light-dark(#a16a00, #fedf43);
+    --status-blocker: light-dark(#c55300, #ffa056);
     --status-unknown: light-dark(#6c6c70, #aeaeb2);
   }
 }
@@ -453,7 +454,7 @@ code {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s;
-    box-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
+    box-shadow: var(--menu-shadow);
   }
 
   .bar[data-open] {

@@ -394,8 +394,8 @@
       --accent: #1d1d1f;
       --accent-hover: #424245;
       --status-ready: light-dark(#34c759, #30d158);
-      --status-needs-work: light-dark(#ffcc00, #ffd60a);
-      --status-blocker: light-dark(#ff9500, #ff9f0a);
+      --status-needs-work: light-dark(#ffcc00, #ffd600);
+      --status-blocker: light-dark(#ff8d28, #ff9230);
       --status-unknown: #8e8e93;
       --fs-display: clamp(2.5rem, 5vw, 3.5rem);
       --fs-title: clamp(2rem, 3.6vw, 2.5rem);
@@ -419,11 +419,11 @@
         --accent-hover: #e1fbe7;
       }
     }
-    @media (prefers-contrast: more), print {
+    @media screen and (prefers-contrast: more) {
       :root {
-        --status-ready: light-dark(#248a3d, #30db5b);
-        --status-needs-work: light-dark(#b25000, #ffd426);
-        --status-blocker: light-dark(#c93400, #ffb340);
+        --status-ready: light-dark(#008932, #4ad968);
+        --status-needs-work: light-dark(#a16a00, #fedf43);
+        --status-blocker: light-dark(#c55300, #ffa056);
         --status-unknown: light-dark(#6c6c70, #aeaeb2);
       }
     }
@@ -448,6 +448,7 @@
       --measure: 42.5rem;
       --bar-h: 52px;
       --hit: 44px;
+      --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
       --radius: 8px;
       --radius-pill: 999px;
       --segment-shadow: rgb(0 0 0 / 12%);
@@ -579,7 +580,7 @@
 
     .chevron { --symbol-size: var(--cap-height); }
 
-    .bar-links, .bar-menu { margin-inline-start: auto; }
+    .bar-links { margin-inline-start: auto; }
     .bar-links-in {
       display: flex;
       align-items: center;
@@ -606,34 +607,76 @@
       font-weight: 600;
     }
     .bar-menu { display: none; border: 0; }
-    @media screen and (width < 40rem) {
-      .bar-in > .bar-links { display: none; }
-      .bar-menu { display: block; }
-      .bar-menu > summary {
-        padding: 4px 12px;
-        border-radius: var(--radius-pill);
-        background: var(--fill);
-        font-size: var(--fs-footnote);
-        font-weight: 600;
-      }
-      .bar-menu .bar-links {
-        position: absolute;
-        inset: 100% var(--gutter) auto;
-        padding: 8px;
-        border-radius: var(--radius-card);
-        background: var(--bg);
-        box-shadow: 0 8px 24px var(--segment-shadow);
-      }
-      .bar-menu .bar-links-in {
+    @media screen and (max-width: 819px) {
+      .bar-in {
         display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--hit);
         gap: 0;
       }
-      .bar-menu .bar-links a {
-        padding-inline: 12px;
+      .bar-in > .bar-links { display: none; }
+      .bar-menu { display: block; }
+      .menu-button {
+        justify-content: center;
+        width: var(--hit);
+        height: var(--hit);
+        padding: 0;
         border-radius: var(--radius);
-        font-size: var(--fs-subhead);
+        color: var(--fg);
+        font-size: var(--fs-body);
+      }
+      .menu-icon { position: relative; }
+      .menu-icon > span {
+        position: absolute;
+        inset: calc(25% - 0.75px) 0 auto;
+        height: 1.5px;
+        border-radius: var(--radius-pill);
+        background: currentColor;
+      }
+      .menu-icon > span + span { inset: auto 0 calc(25% - 0.75px); }
+      .bar-menu[open] .menu-icon > span { transform: translateY(0.25em) rotate(45deg); }
+      .bar-menu[open] .menu-icon > span + span { transform: translateY(-0.25em) rotate(-45deg); }
+      .bar:has(.bar-menu[open]) { background: var(--bg); }
+      .bar-menu .bar-links {
+        position: absolute;
+        inset: 100% 0 auto;
+        max-block-size: calc(100dvh - var(--bar-h));
+        margin: 0;
+        padding-inline: calc(var(--gutter) - 16px);
+        overflow-y: auto;
+        background: var(--bg);
+        box-shadow: var(--menu-shadow);
+      }
+      .bar-menu .bar-links-in {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding: 8px 8px 16px;
+      }
+      .bar-menu .bar-links a {
+        padding-inline: 8px;
+        border-radius: var(--radius);
+        color: var(--fg);
+        font-size: var(--fs-body);
       }
       .bar-menu .bar-links a:is(:hover, :focus-visible) { background: var(--fill); }
+      @media (prefers-reduced-motion: no-preference) {
+        .menu-icon > span { transition: transform 0.4s var(--ease); }
+        @supports selector(details::details-content) {
+          .bar-menu::details-content {
+            position: absolute;
+            inset: 100% 0 auto;
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.45s var(--ease), opacity 0.3s ease, content-visibility 0.45s allow-discrete;
+          }
+          .bar-menu[open]::details-content {
+            grid-template-rows: 1fr;
+            opacity: 1;
+          }
+          .bar-menu .bar-links { position: static; min-block-size: 0; }
+        }
+      }
     }
     .page-intro {
       max-width: var(--max);
@@ -1527,7 +1570,7 @@
       <a class="wordmark" href="#main">{{ project_name }}</a>
       {{ bar_links() }}
       <details class="bar-menu">
-        <summary class="symbol-label">{{ icon('chevron-right') }}<span class="symbol-text">{{ strings.nav.on_this_page }}</span></summary>
+        <summary class="menu-button symbol-label"><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">{{ strings.nav.on_this_page }}</span></summary>
         {{ bar_links() }}
       </details>
     </div>

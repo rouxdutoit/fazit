@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { createRequire } from "node:module";
@@ -35,7 +36,7 @@ async function serve() {
   return server;
 }
 
-const capsules = ".btn, .language, .badge, .segmented label, .category-filter > button, .bar-menu > summary";
+const capsules = ".btn, .language, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
 const centredLabels = `${capsules}, ${menuItems}`;
 const symbolOnly = ".copy, .menu-button, .foot-mail, .tile-arrow, .report-card-control, .cost-segment.is-unknown";
@@ -137,6 +138,27 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     if (pair.matches(centredLabels)) {
       for (const cap of capCentres) compare(pair, "padding box", cap - paddingCentre);
     }
+    if (pair.matches(".menu-button")) {
+      const bar = pair.closest(".bar-in");
+      const barBox = bar.getBoundingClientRect();
+      const barStyle = getComputedStyle(bar);
+      const hit = parseFloat(barStyle.getPropertyValue("--hit"));
+      compare(pair, "hit target width", box.width - hit);
+      compare(pair, "hit target height", box.height - hit);
+      compare(pair, "top bar centre", centre(box) - centre(barBox));
+      compare(pair, "right gutter", box.right - (barBox.right - parseFloat(barStyle.paddingInlineEnd)));
+      const icon = pair.querySelector(".menu-icon")?.getBoundingClientRect();
+      const iconSize = parseFloat(getComputedStyle(document.body).fontSize);
+      compare(pair, "menu icon width", icon?.width - iconSize);
+      compare(pair, "menu icon height", icon?.height - iconSize);
+      const panel = pair.parentElement.querySelector(".bar-links");
+      if (panel?.checkVisibility({ visibilityProperty: true })) {
+        const panelBox = panel.getBoundingClientRect();
+        compare(panel, "panel left edge", panelBox.left - barBox.left);
+        compare(panel, "panel right edge", panelBox.right - barBox.right);
+        compare(panel, "panel top edge", panelBox.top - barBox.bottom);
+      }
+    }
     for (const cap of capCentres.slice(1)) compare(pair, "label", cap - capCentres[0]);
     if (pair.matches(".finding-evidence dd")) {
       compare(pair, "evidence term", capCentres[0] - capCentre(pair.previousElementSibling));
@@ -165,6 +187,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
 }
 
 async function checkPage(page, route, width, origin, measure) {
+  const report = route.startsWith("/demo/");
   const response = await page.goto(origin + route);
   if (!response?.ok()) throw new Error("Page did not load");
   await page.evaluate(() => document.fonts.ready);
@@ -177,18 +200,28 @@ async function checkPage(page, route, width, origin, measure) {
     await measure(".copy.done");
   }
 
-  if (!route.startsWith("/demo/") && width < 820) {
-    await page.locator(".menu-button").click();
-    await page.locator(".bar[data-open] .bar-links a").first().waitFor();
-    await measure(".bar[data-open]");
-    await page.keyboard.press("Escape");
-  }
-
-  if (route.startsWith("/demo/") && width < 640) {
-    await page.locator(".bar-menu > summary").click();
-    await page.locator(".bar-menu[open] .bar-links a").first().waitFor();
-    await measure(".bar-menu[open]");
-    await page.locator(".bar-menu > summary").click();
+  const menu = page.locator(".menu-button");
+  if (width < 820) {
+    const open = report ? ".bar-menu[open]" : ".bar[data-open]";
+    const panel = page.locator(report ? ".bar-menu .bar-links" : ".bar-links");
+    const links = panel.locator("a");
+    await links.first().waitFor({ state: "hidden" });
+    await menu.press("Enter");
+    await links.first().waitFor();
+    await measure(open);
+    if (report) {
+      const costs = panel.locator('a[href="#costs-title"]');
+      await costs.press("Enter");
+      assert.equal(new URL(page.url()).hash, "#costs-title");
+      assert.equal(await costs.evaluate(link => getComputedStyle(link).fontWeight), "600");
+      assert.equal(await links.first().evaluate(link => getComputedStyle(link).fontWeight), "400");
+      await menu.press("Space");
+    } else {
+      await page.keyboard.press("Escape");
+    }
+    await links.first().waitFor({ state: "hidden" });
+  } else {
+    await menu.waitFor({ state: "hidden" });
   }
 
   if (await page.locator("details:not(.bar-menu)").count()) {
@@ -196,7 +229,7 @@ async function checkPage(page, route, width, origin, measure) {
     await measure("details[open]");
   }
 
-  if (route.startsWith("/demo/")) {
+  if (report) {
     const category = page.locator("#f-category");
     await category.click();
     await category.locator("option:checked > .symbol").waitFor();
