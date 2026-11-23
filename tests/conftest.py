@@ -34,6 +34,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         (repo_test, "test_dependency_cutoff_is_fourteen_days_before_head"): ".git",
         (repo_test, "test_ci_runs_the_required_checks_on_supported_python_versions"): workflow,
         (repo_test, "test_ci_uses_read_only_permissions_and_sha_pinned_actions"): workflow,
+        ("test_report.py", "test_coverage_symbols_match_the_site"): "site/icons",
         ("test_report.py", "test_report_and_website_share_colour_tokens"): "site/style.css",
     }
     for item in items:

@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import date
 from hashlib import sha256
 from html import unescape
+from importlib.resources import files
 from itertools import pairwise
 from pathlib import Path
 from shutil import copytree
@@ -44,6 +45,7 @@ EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
 CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
 CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+REPORT_ICONS = files("fazit").joinpath("icons")
 
 
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
@@ -158,7 +160,7 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         for coverage in codes
     }
     status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
-    chevron_icon = ROOT / "site" / "icons" / "chevron-right.svg"
+    chevron_icon = REPORT_ICONS.joinpath("chevron-right.svg")
     chevron = re.search(r'<path d="([^"]+)"', chevron_icon.read_text(encoding="utf-8"))[1]
     for item in mapping.functions:
         row = rows[item.function]
@@ -181,7 +183,7 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         )
         coverage = re.search(r'<span class="cov-cell">.*?</td>', row, re.S)
         assert coverage is not None
-        source = ROOT / "site" / "icons" / f"{symbols[item.coverage]}.svg"
+        source = REPORT_ICONS.joinpath(f"{symbols[item.coverage]}.svg")
         path = re.search(r'<path d="([^"]+)"', source.read_text(encoding="utf-8"))[1]
         assert re.findall(r'<path d="([^"]+)"', coverage[0]) == [path]
         assert path not in status_paths
@@ -608,7 +610,7 @@ def test_summary_scope_matches_the_replacements_and_gaps(lang: str, profile: str
     ]
     needed = re.search(r'<ul class="scope-links" role="list">(.*?)</ul>', summary, re.S)
     assert needed and scope.needed
-    chevron = (ROOT / "site" / "icons" / "chevron-right.svg").read_text(encoding="utf-8")
+    chevron = REPORT_ICONS.joinpath("chevron-right.svg").read_text(encoding="utf-8")
     path = re.search(r'<path d="([^"]+)"', chevron)[1]
     links = re.findall(
         r'<li><a href="#(replacement-[^"]+)" class="area-link more">([^<]+)'
