@@ -480,7 +480,7 @@ def test_nonprofit_full_cost_tile_is_unknown_and_shows_known_blocks(tmp_path: Pa
     full = _cost_tile(summary, "full_exit")
 
     assert re.search(r'<span class="status unknown">.*?</svg> Unknown</span>', full, re.S)
-    assert "Total of known blocks EUR 40,600" in _visible_text(full)
+    assert "Total for known cost categories: EUR 40,600" in _visible_text(full)
     assert 'href="#costs-missing">1 input is missing<' in full
     assert 'data-break-even="full_exit"' not in summary
     partial = re.search(r'data-break-even="partial_exit">([^<]+)</p>', summary)
@@ -500,11 +500,12 @@ def test_known_move_total_with_unknown_cost_comparison(tmp_path: Path) -> None:
 
     assert 'class="status unknown"' in stay
     assert "Today's yearly costs for five years" in unescape(stay)
-    assert "Total of known blocks" not in stay
+    assert "Total for known cost categories" not in stay
     assert '<span class="figure-num">EUR 507,800</span>' in partial
     assert 'data-comparison="unknown"' in partial and "Comparison unknown" in partial
     assert 'href="#costs-missing">1 input is missing<' in partial
-    assert 'class="status unknown"' in full and "Total of known blocks EUR 364,350" in full
+    assert 'class="status unknown"' in full
+    assert "Total for known cost categories: EUR 364,350" in full
     assert "data-break-even=" not in summary
     assert 'id="costs-missing"' in report_section(html, "costs")
 
@@ -603,7 +604,7 @@ def test_nonprofit_chart_shows_unknown_without_a_bar(tmp_path: Path) -> None:
     assert 'class="cost-bar"' not in full and "--share:" not in full
     assert "data-chart-block" not in full
     text = _visible_text(full)
-    assert "Total of known blocks EUR 40,600.00" in text
+    assert "Total for known cost categories: EUR 40,600.00" in text
     assert "Lost working time (internal estimate, not a payment) · Unknown" in text
     assert '<span class="status unknown">' in full
     for comparison in ("Difference from staying", "less than staying", "more than staying"):
@@ -660,7 +661,7 @@ def test_cost_chart_uses_only_markers_when_no_block_is_known(tmp_path: Path) -> 
     assert section.count('class="cost-segment is-unknown"') == 3
     assert section.count("Total unknown") == 3
     assert "--share:" not in section and "data-chart-value=" not in section
-    assert "Total of known blocks" not in section
+    assert "Total for known cost categories" not in section
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])

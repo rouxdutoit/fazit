@@ -14,7 +14,7 @@ nav:
   next_steps: Nächste Schritte
   areas: Bereiche
   costs: Kosten
-  replacements: Ersatz
+  replacements: Ersatzlösungen
   closer_look: Prüfbedarf
   appendix: Anhang
   on_this_page: Auf dieser Seite
@@ -26,20 +26,20 @@ summary:
   blockers: Was diesem Umstieg entgegensteht
   confirmed: 'Bestätigte Hindernisse: {shown} von {total}'
   all_blockers: Alle Hindernisse
-  caveat: '{n} Bereiche sind unbekannt oder unvollständig belegt; ein Hindernis lässt sich daher nicht ausschließen.'
+  caveat: 'Bei {n} Bereichen ist der Status unbekannt oder die Nachweise sind unvollständig; ein Hindernis lässt sich daher nicht ausschließen.'
   caveat_one: 'Bei {n} Bereich ist der Status unbekannt oder die Nachweise sind unvollständig, sodass sich ein Hindernis nicht ausschließen lässt.'
   unknown: Was noch unbekannt ist
   not_examined: Alle offenen Punkte
   define:
-    blocker: Ein bestätigtes Problem, das vor diesem Umstieg gelöst sein muss.
+    blocker: Ein bestätigtes Hindernis, das vor diesem Umstieg ausgeräumt sein muss.
     needs_work: Die Prüfungen haben Aufgaben ergeben, die vor einem Umstieg zu erledigen sind.
-    unknown: Es fehlen Nachweise, daher kann diese Version den Bereich nicht bewerten.
-    ready: Die aktuellen Prüfungen haben kein Hindernis und keine fehlenden Nachweise ergeben.
+    unknown: Es fehlen Nachweise, daher kann diese Version von Fazit den Bereich nicht bewerten.
+    ready: Die aktuellen Prüfungen haben weder ein Hindernis noch fehlende Nachweise ergeben.
   scope_title: Was {profile} abdeckt
   scope_of: 'Von den {n} Funktionen, die Fazit für {profile} prüft:'
-  scope_needed: Nicht in {profile} enthalten und hier benötigt
+  scope_needed: Nicht in {profile} enthalten, aber in dieser Organisation benötigt
   scope_unknown_one: Eine weitere Funktion fehlt in {profile}. Ob sie hier benötigt wird, ist unbekannt.
-  scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob sie hier benötigt werden, ist unbekannt.'
+  scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob diese Organisation sie benötigt, ist unbekannt.'
 found:
   title: Was Fazit erfasst hat
   title_sample: Was Fazit für eine fiktive Organisation erfasst hat
@@ -60,11 +60,11 @@ licences:
   purchased: Erworben
   assigned: Zugewiesen
   assigned_exceeds_purchased: Es sind {count} Lizenzplätze mehr zugewiesen als erworben. Das kann vorkommen, wenn bei der Vertragsverlängerung weniger Plätze erworben werden.
-  plans: Einordnung der Dienstpläne
+  plans: Einordnung der Servicepläne
   bundled: Im Produkt enthalten
   add_on: Separat lizenziert
-  unclassified: 'Dienstpläne ohne Einordnung in diesem Produkt: {count}.'
-  no_workload: 'Dienstpläne ohne Bezug zu einem geprüften Bereich: {count}.'
+  unclassified: 'Servicepläne ohne Einordnung in diesem Produkt: {count}.'
+  no_workload: 'Servicepläne ohne Bezug zu einem geprüften Bereich: {count}.'
   add_on_assigned: 'Zugewiesene Zusatzlizenz für {workload}'
   bundled_assigned: 'Im Produkt enthaltene, zugewiesene Lizenz für {workload}'
 status:
@@ -90,19 +90,19 @@ costs:
   rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
   provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
   missing: 'Fehlende Angaben für das Szenario „{scenario}“'
-  stay_basis: Heutige Jahreskosten über fünf Jahre
+  stay_basis: Die heutigen Jahreskosten für fünf Jahre
   comparison_unknown: Vergleich unbekannt
-  stay_assumption: Für den Verbleib ist keine Preisänderung angenommen.
-  break_even: '{scenario} kostet gleich viel wie der Verbleib, wenn der Betrieb des Zielsystems {amount} pro Jahr kostet (angegeben: {entered}).'
+  stay_assumption: Beim Verbleib wird keine Preisänderung angenommen.
+  break_even: '{scenario} kostet so viel wie der Verbleib, wenn der Betrieb des Zielsystems {amount} pro Jahr kostet (eingetragen: {entered}).'
   break_even_none: '{scenario} kostet auch ohne Betriebskosten mehr als der Verbleib.'
-  vat_note: Beträge wie angegeben. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten.
+  vat_note: Alle Beträge wie eingetragen. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten.
   profile_note: Die Kosten stammen aus der Eingabedatei und sind für jedes Zielprofil gleich.
   less: weniger als beim Verbleib
   more: mehr als beim Verbleib
   same: gleich viel wie beim Verbleib
   sub_cent: weicht um weniger als einen Cent ab
   total_unknown: Summe unbekannt
-  known_blocks: 'Summe der bekannten Blöcke: {amount}'
+  known_blocks: 'Summe der bekannten Posten: {amount}'
   inputs_missing: '{n} Angaben fehlen'
   inputs_missing_one: '{n} Angabe fehlt'
   missing_fix: Tragen Sie die fehlenden Beträge in die Eingabedatei ein und erstellen Sie den Bericht erneut.
@@ -148,16 +148,16 @@ costs:
     parallel_running: Bisherige Microsoft-Lizenzen im Parallelbetrieb
   formulas_title: Berechnung der Kosten
   formulas:
-    - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenblöcke der Umstellung betragen null.
+    - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenposten für den Umstieg betragen null.
     - Ziehen Sie bei beiden Umstiegsszenarien die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
     - Multiplizieren Sie den monatlichen Hostingpreis pro Person mit der Zahl der Nutzenden und mit 60. Das Hosting beginnt im ersten Monat. Die Jahreskosten für Betrieb, sonstige Kosten des Zielsystems und sonstige bisherige IT-Kosten werden jeweils mit fünf multipliziert.
     - Die direkten Projektkosten umfassen einmalige Migration, Anpassung von Anwendungen, externe Beratung und Schulung. Die Schulungskosten ergeben sich aus Schulungstagen pro Person mal Tagessatz pro Person mal Zahl der zu schulenden Personen.
     - Für verlorene Arbeitszeit wird der angegebene Betrag angesetzt.
     - Für den Parallelbetrieb multiplizieren Sie die bisherigen jährlichen Microsoft-Lizenzkosten mit den Monaten des Parallelbetriebs und teilen das Ergebnis durch 12.
-    - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenblöcken der Umstellung. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
+    - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenposten für den Umstieg. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
     - Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.
 readiness:
-  title: Wo jeder Bereich steht
+  title: Wo die einzelnen Bereiche stehen
   next_step: Nächster Schritt
   incomplete: Nachweise unvollständig
   missing: Noch benötigte Angaben
@@ -211,7 +211,7 @@ attention:
   no_gaps: Das Profil führt keine Funktionen auf, für die eine direkte Übernahme ungeklärt ist.
 path:
   title: Was als Nächstes zu tun ist
-  even_if_staying: Sinnvoll, auch wenn Sie bleiben
+  even_if_staying: Sinnvoll, auch wenn Sie bei Microsoft 365 bleiben
   for_move: Für einen Umstieg nötig
   input_field: Feld in inputs.yaml
   questions:
@@ -260,7 +260,7 @@ role:
 appendix:
   title: Wie dieser Bericht entstanden ist
   not_looked: Was Fazit nicht betrachtet
-  not_looked_text: Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Abteilungen und die Einstellungen des Zielsystems.
+  not_looked_text: Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Auswertungen nach Abteilungen und die Einstellungen des Zielsystems.
   schema_version: Schemaversion
   collectors: Erhebungsverfahren
   status: Status
@@ -368,14 +368,14 @@ reason:
     label: Im Lizenzbestand sind keine Produkte erfasst.
     fix: Prüfen Sie die Quelle und reichen Sie eine vollständige Liste der Lizenzprodukte nach.
   licence_not_classified:
-    label: Das Programm konnte einen Dienstplan nicht einordnen.
-    fix: Gleichen Sie Produkt und Dienstplan mit der Lizenzreferenz ab und aktualisieren Sie den Dienstplankatalog.
+    label: Das Programm konnte einen Serviceplan nicht einordnen.
+    fix: Gleichen Sie Produkt und Serviceplan mit der Lizenzreferenz ab und aktualisieren Sie den Serviceplankatalog.
   licence_plan_list_missing:
-    label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Dienstpläne.
-    fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
+    label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Servicepläne.
+    fix: Reichen Sie die Liste der Servicepläne für dieses Produkt nach.
   licence_plan_list_incomplete:
-    label: Die Dienstplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
-    fix: Lassen Sie durch die Lizenzverwaltung prüfen, welche Dienstpläne zum Produkt gehören.
+    label: Die Serviceplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
+    fix: Lassen Sie durch die Lizenzverwaltung prüfen, welche Servicepläne zum Produkt gehören.
   licence_assignments_conflict:
     label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
     fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
@@ -399,7 +399,7 @@ reason:
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
   not_recognised:
     label: Diese Programmversion kennt den Grund nicht.
-    fix: Prüfen Sie die Version des Erhebungsprogramms und den Grundcode in der Erhebungsdatei.
+    fix: Prüfen Sie die Version des Erhebungsprogramms und den Begründungscode in der Erhebungsdatei.
 units:
   users: Konten
   groups: Gruppen

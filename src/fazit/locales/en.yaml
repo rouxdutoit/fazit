@@ -102,7 +102,7 @@ costs:
   same: the same as staying
   sub_cent: differs by less than one cent
   total_unknown: Total unknown
-  known_blocks: Total of known blocks {amount}
+  known_blocks: 'Total for known cost categories: {amount}'
   inputs_missing: '{n} inputs are missing'
   inputs_missing_one: '{n} input is missing'
   missing_fix: Enter the missing amounts in the inputs file and build the report again.
@@ -260,7 +260,7 @@ role:
 appendix:
   title: How this report was made
   not_looked: What Fazit does not look at
-  not_looked_text: File contents, mail, data about individual people, departments, and the settings of the target system.
+  not_looked_text: File contents, mail, data about individual people, analysis by department, and the settings of the target system.
   schema_version: Schema version
   collectors: Collection methods
   status: Status

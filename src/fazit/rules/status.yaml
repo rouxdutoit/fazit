@@ -65,7 +65,7 @@ workloads:
         status: needs_work
         reason:
           en: External recipients need a way to access shared files after the move.
-          de: Externe Empfänger benötigen nach dem Wechsel weiterhin Zugriff auf die für sie freigegebenen Dateien.
+          de: Externe Empfänger benötigen nach dem Umstieg weiterhin Zugriff auf die für sie freigegebenen Dateien.
         next_step:
           kind: decide
           en: The service owner decides which external recipients should retain access to shared files.
@@ -116,7 +116,7 @@ workloads:
         status: needs_work
         reason:
           en: Teams with guests need a plan for managing external access after the move.
-          de: Klären Sie für Teams mit Gästen, wie der Zugriff von Externen nach dem Wechsel geregelt wird.
+          de: Klären Sie für Teams mit Gästen, wie der Zugriff von Externen nach dem Umstieg geregelt wird.
         next_step:
           kind: replace
           en: The IT team plans how to manage guest access to team workspaces after the move.
@@ -178,7 +178,7 @@ workloads:
         status: needs_work
         reason:
           en: Review how the organisation uses its Access databases before planning the move.
-          de: Prüfen Sie vor der Umstellung, wofür die Organisation ihre Access-Datenbanken nutzt.
+          de: Prüfen Sie vor dem Umstieg, wofür die Organisation ihre Access-Datenbanken nutzt.
         next_step:
           kind: clarify
           en: The service owner records the tasks staff carry out with the databases.
@@ -277,7 +277,7 @@ workloads:
         status: needs_work
         reason:
           en: Check how staff will use the Windows-only applications after the move.
-          de: Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Wechsel nutzen können.
+          de: Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Umstieg nutzen können.
         next_step:
           kind: clarify
           en: The service owner records which tasks rely on the applications in the inventory.
@@ -453,7 +453,7 @@ workloads:
         status: needs_work
         reason:
           en: Applications connected to Microsoft 365 need their integrations reviewed before the move.
-          de: Prüfen Sie vor der Umstellung die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.
+          de: Prüfen Sie vor dem Umstieg die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.
         next_step:
           kind: clarify
           en: The IT team records what data each integration transfers and what actions it triggers.

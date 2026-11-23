@@ -197,7 +197,7 @@ functions:
     checked_on: "2026-11-22"
     note:
       en: The architecture documents malware scanning of uploaded files and mail attachments. It does not document organisation-wide retention or legal holds.
-      de: Die Architekturdokumentation beschreibt die Prüfung hochgeladener Dateien und E-Mail-Anhänge auf Schadsoftware. Organisationsweite Aufbewahrung und Sperren für Rechtsverfahren sind dort nicht beschrieben.
+      de: Die Architekturdokumentation beschreibt die Prüfung hochgeladener Dateien und E-Mail-Anhänge auf Schadsoftware. Organisationsweite Aufbewahrung und die Aufbewahrung für Rechtsverfahren (Legal Hold) sind dort nicht beschrieben.
   - function: forms_tasks_bookings
     workload: small_apps
     microsoft: {en: "Microsoft Forms, Planner and Bookings", de: "Microsoft Forms, Planner und Bookings"}

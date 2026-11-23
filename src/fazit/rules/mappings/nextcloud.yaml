@@ -80,7 +80,7 @@ functions:
     need_finding: teams.chat_history_must_be_kept
     note:
       en: The migration overview describes moving chat and meetings to Talk. It does not document importing past Teams messages with their authors and timestamps into Talk.
-      de: Die Migrationsübersicht beschreibt den Wechsel zu Talk für Chat und Besprechungen. Ein Import bisheriger Teams-Nachrichten mit Angaben zu Absendern und Zeitpunkten ist dort nicht dokumentiert.
+      de: Die Migrationsübersicht beschreibt den Umstieg auf Talk für Chat und Besprechungen. Ein Import bisheriger Teams-Nachrichten mit Angaben zu Absendern und Zeitpunkten ist dort nicht dokumentiert.
   - function: office_editing
     workload: office_files
     microsoft: {en: Editing Microsoft Office documents, de: Bearbeitung von Microsoft-Office-Dateien}
@@ -176,7 +176,7 @@ functions:
     checked_on: "2026-11-21"
     note:
       en: The retention app applies age rules to tagged files. Organisation-wide retention and holds for legal proceedings need separate assessment.
-      de: Die Aufbewahrungs-App wendet Fristen auf gekennzeichnete Dateien an. Organisationsweite Aufbewahrung und Sperren für Rechtsverfahren sind gesondert zu prüfen.
+      de: Die Aufbewahrungs-App wendet Fristen auf gekennzeichnete Dateien an. Organisationsweite Aufbewahrung und die Aufbewahrung für Rechtsverfahren (Legal Hold) sind gesondert zu prüfen.
   - function: forms_tasks_bookings
     workload: small_apps
     microsoft: {en: "Microsoft Forms, Planner and Bookings", de: "Microsoft Forms, Planner und Bookings"}
