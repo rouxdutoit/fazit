@@ -2,7 +2,7 @@
 quick_id: 261122-rv12
 slug: after-redesign
 date: 2026-11-22
-status: planned
+status: complete
 ---
 
 # Quick task: round-6 findings, to run after the report redesign lands

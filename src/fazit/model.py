@@ -122,7 +122,7 @@ class Finding:
 
 def _population_bounds(
     subset: Finding, population: Finding | None, *, use_coverage_total: bool = False
-) -> tuple[int | None, int | None]:
+) -> tuple[int | None, int | None, int | None]:
     if (
         population is None
         or subset.source != population.source
@@ -132,21 +132,22 @@ def _population_bounds(
             and not same_collection_time(subset.collected_at, population.collected_at)
         )
     ):
-        return None, None
+        return None, None, None
     value = population.value if type(population.value) is int else None
     coverage = population.coverage
-    if coverage is None or (value is not None and coverage.kind == "complete"):
-        return value, value
+    if coverage is None:
+        return value, value, None
     total = coverage.total
-    if (
-        not use_coverage_total
-        and value is not None
-        and coverage.scanned is not None
-        and total is not None
-    ):
-        # Only unchecked rows can add to the observed count.
-        total = value + total - coverage.scanned
-    return value, total
+    upper = total
+    if value is not None:
+        if coverage.kind == "complete":
+            upper = value
+        elif total is not None and not use_coverage_total:
+            # Even an observed zero needs a successful check.
+            scanned = coverage.scanned if coverage.scanned is not None else max(1, value)
+            upper = value + total - scanned
+    shared_total = total if population.collector == subset.collector else None
+    return value, upper, shared_total
 
 
 @dataclass(frozen=True)
@@ -421,12 +422,13 @@ class _ScanReader:
 
     def check_finding_dates(self, finding: Finding, field: str, generated_at: str) -> None:
         collected_at = finding.collected_at
-        if (
-            finding.period is not None
-            and finding.period[-10:] > (collected_at or generated_at)[:10]
-        ):
-            code = "period_after_scan" if collected_at is None else "period_after_collection"
-            self.check.fail(f"{field}.period", code)
+        if finding.period is not None:
+            end = finding.period[-10:]
+            if collected_at is None:
+                if _timestamp_after(f"{end}T00:00:00Z", generated_at):
+                    self.check.fail(f"{field}.period", "period_after_scan")
+            elif end > collected_at[:10]:
+                self.check.fail(f"{field}.period", "period_after_collection")
         if collected_at is not None and _timestamp_after(collected_at, generated_at):
             self.check.fail(f"{field}.collected_at", "collection_after_scan")
 
@@ -464,7 +466,7 @@ class _ScanReader:
         for entry, subset, field in related_findings:
             bounds = []
             if related := entry.coverage_total_from:
-                lower, upper = _population_bounds(
+                lower, upper, _ = _population_bounds(
                     subset, findings.get(related), use_coverage_total=True
                 )
                 coverage = subset.coverage
@@ -490,32 +492,39 @@ class _ScanReader:
                 bounds.append(upper)
             if entry.subset_of:
                 parts = [
-                    _population_bounds(subset, findings.get(parent))[1]
-                    for parent in entry.subset_of
+                    _population_bounds(subset, findings.get(parent)) for parent in entry.subset_of
                 ]
-                if None not in parts:
-                    bounds.append(sum(part for part in parts if part is not None))
+                limits = [upper for _, upper, _ in parts if upper is not None]
+                if len(limits) == len(parts):
+                    bounds.append(sum(limits))
+                shared_totals = {total for _, _, total in parts}
+                if len(parts) > 1 and len(shared_totals) == 1:
+                    bounds.extend(shared_totals)
             if type(subset.value) is int and any(
                 bound is not None and subset.value > bound for bound in bounds
             ):
                 self.check.fail(f"{field}.value", "subset_count_exceeds_population")
             if entry.requires_population and subset.value:
-                _, upper = _population_bounds(subset, findings.get(entry.requires_population))
+                _, upper, _ = _population_bounds(subset, findings.get(entry.requires_population))
                 if upper == 0:
                     self.check.fail(f"{field}.value", "content_without_population")
 
+    def licence_guid(self, value: object, field: str) -> str | None:
+        if value is None:
+            return None
+        return self.check.guid(value.strip(" \t\u00a0") if isinstance(value, str) else value, field)
+
     def service_plan(self, value: object, field: str) -> ServicePlan:
         row = self.fields(value, field, _SERVICE_PLAN_FIELDS)
-        name, raw_guid = row["name"], row["guid"]
-        guid = None if raw_guid is None else self.check.guid(raw_guid, f"{field}.guid")
+        name = row["name"]
+        guid = self.licence_guid(row["guid"], f"{field}.guid")
         if name is not None and not self.catalogue.accepts_plan_name(name, guid):
             self.check.fail(f"{field}.name")
         return ServicePlan(name, guid)
 
     def product(self, value: object, field: str) -> Product:
         row = self.fields(value, field, _PRODUCT_REQUIRED, _PRODUCT_OPTIONAL)
-        raw_guid = row.get("sku_guid")
-        sku_guid = None if raw_guid is None else self.check.guid(raw_guid, f"{field}.sku_guid")
+        sku_guid = self.licence_guid(row.get("sku_guid"), f"{field}.sku_guid")
         sku_part_number = row.get("sku_part_number")
         if sku_part_number is not None and not self.catalogue.accepts_sku_part_number(
             sku_part_number, sku_guid

@@ -186,7 +186,7 @@ class _LicenceRow:
 def _licence_rows(
     products: tuple[Product, ...], plans: ServicePlans, formatter: Formatter
 ) -> tuple[_LicenceRow, ...]:
-    rosters = tuple(plans.rosters.get(product.key) for product in products)
+    rosters = tuple(plans.roster_for(product) for product in products)
     part_counts = Counter(roster.part_number.casefold() for roster in rosters if roster is not None)
     unregistered = 0
     rows = []

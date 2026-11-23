@@ -2179,7 +2179,7 @@
                           <div><dt>{{ strings.licences.assigned }}</dt><dd>{{ format.integer(product.assigned) }}</dd></div>
                         </dl>
                         {% if product.assigned > product.purchased %}
-                          <small data-reason="assigned_exceeds_purchased">{{ strings.licences.assigned_exceeds_purchased.format(count=format.integer(product.assigned - product.purchased)) }}</small>
+                          {% set excess = product.assigned - product.purchased %}<small data-reason="assigned_exceeds_purchased">{{ strings.licences['assigned_exceeds_purchased_one' if excess == 1 else 'assigned_exceeds_purchased'].format(count=format.integer(excess)) }}</small>
                         {% endif %}
                         <div class="licence-plans">
                           <p><strong>{{ strings.licences.plans }}</strong></p>

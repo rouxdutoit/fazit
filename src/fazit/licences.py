@@ -9,7 +9,7 @@ from hashlib import sha256
 from pathlib import Path
 from types import MappingProxyType
 
-from .catalogue import Catalogue, sku_key
+from .catalogue import Catalogue, licence_name_key, sku_key
 from .errors import InputError
 from .model import (
     Collector,
@@ -64,12 +64,17 @@ class ServicePlans:
     sku_guids: frozenset[str]
     plan_names: Mapping[str, str]
     plan_guids: frozenset[str]
+    sku_aliases: Mapping[tuple[str, str], ProductRoster]
 
     def __iter__(self) -> Iterator[RegisteredPlan]:
         return (plan for roster in self.rosters.values() for plan in roster.plans.values())
 
     def __bool__(self) -> bool:
         return bool(self.rosters)
+
+    def roster_for(self, product: Product) -> ProductRoster | None:
+        key = product.key
+        return self.rosters.get(key) or self.sku_aliases.get(key)
 
 
 type _PlanDetail = tuple[str, str | None, Mapping[str, str] | None]
@@ -87,9 +92,10 @@ def _plan_definitions(
         name = row["name"]
         if not catalogue.accepts_plan_name(name, guid):
             reader.fail(f"{field}.name")
-        if name.casefold() in names:
+        key = licence_name_key(name)
+        if key in names:
             reader.fail(f"{field}.name", "duplicate_id")
-        names.add(name.casefold())
+        names.add(key)
         workload = row["workload"]
         if workload is not None:
             workload = reader.choice(workload, f"{field}.workload", catalogue.workload_ids)
@@ -121,7 +127,7 @@ def _product_roster(
             if (signal == "no_workload") != (workload is None):
                 reader.fail(path)
             plan_guids.add(guid)
-            plans[name.casefold(), guid] = RegisteredPlan(
+            plans[licence_name_key(name), guid] = RegisteredPlan(
                 part_number, sku_guid, name, guid, workload, signal, reference, checked_on, note
             )
     if not plan_guids:
@@ -167,26 +173,33 @@ def _parse_service_plans(text: str, reader: Validator, catalogue: Catalogue) -> 
     names = {
         name: plan.name for roster in rosters.values() for (name, _), plan in roster.plans.items()
     }
+    by_guid = {roster.sku_guid: roster for roster in rosters.values()}
+    aliases = {
+        (name, guid): by_guid[guid]
+        for name, guid in catalogue.sku_exceptions
+        if guid in by_guid and (name, guid) not in rosters
+    }
     return ServicePlans(
         MappingProxyType(rosters),
         frozenset(part for part, _ in rosters),
         frozenset(sku_guids),
         MappingProxyType(names),
         frozenset().union(*(roster.plan_guids for roster in rosters.values())),
+        MappingProxyType(aliases),
     )
 
 
 def classify_product(product: Product, plans: ServicePlans) -> tuple[RegisteredPlan | None, ...]:
-    roster = plans.rosters.get(product.key)
+    roster = plans.roster_for(product)
     matched = roster.plans if roster else {}
     return tuple(
-        matched.get((plan.name.casefold(), plan.guid)) if plan.name is not None else None
+        matched.get((licence_name_key(plan.name), plan.guid)) if plan.name is not None else None
         for plan in product.service_plans
     )
 
 
 def _public_product(product: Product, plans: ServicePlans) -> Product:
-    roster = plans.rosters.get(product.key)
+    roster = plans.roster_for(product)
     if roster is None:
         return replace(
             product,
@@ -201,7 +214,9 @@ def _public_product(product: Product, plans: ServicePlans) -> Product:
         sku_guid=roster.sku_guid,
         service_plans=tuple(
             ServicePlan(
-                plans.plan_names.get(plan.name.casefold()) if plan.name is not None else None,
+                plans.plan_names.get(licence_name_key(plan.name))
+                if plan.name is not None
+                else None,
                 plan.guid if plan.guid in plans.plan_guids else None,
             )
             for plan in product.service_plans
@@ -219,15 +234,17 @@ def scan_to_json(scan: Scan, *, plans: ServicePlans) -> str:
 
 
 def _licence_signals(
-    products: tuple[Product, ...], plans: ServicePlans, file_name: str
+    products: tuple[Product, ...], plans: ServicePlans, file_name: str, *, incomplete: bool
 ) -> tuple[set[tuple[str, str]], str | None]:
     assigned: set[tuple[str, str]] = set()
     gaps: set[str] = set()
     for index, product in enumerate(products):
-        roster = plans.rosters.get(product.key)
+        roster = plans.roster_for(product)
         if roster is None:
             part, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
-            if guid in plans.sku_guids or part in plans.part_numbers:
+            if (guid in plans.sku_guids or part in plans.part_numbers) and (
+                product.key is not None or not incomplete
+            ):
                 field = "sku_part_number" if guid in plans.sku_guids else "sku_guid"
                 raise InputError(
                     "sku_identity_mismatch",
@@ -338,7 +355,9 @@ def licence_findings(
     if licences is None:
         return ()
     count, coverage_gap = _inventory_evidence(licences, scan.collector(licences.collector))
-    assigned, classification_gap = _licence_signals(licences.products, plans, file_name)
+    assigned, classification_gap = _licence_signals(
+        licences.products, plans, file_name, incomplete=coverage_gap is not None
+    )
     absence_gap = count.missing_reason or classification_gap or coverage_gap
     absence_collector = licences.collector
     if coverage_gap is None:
