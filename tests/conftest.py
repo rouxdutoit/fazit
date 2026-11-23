@@ -32,6 +32,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     workflow = ".github/workflows/ci.yml"
     style = "site/style.css"
     checkout_files = {
+        (repo_test, "test_site_python_files_start_with_spdx_identifier"): "site",
         (repo_test, "test_dependency_cutoff_is_fourteen_days_before_head"): ".git",
         (repo_test, "test_ci_runs_the_required_checks_on_supported_python_versions"): workflow,
         (repo_test, "test_ci_uses_read_only_permissions_and_sha_pinned_actions"): workflow,

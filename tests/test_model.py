@@ -2,7 +2,7 @@
 import json
 import re
 import sys
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from importlib.resources import files
 from itertools import product
 from pathlib import Path
@@ -458,6 +458,67 @@ def test_period_end_must_fit_both_collection_and_scan(
     assert caught.value.field == "findings[1].period"
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("collected_at", "2026-11-01"), ("period", "2026-05-07/2026-11-01")],
+)
+def test_unknown_findings_may_omit_source_dates_but_cannot_contradict_them(
+    scan_data: dict, catalogue: Catalogue, field: str, value: str
+) -> None:
+    missing = _finding(
+        "directory.group_count",
+        unit="groups",
+        provenance="unknown",
+        value=None,
+        missing_reason="not_in_export",
+        collected_at=None,
+        period=None,
+        coverage=None,
+    )
+    scan_data["findings"] = [scan_data["findings"][0], missing]
+    assert _load(scan_data, catalogue).findings[1].provenance == "unknown"
+
+    missing[field] = value
+    with pytest.raises(InputError, match=f"{field}_conflict") as caught:
+        _load(scan_data, catalogue)
+    assert caught.value.field == f"findings[1].{field}"
+
+
+def test_dated_active_users_headcount_is_independent_of_the_directory_snapshot(
+    catalogue: Catalogue,
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
+    data = json.loads(read_text(sample))
+    source = "import.active_users"
+    key = "directory.licensed_user_count"
+    catalogue = replace(
+        catalogue,
+        source_codes=catalogue.source_codes | {source},
+        findings=tuple(
+            replace(entry, measured_by=entry.measured_by | {("directory", source)})
+            if entry.id == key
+            else entry
+            for entry in catalogue.findings
+        ),
+    )
+    accounts = next(row for row in data["findings"] if row["id"] == key)
+    accounts.update(
+        source=source,
+        collected_at="2026-11-04",
+        period="2026-11-04/2026-11-04",
+        coverage=asdict(Coverage("unknown", scanned=21, failed=0)),
+    )
+    scan = _load(data, catalogue)
+    assert scan.finding(key).value == 20
+    assert not scan.directory_population.includes(scan.finding(key))
+    derived = {
+        row.id: row for row in licence_findings(scan, load_service_plans(catalogue), catalogue)
+    }
+    assert derived["licences.product_count"].missing_reason == "licence_directory_unverified"
+    assert derived["telephony.licence_add_on_assigned"].value is None
+    assert derived["small_apps.licence_bundled_assigned"].value is True
+
+
 @pytest.mark.parametrize("content", ["sharepoint.file_count", "sharepoint.storage_bytes"])
 def test_empty_sharepoint_export_cannot_have_content(catalogue: Catalogue, content: str) -> None:
     town = files("fazit").joinpath("demo", "town", "scan.json")
@@ -478,7 +539,10 @@ def test_empty_sharepoint_export_cannot_have_content(catalogue: Catalogue, conte
     assert caught.value.field == f"findings[{index}].value"
 
     row["period"] = "2026-05-01/2026-11-01"
-    assert _load(data, catalogue).finding(content).value == 1
+    data["findings"].append(data["findings"].pop(index))
+    with pytest.raises(InputError, match="period_conflict") as caught:
+        _load(data, catalogue)
+    assert caught.value.field == f"findings[{len(data['findings']) - 1}].period"
 
 
 def test_catalogue_and_town_sample_agree(catalogue: Catalogue) -> None:

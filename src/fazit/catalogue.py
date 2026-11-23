@@ -78,6 +78,7 @@ class FindingEntry:
     subset_of: frozenset[str] = frozenset()
     aggregate: bool = False
     requires_population: str | None = None
+    coverage_bounded_by_population: bool = False
 
 
 @dataclass(frozen=True)
@@ -228,6 +229,9 @@ def _finding(
         if not aggregate and value_type != "bytes":
             reader.fail(f"{field}.requires_population")
         population = reader.matches(population, f"{field}.requires_population", _CODE)
+    bounded_coverage = row.get("coverage_bounded_by_population", False)
+    if type(bounded_coverage) is not bool or (bounded_coverage and population is None):
+        reader.fail(f"{field}.coverage_bounded_by_population")
     return FindingEntry(
         finding_id,
         workload,
@@ -248,6 +252,7 @@ def _finding(
         subset_of,
         aggregate,
         population,
+        bounded_coverage,
     )
 
 
@@ -272,6 +277,7 @@ def _findings(
             "subset_of",
             "aggregate",
             "requires_population",
+            "coverage_bounded_by_population",
         ),
     ):
         finding_id = reader.matches(row["id"], f"{field}.id", _CODE)

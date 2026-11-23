@@ -175,6 +175,7 @@ findings:
     label: finding.onedrive.storage_bytes
     measured_by: {onedrive_usage: [sample.onedrive_usage]}
     requires_population: onedrive.account_count
+    coverage_bounded_by_population: true
     provided: "no"
     headline: true
   - id: onedrive.external_sharing_in_use
@@ -486,6 +487,7 @@ codes:
     - not_in_scan
     - licensed_use_not_measured
     - licence_products_missing
+    - licence_product_unidentified
     - licence_not_classified
     - licence_plan_list_missing
     - licence_plan_list_incomplete

@@ -388,6 +388,9 @@ reason:
   licence_products_missing:
     label: No licence products were recorded.
     fix: Check the source and supply a complete list of licence products.
+  licence_product_unidentified:
+    label: Fazit could not identify a licence product in the inventory.
+    fix: Check the product identifiers against the licensing reference.
   licence_not_classified:
     label: This tool could not classify a service plan.
     fix: Check the product and service plan against the licensing reference and update the service plan catalogue.
@@ -589,6 +592,8 @@ errors:
   period_after_collection: The period at {field} in {file} ends after the collection date.
   period_after_scan: The period at {field} in {file} ends after the scan date.
   collection_after_scan: The date or time at {field} in {file} is later than the scan.
+  collected_at_conflict: The date or time at {field} in {file} differs from another finding from the same collector and source.
+  period_conflict: The reporting period at {field} in {file} differs from another finding from the same collector and source.
   observation_time_required: Include the time of collection at {field} in {file}.
   observation_offset_required: Include a UTC offset or Z in the timestamp at {field} in {file}.
   measurement_without_observations: The value at {field} in {file} has no successful observations to support it.
@@ -611,3 +616,5 @@ errors:
   destination_is_link: The output file {file} for {field} is a symbolic link.
   destination_not_file: The output location {file} for {field} is not a regular file.
   write_failed: The output file {file} could not be written under {field}.
+  restore_failed: Fazit could not restore the previous output set at {file} under {field}.
+  restore_backup_failed: Fazit could not restore {file} under {field} and kept its previous contents in {backup}.

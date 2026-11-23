@@ -3,9 +3,10 @@ import ast
 import re
 import subprocess
 import tomllib
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timedelta
 from hashlib import sha256
+from pathlib import Path
 
 import pytest
 import yaml
@@ -33,26 +34,34 @@ NETWORK_IMPORTS = {
 }
 
 
+def _missing_first_line_spdx(sources: Iterable[Path]) -> list[str]:
+    return [
+        path.relative_to(ROOT).as_posix()
+        for path in sources
+        if path.read_text(encoding="utf-8").partition("\n")[0] != f"# {SPDX_IDENTIFIER}"
+    ]
+
+
 def test_source_files_start_with_spdx_identifier() -> None:
     sources = (
         *ROOT.glob("src/**/*.py"),
         *ROOT.glob("tests/**/*.py"),
-        *ROOT.glob("site/**/*.py"),
         *ROOT.glob("src/**/*.yaml"),
         *ROOT.glob(".github/workflows/**/*.yml"),
         ROOT / "pyproject.toml",
         ROOT / "inputs.example.yaml",
     )
-    missing = [
-        path.relative_to(ROOT).as_posix()
-        for path in sources
-        if path.read_text(encoding="utf-8").partition("\n")[0] != f"# {SPDX_IDENTIFIER}"
-    ]
+    missing = _missing_first_line_spdx(sources)
     missing.extend(
         path.relative_to(ROOT).as_posix()
         for path in ROOT.glob("src/**/*.j2")
         if SPDX_IDENTIFIER not in path.read_text(encoding="utf-8").partition("\n")[0]
     )
+    assert not missing, f"Missing first-line SPDX identifier: {', '.join(sorted(missing))}"
+
+
+def test_site_python_files_start_with_spdx_identifier() -> None:
+    missing = _missing_first_line_spdx(ROOT.glob("site/**/*.py"))
     assert not missing, f"Missing first-line SPDX identifier: {', '.join(sorted(missing))}"
 
 

@@ -32,6 +32,7 @@ PLAN_GAP_REASONS = (
     "licence_plan_list_incomplete",
     "licence_plan_list_missing",
     "licence_not_classified",
+    "licence_product_unidentified",
 )
 _PRODUCT_COUNT = "licences.product_count"
 
@@ -235,12 +236,13 @@ def scan_to_json(scan: Scan, *, plans: ServicePlans) -> str:
 
 def _licence_signals(
     products: tuple[Product, ...], plans: ServicePlans, file_name: str, *, incomplete: bool
-) -> tuple[set[tuple[str, str]], str | None]:
+) -> tuple[set[tuple[str, str]], set[str]]:
     assigned: set[tuple[str, str]] = set()
     gaps: set[str] = set()
     for index, product in enumerate(products):
         roster = plans.roster_for(product)
         if roster is None:
+            gaps.add("licence_product_unidentified")
             part, guid = sku_key(product.sku_part_number or "", product.sku_guid or "")
             if (guid in plans.sku_guids or part in plans.part_numbers) and (
                 product.key is not None or not incomplete
@@ -263,7 +265,7 @@ def _licence_signals(
                 gaps.add("licence_not_classified")
             elif match.workload is not None:
                 assigned.add((match.workload, match.signal))
-    return assigned, next((code for code in PLAN_GAP_REASONS if code in gaps), None)
+    return assigned, gaps
 
 
 def _coverage_gap(coverage: Coverage | None) -> str | None:
@@ -362,9 +364,10 @@ def licence_findings(
     if licences is None:
         return ()
     count, coverage_gap = _inventory_evidence(licences, scan.collector(licences.collector))
-    assigned, classification_gap = _licence_signals(
+    assigned, gaps = _licence_signals(
         licences.products, plans, file_name, incomplete=coverage_gap is not None
     )
+    classification_gap = next((code for code in PLAN_GAP_REASONS if code in gaps), None)
     absence_gap = count.missing_reason or classification_gap or coverage_gap
     absence_collector = licences.collector
     if coverage_gap is None:
@@ -376,6 +379,8 @@ def licence_findings(
             if absence_gap is None:
                 absence_gap, absence_collector = directory_gap, "directory"
             count = replace(count, missing_reason="licence_directory_unverified")
+        elif "licence_product_unidentified" in gaps:
+            count = replace(count, missing_reason="licence_product_unidentified")
     return (
         count,
         *_assignment_findings(count, catalogue, assigned, absence_gap, absence_collector),

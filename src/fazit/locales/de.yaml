@@ -388,6 +388,9 @@ reason:
   licence_products_missing:
     label: Im Lizenzbestand sind keine Produkte erfasst.
     fix: Prüfen Sie die Quelle und reichen Sie eine vollständige Liste der Lizenzprodukte nach.
+  licence_product_unidentified:
+    label: Fazit konnte ein Produkt im Lizenzbestand nicht identifizieren.
+    fix: Gleichen Sie die Produktkennungen mit der Lizenzreferenz ab.
   licence_not_classified:
     label: Das Programm konnte einen Serviceplan nicht einordnen.
     fix: Gleichen Sie Produkt und Serviceplan mit der Lizenzreferenz ab und aktualisieren Sie den Serviceplankatalog.
@@ -589,6 +592,8 @@ errors:
   period_after_collection: Der Zeitraum im Feld {field} der Datei {file} endet nach dem Erhebungsdatum.
   period_after_scan: Der Zeitraum im Feld {field} der Datei {file} endet nach dem Datum der Erhebungsdatei.
   collection_after_scan: Die Zeitangabe im Feld {field} der Datei {file} liegt nach der Erstellung der Erhebungsdatei.
+  collected_at_conflict: Die Zeitangabe im Feld {field} der Datei {file} weicht von einem anderen Befund mit demselben Erhebungsverfahren und derselben Quelle ab.
+  period_conflict: Der Berichtszeitraum im Feld {field} der Datei {file} weicht von einem anderen Befund mit demselben Erhebungsverfahren und derselben Quelle ab.
   observation_time_required: Geben Sie in {field} der Datei {file} auch die Uhrzeit der Erhebung an.
   observation_offset_required: Geben Sie den UTC-Versatz oder Z in der Zeitangabe im Feld {field} der Datei {file} an.
   measurement_without_observations: Der Wert in {field} der Datei {file} ist durch keine erfolgreiche Prüfung belegt.
@@ -611,3 +616,5 @@ errors:
   destination_is_link: Die Ausgabedatei {file} für {field} ist eine symbolische Verknüpfung.
   destination_not_file: Der Ausgabepfad {file} für {field} bezeichnet keine reguläre Datei.
   write_failed: Die Ausgabedatei {file} konnte unter {field} nicht geschrieben werden.
+  restore_failed: Fazit konnte den vorherigen Stand der Ausgabedateien unter {field} bei {file} nicht wiederherstellen.
+  restore_backup_failed: Fazit konnte {file} unter {field} nicht wiederherstellen und hat den vorherigen Inhalt in {backup} gesichert.

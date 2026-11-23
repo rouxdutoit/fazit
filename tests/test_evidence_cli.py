@@ -45,6 +45,13 @@ def _measure(
     return finding
 
 
+def _stamp_directory(scan: dict, stamp: str) -> None:
+    for finding in scan["findings"]:
+        if finding["source"] == "sample.directory":
+            finding["collected_at"] = stamp
+    scan["directory_population"]["collected_at"] = stamp
+
+
 def _report(
     tmp_path: Path, scan: dict, answers: str | None = None, *, lang: str | None = None
 ) -> Result:
@@ -67,8 +74,10 @@ def _html(result: Result) -> str:
     return Path(result.stdout.strip()).read_text(encoding="utf-8")
 
 
-def _reject_scan(tmp_path: Path, scan: dict, field: str, answers: str | None = None) -> str:
-    result = _report(tmp_path, scan, answers)
+def _reject_scan(
+    tmp_path: Path, scan: dict, field: str, answers: str | None = None, *, lang: str | None = None
+) -> str:
+    result = _report(tmp_path, scan, answers, lang=lang)
     assert result.exit_code == 2 and not result.stdout, result.output
     assert len(result.stderr.splitlines()) == 1
     assert "inventory.json" in result.stderr and field in result.stderr
@@ -206,9 +215,56 @@ def test_report_accepts_days_that_have_started_and_equal_instants(
     tmp_path: Path, town_scan: dict, scan_stamp: str, stamp: str
 ) -> None:
     town_scan["generated_at"] = scan_stamp
+    if len(stamp) == 10:
+        for finding in town_scan["findings"]:
+            if finding["source"] == "sample.teams_usage":
+                finding["collected_at"] = stamp
     _finding(town_scan, "teams.teams_with_guests_count")["collected_at"] = stamp
 
     _html(_report(tmp_path / "possible-date", town_scan))
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("collected_at", "2026-11-02T08:59:59Z"),
+        ("collected_at", "2026-11-02"),
+        ("period", "2026-05-07/2026-11-01"),
+        ("period", None),
+    ],
+)
+def test_report_rejects_mixed_stamps_from_one_source(
+    tmp_path: Path, town_scan: dict, field: str, value: str | None
+) -> None:
+    guests = _finding(town_scan, "teams.teams_with_guests_count")
+    guests[field] = value
+    index = town_scan["findings"].index(guests)
+
+    _reject_scan(tmp_path / "mixed-stamps", town_scan, f"findings[{index}].{field}")
+
+
+@pytest.mark.parametrize("stamp", ["2026-11-01", "2026-11-01T08:00:00Z"])
+def test_report_compares_interview_counts_from_the_same_source_and_day(
+    tmp_path: Path, town_scan: dict, stamp: str
+) -> None:
+    population = _finding(town_scan, "device_management.device_count")
+    windows = _finding(town_scan, "device_management.windows_device_count")
+    for row, value, date in ((population, 10, "2026-11-01"), (windows, 20, stamp)):
+        row.update(
+            value=value,
+            provenance="provided",
+            source="interview",
+            collected_at=date,
+            missing_reason=None,
+        )
+
+    index = town_scan["findings"].index(windows)
+    _reject_scan(tmp_path / "inconsistent-counts", town_scan, f"findings[{index}].value")
+
+    windows.update(collected_at="2026-10-31")
+    _html(_report(tmp_path / "different-day", town_scan))
+    windows.update(source="sample.interview", collected_at=stamp)
+    _html(_report(tmp_path / "different-source", town_scan))
 
 
 def test_report_rejects_a_licence_collection_later_than_the_scan(
@@ -565,7 +621,7 @@ def test_report_rejects_conflicting_registered_sku_identifiers(
         {},
     ],
 )
-def test_only_assigned_unidentified_products_leave_licence_signals_unknown(
+def test_unidentified_products_leave_licence_absence_unknown(
     tmp_path: Path, town_scan: dict, identity: dict[str, str | None]
 ) -> None:
     products = town_scan["licences"]["products"]
@@ -573,7 +629,10 @@ def test_only_assigned_unidentified_products_leave_licence_signals_unknown(
     products[1] = {**identity, "purchased": 0, "assigned": 0, "service_plans": []}
     html = _html(_report(tmp_path / "unassigned", town_scan, NO_TELEPHONY))
     row = readiness_row(html, "telephony")
-    assert 'data-status="ready"' in row and 'data-provenance="measured"' in row
+    assert 'data-status="unknown" data-incomplete' in row
+    assert 'data-reason="licence_product_unidentified"' in row
+    assert 'data-reason="licence_product_unidentified"' in report_section(html, "found")
+    assert 'data-status="needs_work"' in readiness_row(html, "power_platform")
 
     products[1].update(purchased=12, assigned=12)
     html = _html(_report(tmp_path / "assigned", town_scan, NO_TELEPHONY))
@@ -582,6 +641,47 @@ def test_only_assigned_unidentified_products_leave_licence_signals_unknown(
     assert 'data-provenance="unknown"' in row
     assert 'data-reason="licence_plan_list_missing"' in row
     assert 'data-status="needs_work"' in readiness_row(html, "power_platform")
+
+
+@pytest.mark.parametrize("first", ["service_plans", "identifiers"])
+def test_losing_unassigned_product_evidence_does_not_restore_ready(
+    tmp_path: Path, first: str
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit")
+    scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
+    roster = next(
+        roster
+        for roster in load_service_plans(load_catalogue()).rosters.values()
+        if roster.part_number == "STANDARDPACK"
+    )
+    product = {
+        "sku_part_number": roster.part_number,
+        "sku_guid": roster.sku_guid,
+        "purchased": 1,
+        "assigned": 0,
+        "service_plans": [{"name": plan.name, "guid": plan.guid} for plan in roster.plans.values()],
+    }
+    scan["licences"]["products"].append(product)
+    scan["licences"]["coverage"].update(scanned=2, total=2)
+    answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    baseline = _html(_report(tmp_path / "complete", scan, answers))
+    for workload in ("directory", *LICENCE_PILOTS):
+        assert 'data-status="ready"' in readiness_row(baseline, workload)
+
+    omissions = {
+        "service_plans": ("service_plans",),
+        "identifiers": ("sku_part_number", "sku_guid"),
+    }
+    for step in (first, next(name for name in omissions if name != first)):
+        for field in omissions[step]:
+            del product[field]
+        report = _html(_report(tmp_path / step, scan, answers))
+        for workload in LICENCE_PILOTS:
+            assert 'data-status="unknown" data-incomplete' in readiness_row(report, workload)
+        if "sku_guid" not in product:
+            row = readiness_row(report, "directory")
+            assert 'data-status="unknown" data-incomplete' in row
+            assert 'data-reason="licence_product_unidentified"' in row
 
 
 @pytest.mark.parametrize("empty_inventory", [False, True])
@@ -665,6 +765,8 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     if account_update is None:
         scan["findings"].remove(accounts)
     else:
+        if stamp := account_update.get("collected_at"):
+            _stamp_directory(scan, stamp)
         accounts.update(account_update)
     html = _html(_report(tmp_path / "unreconciled", scan, answers))
     if reason != "licence_assignments_conflict":
@@ -785,8 +887,8 @@ def test_directory_counts_without_a_declared_population_keep_licence_pilots_unkn
     [
         ("filtered", "unknown"),
         ("undeclared", "unknown"),
-        ("older-members", "unknown"),
-        ("older-guests", "unknown"),
+        ("older-members", "rejected"),
+        ("older-guests", "rejected"),
         ("unknown-population", "unknown"),
         ("no-inventory", "unknown"),
         ("confirmed-guest", "needs_work"),
@@ -812,10 +914,14 @@ def test_directory_ready_requires_counts_in_a_complete_declared_population(
         members["coverage"] = guests["coverage"] = asdict(Coverage("complete", 1, 0, 1))
     elif case == "undeclared":
         members["value"], licensed["value"] = 0, 20
-    elif case == "older-members":
-        members["collected_at"] = "2026-11-02T08:59:59Z"
-    elif case == "older-guests":
-        guests["collected_at"] = "2026-11-02T08:59:59Z"
+    elif status == "rejected":
+        stale = members if case == "older-members" else guests
+        stale["collected_at"] = "2026-11-02T08:59:59Z"
+        town_scan["findings"].remove(stale)
+        index = len(town_scan["findings"])
+        town_scan["findings"].append(stale)
+        _reject_scan(tmp_path / case, town_scan, f"findings[{index}].collected_at", lang=lang)
+        return
     elif case == "unknown-population":
         population["coverage"] = {"kind": "unknown", "total": 2}
     elif case == "confirmed-guest":
@@ -946,7 +1052,7 @@ def test_report_rejects_date_only_snapshots_that_could_restore_licence_pilots(
     sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
     scan = json.loads(sample.read_text(encoding="utf-8"))
     accounts = _finding(scan, "directory.licensed_user_count")
-    accounts["collected_at"] = "2026-11-05T09:59:59Z"
+    _stamp_directory(scan, "2026-11-05T09:59:59Z")
     licences = scan["licences"]
     baseline = _html(_report(tmp_path / "different-instants", scan))
     assert 'data-reason="licence_directory_unverified"' in report_section(baseline, "found")
@@ -967,7 +1073,7 @@ def test_report_requires_snapshot_offsets_during_the_repeated_hour(
 ) -> None:
     accounts = _finding(town_scan, "directory.licensed_user_count")
     licences = town_scan["licences"]
-    accounts["collected_at"] = "2026-10-25T02:30:00+02:00"
+    _stamp_directory(town_scan, "2026-10-25T02:30:00+02:00")
     licences["collected_at"] = "2026-10-25T02:30:00+01:00"
     html = _html(_report(tmp_path / "different-offsets", town_scan))
     assert 'data-reason="licence_directory_unverified"' in report_section(html, "found")
@@ -997,7 +1103,33 @@ def test_report_rejects_positive_storage_for_a_known_empty_export(
 
     accounts["coverage"] = {"kind": "complete"}
     accounts["period"] = "2026-10-01/2026-10-15"
-    _html(_report(tmp_path / "different-export-period", town_scan))
+    _reject_scan(tmp_path / "different-export-period", town_scan, f"findings[{index}].period")
+
+
+@pytest.mark.parametrize(
+    ("accounts", "coverage"),
+    [
+        (0, Coverage("complete", scanned=1, failed=0, total=1)),
+        (2, Coverage("complete", scanned=3, failed=0, total=3)),
+        (2, Coverage("partial", scanned=2, failed=1)),
+        (2, Coverage("partial", scanned=1, total=3)),
+    ],
+)
+def test_one_drive_storage_checks_fit_the_account_population(
+    tmp_path: Path, town_scan: dict, accounts: int, coverage: Coverage
+) -> None:
+    storage = _finding(town_scan, "onedrive.storage_bytes")
+    account_count = _finding(town_scan, "onedrive.account_count")
+    account_count["value"] = accounts
+    storage.update(value=0, coverage=asdict(coverage))
+    index = town_scan["findings"].index(storage)
+    answers = "confirmations: {onedrive.external_sharing_in_use: false}"
+
+    _reject_scan(tmp_path / "excess-checks", town_scan, f"findings[{index}].coverage", answers)
+
+    storage["coverage"] = asdict(Coverage("complete", accounts, 0, accounts))
+    report = _html(_report(tmp_path / "consistent-checks", town_scan, answers))
+    assert 'data-status="ready"' in readiness_row(report, "onedrive")
 
 
 @pytest.mark.parametrize("parent_kind", ["complete", "partial", "unknown"])
@@ -1028,9 +1160,12 @@ def test_report_rejects_a_subset_above_its_population_for_the_same_period(
 
     _reject_scan(tmp_path / "impossible-subset", town_scan, f"findings[{index}].value")
 
+    period = guests["period"]
     guests["period"] = "2026-10-01/2026-10-15"
-    _html(_report(tmp_path / "different-period", town_scan))
-    guests["coverage"] = {"kind": "partial", "scanned": 31, "total": 50}
+    _reject_scan(tmp_path / "different-period", town_scan, f"findings[{index}].period")
+    town_scan["findings"].remove(_finding(town_scan, "teams.team_count"))
+    index = town_scan["findings"].index(guests)
+    guests.update(period=period, coverage={"kind": "partial", "scanned": 31, "total": 50})
     _reject_scan(tmp_path / "outside-own-scope", town_scan, f"findings[{index}].value")
 
 
@@ -1044,7 +1179,9 @@ def test_report_rejects_a_subset_above_its_population_for_the_same_period(
 def test_report_rejects_a_subset_above_its_population_at_the_same_instant(
     tmp_path: Path, town_scan: dict, parent_stamp: str, subset_stamp: str
 ) -> None:
-    _finding(town_scan, "teams.team_count").update(period=None, collected_at=parent_stamp)
+    for finding in town_scan["findings"]:
+        if finding["source"] == "sample.teams_usage":
+            finding.update(period=None, collected_at=parent_stamp)
     guests = _finding(town_scan, "teams.teams_with_guests_count")
     guests.update(value=40, period=None, collected_at=subset_stamp)
     index = town_scan["findings"].index(guests)
@@ -1052,7 +1189,7 @@ def test_report_rejects_a_subset_above_its_population_at_the_same_instant(
     _reject_scan(tmp_path / "same-instant", town_scan, f"findings[{index}].value")
 
     guests["collected_at"] = "2026-11-02T08:59:59.999998Z"
-    _html(_report(tmp_path / "different-instant", town_scan))
+    _reject_scan(tmp_path / "different-instant", town_scan, f"findings[{index}].collected_at")
 
 
 @pytest.mark.parametrize(

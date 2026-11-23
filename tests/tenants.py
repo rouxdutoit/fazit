@@ -100,12 +100,14 @@ def _finding(
     coverage = collected_at = period = scanned = None
     if provenance == "measured":
         scope = related if related is not None else count
+        if entry.coverage_bounded_by_population:
+            scope = totals[entry.requires_population]
         if scope is None:
             scope = draw(COUNTS)
         coverage = _coverage(draw, scope)
         scanned = 0 if scope == 0 else coverage.scanned
         collected_at = STAMP
-        if entry.workload != "directory":
+        if collector != "directory":
             period = "2026-10-01/2026-10-31"
         if scanned == 0 and coverage.kind != "complete":
             provenance = "unknown"

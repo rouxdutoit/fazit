@@ -8,3 +8,7 @@ area: licences
 # An unidentified licence product can make licence areas Ready
 
 Omitting both identifiers from an unassigned STANDARDPACK product with missing plans changes four licence-dependent areas from Unknown to Ready. A product the inventory cannot identify must keep licence reconciliation incomplete, not count as evidence of absence. Likely covered by the general rule in `2026-11-23-evidence-loss-never-improves-status.md`; check it with the same monotonicity search.
+
+## Done
+
+2026-11-23. Every unidentified product keeps licence reconciliation and inferred absences incomplete. Known assignments still count. The CLI regression checks both orders of dropping the identifiers and the plan list from an unassigned STANDARDPACK product. All four affected areas stay Unknown once evidence is lost.

@@ -147,6 +147,15 @@ class DirectoryPopulation:
         )
 
 
+def _same_interview_day(first: Finding, second: Finding) -> bool:
+    return (
+        first.provenance == second.provenance == "provided"
+        and first.collected_at is not None
+        and second.collected_at is not None
+        and first.collected_at[:10] == second.collected_at[:10]
+    )
+
+
 def _population_bounds(
     subset: Finding, population: Finding | None, *, use_coverage_total: bool = False
 ) -> tuple[int | None, int | None]:
@@ -157,6 +166,7 @@ def _population_bounds(
         or (
             subset.period is None
             and not same_collection_time(subset.collected_at, population.collected_at)
+            and not _same_interview_day(subset, population)
         )
     ):
         return None, None
@@ -490,6 +500,23 @@ class _ScanReader:
         if collected_at is not None and _timestamp_after(collected_at, generated_at):
             self.check.fail(f"{field}.collected_at", "collection_after_scan")
 
+    def check_source_dates(
+        self,
+        finding: Finding,
+        field: str,
+        source_fields: dict[tuple[str, str, str], str | None],
+    ) -> None:
+        if finding.collector is None or finding.source is None:
+            return
+        for name, value in (("collected_at", finding.collected_at), ("period", finding.period)):
+            # Missing metadata on an unknown finding does not describe a different export.
+            if value is None and finding.provenance != "measured":
+                continue
+            first = source_fields.setdefault((finding.collector, finding.source, name), value)
+            if value == first or (name == "collected_at" and same_collection_time(value, first)):
+                continue
+            self.check.fail(f"{field}.{name}", f"{name}_conflict")
+
     def findings(
         self,
         value: object,
@@ -500,6 +527,7 @@ class _ScanReader:
         findings: dict[str, Finding] = {}
         related: list[tuple[FindingEntry, Finding, str]] = []
         directory_counts: dict[str, tuple[Finding, str]] = {}
+        source_fields: dict[tuple[str, str, str], str | None] = {}
         seen: set[str] = set()
         for index, item in enumerate(self.check.rows(value, "findings", allow_empty=True)):
             field = f"findings[{index}]"
@@ -515,6 +543,7 @@ class _ScanReader:
             else:
                 finding = self.finding(item, field, entry, collectors, population)
                 self.check_finding_dates(finding, field, generated_at)
+                self.check_source_dates(finding, field, source_fields)
                 findings[finding_id] = finding
                 if entry.coverage_total_from or entry.subset_of or entry.requires_population:
                     related.append((entry, finding, field))
@@ -606,10 +635,23 @@ class _ScanReader:
                 bound is not None and subset.value > bound for bound in bounds
             ):
                 self.check.fail(f"{field}.value", "subset_count_exceeds_population")
-            if entry.requires_population and subset.value:
+            if entry.requires_population:
                 _, upper = _population_bounds(subset, findings.get(entry.requires_population))
-                if upper == 0:
-                    self.check.fail(f"{field}.value", "content_without_population")
+                self.check_content_population(entry, subset, field, upper)
+
+    def check_content_population(
+        self, entry: FindingEntry, finding: Finding, field: str, upper: int | None
+    ) -> None:
+        if upper == 0 and finding.value:
+            self.check.fail(f"{field}.value", "content_without_population")
+        coverage = finding.coverage
+        if not entry.coverage_bounded_by_population or upper is None or coverage is None:
+            return
+        attempted = (coverage.scanned or 0) + (coverage.failed or 0)
+        if max(attempted, coverage.total or 0) > upper:
+            self.check.fail(f"{field}.coverage", "invalid_coverage")
+        if upper == 0 and coverage.kind != "complete" and finding.provenance == "measured":
+            self.check.fail(f"{field}.value", "measurement_without_observations")
 
     def licence_guid(self, value: object, field: str) -> str | None:
         if value is None:

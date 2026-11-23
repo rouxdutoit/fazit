@@ -35,7 +35,7 @@ The declaration applies to measured `directory.user_count`, `directory.guest_cou
 
 For Directory to be Ready, a complete declared population must supply complete internal, guest and licensed account counts from one instant. The licensed count must reconcile with a complete licence inventory from the same instant, and both collectors must have run successfully. The organisation must confirm it reviewed the account list. A confirmed guest still requires a decision about access.
 
-To confirm licence absences, Fazit needs a complete directory declaration, a complete licensed account count and a complete licence inventory from the same instant. With independent scopes or incomplete coverage, Fazit reports the absence as unknown and retains any confirmed assignments.
+To confirm licence absences, Fazit needs a complete directory declaration, a complete licensed account count and a complete inventory of identified licence products from the same instant. With independent scopes, incomplete coverage or an unidentified product, Fazit reports the absence as unknown and retains any confirmed assignments.
 
 ## Findings
 
@@ -52,12 +52,16 @@ All finding keys are required. The `provenance` determines which fields must hav
 - If you supply a `collector`, its ID must appear in `collectors` and the catalogue must allow it for the finding. Any supplied `source` must be registered for that collector and finding. Without a collector, only findings that accept supplied evidence can name a source, and the source must be registered for supplied evidence. The codes `inputs_yaml` and `sample.inputs_yaml` belong to evidence read from the inputs file.
 - Give `collected_at` as a date or a timestamp with a UTC offset or `Z`. A measurement without a reporting period requires the time of collection.
 - Give `period` as `YYYY-MM-DD/YYYY-MM-DD`, or as `null` if there is no reporting period.
+- Use one collection stamp and one reporting period for findings from each collector and source pair. Clock times that denote the same instant agree even when written with different offsets. Unknown findings may omit metadata. Any stamp or period they supply must agree with the other findings from that pair.
 - Fazit checks the evidence date against the scan date and the reporting period end against the collection date when supplied. It compares clock times as instants. A date-only evidence value starts at 00:00 UTC+14, and a date-only scan or collection reference ends at 24:00 UTC−12. The earliest evidence instant must be at or before the latest reference instant.
+- Without a reporting period, Fazit also checks linked counts from the same interview source and calendar date against one another.
 - Give `coverage` as an object when it applies. The next section describes its fields.
 
 ## Coverage
 
 Set `kind` to `complete`, `partial` or `unknown`. The optional counts are `scanned` for successful checks, `failed` for failed checks and `total` for the population in scope. Use non-negative integers or leave a count unspecified. D31 explains when counts establish complete coverage and how they constrain findings.
+
+OneDrive storage coverage fits within the possible account population from the same export. With a complete account count of zero, complete storage coverage can establish zero bytes and zero checks.
 
 ## Licences
 

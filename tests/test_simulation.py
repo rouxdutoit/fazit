@@ -337,6 +337,8 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
         if population == "teams.team_count":
             teams.update(value=0, coverage={"kind": "complete"})
         index, content = findings[violation]
+        if population == "onedrive.account_count":
+            content["coverage"] = {"kind": "complete"}
         mutations[violation] = (content, "value", size, f"findings[{index}].value")
     node, key, value, field = mutations[violation]
     file = "inventory.json"
