@@ -69,9 +69,9 @@ Your browser may add the local file path to printed headers and footers. Before 
 
 ## Where the project stands
 
-Fazit runs from a clone and is not yet published on PyPI. Import and live collection are not available yet, and the measured figures in the samples are simulated.
+Fazit runs from a clone. The name `fazit` is reserved on PyPI with an empty 0.0.0 release; the first installable release comes with phase 2.1. Import and live collection are not available yet, and the measured figures in the samples are simulated.
 
-Next come a redesign of the report and local import of Microsoft 365 admin-centre exports (phase 2), then packaging: `uvx fazit` from PyPI and a signed Windows build (phase 2.1). After that come AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Phase 3 adds `doctor`, browser sign-in and live licence and directory counts, and phase 4 the guides for live scans. [Project roadmap](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
+Next comes local import of Microsoft 365 admin-centre exports (phase 2), then packaging: `uvx fazit` from PyPI and a signed Windows build (phase 2.1). After that come AI assistants and licence renewal deadlines (1.1), CSV export for project plans and a report integrity check (1.2), and links to sovereignty criteria (1.3). Phase 3 adds `doctor`, browser sign-in and live licence and directory counts, and phase 4 the guides for live scans. [Project roadmap](https://github.com/rouxdutoit/fazit/blob/main/.planning/ROADMAP.md)
 
 ## What Fazit will never do
 

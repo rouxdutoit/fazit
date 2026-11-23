@@ -342,7 +342,7 @@ You can run Fazit from source and build reports from the bundled samples with yo
 
 #### Now
 
-The measured figures in the samples are simulated. Fazit is not yet on PyPI.
+The measured figures in the samples are simulated. The name fazit is reserved on PyPI; the first installable release comes with the launch.
 
 #### Next
 
@@ -838,7 +838,7 @@ Sie können Fazit aus dem Quellcode starten und Berichte aus den Beispieldaten m
 
 #### Verfügbar
 
-Die Messwerte in den Beispielen sind simuliert. Das Paket ist noch nicht auf PyPI veröffentlicht.
+Die Messwerte in den Beispielen sind simuliert. Der Name fazit ist auf PyPI reserviert; die erste installierbare Version erscheint zum Start.
 
 #### Als Nächstes
 
