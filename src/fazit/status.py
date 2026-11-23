@@ -255,7 +255,7 @@ def _observation_gaps(
     findings: Mapping[str, Finding],
     alternatives: Mapping[str, Finding],
     population: DirectoryPopulation | None,
-    licence_collector: Collector | None,
+    collectors: Mapping[str, Collector],
 ) -> dict[str, MissingEvidence]:
     gaps = {}
     for finding_id, alternative in alternatives.items():
@@ -267,23 +267,24 @@ def _observation_gaps(
         elif evidence_conflicts(primary, alternative):
             gaps[finding_id] = MissingEvidence(finding_id, "confirmation_conflict", None)
 
-    accounts = findings.get("directory.licensed_user_count")
-    if accounts is None or population is None or not population.includes(accounts):
+    if population is None or population.coverage.kind != "complete":
         return gaps
-    inventory = findings.get("licences.product_count")
-    if inventory is not None and inventory.missing_reason == "licence_assignments_conflict":
-        gaps[accounts.id] = MissingEvidence(
-            accounts.id, inventory.missing_reason, inventory.collector
-        )
-    elif (
-        licence_collector is not None
-        and licence_collector.reason is not None
-        and population.coverage.kind == "complete"
-        and is_complete(accounts)
-    ):
-        gaps[accounts.id] = MissingEvidence(
-            accounts.id, licence_collector.reason, licence_collector.id
-        )
+    accounts = "directory.licensed_user_count"
+    licence_collector = collectors.get("licences")
+    if licence_collector is None:
+        gaps[accounts] = MissingEvidence(accounts, "not_in_scan", "licences")
+    elif licence_collector.reason is not None:
+        gaps[accounts] = MissingEvidence(accounts, licence_collector.reason, "licences")
+    else:
+        # The derived inventory carries the outcome of the census cross-check.
+        inventory = "licences.product_count"
+        if gap := _gap(inventory, findings.get(inventory), collectors):
+            account_gap = (
+                _gap(accounts, findings.get(accounts), collectors, provenance="measured")
+                if gap.reason_code == "licence_directory_unverified"
+                else None
+            )
+            gaps[accounts] = account_gap or MissingEvidence(accounts, gap.reason_code, "licences")
     return gaps
 
 
@@ -310,14 +311,13 @@ def _collector_gaps(
 
 
 def _gap(
-    condition: Condition,
+    finding_id: str,
     finding: Finding | None,
-    provided_ids: Collection[str],
     collectors: Mapping[str, Collector],
+    *,
+    provenance: str | None = None,
+    expected_answer: bool = False,
 ) -> MissingEvidence | None:
-    expected_answer = condition.provenance == "provided" or (
-        condition.provenance is None and condition.finding in provided_ids
-    )
     if skipped := _skipped_gap(finding, collectors):
         return skipped
     collector_id = finding.collector if finding else None
@@ -325,7 +325,7 @@ def _gap(
         code = "answer_not_provided" if expected_answer else "not_in_scan"
     elif finding.missing_reason is not None:
         code = finding.missing_reason
-    elif condition.provenance is not None and condition.provenance != finding.provenance:
+    elif provenance is not None and provenance != finding.provenance:
         code = "answer_not_provided" if expected_answer else "not_in_scan"
         collector_id = None
     elif is_complete(finding):
@@ -336,7 +336,7 @@ def _gap(
         code = "coverage_partial"
     else:
         code = "coverage_unknown"
-    return MissingEvidence(condition.finding, code, collector_id)
+    return MissingEvidence(finding_id, code, collector_id)
 
 
 def _matches_condition(condition: Condition, finding: Finding) -> bool:
@@ -411,7 +411,12 @@ def _condition_results(
         if evidence is None or evidence.provenance != condition.provenance:
             evidence = findings.get(condition.finding)
         gap = observation_gaps.get(condition.finding) or _gap(
-            condition, evidence, provided_ids, collectors
+            condition.finding,
+            evidence,
+            collectors,
+            provenance=condition.provenance,
+            expected_answer=condition.provenance == "provided"
+            or (condition.provenance is None and condition.finding in provided_ids),
         )
         if gap is None and condition.requires_directory_population:
             assert evidence is not None
@@ -473,7 +478,8 @@ def _evaluate_workload(
         dict.fromkeys(
             gap
             for finding_id, gap in observation_gaps.items()
-            if finding_id in ids or findings[finding_id].workload == workload
+            if finding_id in ids
+            or (finding_id in entries and entries[finding_id].workload == workload)
         )
     )
     missing.update(dict.fromkeys(_collector_gaps(ids, entries, collectors, missing)))
@@ -614,9 +620,7 @@ def evaluate(
     entries = {entry.id: entry for entry in catalogue.findings}
     alternatives = {} if alternatives is None else alternatives
     collectors = {} if collectors is None else collectors
-    observation_gaps = _observation_gaps(
-        findings, alternatives, directory_population, collectors.get("licences")
-    )
+    observation_gaps = _observation_gaps(findings, alternatives, directory_population, collectors)
     statuses = tuple(
         _evaluate_workload(
             workload,

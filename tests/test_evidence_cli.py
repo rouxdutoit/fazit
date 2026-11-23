@@ -625,8 +625,26 @@ confirmations:
         (20, {"coverage": {"kind": "partial"}}, "coverage_partial"),
         (20, {"coverage": {"kind": "unknown"}}, "coverage_unknown"),
         (20, None, "not_in_scan"),
+        (
+            20,
+            {
+                "value": None,
+                "provenance": "unknown",
+                "coverage": None,
+                "missing_reason": "permission_denied",
+            },
+            "permission_denied",
+        ),
     ],
-    ids=["too-few-seats", "too-many-seats", "different-instant", "partial", "unknown", "missing"],
+    ids=[
+        "too-few-seats",
+        "too-many-seats",
+        "different-instant",
+        "partial",
+        "unknown",
+        "missing",
+        "denied",
+    ],
 )
 def test_licence_pilots_require_reconciled_directory_headcount(
     tmp_path: Path, assigned: int, account_update: dict | None, reason: str
@@ -656,7 +674,7 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     )
     assert f'data-reason="{inventory_reason}"' in report_section(html, "found")
     open_points = report_section(html, "path")
-    for workload in LICENCE_PILOTS:
+    for workload in ("directory", *LICENCE_PILOTS):
         assert 'data-status="ready"' in readiness_row(baseline, workload)
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
@@ -770,7 +788,7 @@ def test_directory_counts_without_a_declared_population_keep_licence_pilots_unkn
         ("older-members", "unknown"),
         ("older-guests", "unknown"),
         ("unknown-population", "unknown"),
-        ("complete", "ready"),
+        ("no-inventory", "unknown"),
         ("confirmed-guest", "needs_work"),
     ],
 )
@@ -809,7 +827,9 @@ def test_directory_ready_requires_counts_in_a_complete_declared_population(
     assert f'data-status="{status}"' in row
     absence = {"en": "there are no guest accounts", "de": "es gibt keine Gastkonten"}
     assert (absence[lang] in row) == (status == "ready")
-    if status == "unknown":
+    if case == "no-inventory":
+        assert 'data-reason="not_in_scan"' in row
+    elif status == "unknown":
         assert 'data-reason="directory_population_unverified"' in row
 
 
@@ -822,8 +842,20 @@ def test_directory_ready_requires_counts_in_a_complete_declared_population(
         (2, 1, "ok", "needs_work", "licence_assignments_conflict"),
         (2, 0, "skipped", "unknown", "permission_denied"),
         (2, 0, "partial", "unknown", "coverage_partial"),
+        (1, 0, "absent", "unknown", "not_in_scan"),
+        (1, 0, "inventory-partial", "unknown", "coverage_partial"),
+        (1, 0, "inventory-unknown", "unknown", "coverage_unknown"),
     ],
-    ids=["reconciled", "conflict", "conflict-with-guest", "licences-skipped", "licences-partial"],
+    ids=[
+        "reconciled",
+        "conflict",
+        "conflict-with-guest",
+        "licences-skipped",
+        "licences-partial",
+        "licences-absent",
+        "inventory-partial",
+        "inventory-unknown",
+    ],
 )
 def test_directory_accounts_are_checked_against_licences(
     tmp_path: Path,
@@ -840,16 +872,23 @@ def test_directory_accounts_are_checked_against_licences(
     _finding(town_scan, "directory.user_count")["value"] = 1 - guests
     _finding(town_scan, "directory.guest_count")["value"] = guests
     _finding(town_scan, "directory.licensed_user_count")["value"] = 1
-    if licence_status != "ok":
-        collector = next(row for row in town_scan["collectors"] if row["id"] == "licences")
+    collector = next(row for row in town_scan["collectors"] if row["id"] == "licences")
+    if licence_status == "absent":
+        town_scan["collectors"].remove(collector)
+    elif licence_status in {"skipped", "partial"}:
         collector.update(status=licence_status, reason=reason)
-    if licence_status == "skipped":
+    if licence_status in {"skipped", "absent"}:
         town_scan["licences"] = None
     else:
         inventory = town_scan["licences"]
         product = inventory["products"][0]
         product["assigned"] = assigned
-        inventory.update(products=[product], coverage=coverage)
+        kind = (
+            licence_status.removeprefix("inventory-")
+            if licence_status.startswith("inventory-")
+            else "complete"
+        )
+        inventory.update(products=[product], coverage=coverage | {"kind": kind})
     answers = "confirmations: {directory.account_list_reviewed: true}"
 
     html = _html(_report(tmp_path / "licence-check", town_scan, answers, lang=lang))

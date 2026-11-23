@@ -260,10 +260,11 @@ def test_joint_directory_counts_fit_declared_checks(
         coverage.update(scanned=scanned, failed=failed)
         possible = {
             (roster.count("internal"), roster.count("guest"))
-            for roster in product(("internal", "guest", "other", "failed"), repeat=total)
+            for roster in product(("internal", "guest", "other", "failed", "pending"), repeat=total)
             if roster.count("failed") == (failed or 0)
+            and (scanned is None or roster.count("pending") == total - scanned - (failed or 0))
         }
-        limit = scanned if scanned is not None else max(member for member, _ in possible)
+        limit = max(member for member, _ in possible)
         for counts in product(range(limit + 1), repeat=2):
             members["value"], guests["value"] = counts
             if counts in possible:
@@ -272,6 +273,32 @@ def test_joint_directory_counts_fit_declared_checks(
                 with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
                     _load(scan_data, catalogue)
                 assert caught.value.field == "findings[1].value"
+
+
+@pytest.mark.parametrize("scanned", [1, 2])
+def test_licensed_accounts_fit_within_successfully_checked_directory_rows(
+    scan_data: dict, catalogue: Catalogue, scanned: int
+) -> None:
+    scan_data["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan_data["generated_at"],
+        "coverage": asdict(Coverage("partial", scanned, 0, 3)),
+    }
+    scan_data["findings"] = [
+        _finding(
+            f"directory.{kind}_count",
+            value=value,
+            period=None,
+            coverage={"kind": "partial", "scanned": 1},
+        )
+        for kind, value in (("user", 0), ("guest", 0), ("licensed_user", 1))
+    ]
+    if scanned == 2:
+        assert _load(scan_data, catalogue).findings[-1].value == 1
+    else:
+        with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
+            _load(scan_data, catalogue)
+        assert caught.value.field == "findings[2].value"
 
 
 def test_complete_directory_count_inherits_the_declared_total(
@@ -317,7 +344,8 @@ def test_complete_directory_count_inherits_the_declared_total(
         ("2026-11-05", True),
         ("2026-11-05T00:30:00+01:00", False),
         ("2026-11-04T23:30:00Z", False),
-        ("2026-11-04", False),
+        ("2026-11-04", True),
+        ("2026-11-03", False),
     ],
 )
 def test_undated_interview_period_is_bounded_by_the_scan(
@@ -346,7 +374,8 @@ def test_undated_interview_period_is_bounded_by_the_scan(
         ("2026-11-01", True),
         ("2026-11-01T00:30:00+01:00", False),
         ("2026-10-31T23:30:00Z", False),
-        ("2026-10-31", False),
+        ("2026-10-31", True),
+        ("2026-10-30", False),
     ],
 )
 def test_dated_period_is_bounded_by_collection(
@@ -375,7 +404,8 @@ def test_dated_period_is_bounded_by_collection(
         ("2026-11-05T18:30:00-05:00", True),
         ("2026-11-06T20:05:00-05:00", True),
         ("2026-11-07T01:05:00Z", True),
-        ("2026-11-04", False),
+        ("2026-11-03", False),
+        ("2026-11-04", True),
         ("2026-11-05", True),
     ],
 )
@@ -386,6 +416,28 @@ def test_date_only_interview_requires_the_day_to_have_started(
     scan_data["findings"][0]["collected_at"] = "2026-11-06"
     if valid:
         assert _load(scan_data, catalogue).findings[0].collected_at == "2026-11-06"
+    else:
+        with pytest.raises(InputError, match="collection_after_scan") as caught:
+            _load(scan_data, catalogue)
+        assert caught.value.field == "findings[0].collected_at"
+
+
+@pytest.mark.parametrize(
+    ("collected_at", "valid"),
+    [
+        ("2026-11-04T20:00:00-05:00", True),
+        ("2026-11-05T12:00:00Z", True),
+        ("2026-11-05T12:00:00.000001Z", False),
+    ],
+)
+def test_date_only_scan_ends_at_midnight_utc_minus_twelve(
+    scan_data: dict, catalogue: Catalogue, collected_at: str, valid: bool
+) -> None:
+    interview = scan_data["findings"][3]
+    interview["collected_at"] = collected_at
+    scan_data.update(generated_at="2026-11-04", findings=[interview], licences=None)
+    if valid:
+        assert _load(scan_data, catalogue).findings[0].collected_at == collected_at
     else:
         with pytest.raises(InputError, match="collection_after_scan") as caught:
             _load(scan_data, catalogue)

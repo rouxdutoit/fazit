@@ -2,7 +2,7 @@
 quick_id: 261123-rv16
 slug: monotone-directory
 date: 2026-11-23
-status: planned
+status: complete
 ---
 
 # Quick task: Directory Ready from a positive licence check, and two corrections

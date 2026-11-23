@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from . import PROJECT_NAME
@@ -65,11 +65,11 @@ type FindingValue = int | bool
 
 def _timestamp_after(stamp: str, reference: str) -> bool:
     first, second = datetime.fromisoformat(stamp), datetime.fromisoformat(reference)
-    if second.tzinfo is None:
-        second = datetime.combine(second.date(), time.max, UTC)
     if first.tzinfo is None:
-        # UTC+14 enters each calendar day first.
         first = first.replace(tzinfo=timezone(timedelta(hours=14)))
+    if second.tzinfo is None:
+        # Measure to the end of the UTC-12 day without overflowing the last calendar date.
+        return first - second.replace(tzinfo=timezone(timedelta(hours=-12))) > timedelta(days=1)
     return first > second
 
 
@@ -551,15 +551,16 @@ class _ScanReader:
             if available == 0 and coverage.kind != "complete":
                 self.check.fail(f"{field}.value", "measurement_without_observations")
             checked = coverage.scanned if coverage.scanned is not None else max(1, value)
-            upper = value if coverage.kind == "complete" else value + total - checked
+            # A measured licence assignment can only come from a successful row.
+            upper = value if coverage.kind == "complete" else value + limit - checked
             bounds[finding_id] = value, upper
 
         internal, guests, licensed = _DIRECTORY_COUNTS
-        min_internal, max_internal = bounds.get(internal, (0, total))
-        min_guests, max_guests = bounds.get(guests, (0, total))
-        if min_internal + min_guests > total - (declared.failed or 0):
+        min_internal, max_internal = bounds.get(internal, (0, limit))
+        min_guests, max_guests = bounds.get(guests, (0, limit))
+        if min_internal + min_guests > limit:
             self.check.fail(f"{findings[guests][1]}.value", "subset_count_exceeds_population")
-        if licensed in bounds and bounds[licensed][0] > min(total, max_internal + max_guests):
+        if licensed in bounds and bounds[licensed][0] > max_internal + max_guests:
             self.check.fail(f"{findings[licensed][1]}.value", "subset_count_exceeds_population")
 
     def check_populations(

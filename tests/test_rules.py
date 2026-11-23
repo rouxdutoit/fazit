@@ -30,6 +30,7 @@ from fazit.inputs import Inputs, WindowsSoftware, load_inputs
 from fazit.licences import classify_product, licence_findings, load_service_plans
 from fazit.mappings import COVERAGE_LADDER, GAP_COVERAGE, PROFILES, load_mapping
 from fazit.model import (
+    Collector,
     Coverage,
     DirectoryPopulation,
     Finding,
@@ -572,6 +573,11 @@ def empty_directory_population() -> DirectoryPopulation:
 
 
 @pytest.fixture
+def census_collectors() -> dict[str, Collector]:
+    return {name: Collector(name, "ok", None, ()) for name in ("directory", "licences")}
+
+
+@pytest.fixture
 def complete_evidence(
     catalogue: Catalogue, empty_directory_population: DirectoryPopulation
 ) -> dict[str, Finding]:
@@ -608,12 +614,18 @@ def _status(
     catalogue: Catalogue,
     *,
     directory_population: DirectoryPopulation | None = None,
+    collectors: dict[str, Collector] | None = None,
 ) -> WorkloadStatus:
     mapping = load_mapping("opendesk", catalogue)
     return next(
         row
         for row in evaluate(
-            findings, status_rules, catalogue, mapping, directory_population=directory_population
+            findings,
+            status_rules,
+            catalogue,
+            mapping,
+            directory_population=directory_population,
+            collectors=collectors,
         )
         if row.workload == workload
     )
@@ -1053,6 +1065,7 @@ def test_incomplete_counts_can_confirm_only_positive_lower_bounds(
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
     empty_directory_population: DirectoryPopulation,
+    census_collectors: dict[str, Collector],
     coverage: str,
     count: int,
     status: str,
@@ -1069,6 +1082,7 @@ def test_incomplete_counts_can_confirm_only_positive_lower_bounds(
         status_rules,
         catalogue,
         directory_population=population,
+        collectors=census_collectors,
     )
 
     assert (row.status, row.reason_code) == (status, reason)
@@ -1249,6 +1263,7 @@ def test_removing_a_workloads_evidence_never_gives_ready(
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
     empty_directory_population: DirectoryPopulation,
+    census_collectors: dict[str, Collector],
     profile: str,
 ) -> None:
     mapping = load_mapping(profile, catalogue)
@@ -1258,6 +1273,7 @@ def test_removing_a_workloads_evidence_never_gives_ready(
         catalogue,
         mapping,
         directory_population=empty_directory_population,
+        collectors=census_collectors,
     )
     assert tuple(row.workload for row in rows) == catalogue.assessed_workload_ids
     assert all(row.status == "ready" and not row.incomplete for row in rows)
@@ -1274,6 +1290,7 @@ def test_removing_a_workloads_evidence_never_gives_ready(
                 catalogue,
                 mapping,
                 directory_population=empty_directory_population,
+                collectors=census_collectors,
             )
             if row.workload == workload
         )
@@ -2188,20 +2205,25 @@ def test_next_steps_and_open_evidence_follow_the_findings(
     assert "%" not in path and "<ol" not in path and "pilot" not in path.casefold()
 
 
-def test_next_steps_explain_the_empty_state(
+@pytest.fixture
+def all_ready_scan(
     catalogue: Catalogue,
     complete_evidence: dict[str, Finding],
     empty_directory_population: DirectoryPopulation,
-) -> None:
+) -> Scan:
     sample = sample_scan("town", catalogue)
-    scan = replace(
+    assert sample.licences is not None
+    return replace(
         sample,
         collectors=tuple(replace(item, status="ok", reason=None) for item in sample.collectors),
-        findings=tuple(complete_evidence.values()),
-        licences=None,
+        findings=tuple(complete_evidence[entry.id] for entry in catalogue.findings),
+        licences=replace(sample.licences, products=(), coverage=Coverage("complete", 0, 0, 0)),
         directory_population=empty_directory_population,
     )
-    html = render_report(scan, lang="en")
+
+
+def test_next_steps_explain_the_empty_state(catalogue: Catalogue, all_ready_scan: Scan) -> None:
+    html = render_report(all_ready_scan, lang="en")
     path = report_section(html, "path")
     strings = load_locale("en")["path"]["empty"]
     assert all(
@@ -2212,20 +2234,8 @@ def test_next_steps_explain_the_empty_state(
     assert "data-open-point" not in path and "data-step-kind" not in path
 
 
-def test_summary_explains_empty_lists_with_complete_evidence(
-    catalogue: Catalogue,
-    complete_evidence: dict[str, Finding],
-    empty_directory_population: DirectoryPopulation,
-) -> None:
-    sample = sample_scan("town", catalogue)
-    scan = replace(
-        sample,
-        collectors=tuple(replace(item, status="ok", reason=None) for item in sample.collectors),
-        findings=tuple(complete_evidence.values()),
-        licences=None,
-        directory_population=empty_directory_population,
-    )
-    summary = unescape(report_section(render_report(scan, lang="en"), "summary"))
+def test_summary_explains_empty_lists_with_complete_evidence(all_ready_scan: Scan) -> None:
+    summary = unescape(report_section(render_report(all_ready_scan, lang="en"), "summary"))
     blockers, open_part = summary.split('data-summary="unknown"', 1)
     strings = load_locale("en")
 

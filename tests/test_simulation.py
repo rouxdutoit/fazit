@@ -31,7 +31,7 @@ from helpers import (
     sample_inputs_path,
     sample_scan_path,
 )
-from hypothesis import example, given
+from hypothesis import event, example, given
 from hypothesis import strategies as st
 from tenants import (
     CATALOGUE,
@@ -96,6 +96,34 @@ OFFICE_PARTIAL = replace(
 NONPROFIT = load_scan(sample_scan_path("nonprofit"), CATALOGUE)
 LICENSED_ACCOUNTS = NONPROFIT.finding("directory.licensed_user_count")
 assert LICENSED_ACCOUNTS is not None and NONPROFIT.licences is not None
+NONPROFIT_REVIEWED = Tenant(
+    NONPROFIT, {"confirmations": {"directory.account_list_reviewed": True}}, "en", "opendesk"
+)
+NONPROFIT_LICENCES_SKIPPED = replace(
+    NONPROFIT_REVIEWED,
+    scan=replace(
+        NONPROFIT,
+        licences=None,
+        collectors=tuple(
+            replace(collector, status="skipped", reason="collector_skipped")
+            if collector.id == "licences"
+            else collector
+            for collector in NONPROFIT.collectors
+        ),
+    ),
+)
+NONPROFIT_LICENSED_COUNT_PARTIAL = replace(
+    NONPROFIT_LICENCES_SKIPPED,
+    scan=replace(
+        NONPROFIT_LICENCES_SKIPPED.scan,
+        findings=tuple(
+            replace(finding, coverage=Coverage("partial"))
+            if finding.id == LICENSED_ACCOUNTS.id
+            else finding
+            for finding in NONPROFIT.findings
+        ),
+    ),
+)
 UNASSIGNED = Tenant(
     replace(
         NONPROFIT,
@@ -517,6 +545,7 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             )
             reconciled = not contradiction
     if not reconciled:
+        assert statuses["directory"] != "ready"
         if contradiction:
             assert 'data-reason="licence_assignments_conflict"' in report_section(html, "found")
         assert "licences" not in statuses
@@ -572,12 +601,15 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
 @given(pair=degraded_tenants())
 @example(pair=(OFFICE, OFFICE_PARTIAL))
 @example(pair=(UNASSIGNED, DIRECTORY_DENIED))
+@example(pair=(NONPROFIT_REVIEWED, NONPROFIT_LICENCES_SKIPPED))
+@example(pair=(NONPROFIT_LICENCES_SKIPPED, NONPROFIT_LICENSED_COUNT_PARTIAL))
 def test_worse_collection_never_improves_status(pair: tuple[Tenant, Tenant]) -> None:
     original, degraded = pair
     if original == degraded:
         return
     before = _statuses(_render(original))
     after = _statuses(_render(degraded))
+    event(f"Directory {before['directory']} to {after['directory']}")
     for workload, previous in before.items():
         current = after[workload]
         # Losing a measurement can make an existing manual answer establish a problem.
@@ -621,6 +653,7 @@ def test_target_gaps_cannot_improve_readiness(tenant: Tenant) -> None:
             without_gaps,
             collectors=collectors,
             alternatives=alternatives,
+            directory_population=scan.directory_population,
         )
         after = evaluate(
             findings,
@@ -629,6 +662,7 @@ def test_target_gaps_cannot_improve_readiness(tenant: Tenant) -> None:
             mapping,
             collectors=collectors,
             alternatives=alternatives,
+            directory_population=scan.directory_population,
         )
         for previous, row in zip(before, after, strict=True):
             assert row.workload == previous.workload

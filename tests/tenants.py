@@ -15,6 +15,7 @@ from fazit.model import (
     COVERAGE_KINDS,
     Collector,
     Coverage,
+    DirectoryPopulation,
     Finding,
     Licences,
     Product,
@@ -148,8 +149,8 @@ def _finding(
     )
 
 
-def _licences(draw: st.DrawFn, collector: Collector | None) -> Licences | None:
-    if collector is None or collector.status == "skipped" or not draw(st.booleans()):
+def _licences(draw: st.DrawFn, collector: Collector | None, *, complete: bool) -> Licences | None:
+    if collector is None or collector.status == "skipped" or not (complete or draw(st.booleans())):
         return None
     products = []
     all_unassigned = draw(st.booleans())
@@ -161,7 +162,12 @@ def _licences(draw: st.DrawFn, collector: Collector | None) -> Licences | None:
         assigned = 0 if all_unassigned else draw(st.integers(0, purchased))
         plans = tuple(ServicePlan(plan.name, plan.guid) for plan in roster)
         products.append(Product(first.sku_part_number, first.sku_guid, purchased, assigned, plans))
-    coverage = _coverage(draw, len(products), inventory=True)
+    count = len(products)
+    coverage = (
+        Coverage("complete", count, 0, count)
+        if complete
+        else _coverage(draw, count, inventory=True)
+    )
     return Licences(
         collector.id,
         draw(st.sampled_from(sorted(CATALOGUE.licence_sources))),
@@ -238,8 +244,9 @@ def tenants(draw: st.DrawFn) -> Tenant:
     profile = draw(st.sampled_from(PROFILES))
     inputs = _inputs(draw)
     thorough = draw(st.booleans())
+    census = thorough and draw(st.booleans())
     collectors = {
-        name: _collector(draw, name, thorough)
+        name: _collector(draw, name, thorough and not (census and name == "licences"))
         for name in sorted(CATALOGUE.collector_ids)
         if thorough or draw(st.booleans())
     }
@@ -251,11 +258,47 @@ def tenants(draw: st.DrawFn) -> Tenant:
         entry.requires_population for entry in CATALOGUE.findings if entry.requires_population
     )
     totals = {reference: draw(COUNTS) for reference in sorted(populations)}
-    findings = tuple(
+    findings = [
         finding
         for entry in CATALOGUE.findings
         if (finding := _finding(draw, entry, collectors, totals)) is not None
-    )
+    ]
+    licences = _licences(draw, collectors.get("licences"), complete=census)
+    population = None
+    if census:
+        products = licences.products if licences is not None else ()
+        licensed = max((product.assigned for product in products), default=0)
+        total = draw(st.integers(licensed, min(MAX_COUNT, licensed + 5)))
+        guests = draw(st.just(0) | st.integers(0, total))
+        coverage = Coverage("complete", total, 0, total)
+        population = DirectoryPopulation("directory", STAMP, coverage)
+        counts = {
+            "directory.user_count": total - guests,
+            "directory.guest_count": guests,
+            "directory.licensed_user_count": licensed,
+        }
+        review = "directory.account_list_reviewed"
+        census_ids = {*counts, review}
+        findings = [finding for finding in findings if finding.id not in census_ids]
+        findings.extend(
+            Finding(
+                key,
+                "directory",
+                value,
+                "users",
+                "measured",
+                "directory",
+                "sample.directory",
+                STAMP,
+                None,
+                coverage,
+                None,
+            )
+            for key, value in counts.items()
+        )
+        if inputs is None:
+            inputs = {"provided_counts": {}, "confirmations": {}}
+        inputs["confirmations"][review] = True
     if inputs is not None:
         counts = inputs["provided_counts"]
         for finding in findings:
@@ -276,8 +319,9 @@ def tenants(draw: st.DrawFn) -> Tenant:
     scan = replace(
         EMPTY_SCAN,
         collectors=tuple(collectors.values()),
-        findings=findings,
-        licences=_licences(draw, collectors.get("licences")),
+        findings=tuple(findings),
+        licences=licences,
+        directory_population=population,
     )
     return Tenant(scan, inputs, lang, profile)
 
@@ -294,9 +338,22 @@ def degraded_tenants(draw: st.DrawFn) -> tuple[Tenant, Tenant]:
             if row.coverage is not None and row.coverage.kind == "complete"
         ),
     ]
+    if scan.licences is not None and scan.licences.coverage.kind == "complete":
+        candidates.append(scan.licences)
+    if scan.directory_population is not None and draw(st.booleans()):
+        candidates = [
+            row
+            for row in candidates
+            if isinstance(row, Licences)
+            or row.id in {"licences", "directory", "directory.licensed_user_count"}
+        ]
     if not candidates:
         return tenant, tenant
     changed = draw(st.sampled_from(candidates), label="evidence to degrade")
+    if isinstance(changed, Licences):
+        kind = draw(st.sampled_from(("partial", "unknown")), label="inventory coverage")
+        degraded = replace(changed, coverage=replace(changed.coverage, kind=kind))
+        return tenant, replace(tenant, scan=replace(scan, licences=degraded))
     if isinstance(changed, Finding):
         kind = draw(st.sampled_from(("partial", "unknown")), label="evidence coverage")
         coverage = replace(changed.coverage, kind=kind)
@@ -308,6 +365,10 @@ def degraded_tenants(draw: st.DrawFn) -> tuple[Tenant, Tenant]:
         findings = tuple(degraded if row.id == changed.id else row for row in scan.findings)
         worse = replace(scan, findings=findings)
         return tenant, replace(tenant, scan=worse)
+
+    if changed.id == "licences" and draw(st.booleans(), label="drop licence collector"):
+        collectors = tuple(row for row in scan.collectors if row.id != changed.id)
+        return tenant, replace(tenant, scan=replace(scan, collectors=collectors, licences=None))
 
     failures = [("skipped", "collector_skipped"), ("skipped", "permission_denied")]
     if changed.status == "ok":
