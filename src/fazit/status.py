@@ -251,20 +251,40 @@ def _skipped_gap(
     return None
 
 
-def _observation_disputes(
+def _observation_gaps(
     findings: Mapping[str, Finding],
     alternatives: Mapping[str, Finding],
+    population: DirectoryPopulation | None,
+    licence_collector: Collector | None,
 ) -> dict[str, MissingEvidence]:
-    disputes = {}
+    gaps = {}
     for finding_id, alternative in alternatives.items():
         primary = findings.get(finding_id)
         if primary is None:
             continue
         if provided_answers_conflict(primary, alternative):
-            disputes[finding_id] = MissingEvidence(finding_id, "provided_answers_conflict", None)
+            gaps[finding_id] = MissingEvidence(finding_id, "provided_answers_conflict", None)
         elif evidence_conflicts(primary, alternative):
-            disputes[finding_id] = MissingEvidence(finding_id, "confirmation_conflict", None)
-    return disputes
+            gaps[finding_id] = MissingEvidence(finding_id, "confirmation_conflict", None)
+
+    accounts = findings.get("directory.licensed_user_count")
+    if accounts is None or population is None or not population.includes(accounts):
+        return gaps
+    inventory = findings.get("licences.product_count")
+    if inventory is not None and inventory.missing_reason == "licence_assignments_conflict":
+        gaps[accounts.id] = MissingEvidence(
+            accounts.id, inventory.missing_reason, inventory.collector
+        )
+    elif (
+        licence_collector is not None
+        and licence_collector.reason is not None
+        and population.coverage.kind == "complete"
+        and is_complete(accounts)
+    ):
+        gaps[accounts.id] = MissingEvidence(
+            accounts.id, licence_collector.reason, licence_collector.id
+        )
+    return gaps
 
 
 def _collector_gaps(
@@ -382,7 +402,7 @@ def _condition_results(
     alternatives: Mapping[str, Finding],
     provided_ids: Collection[str],
     collectors: Mapping[str, Collector],
-    disputes: Mapping[str, MissingEvidence],
+    observation_gaps: Mapping[str, MissingEvidence],
     population: DirectoryPopulation | None,
 ) -> dict[Condition, _ConditionResult]:
     results = {}
@@ -390,7 +410,9 @@ def _condition_results(
         evidence = alternatives.get(condition.finding)
         if evidence is None or evidence.provenance != condition.provenance:
             evidence = findings.get(condition.finding)
-        gap = disputes.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)
+        gap = observation_gaps.get(condition.finding) or _gap(
+            condition, evidence, provided_ids, collectors
+        )
         if gap is None and condition.requires_directory_population:
             assert evidence is not None
             if (
@@ -429,7 +451,7 @@ def _evaluate_workload(
     entries: Mapping[str, FindingEntry],
     collectors: Mapping[str, Collector],
     alternatives: Mapping[str, Finding],
-    disputes: Mapping[str, MissingEvidence],
+    observation_gaps: Mapping[str, MissingEvidence],
     population: DirectoryPopulation | None,
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
@@ -438,7 +460,7 @@ def _evaluate_workload(
     ids = dict.fromkeys(condition.finding for condition in conditions)
     provided_ids = {item for item in ids if item in entries and entries[item].provided != "no"}
     results = _condition_results(
-        conditions, findings, alternatives, provided_ids, collectors, disputes, population
+        conditions, findings, alternatives, provided_ids, collectors, observation_gaps, population
     )
     fired, missing = _matching_rules(block, results)
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
@@ -450,7 +472,7 @@ def _evaluate_workload(
     missing.update(
         dict.fromkeys(
             gap
-            for finding_id, gap in disputes.items()
+            for finding_id, gap in observation_gaps.items()
             if finding_id in ids or findings[finding_id].workload == workload
         )
     )
@@ -591,16 +613,19 @@ def evaluate(
 ) -> tuple[WorkloadStatus, ...]:
     entries = {entry.id: entry for entry in catalogue.findings}
     alternatives = {} if alternatives is None else alternatives
-    disputes = _observation_disputes(findings, alternatives)
+    collectors = {} if collectors is None else collectors
+    observation_gaps = _observation_gaps(
+        findings, alternatives, directory_population, collectors.get("licences")
+    )
     statuses = tuple(
         _evaluate_workload(
             workload,
             rule_set.workloads[workload],
             findings,
             entries,
-            collectors or {},
+            collectors,
             alternatives,
-            disputes,
+            observation_gaps,
             directory_population,
         )
         for workload in catalogue.assessed_workload_ids

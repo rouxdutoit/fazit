@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta, timezone
 from pathlib import Path
 
 from . import PROJECT_NAME
@@ -68,8 +68,8 @@ def _timestamp_after(stamp: str, reference: str) -> bool:
     if second.tzinfo is None:
         second = datetime.combine(second.date(), time.max, UTC)
     if first.tzinfo is None:
-        # A local date can be one day ahead of the same instant's UTC date.
-        return first.replace(tzinfo=UTC) - second > timedelta(days=1)
+        # UTC+14 enters each calendar day first.
+        first = first.replace(tzinfo=timezone(timedelta(hours=14)))
     return first > second
 
 
@@ -557,7 +557,7 @@ class _ScanReader:
         internal, guests, licensed = _DIRECTORY_COUNTS
         min_internal, max_internal = bounds.get(internal, (0, total))
         min_guests, max_guests = bounds.get(guests, (0, total))
-        if min_internal + min_guests > total:
+        if min_internal + min_guests > total - (declared.failed or 0):
             self.check.fail(f"{findings[guests][1]}.value", "subset_count_exceeds_population")
         if licensed in bounds and bounds[licensed][0] > min(total, max_internal + max_guests):
             self.check.fail(f"{findings[licensed][1]}.value", "subset_count_exceeds_population")

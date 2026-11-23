@@ -2,7 +2,7 @@
 quick_id: 261123-rv15
 slug: conflicts-dates
 date: 2026-11-23
-status: planned
+status: complete
 ---
 
 # Quick task: round-9 items both reviewers agree on
