@@ -491,6 +491,7 @@ codes:
     - licence_plan_list_incomplete
     - licence_assignments_conflict
     - licence_directory_unverified
+    - directory_population_unverified
     - coverage_partial
     - coverage_unknown
     - confirmation_conflict

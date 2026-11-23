@@ -2,7 +2,7 @@
 quick_id: 261123-rv14
 slug: directory
 date: 2026-11-23
-status: planned
+status: complete
 ---
 
 # Quick task: apply the declared-population rule to the directory itself

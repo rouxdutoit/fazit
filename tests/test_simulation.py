@@ -5,6 +5,7 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import asdict, replace
+from datetime import UTC, datetime, timedelta, timezone
 from fractions import Fraction
 from html import unescape
 from math import prod
@@ -53,6 +54,7 @@ from fazit.mappings import GAP_COVERAGE, PROFILES, load_mapping
 from fazit.model import (
     Collector,
     Coverage,
+    DirectoryPopulation,
     Finding,
     Product,
     ServicePlan,
@@ -289,13 +291,13 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
         "future-interview-date": (
             interview,
             "collected_at",
-            "2026-11-06",
+            "2026-11-07",
             f"findings[{interview_index}].collected_at",
         ),
         "future-interview-period": (
             interview,
             "period",
-            "2026-10-01/2026-11-06",
+            "2026-10-01/2026-11-07",
             f"findings[{interview_index}].period",
         ),
     }
@@ -374,6 +376,96 @@ def test_truthful_filtered_directory_stays_unverified(
     for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
         assert statuses[workload] == "unknown"
         assert 'data-reason="licence_directory_unverified"' in readiness_row(html, workload)
+
+
+@pytest.mark.parametrize("scope", ["declared", "undeclared", "filtered"])
+@given(
+    rows=st.lists(
+        st.tuples(
+            st.booleans(),
+            st.booleans(),
+            st.sampled_from(("checked", "failed", "pending")),
+            st.tuples(st.booleans(), st.booleans(), st.booleans()),
+        ),
+        max_size=40,
+    ),
+    omit_total=st.booleans(),
+    minute=st.integers(0, 1439),
+    offsets=st.tuples(st.integers(-12, 14), st.integers(-12, 14)),
+)
+@example(
+    rows=[(True, True, "checked", (True, False, True))],
+    omit_total=True,
+    minute=1439,
+    offsets=(-5, 14),
+)
+def test_truthful_directory_exports_load(
+    scope: str,
+    rows: list[tuple[bool, bool, str, tuple[bool, bool, bool]]],
+    omit_total: bool,
+    minute: int,
+    offsets: tuple[int, int],
+) -> None:
+    instant = datetime(2026, 11, 5, tzinfo=UTC) + timedelta(minutes=minute)
+    scan_zone, interview_zone = (timezone(timedelta(hours=offset)) for offset in offsets)
+    generated_at = instant.astimezone(scan_zone).isoformat()
+    stamp = instant.isoformat()
+    interview_day = (instant - timedelta(minutes=1)).astimezone(interview_zone).date().isoformat()
+    checked_rows = [row for row in rows if row[2] == "checked"]
+    failed = sum(row[2] == "failed" for row in rows)
+    kind = "complete" if len(checked_rows) == len(rows) else "partial"
+    coverage = Coverage(kind, len(checked_rows), failed, len(rows))
+    population = DirectoryPopulation("directory", stamp, coverage) if scope == "declared" else None
+    findings = []
+    for index, field in enumerate(("user_count", "guest_count", "licensed_user_count")):
+        observed = checked_rows
+        observation_coverage = coverage
+        if scope == "filtered":
+            observed = [row for row in rows if row[3][index]]
+            observation_coverage = Coverage("complete", len(observed), 0, len(observed))
+        elif not observed and rows:
+            continue
+        elif population is not None and omit_total:
+            observation_coverage = replace(coverage, total=None)
+        count = sum((member, not member, licensed)[index] for member, licensed, *_ in observed)
+        findings.append(
+            Finding(
+                f"directory.{field}",
+                "directory",
+                count,
+                "users",
+                "measured",
+                "directory",
+                "sample.directory",
+                stamp,
+                None,
+                observation_coverage,
+                None,
+            )
+        )
+    findings.append(
+        Finding(
+            "directory.account_list_reviewed",
+            "directory",
+            True,
+            None,
+            "provided",
+            None,
+            "interview",
+            interview_day,
+            f"{interview_day}/{interview_day}",
+            None,
+            None,
+        )
+    )
+    scan = replace(
+        EMPTY_SCAN,
+        generated_at=generated_at,
+        collectors=(Collector("directory", "ok", None, ()),),
+        findings=tuple(findings),
+        directory_population=population,
+    )
+    assert load_scan_text(scan_to_json(scan, plans=PLANS), "inventory.json", CATALOGUE) == scan
 
 
 @given(tenant=tenants())

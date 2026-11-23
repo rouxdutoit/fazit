@@ -3,8 +3,8 @@ workloads:
   directory:
     ready:
       evidence:
-        - {finding: directory.user_count, op: exists}
-        - {finding: directory.guest_count, op: '==', value: 0}
+        - {finding: directory.user_count, op: exists, requires_directory_population: true}
+        - {finding: directory.guest_count, op: '==', value: 0, requires_directory_population: true}
         - {finding: directory.account_list_reviewed, op: '==', value: true}
       reason:
         en: The accounts have been counted and reviewed, and there are no guest accounts.

@@ -593,6 +593,7 @@ def _evidence_context(
         mapping,
         collectors={item.id: item for item in scan.collectors},
         alternatives=alternatives,
+        directory_population=scan.directory_population,
     )
     counts = Counter(row.status for row in statuses)
     status_groups = [

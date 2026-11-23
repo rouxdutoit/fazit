@@ -209,14 +209,78 @@ def test_population_total_applies_only_to_matching_directory_snapshots(
 
 
 @pytest.mark.parametrize(
+    ("declared", "observed", "count", "field"),
+    [
+        (Coverage("partial", 0, 21, 21), Coverage("complete"), 21, "coverage"),
+        (Coverage("partial", 1, 20, 21), Coverage("partial"), 2, "value"),
+        (Coverage("partial", 1, 20, 21), Coverage("partial", scanned=2), 1, "coverage"),
+        (Coverage("partial", failed=20, total=21), Coverage("partial"), 2, "value"),
+        (Coverage("unknown", failed=20, total=21), Coverage("complete"), 1, "coverage"),
+    ],
+)
+def test_directory_counts_cannot_exceed_declared_checks(
+    scan_data: dict,
+    catalogue: Catalogue,
+    declared: Coverage,
+    observed: Coverage,
+    count: int,
+    field: str,
+) -> None:
+    scan_data["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan_data["generated_at"],
+        "coverage": asdict(declared),
+    }
+    scan_data["findings"][0].update(value=count, period=None, coverage=asdict(observed))
+
+    with pytest.raises(InputError) as caught:
+        _load(scan_data, catalogue)
+
+    assert caught.value.field == f"findings[0].{field}"
+
+
+def test_complete_directory_count_inherits_the_declared_total(
+    scan_data: dict, catalogue: Catalogue
+) -> None:
+    scan_data["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan_data["generated_at"],
+        "coverage": asdict(Coverage("complete", 2, 0, 2)),
+    }
+    accounts = _finding(
+        "directory.licensed_user_count",
+        value=2,
+        period=None,
+        collected_at="2026-11-02T10:00:00+01:00",
+        coverage={"kind": "complete", "scanned": 2, "failed": 0},
+    )
+    scan_data["findings"][0] = accounts
+    assert _load(scan_data, catalogue).findings[0].value == 2
+
+    accounts.update(value=1)
+    accounts["coverage"]["scanned"] = 1
+    with pytest.raises(InputError, match="invalid_coverage") as caught:
+        _load(scan_data, catalogue)
+    assert caught.value.field == "findings[0].coverage"
+
+    accounts["coverage"]["scanned"] = 2
+    accounts["collected_at"] = "2026-11-02T08:59:59Z"
+    with pytest.raises(InputError, match="invalid_coverage") as caught:
+        _load(scan_data, catalogue)
+    assert caught.value.field == "findings[0].coverage"
+
+
+@pytest.mark.parametrize(
     ("generated_at", "valid"),
     [
-        ("2026-11-06T00:30:00+01:00", False),
-        ("2026-11-05T23:30:00Z", False),
+        ("2026-11-06T00:30:00+01:00", True),
+        ("2026-11-05T23:30:00Z", True),
         ("2026-11-05T19:30:00-05:00", True),
         ("2026-11-06T00:30:00Z", True),
-        ("2026-11-05", False),
-        ("2026-11-06", True),
+        ("2026-11-05", True),
+        ("2026-11-05T00:30:00+01:00", False),
+        ("2026-11-04T23:30:00Z", False),
+        ("2026-11-04", False),
     ],
 )
 def test_undated_interview_period_uses_scan_utc_day(
@@ -236,11 +300,14 @@ def test_undated_interview_period_uses_scan_utc_day(
 @pytest.mark.parametrize(
     ("collected_at", "valid"),
     [
-        ("2026-11-02T00:30:00+01:00", False),
-        ("2026-11-01T23:30:00Z", False),
+        ("2026-11-02T00:30:00+01:00", True),
+        ("2026-11-01T23:30:00Z", True),
         ("2026-11-01T19:30:00-05:00", True),
         ("2026-11-02T00:30:00Z", True),
-        ("2026-11-02", True),
+        ("2026-11-01", True),
+        ("2026-11-01T00:30:00+01:00", False),
+        ("2026-10-31T23:30:00Z", False),
+        ("2026-10-31", False),
     ],
 )
 def test_dated_period_uses_collection_utc_day(
@@ -259,10 +326,12 @@ def test_dated_period_uses_collection_utc_day(
 @pytest.mark.parametrize(
     ("generated_at", "valid"),
     [
-        ("2026-11-02T00:30:00+01:00", False),
-        ("2026-11-01T23:30:00Z", False),
+        ("2026-11-02T00:30:00+01:00", True),
+        ("2026-11-01T23:30:00Z", True),
         ("2026-11-01T19:30:00-05:00", True),
         ("2026-11-02T00:30:00Z", True),
+        ("2026-11-01T00:30:00+01:00", False),
+        ("2026-10-31T23:30:00Z", False),
     ],
 )
 def test_date_only_interview_uses_scan_utc_day(
@@ -276,6 +345,19 @@ def test_date_only_interview_uses_scan_utc_day(
         with pytest.raises(InputError, match="collection_after_scan") as caught:
             _load(scan_data, catalogue)
         assert caught.value.field == "findings[0].collected_at"
+
+
+def test_period_end_cannot_use_the_date_allowance_twice(
+    scan_data: dict, catalogue: Catalogue
+) -> None:
+    observation = scan_data["findings"][1]
+    observation.update(collected_at="2026-11-03", period="2026-10-01/2026-11-03")
+    assert _load(scan_data, catalogue).findings[1].collected_at == "2026-11-03"
+
+    observation["period"] = "2026-10-01/2026-11-04"
+    with pytest.raises(InputError, match="period_after_scan") as caught:
+        _load(scan_data, catalogue)
+    assert caught.value.field == "findings[1].period"
 
 
 @pytest.mark.parametrize("content", ["sharepoint.file_count", "sharepoint.storage_bytes"])

@@ -10,7 +10,7 @@ from .catalogue import Catalogue, FindingEntry
 from .evidence import evidence_conflicts, is_complete, provided_answers_conflict
 from .licences import PLAN_GAP_REASONS, licence_finding_types
 from .mappings import GAP_COVERAGE, FunctionMapping, TargetMapping
-from .model import Collector, Finding, FindingValue
+from .model import Collector, DirectoryPopulation, Finding, FindingValue
 from .rules import read_rules
 from .validation import RULE_ID, Validator, non_negative_integer
 
@@ -26,6 +26,7 @@ class Condition:
     value: FindingValue | None
     provenance: str | None = None
     accept_partial_true: bool = False
+    requires_directory_population: bool = False
 
 
 @dataclass(frozen=True)
@@ -103,7 +104,10 @@ def _conditions(
     for index, item in enumerate(reader.rows(value, field)):
         member = f"{field}[{index}]"
         row = reader.fields(
-            item, member, ("finding", "op"), ("value", "provenance", "accept_partial_true")
+            item,
+            member,
+            ("finding", "op"),
+            ("value", "provenance", "accept_partial_true", "requires_directory_population"),
         )
         finding_id = reader.choice(row["finding"], f"{member}.finding", types.keys())
         op = reader.choice(row["op"], f"{member}.op", _OPERATORS)
@@ -127,7 +131,12 @@ def _conditions(
         accept_partial = row.get("accept_partial_true", False)
         if type(accept_partial) is not bool or (accept_partial and kind != "boolean"):
             reader.fail(f"{member}.accept_partial_true")
-        conditions.append(Condition(finding_id, op, literal, provenance, accept_partial))
+        requires_population = row.get("requires_directory_population", False)
+        if type(requires_population) is not bool:
+            reader.fail(f"{member}.requires_directory_population")
+        conditions.append(
+            Condition(finding_id, op, literal, provenance, accept_partial, requires_population)
+        )
     return tuple(conditions)
 
 
@@ -374,6 +383,7 @@ def _condition_results(
     provided_ids: Collection[str],
     collectors: Mapping[str, Collector],
     disputes: Mapping[str, MissingEvidence],
+    population: DirectoryPopulation | None,
 ) -> dict[Condition, _ConditionResult]:
     results = {}
     for condition in conditions:
@@ -381,6 +391,16 @@ def _condition_results(
         if evidence is None or evidence.provenance != condition.provenance:
             evidence = findings.get(condition.finding)
         gap = disputes.get(condition.finding) or _gap(condition, evidence, provided_ids, collectors)
+        if gap is None and condition.requires_directory_population:
+            assert evidence is not None
+            if (
+                population is None
+                or population.coverage.kind != "complete"
+                or not population.includes(evidence)
+            ):
+                gap = MissingEvidence(
+                    evidence.id, "directory_population_unverified", evidence.collector
+                )
         results[condition] = _problem_result(condition, evidence, gap), gap
     return results
 
@@ -410,6 +430,7 @@ def _evaluate_workload(
     collectors: Mapping[str, Collector],
     alternatives: Mapping[str, Finding],
     disputes: Mapping[str, MissingEvidence],
+    population: DirectoryPopulation | None,
 ) -> WorkloadStatus:
     conditions = dict.fromkeys(
         (*block.ready, *(item for rule in block.rules for item in rule.when))
@@ -417,7 +438,7 @@ def _evaluate_workload(
     ids = dict.fromkeys(condition.finding for condition in conditions)
     provided_ids = {item for item in ids if item in entries and entries[item].provided != "no"}
     results = _condition_results(
-        conditions, findings, alternatives, provided_ids, collectors, disputes
+        conditions, findings, alternatives, provided_ids, collectors, disputes, population
     )
     fired, missing = _matching_rules(block, results)
     deciding = max(fired, key=lambda rule: STATUSES.index(rule.status), default=None)
@@ -566,6 +587,7 @@ def evaluate(
     *,
     collectors: Mapping[str, Collector] | None = None,
     alternatives: Mapping[str, Finding] | None = None,
+    directory_population: DirectoryPopulation | None = None,
 ) -> tuple[WorkloadStatus, ...]:
     entries = {entry.id: entry for entry in catalogue.findings}
     alternatives = {} if alternatives is None else alternatives
@@ -579,6 +601,7 @@ def evaluate(
             collectors or {},
             alternatives,
             disputes,
+            directory_population,
         )
         for workload in catalogue.assessed_workload_ids
     )

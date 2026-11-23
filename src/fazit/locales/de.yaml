@@ -400,6 +400,9 @@ reason:
   licence_directory_unverified:
     label: Die Lizenzzuweisungen sind durch das Verzeichnis nicht bestätigt.
     fix: Gleichen Sie die Zahl der lizenzierten Konten mit dem Lizenzbestand ab.
+  directory_population_unverified:
+    label: Die Erhebung weist keine vollständige Prüfung der Verzeichniskonten nach.
+    fix: Prüfen Sie alle Verzeichniskonten in derselben Erhebung und geben Sie die Gesamtzahl an.
   coverage_partial:
     label: Die Erhebung deckt nur einen Teil des vorgesehenen Bestands ab.
     fix: Prüfen Sie die übrigen Elemente, bevor Sie Rückschlüsse auf den gesamten Bestand ziehen.

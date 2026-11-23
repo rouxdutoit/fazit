@@ -153,7 +153,7 @@ def test_report_rejects_a_collector_reason_that_disagrees_with_status(
     ("field", "value"),
     [
         ("period", "2030-12-01/2030-12-31"),
-        ("collected_at", "2026-11-03"),
+        ("collected_at", "2026-11-04"),
         ("collected_at", "2026-11-02T08:30:00-01:00"),
         ("collected_at", "2026-11-02T09:00:00.0000001Z"),
     ],
@@ -171,8 +171,8 @@ def test_report_rejects_impossible_finding_dates(
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("period", "2026-11-02/2026-11-03"),
-        ("collected_at", "2026-11-03"),
+        ("period", "2026-11-02/2026-11-04"),
+        ("collected_at", "2026-11-04"),
         ("collected_at", "2026-11-02T08:30:00-01:00"),
     ],
 )
@@ -194,8 +194,8 @@ def test_report_rejects_future_interview_evidence(
     _reject_scan(tmp_path / "future-interview", town_scan, f"findings[{index}].{field}")
 
 
-@pytest.mark.parametrize("stamp", ["2026-11-02", "2026-11-02T10:00:00+01:00"])
-def test_report_accepts_same_day_and_equal_offset_timestamps(
+@pytest.mark.parametrize("stamp", ["2026-11-02", "2026-11-03", "2026-11-02T10:00:00+01:00"])
+def test_report_accepts_date_only_allowance_and_equal_instants(
     tmp_path: Path, town_scan: dict, stamp: str
 ) -> None:
     _finding(town_scan, "teams.teams_with_guests_count")["collected_at"] = stamp
@@ -753,6 +753,58 @@ def test_directory_counts_without_a_declared_population_keep_licence_pilots_unkn
         _reject_scan(tmp_path / "declared", scan, f"findings[{index}].value", answers)
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+@pytest.mark.parametrize(
+    ("case", "status"),
+    [
+        ("filtered", "unknown"),
+        ("undeclared", "unknown"),
+        ("older-members", "unknown"),
+        ("older-guests", "unknown"),
+        ("unknown-population", "unknown"),
+        ("complete", "ready"),
+        ("confirmed-guest", "needs_work"),
+    ],
+)
+def test_directory_ready_requires_counts_in_a_complete_declared_population(
+    tmp_path: Path, town_scan: dict, lang: str, case: str, status: str
+) -> None:
+    town_scan["licences"] = None
+    population = town_scan["directory_population"]
+    population.update(
+        collected_at="2026-11-02T10:00:00+01:00",
+        coverage=asdict(Coverage("complete", 2, 0, 2)),
+    )
+    members = _finding(town_scan, "directory.user_count")
+    guests = _finding(town_scan, "directory.guest_count")
+    licensed = _finding(town_scan, "directory.licensed_user_count")
+    members["value"], guests["value"], licensed["value"] = 2, 0, 2
+    if case in ("filtered", "undeclared", "confirmed-guest"):
+        del town_scan["directory_population"]
+    if case == "filtered":
+        members["value"] = 1
+        members["coverage"] = guests["coverage"] = asdict(Coverage("complete", 1, 0, 1))
+    elif case == "undeclared":
+        members["value"], licensed["value"] = 0, 20
+    elif case == "older-members":
+        members["collected_at"] = "2026-11-02T08:59:59Z"
+    elif case == "older-guests":
+        guests["collected_at"] = "2026-11-02T08:59:59Z"
+    elif case == "unknown-population":
+        population["coverage"] = {"kind": "unknown", "total": 2}
+    elif case == "confirmed-guest":
+        guests["value"] = 1
+    answers = "confirmations: {directory.account_list_reviewed: true}"
+
+    row = readiness_row(_html(_report(tmp_path / case, town_scan, answers, lang=lang)), "directory")
+
+    assert f'data-status="{status}"' in row
+    absence = {"en": "there are no guest accounts", "de": "es gibt keine Gastkonten"}
+    assert (absence[lang] in row) == (status == "ready")
+    if status == "unknown":
+        assert 'data-reason="directory_population_unverified"' in row
+
+
 @pytest.mark.parametrize("state", ["partial", "unknown", "different-instant"])
 def test_licence_pilots_require_a_complete_directory_population_at_the_same_instant(
     tmp_path: Path, state: str
@@ -770,15 +822,23 @@ def test_licence_pilots_require_a_complete_directory_population_at_the_same_inst
         assert 'data-status="ready"' in readiness_row(baseline, workload)
 
     population = scan["directory_population"]
+    reason = "licence_directory_unverified"
     if state == "different-instant":
         population["collected_at"] = "2026-11-05T10:59:59+01:00"
     else:
         population["coverage"] = asdict(Coverage(state, 20, 1, 21))
+        members = _finding(scan, "directory.user_count")
+        field = f"findings[{scan['findings'].index(members)}].coverage"
+        _reject_scan(tmp_path / "contradictory", scan, field, answers)
+        members["value"] = 20
+        for finding_id in ("user_count", "guest_count", "licensed_user_count"):
+            _finding(scan, f"directory.{finding_id}")["coverage"] = population["coverage"]
+        reason = f"coverage_{state}"
     html = _html(_report(tmp_path / state, scan, answers))
     for workload in LICENCE_PILOTS:
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
-        assert 'data-reason="licence_directory_unverified"' in row
+        assert f'data-reason="{reason}"' in row
 
 
 @pytest.mark.parametrize("date_only", ["both", "directory", "licences"])

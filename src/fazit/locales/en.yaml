@@ -400,6 +400,9 @@ reason:
   licence_directory_unverified:
     label: The directory does not confirm the licence assignments.
     fix: Check the count of licensed accounts against the licence inventory.
+  directory_population_unverified:
+    label: The scan does not confirm that all directory accounts were checked.
+    fix: Check all directory accounts in one scan and record the total.
   coverage_partial:
     label: The measurement covers only part of the scope.
     fix: Check the remaining items before drawing a conclusion about the whole scope.

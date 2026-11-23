@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
-from dataclasses import dataclass
-from datetime import UTC, datetime, time
+from dataclasses import dataclass, replace
+from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 
 from . import PROJECT_NAME
@@ -65,10 +65,11 @@ type FindingValue = int | bool
 
 def _timestamp_after(stamp: str, reference: str) -> bool:
     first, second = datetime.fromisoformat(stamp), datetime.fromisoformat(reference)
-    if first.tzinfo is None:
-        first = first.replace(tzinfo=UTC)
     if second.tzinfo is None:
         second = datetime.combine(second.date(), time.max, UTC)
+    if first.tzinfo is None:
+        # A local date can be one day ahead of the same instant's UTC date.
+        return first.replace(tzinfo=UTC) - second > timedelta(days=1)
     return first > second
 
 
@@ -336,16 +337,17 @@ class _ScanReader:
             )
         return collectors
 
-    def coverage(self, value: object, field: str) -> Coverage:
+    def coverage(self, value: object, field: str, *, declared_total: int | None = None) -> Coverage:
         row = self.fields(value, field, ("kind",), _COVERAGE_COUNTS)
         kind = self.check.choice(row["kind"], f"{field}.kind", COVERAGE_KINDS)
         scanned, failed, total = (
             self.check.optional_count(row.get(name), f"{field}.{name}") for name in _COVERAGE_COUNTS
         )
-        if total is not None and (scanned or 0) + (failed or 0) > total:
+        scope = total if total is not None else declared_total
+        if scope is not None and (scanned or 0) + (failed or 0) > scope:
             self.check.fail(field, "invalid_coverage")
         if kind == "complete" and any(count is not None for count in (scanned, failed, total)):
-            if failed != 0 or scanned is None or total is None or scanned != total:
+            if failed != 0 or scanned is None or scanned != scope:
                 self.check.fail(field, "invalid_coverage")
         return Coverage(kind, scanned, failed, total)
 
@@ -378,7 +380,12 @@ class _ScanReader:
         return self.check.count(value, field, maximum=maximum)
 
     def finding(
-        self, item: object, field: str, entry: FindingEntry, collectors: dict[str, Collector]
+        self,
+        item: object,
+        field: str,
+        entry: FindingEntry,
+        collectors: dict[str, Collector],
+        population: DirectoryPopulation | None,
     ) -> Finding:
         row = self.fields(item, field, _FINDING_FIELDS)
         if row["workload"] != entry.workload:
@@ -395,23 +402,8 @@ class _ScanReader:
             source = self.check.choice(source, f"{field}.source", self.catalogue.source_codes)
         self.check_finding_source(entry, field, collector, source)
         collected_at, period = row["collected_at"], row["period"]
-        coverage = (
-            None if row["coverage"] is None else self.coverage(row["coverage"], f"{field}.coverage")
-        )
         value = None if value is None else self.finding_value(value, f"{field}.value", entry)
-        if provenance == "measured" and coverage is not None:
-            limit = coverage.successful_limit
-            if limit == 0 and (value or coverage.kind != "complete"):
-                self.check.fail(f"{field}.value", "measurement_without_observations")
-            if (
-                type(value) is int
-                and entry.type == "count"
-                and not entry.aggregate
-                and limit is not None
-                and value > limit
-            ):
-                self.check.fail(f"{field}.value", "subset_count_exceeds_population")
-        return Finding(
+        finding = Finding(
             id=entry.id,
             workload=entry.workload,
             unit=entry.unit,
@@ -427,11 +419,32 @@ class _ScanReader:
                 require_time=provenance == "measured" and period is None,
             ),
             period=None if period is None else self.period(period, f"{field}.period"),
-            coverage=coverage,
+            coverage=None,
             missing_reason=None
             if reason is None
             else self.check.choice(reason, f"{field}.missing_reason", self.catalogue.reason_codes),
         )
+        if row["coverage"] is None:
+            return finding
+        declared_total = (
+            population.coverage.total if population and population.includes(finding) else None
+        )
+        coverage = self.coverage(
+            row["coverage"], f"{field}.coverage", declared_total=declared_total
+        )
+        if provenance == "measured":
+            limit = coverage.successful_limit
+            if limit == 0 and (value or coverage.kind != "complete"):
+                self.check.fail(f"{field}.value", "measurement_without_observations")
+            if (
+                type(value) is int
+                and entry.type == "count"
+                and not entry.aggregate
+                and limit is not None
+                and value > limit
+            ):
+                self.check.fail(f"{field}.value", "subset_count_exceeds_population")
+        return replace(finding, coverage=coverage)
 
     def check_finding_source(
         self, entry: FindingEntry, field: str, collector: str | None, source: str | None
@@ -468,11 +481,12 @@ class _ScanReader:
 
     def check_finding_dates(self, finding: Finding, field: str, generated_at: str) -> None:
         collected_at = finding.collected_at
-        if finding.period is not None and _timestamp_after(
-            finding.period[-10:], collected_at or generated_at
-        ):
-            reason = "period_after_scan" if collected_at is None else "period_after_collection"
-            self.check.fail(f"{field}.period", reason)
+        if finding.period is not None:
+            end = finding.period[-10:]
+            if collected_at is not None and _timestamp_after(end, collected_at):
+                self.check.fail(f"{field}.period", "period_after_collection")
+            if _timestamp_after(end, generated_at):
+                self.check.fail(f"{field}.period", "period_after_scan")
         if collected_at is not None and _timestamp_after(collected_at, generated_at):
             self.check.fail(f"{field}.collected_at", "collection_after_scan")
 
@@ -499,7 +513,7 @@ class _ScanReader:
             if entry is None:
                 self.dropped_count += 1
             else:
-                finding = self.finding(item, field, entry, collectors)
+                finding = self.finding(item, field, entry, collectors, population)
                 self.check_finding_dates(finding, field, generated_at)
                 findings[finding_id] = finding
                 if entry.coverage_total_from or entry.subset_of or entry.requires_population:
@@ -514,8 +528,9 @@ class _ScanReader:
     def check_directory_counts(
         self, findings: dict[str, tuple[Finding, str]], population: DirectoryPopulation
     ) -> None:
-        total = population.coverage.total
-        assert total is not None
+        declared = population.coverage
+        total, limit = declared.total, declared.successful_limit
+        assert total is not None and limit is not None
         bounds: dict[str, tuple[int, int]] = {}
         for finding_id, (finding, field) in findings.items():
             value, coverage = finding.value, finding.coverage
@@ -526,9 +541,11 @@ class _ScanReader:
                     "coverage_total_conflict",
                     related="directory_population",
                 )
-            available = total - (coverage.failed or 0)
-            if available < (coverage.scanned or 0):
+            if coverage.kind == "complete" and (declared.kind == "partial" or limit < total):
                 self.check.fail(f"{field}.coverage", "invalid_coverage")
+            if (coverage.scanned or 0) > limit:
+                self.check.fail(f"{field}.coverage", "invalid_coverage")
+            available = min(limit, total - (coverage.failed or 0))
             if value > available:
                 self.check.fail(f"{field}.value", "subset_count_exceeds_population")
             if available == 0 and coverage.kind != "complete":
