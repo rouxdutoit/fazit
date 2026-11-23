@@ -6,7 +6,7 @@ https://fazit.dev/
 
 Free and open source
 
-Fazit’s free demo builds a local report for organisations assessing Microsoft 365 dependencies and costs. It needs no tenant access.
+What you rely on, what needs work and what it would cost, all in one report written on your computer.
 
 Get started View sample report
 
@@ -130,7 +130,7 @@ Pilot assessments About Fazit
 
 https://fazit.dev/start/
 
-Run the free Fazit demo on your computer to see how a Microsoft 365 assessment works. It uses sample data and needs no Microsoft account. After setup it runs offline.
+Run the demo on your own computer. It needs no Microsoft account, and after setup it runs without a network connection.
 
 Run in a terminal
 
@@ -182,7 +182,7 @@ Browse the results for a fictional town with simulated measurements.
 
 https://fazit.dev/coverage/
 
-The table shows which Microsoft 365 functions openDesk and Nextcloud cover. It is free to use and gives organisations a starting point. It does not show which functions you need or what your move would cost.
+The table shows which Microsoft 365 functions the two suites cover. Use the report to check which functions your organisation needs.
 
 ### Compare the suites by area
 
@@ -244,7 +244,7 @@ The openDesk and Nextcloud profiles describe functions covered by projects such 
 
 https://fazit.dev/security/
 
-Fazit is free to use and runs on your computer. Its current version has no network code and needs no access to your Microsoft 365 tenant. The planned Microsoft sign-in will be read-only.
+The current version of Fazit runs on your computer and contains no network code. A read-only sign-in to Microsoft is planned.
 
 The planned import will read usage exports offline.
 
@@ -338,7 +338,7 @@ https://fazit.dev/roadmap/
 
 ### Project status
 
-Organisations planning a move from Microsoft 365 can run Fazit from source for free. Use the sample data with your own answers and costs to build a report on your computer. Import of Microsoft 365 exports comes next.
+You can run Fazit from source and build reports from the bundled samples with your own answers and costs.
 
 #### Now
 
@@ -362,7 +362,7 @@ French and Italian are planned with the Swiss pilot. The translation guide shows
 
 https://fazit.dev/about/
 
-I’m Ruan “Roux” du Toit. I build Fazit in Feldkirchen, near Munich, to help public bodies and other organisations assess a move from Microsoft 365. Fazit is free and recommends no supplier. I started in November 2026, four days after reading Jordan Krueger’s post. I want what I build to be for all of us. That is why Fazit is copyleft: anyone may use it, change it and share it, and it stays open.
+I’m Ruan “Roux” du Toit. I build Fazit in Feldkirchen, near Munich. I started in November 2026, four days after reading Jordan Krueger’s post. I want what I build to be for all of us. That is why Fazit is copyleft: anyone may use it, change it and share it, and it stays open.
 
 ### Where it started
 
@@ -442,7 +442,7 @@ Read the mappings and their sources
 
 https://fazit.dev/pilots/
 
-Fazit is offering three free assessments of what a move from Microsoft 365 would take. The offer is for organisations with 200 to 2,000 staff, one each in Germany, Austria and Switzerland. Pilot assessments will start once local import of admin-centre exports is available.
+Fazit is offering three free assessments for organisations with 200 to 2,000 staff, one each in Germany, Austria and Switzerland.
 
 Expressions of interest are open until 28 February 2027 or until all three places are filled.
 
@@ -452,7 +452,7 @@ Express interest
 
 We help you run Fazit on a computer in your organisation. You keep the resulting HTML report. It opens with a summary for the council, prepared for the first printed page. The report assesses 14 areas and sets out dependencies, open source alternatives and a five-year cost comparison based on the figures you supply.
 
-You can review the sample report today.
+You can review the sample report today. Pilot assessments will start once local import of admin-centre exports is available.
 
 ### Taking part
 
@@ -478,7 +478,7 @@ To express interest, email hello@rouxdutoit.com with your country and approximat
 
 https://fazit.dev/integrators/
 
-The free Fazit sample report shows IT providers which exports and answers to request from a Microsoft 365 client, and who to ask. It groups requests by evidence so you ask once per item. Fazit cannot import client exports yet.
+Use the findings to identify which exports and answers to request from your client. The report groups open points by the evidence needed and names the responsible role for each. That lets you request each item once even if it affects several areas.
 
 CSV export for project plans is planned for phase 1.2.
 
@@ -502,7 +502,7 @@ https://fazit.dev/de/
 
 Kostenlos und quelloffen
 
-Die kostenlose Demo erstellt ohne Mandantenzugriff einen Bericht auf Ihrem Rechner. Er zeigt Organisationen beispielhaft Abhängigkeiten von Microsoft 365 und Umstiegskosten.
+Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, alles in einem Bericht, der auf Ihrem Rechner entsteht.
 
 Jetzt starten Beispielbericht ansehen
 
@@ -626,7 +626,7 @@ Pilotprüfungen Über Fazit
 
 https://fazit.dev/de/start/
 
-Mit der kostenlosen Demo sehen Sie, wie Fazit einen Umstieg von Microsoft 365 prüft. Die Demo nutzt Beispieldaten und benötigt kein Microsoft-Konto. Nach der Einrichtung läuft sie ohne Netzwerkverbindung auf Ihrem Rechner.
+Führen Sie das Beispiel auf Ihrem eigenen Rechner aus. Sie brauchen kein Microsoft-Konto, und nach der Einrichtung läuft es ohne Netzwerkverbindung.
 
 Im Terminal ausführen
 
@@ -678,7 +678,7 @@ Der Bericht zeigt die Ergebnisse für eine fiktive Stadtverwaltung mit simuliert
 
 https://fazit.dev/de/coverage/
 
-Die Übersicht zu openDesk und Nextcloud ist kostenlos zugänglich. Sie zeigt, welche Funktionen von Microsoft 365 beide Suiten abdecken. Welche Funktionen Ihre Organisation braucht und was der Umstieg kosten würde, klären Sie bei der Bestandsaufnahme.
+Die Tabelle vergleicht die beiden Suiten mit Microsoft 365. Bei der Bestandsaufnahme klären Sie, welche Funktionen Ihre Organisation benötigt.
 
 ### Funktionsumfang nach Bereich vergleichen
 
@@ -740,7 +740,7 @@ Die Profile für openDesk und Nextcloud zeigen, welche Funktionen Projekte wie C
 
 https://fazit.dev/de/security/
 
-Fazit ist kostenlos und läuft auf Ihrem Rechner. Die aktuelle Version enthält keinen Code für Netzwerkzugriffe und benötigt keinen Zugang zu Ihrem Microsoft-365-Mandanten. Geplant ist eine Anmeldung bei Microsoft mit reinem Lesezugriff.
+Die aktuelle Version von Fazit läuft auf Ihrem Rechner und enthält keinen Code für Netzwerkzugriffe. Geplant ist eine Anmeldung bei Microsoft mit reinem Lesezugriff.
 
 Beim geplanten Import sollen Nutzungsberichte ohne Netzwerkverbindung eingelesen werden.
 
@@ -834,7 +834,7 @@ https://fazit.dev/de/roadmap/
 
 ### Projektstand
 
-Für eine Prüfung des Umstiegs von Microsoft 365 können Sie Fazit kostenlos aus dem Quellcode starten. Fazit erstellt den Bericht lokal aus Beispieldaten und Ihren eigenen Antworten und Kosten. Der Import eigener Exporte folgt.
+Sie können Fazit aus dem Quellcode starten und Berichte aus den Beispieldaten mit eigenen Antworten und Kosten erstellen.
 
 #### Verfügbar
 
@@ -858,7 +858,7 @@ Französisch und Italienisch sind mit dem Schweizer Pilotprojekt geplant. Die Ü
 
 https://fazit.dev/de/about/
 
-Ich bin Ruan „Roux“ du Toit und entwickle Fazit in Feldkirchen bei München. Das Programm hilft Verwaltungen und anderen Organisationen, einen Umstieg von Microsoft 365 zu prüfen. Es ist kostenlos und empfiehlt keinen Anbieter. Angefangen habe ich im November 2026, vier Tage nachdem ich den Beitrag von Jordan Krueger gelesen hatte. Was ich baue, soll uns allen gehören. Deshalb steht Fazit unter einer Copyleft-Lizenz: Alle dürfen es nutzen, ändern und weitergeben, und es bleibt offen.
+Ich bin Ruan „Roux“ du Toit und entwickle Fazit in Feldkirchen bei München. Angefangen habe ich im November 2026, vier Tage nachdem ich den Beitrag von Jordan Krueger gelesen hatte. Was ich baue, soll uns allen gehören. Deshalb steht Fazit unter einer Copyleft-Lizenz: Alle dürfen es nutzen, ändern und weitergeben, und es bleibt offen.
 
 ### Der Anlass
 
@@ -938,7 +938,7 @@ Zuordnungen und Quellen ansehen
 
 https://fazit.dev/de/pilots/
 
-Fazit bietet drei kostenlose Pilotprüfungen zum Umstieg von Microsoft 365 an, je eine in Deutschland, Österreich und der Schweiz. Das Angebot richtet sich an Organisationen mit 200 bis 2.000 Beschäftigten. Die Pilotprüfungen beginnen, sobald Fazit Exporte aus dem Admin Center lokal einlesen kann.
+Fazit bietet drei kostenlose Pilotprüfungen an, je eine in Deutschland, Österreich und der Schweiz. Das Angebot richtet sich an Organisationen mit 200 bis 2.000 Beschäftigten.
 
 Sie können Ihr Interesse bis zum 28. Februar 2027 bekunden. Die Frist endet früher, wenn alle Plätze vergeben sind.
 
@@ -948,7 +948,7 @@ Interesse bekunden
 
 Wir unterstützen Sie dabei, Fazit auf einem Rechner Ihrer Organisation auszuführen. Der HTML-Bericht bleibt bei Ihnen. Die Übersicht für das Entscheidungsgremium steht auf der ersten Druckseite. Der Bericht bewertet 14 Bereiche und zeigt Abhängigkeiten, mögliche Open-Source-Alternativen und einen Kostenvergleich über fünf Jahre auf Grundlage Ihrer Angaben.
 
-Den Beispielbericht können Sie bereits ansehen.
+Den Beispielbericht können Sie bereits ansehen. Die Pilotprüfungen beginnen, sobald Fazit Exporte aus dem Admin Center lokal einlesen kann.
 
 ### Teilnahme
 
@@ -974,7 +974,7 @@ Wenn Sie Interesse haben, schreiben Sie an hello@rouxdutoit.com. Geben Sie bitte
 
 https://fazit.dev/de/integrators/
 
-Der kostenlose Fazit-Beispielbericht zeigt IT-Dienstleistern, welche Exporte und Antworten sie von ihren Kunden zu Microsoft 365 brauchen. Er bündelt die Anfragen nach Nachweis und nennt die zuständige Rolle. Der Import von Kundenexporten ist noch nicht verfügbar.
+Nutzen Sie die Befunde, um mit Ihren Kunden zu klären, welche Exporte und Antworten noch fehlen. Der Bericht bündelt offene Punkte nach den noch benötigten Nachweisen und nennt die jeweils zuständige Rolle. So genügt eine Anfrage, auch wenn mehrere Bereiche betroffen sind.
 
 Für Phase 1.2 ist ein CSV-Export für die Projektplanung vorgesehen.
 

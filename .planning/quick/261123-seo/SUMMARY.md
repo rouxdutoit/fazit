@@ -149,3 +149,25 @@ Free, open source CLI for assessing a move from Microsoft 365 to openDesk, Nextc
 | `uv run fazit demo --lang en` and `uv run fazit demo --lang de` | Passed with temporary output directories. |
 | CI’s unpacked source distribution step | Python 3.12.16, 1,073 passed, 16 expected skips for checkout-only files, zero failures. |
 | Preview, public demo and assistant text rebuilds | All five generated files reproduced byte for byte. |
+
+## Follow-up
+
+Restored all 16 English and German openings verbatim from `e80a0b7^`, including the founder’s wording and links on About. On the Pilots pages, the local import condition is back under “What you receive” and “Was Sie erhalten”. The Home download labels show the measured sizes of the published reports, rounded to 429 KB in English and 442 KB in German. The founder can accept or reject each proposed opening separately. [Copy proposals](COPY-PROPOSALS.md)
+
+Checked the descriptions against the restored pages. Updated Start, Security, Pilots, Integrators, the legal notices and the 404 pages in both languages. The social tags and JSON-LD descriptions use the same wording as their page’s meta description. Rebuilt the full site text from the restored pages. [Full site text](../../../site/llms-full.txt)
+
+Both languages now share one 1200 × 630 link preview, as the founder decided on 2026-11-23. The generator centres the lowercase wordmark’s visible bounds at (600, 315). It uses the site’s Figtree at weight 600 and its light-mode text and background colours. The cap height measures 59 px, and the PNG is 21,620 bytes. The Open Graph and Twitter alt text is “Fazit wordmark” in English and “Fazit-Wortmarke” in German. [Shared preview](../../../site/og.png)
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `uv run ruff check .` and `uv run ruff format --check .` | Passed. |
+| `uv run pytest -q` | 1,089 passed. |
+| `uv run python site/check_site.py` | 24 pages and 1,027 references checked without errors. |
+| `node site/check_alignment.mjs` | Zero failures in Chromium and WebKit. |
+| `node site/check_spacing.mjs` | Zero failures in Chromium and WebKit. |
+| `uv run fazit demo --lang en` and `uv run fazit demo --lang de` | Both reports opened offline in Chromium and WebKit. |
+| `node tests/browser/check-scrollbars.mjs` | Passed in Chromium and WebKit, including the published reports offline. |
+| CI’s unpacked source distribution step | Python 3.12.16, 1,073 passed, 16 expected skips for checkout-only files, zero failures. |
+| Preview, public demo and full site text rebuilds | All four generated files reproduced byte for byte. |

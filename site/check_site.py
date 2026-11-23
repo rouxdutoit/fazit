@@ -168,7 +168,6 @@ class Page(HTMLParser):
         self._buttons_needing_icons: dict[int, int] = {}
         self._buttons_without_icons: list[int] = []
         self._title_text: list[str] = []
-        self._heading_text: list[str] = []
         self._json_ld_text: list[str] | None = None
         self.json_ld: list[dict] = []
         self._coverage_table = False
@@ -183,7 +182,6 @@ class Page(HTMLParser):
         self.feed(self.source)
         self.close()
         self.title = " ".join("".join(self._title_text).split())
-        self.heading = " ".join("".join(self._heading_text).split())
 
     def handle_decl(self, decl: str) -> None:
         self.doctype = decl.lower() == "doctype html"
@@ -313,8 +311,6 @@ class Page(HTMLParser):
                 self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
         if self.stack[-2:] == ["head", "title"]:
             self._title_text.append(data)
-        if "h1" in self.stack:
-            self._heading_text.append(data)
         if self._target is not None:
             self._cell_text.append(data)
 
@@ -376,7 +372,7 @@ class Page(HTMLParser):
                 for line in sorted(self._buttons_without_icons)
             )
 
-    def check_metadata(self, route: str, pair: dict[str, str], lang: str, heading: str) -> None:
+    def check_metadata(self, route: str, pair: dict[str, str], lang: str) -> None:
         description = self.meta.get("description", "")
         if not self.title.endswith(" · Fazit") or len(self.title) >= 60:
             self.errors.append(
@@ -391,7 +387,7 @@ class Page(HTMLParser):
         noindex = "noindex" in re.split(r"[\s,]+", self.meta.get("robots", "").lower())
         if noindex != (route in ERROR_ROUTES):
             self.errors.append("Only the error pages should set noindex.")
-        for key, value in social_metadata(route, lang, self.title, description, heading).items():
+        for key, value in social_metadata(route, lang, self.title, description).items():
             if self.meta.get(key) != value:
                 self.errors.append(f"Incorrect or missing metadata {key}.")
 
@@ -421,11 +417,9 @@ class Page(HTMLParser):
             self.errors.append(f"Expected JSON-LD of type {expected}.")
 
 
-def social_metadata(
-    route: str, lang: str, title: str, description: str, heading: str
-) -> dict[str, str]:
-    image = ORIGIN + ("/og-de.png" if lang == "de" else "/og.png")
-    alt = f"Fazit: {heading}"
+def social_metadata(route: str, lang: str, title: str, description: str) -> dict[str, str]:
+    image = ORIGIN + "/og.png"
+    alt = "Fazit-Wortmarke" if lang == "de" else "Fazit wordmark"
     locale, other = ("de_DE", "en_GB") if lang == "de" else ("en_GB", "de_DE")
     return {
         "og:type": "website",
@@ -833,7 +827,7 @@ def check_roadmap(page: Page) -> list[str]:
     return errors
 
 
-def demo_with_metadata(markup: str, lang: str, heading: str) -> str:
+def demo_with_metadata(markup: str, lang: str) -> str:
     pair = dict(zip(LANGUAGES, DEMO_ROUTES, strict=True))
     route = pair[lang]
     copy = load_locale(lang)["demo_page"]
@@ -847,7 +841,7 @@ def demo_with_metadata(markup: str, lang: str, heading: str) -> str:
         f'<link rel="alternate" hreflang="{language}" href="{url}">'
         for language, url in alternates(pair).items()
     )
-    for key, value in social_metadata(route, lang, title, description, heading).items():
+    for key, value in social_metadata(route, lang, title, description).items():
         attribute = "property" if key.startswith("og:") else "name"
         head.append(f'<meta {attribute}="{key}" content="{escape(value)}">')
     result, count = re.subn(
@@ -862,7 +856,7 @@ def demo_with_metadata(markup: str, lang: str, heading: str) -> str:
     return result
 
 
-def check_demo_reports(headlines: dict[str, str], *, write: bool = False) -> list[str]:
+def check_demo_reports(*, write: bool = False) -> list[str]:
     errors = []
     runner = CliRunner()
     updates: dict[Path, str] = {}
@@ -880,9 +874,7 @@ def check_demo_reports(headlines: dict[str, str], *, write: bool = False) -> lis
             if not generated.is_file():
                 errors.append(f"{name}: Fazit demo produced no report.")
                 continue
-            expected = demo_with_metadata(
-                generated.read_text(encoding="utf-8"), lang, headlines.get(lang, "")
-            )
+            expected = demo_with_metadata(generated.read_text(encoding="utf-8"), lang)
             if write:
                 updates[target] = expected
             elif not target.is_file() or target.read_bytes() != expected.encode("utf-8"):
@@ -900,7 +892,6 @@ def check_assets() -> list[str]:
     errors = []
     for filename, dimensions in (
         ("og.png", (1200, 630)),
-        ("og-de.png", (1200, 630)),
         ("apple-touch-icon.png", (180, 180)),
     ):
         image = ROOT / filename
@@ -1031,9 +1022,7 @@ def check_design(css: str, template: str) -> list[str]:
     return [f"style.css: {error}" for error in errors]
 
 
-def check_pages(
-    pages: dict[Path, Page], headlines: dict[str, str]
-) -> tuple[list[str], dict[str, dict[str, str]]]:
+def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
     errors = []
     declared = {}
     for en, de in PAGE_PAIRS:
@@ -1047,7 +1036,7 @@ def check_pages(
                 continue
             demo = route in DEMO_ROUTES
             page.check_structure(lang, demo=demo)
-            page.check_metadata(route, pair, lang, headlines.get(lang, ""))
+            page.check_metadata(route, pair, lang)
             page.check_structured_data(en)
             switch = (pair[other], other, other)
             if not demo and page.switches != [switch, switch]:
@@ -1090,22 +1079,17 @@ def main() -> int:
         "--write-demos", action="store_true", help="Rebuild the public sample reports."
     )
     args = parser.parse_args()
+    if args.write_demos:
+        errors = check_demo_reports(write=True)
+        for error in errors:
+            print(error)
+        return int(bool(errors))
     pages = {
         path: Page(path)
         for path in sorted(ROOT.rglob("*.html"))
         if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
     }
-    headlines = {
-        lang: pages[path].heading
-        for lang, route in zip(LANGUAGES, PAGE_PAIRS[0], strict=True)
-        if (path := local_path(route)) in pages
-    }
-    if args.write_demos:
-        errors = check_demo_reports(headlines, write=True)
-        for error in errors:
-            print(error)
-        return int(bool(errors))
-    errors, sitemap = check_pages(pages, headlines)
+    errors, sitemap = check_pages(pages)
     errors.extend(check_unique_metadata(pages))
     errors.extend(check_sitemap(sitemap))
     errors.extend(check_security_txt(datetime.now(UTC)))
@@ -1113,7 +1097,7 @@ def main() -> int:
     errors.extend(check_robots())
     errors.extend(check_llms_full())
     errors.extend(check_headers())
-    errors.extend(check_demo_reports(headlines))
+    errors.extend(check_demo_reports())
 
     references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"
