@@ -59,3 +59,26 @@ The comparison images place each before and after crop beside the live Apple ref
 Both reports opened from disk at 360 px with networking and JavaScript disabled. Chromium loaded Figtree and the status filters and disclosures worked. The scrollbar check passed on all 24 routes and both offline reports at the three widths in light and dark. The A4 council summary fit on page one for the town, nonprofit and all-Unknown reports in both languages, with background printing on and off.
 
 The unpacked-source run used the workflow's shell body with the local CPython 3.12.16 path and uv 0.13.9. The archive and its unpacked root omit `site/`, and the package contains the chevron SVG. The six skips cover one test for `.git`, two for the workflow, one for `site/icons` and two for `site/style.css`. [CI workflow](../../../.github/workflows/ci.yml)
+
+## Polish 3
+
+Removed the circle wrapper and its CSS from these 16 linked cards. Each title uses the shared trailing chevron with the same gap, baseline and text colour rules as the report and standalone links. [Design rules](../../../DESIGN.md#links-and-buttons)
+
+| Page | English card | German card |
+| --- | --- | --- |
+| Start | Get Git | Git herunterladen |
+| Start | Install uv | uv installieren |
+| Start | Sample report | Beispielbericht |
+| About | Open | Offen |
+| About | Local | Lokal |
+| About | Unknown stays unknown | Unbekannt bleibt unbekannt |
+| About | No tracking | Kein Tracking |
+| About | Not finished | Noch nicht fertig |
+
+The Pilots and Integrators pages on `polish` use text links in both languages.
+
+The alignment check now catches a wrapper or background on a linked card's chevron. It rejected the original markup in all 96 linked-card views across the three widths and two themes. Browser checks confirmed whole-card hit targets, hover scale and shadow, and keyboard focus on all 16 cards at 360 px in light mode and 1280 px in dark mode.
+
+Ruff lint and formatting, the site checker, and the alignment and spacing checks passed. Both generated demo reports matched the published files byte for byte and opened at 360 px with networking and JavaScript disabled.
+
+The checkout suite passed 1,006 tests. The unpacked source distribution passed 1,000 tests with six expected skips and zero failures. [CI workflow](../../../.github/workflows/ci.yml)

@@ -135,6 +135,15 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       failures.push({ selector: selector(pair), check: "chevron path, stroke or colour", offset: "—" });
       return;
     }
+    if (pair.matches(".tile-link h3")) {
+      const tail = svg.parentElement;
+      const surfaces = [getComputedStyle(svg), getComputedStyle(tail),
+        getComputedStyle(tail, "::before"), getComputedStyle(tail, "::after")];
+      if (!tail.matches(".symbol-text > .chevron-tail") || surfaces.some(style =>
+        style.backgroundColor !== "rgba(0, 0, 0, 0)" || style.backgroundImage !== "none")) {
+        failures.push({ selector: selector(pair.closest(".tile-link")), check: "plain card chevron", offset: "—" });
+      }
+    }
 
     // Round caps and joins extend the line bounds by half the non-scaling stroke.
     const stroke = parseFloat(style.strokeWidth);

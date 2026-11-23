@@ -1221,32 +1221,6 @@ code {
   text-shadow: none;
 }
 
-.tile-arrow {
-  position: relative;
-  display: inline-block;
-  vertical-align: baseline;
-  isolation: isolate;
-}
-
-.tile-arrow > .chevron { display: block; }
-
-.tile-arrow::before {
-  position: absolute;
-  z-index: -1;
-  inset: 50% auto auto 50%;
-  inline-size: 1em;
-  block-size: 1em;
-  translate: -50% -50%;
-  border-radius: var(--radius-pill);
-  background: var(--fill-2);
-  transition: background-color 0.3s cubic-bezier(0, 0, 0.5, 1);
-  content: "";
-}
-
-.tile-link:hover .tile-arrow::before {
-  background: color-mix(in srgb, var(--fg) 16%, var(--bg));
-}
-
 .timeline {
   position: relative;
   padding: 0;

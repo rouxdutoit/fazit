@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Linked card chevrons
+
+**D43. Use the plain trailing chevron on linked cards.**
+
+Linked card titles use the same trailing chevron as standalone links and report card titles. It takes the title's text colour and follows the shared gap and baseline rules. The whole card is the link. This updates D30 and D42. [Design rules](DESIGN.md#links-and-buttons)
+
 ## 2026-11-23 — Button heights and chevrons
 
 **D42. Use 44 px standard buttons and align chevrons with lowercase text.**
