@@ -1008,8 +1008,12 @@ def test_report_document_structure(
     assert len({path for _, path in icons}) == len(icons) == len(DISPLAY_ORDER)
 
 
-def _luminance(color: str) -> float:
-    channels = [int(color[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+def _srgb(color: str) -> tuple[float, ...]:
+    return tuple(int(color[i : i + 2], 16) / 255 for i in (1, 3, 5))
+
+
+def _luminance(color: str | tuple[float, ...]) -> float:
+    channels = _srgb(color) if isinstance(color, str) else color
     linear = [
         value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
         for value in channels
@@ -1127,8 +1131,11 @@ def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
 
 def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[str, str]) -> None:
     (report,) = ReportDocument(style_references["en"]).styles
-    site = (ROOT / "site" / "style.css").read_text("utf-8")
     template = (ROOT / "src" / "fazit" / "templates" / "report.html.j2").read_text("utf-8")
+    sources = [template, report]
+    site = ROOT / "site" / "style.css"
+    if site.is_file() or not (ROOT / "PKG-INFO").is_file():
+        sources.append(site.read_text("utf-8"))
     palettes = {
         "": {
             "blocker": "light-dark(#ff8d28,#ff9230)",
@@ -1143,7 +1150,7 @@ def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[
             "unknown": "light-dark(#6c6c70,#aeaeb2)",
         },
     }
-    for css in (site, template, report):
+    for css in sources:
         for media, expected in palettes.items():
             start = re.escape(media) + r"\s*\{\s*" if media else ""
             root = re.search(start + r":root\s*\{([^}]+)\}", css)
@@ -1159,10 +1166,36 @@ def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[
             r"\.status > \.icon:not\(\.chevron\)\s*\{\s*color:\s*var\(--status-fill\);\s*\}", css
         )
         assert re.search(
-            r"\.badge\.status\s*\{\s*background:\s*color-mix\(in srgb,\s*"
-            r"var\(--status-fill\)\s*\d+%,\s*var\(--fill\)\);\s*\}",
+            r"\.badge\.status\s*\{\s*color:\s*light-dark\(var\(--fg\),\s*var\(--status-fill\)\);"
+            r"\s*background:\s*color-mix\(in srgb,\s*"
+            r"var\(--status-fill\)\s*12%,\s*var\(--fill\)\);",
             css,
         )
+        base_badge = re.search(r"^\s*\.badge\s*\{([^}]+)\}", css, re.M)
+        assert base_badge and "background: var(--fill-2);" in base_badge[1]
+        assert "color:" not in base_badge[1]
+
+
+@pytest.mark.parametrize("theme", ("light", "dark"))
+@pytest.mark.parametrize("more_contrast", (False, True))
+def test_badge_labels_clear_small_text_contrast(
+    style_references: dict[str, str], theme: str, more_contrast: bool
+) -> None:
+    (css,) = ReportDocument(style_references["en"]).styles
+    default = re.search(r":root\s*\{([^}]+)\}", css)
+    dark = re.search(r"prefers-color-scheme: dark\)\s*\{\s*:root\s*\{([^}]+)\}", css)
+    increased = re.search(r"prefers-contrast: more\)\s*\{\s*:root\s*\{([^}]+)\}", css)
+    assert default and dark and increased
+    surfaces = dict(CSS_DECLARATION.findall(dark[1] if theme == "dark" else default[1]))
+    palette = dict(CSS_DECLARATION.findall(increased[1] if more_contrast else default[1]))
+    surface = _srgb(surfaces["--surface"].strip())
+    for status in DISPLAY_ORDER:
+        values = re.findall(r"#[0-9a-f]{6}", palette[f"--status-{status.replace('_', '-')}"])
+        color = values[-1] if theme == "dark" else values[0]
+        label = color if theme == "dark" else surfaces["--text"].strip()
+        tint = tuple(0.12 * a + 0.88 * b for a, b in zip(_srgb(color), surface, strict=True))
+        low, high = sorted((_luminance(label), _luminance(tint)))
+        assert (high + 0.05) / (low + 0.05) >= 4.5, (theme, more_contrast, status)
 
 
 def _checksums(html: str) -> dict[str, str]:

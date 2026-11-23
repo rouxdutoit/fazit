@@ -79,7 +79,19 @@
       --mono: "Geist Mono", ui-monospace, monospace;
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
       --gutter: 20px;
-      --section-space: 48px;
+      --rhythm-page-heading: 64px;
+      --rhythm-divider: 32px;
+      --rhythm-section-heading: 16px;
+      --rhythm-paragraph: 12px;
+      --rhythm-lede-visual: 24px;
+      --rhythm-visual-link: 16px;
+      --rhythm-text-link: 24px;
+      --rhythm-card: 12px;
+      --rhythm-group: 32px;
+      --rhythm-subheading: 12px;
+      --rhythm-caption: 16px;
+      --rhythm-footer: 48px;
+      --rhythm-inline-links: 24px;
       --card-padding: 24px;
       --max: 1120px;
       --measure: 42.5rem;
@@ -97,7 +109,7 @@
       }
     }
     @media (max-width: 600px) {
-      :root { --gutter: 16px; --section-space: 32px; }
+      :root { --gutter: 16px; }
     }
     * { box-sizing: border-box; }
     body {
@@ -121,10 +133,10 @@
       overflow-wrap: break-word;
     }
     time { white-space: nowrap; }
-    h1, h2, h3, h4, p { margin: 0; }
+    h1, h2, h3, h4, p, main :where(ul, ol, dl) { margin: 0; }
     h1, h2, h3, h4, strong, b { font-weight: 600; }
     h1, h2, h3, h4 { text-wrap: balance; }
-    h3 { font-size: var(--fs-body); line-height: 1.3; margin-block: 32px 12px; }
+    h3 { font-size: var(--fs-body); line-height: 1.3; }
     p, li, dt, dd, figcaption, td, summary, small { text-wrap: pretty; }
     a { color: var(--link); text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
     a:hover { color: var(--accent-hover); }
@@ -330,10 +342,7 @@
     .page-intro {
       max-width: var(--max);
       margin-inline: auto;
-      padding: 24px var(--gutter);
-    }
-    @media screen and (min-width: 880px) {
-      .page-intro { padding-block: 32px 16px; }
+      padding-inline: var(--gutter);
     }
     .page-intro h1 {
       font-size: var(--fs-display);
@@ -344,17 +353,15 @@
     }
     .page-intro p {
       max-width: var(--measure);
-      margin-top: 12px;
       color: var(--fg-2);
     }
     .eyebrow {
       color: var(--fg-2);
       font-weight: 600;
     }
-    .page-intro .eyebrow { margin-top: 0; overflow-wrap: anywhere; }
+    .page-intro .eyebrow { overflow-wrap: anywhere; }
     @media screen {
       .page-intro .note {
-        margin-top: 16px;
         padding: 0;
         background: none;
         font-size: var(--fs-subhead);
@@ -363,15 +370,15 @@
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
+      align-items: start;
       width: 100%;
       max-width: var(--max);
       margin: 0 auto;
       padding-inline: var(--gutter);
-      gap: 16px 48px;
+      gap: var(--rhythm-section-heading) 48px;
     }
     .sec {
       position: relative;
-      padding-block: var(--section-space);
     }
     .sec::before {
       position: absolute;
@@ -403,18 +410,10 @@
       min-width: 0;
       overflow-wrap: break-word;
     }
-    .sec-body > :first-child { margin-top: 0; }
     .sec-body > p, .sec-body .subsection > p { max-width: var(--measure); }
-    .sec-body .subsection > p + p, .sec-body > p + p { margin-top: 12px; }
     .sec-intro { color: var(--fg-2); }
-    .subsection { margin-top: 32px; }
-    .subsection > :first-child { margin-top: 0; }
-    @media screen {
-      [data-section=summary] .sec { padding-block-start: 24px; }
-    }
     .status-summary, .coverage-summary {
       max-width: var(--measure);
-      margin: 12px 0 0;
     }
     .status-summary > div {
       display: grid;
@@ -440,16 +439,13 @@
     }
     .coverage-summary > div + div { margin-block-start: 4px; }
     .coverage-summary dd { margin: 0; }
-    .scope-needed { margin-block: 12px 4px; }
     .scope-links {
       display: grid;
       gap: 4px;
-      margin: 0 0 12px;
       padding: 0;
       list-style: none;
     }
     .rows {
-      margin: 0;
       padding: 8px var(--card-padding);
       border-radius: var(--radius-card);
       background: var(--fill);
@@ -465,12 +461,11 @@
     .rows dt { font-weight: 600; }
     .rows dd { max-width: var(--measure); margin: 0; color: var(--fg-2); }
     [data-summary] .rows > div { gap: 8px; }
-    h3 + .rows, p + .rows { margin-top: 12px; }
     .summary-links {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px 16px;
-      margin-top: 12px;
+      align-items: flex-start;
+      gap: 8px var(--rhythm-inline-links);
     }
     @media screen {
       .summary-links > a { min-height: var(--hit); }
@@ -478,8 +473,7 @@
     .tiles {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
-      margin: 24px 0 0;
+      gap: var(--rhythm-card);
       padding: 0;
       list-style: none;
     }
@@ -522,22 +516,15 @@
       overflow-wrap: anywhere;
     }
     .tiles-3 .figure-num { font-size: var(--fs-headline); }
-    .summary-costs .tiles { margin-top: 0; }
-    .summary-costs .cost-origin { margin: 0 0 12px; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
     .cost-value { overflow-wrap: anywhere; }
     .cost-notes {
-      display: grid;
-      gap: 8px;
       max-width: var(--measure);
-      margin-top: 12px;
     }
-    .cost-notes p { margin: 0; }
     .report-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 4px 12px;
-      margin: 12px 0 0;
       font-size: var(--fs-footnote);
     }
     .report-meta div { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -546,7 +533,6 @@
     .muted, small { color: var(--muted); }
     small { display: block; font-size: var(--fs-footnote); line-height: 1.33; }
     .prov { color: var(--muted); font-size: var(--fs-footnote); font-weight: 600; }
-    .table-scroll { margin-block: 12px 24px; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -556,7 +542,7 @@
     }
     tbody th { font-weight: 600; }
     th[scope="rowgroup"] { padding-block-start: 24px; color: var(--text); font-size: var(--fs-body); }
-    caption { padding-block-end: 8px; color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
+    caption { color: var(--muted); font-size: var(--fs-footnote); text-align: start; }
     .coverage th, .coverage td, .cost-table th, .cost-table td {
       padding-block: 16px;
       padding-inline-end: 16px;
@@ -652,6 +638,7 @@
       white-space: nowrap;
     }
     .badge.status {
+      color: light-dark(var(--fg), var(--status-fill));
       background: color-mix(in srgb, var(--status-fill) 12%, var(--fill));
     }
     @media screen and (max-width: 600px) {
@@ -660,42 +647,36 @@
     }
     .finding-reason {
       max-width: var(--measure);
-      margin-top: 16px;
     }
     .finding-target {
+      display: grid;
+      justify-items: start;
       max-width: var(--measure);
-      margin-top: 16px;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
     }
-    .finding-target > span { display: block; }
-    .finding-target > .more { margin-block-start: 4px; }
+    .finding-replacements > span { display: block; }
     .more { --symbol-gap: 4px; color: var(--link-quiet); }
     .more:hover { color: var(--link); }
     .area-link { color: var(--fg); }
     .area-link:hover { color: var(--link-hover); }
     .table-note, .note-text {
-      margin-top: 16px;
       color: var(--fg-2);
       font-size: var(--fs-footnote);
     }
-    .finding-next { max-width: var(--measure); margin-top: 16px; }
+    .finding-next { max-width: var(--measure); }
     .finding-next > strong { display: block; font-size: var(--fs-subhead); }
-    .finding-missing { margin-top: 16px; font-size: var(--fs-subhead); }
+    .finding-missing { font-size: var(--fs-subhead); }
     .finding-missing li > strong { display: block; margin-block-end: 4px; }
-    .finding .workload-evidence { margin-top: 12px; }
-    .workload-evidence .table-scroll { margin-block: 24px; }
-    .status-group {
+    .areas, .finding-cards {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
     }
-    .status-group > h3 { margin: 0; }
-    .status-group + .status-group { margin-top: 32px; }
+    .areas { gap: var(--rhythm-group); }
+    .finding-cards { gap: var(--rhythm-card); }
     .filters {
       display: grid;
       gap: 12px;
-      margin-block-end: 32px;
     }
     .filter-controls {
       display: flex;
@@ -703,7 +684,6 @@
       align-items: center;
       gap: 12px;
     }
-    .filters .note-text { margin: 0; }
     .segmented {
       display: inline-flex;
       flex-wrap: wrap;
@@ -788,7 +768,6 @@
     }
     .areas-empty {
       display: none;
-      margin-top: 24px;
       color: var(--fg-2);
       text-align: center;
     }
@@ -809,49 +788,49 @@
           outline-offset: -2px;
         }
 
-          [data-section=readiness]:has(#f-status-blocker:checked) .status-group:not([data-status-group="blocker"], :has(> h3:target, > .finding:target)),
-          [data-section=readiness]:has(#f-status-blocker:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-status="blocker"], :target) {
+          [data-section=readiness]:has(#f-status-blocker:checked) .status-group:not([data-status-group="blocker"], :has(> h3:target, .finding:target)),
+          [data-section=readiness]:has(#f-status-blocker:checked) .status-group:not(:has(> h3:target)) .finding:not([data-status="blocker"], :target) {
             display: none;
           }
 
-          [data-section=readiness]:has(#f-status-needs_work:checked) .status-group:not([data-status-group="needs_work"], :has(> h3:target, > .finding:target)),
-          [data-section=readiness]:has(#f-status-needs_work:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-status="needs_work"], :target) {
+          [data-section=readiness]:has(#f-status-needs_work:checked) .status-group:not([data-status-group="needs_work"], :has(> h3:target, .finding:target)),
+          [data-section=readiness]:has(#f-status-needs_work:checked) .status-group:not(:has(> h3:target)) .finding:not([data-status="needs_work"], :target) {
             display: none;
           }
 
-          [data-section=readiness]:has(#f-status-unknown:checked) .status-group:not([data-status-group="unknown"], :has(> h3:target, > .finding:target)),
-          [data-section=readiness]:has(#f-status-unknown:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-status="unknown"], :target) {
+          [data-section=readiness]:has(#f-status-unknown:checked) .status-group:not([data-status-group="unknown"], :has(> h3:target, .finding:target)),
+          [data-section=readiness]:has(#f-status-unknown:checked) .status-group:not(:has(> h3:target)) .finding:not([data-status="unknown"], :target) {
             display: none;
           }
 
-          [data-section=readiness]:has(#f-status-ready:checked) .status-group:not([data-status-group="ready"], :has(> h3:target, > .finding:target)),
-          [data-section=readiness]:has(#f-status-ready:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-status="ready"], :target) {
+          [data-section=readiness]:has(#f-status-ready:checked) .status-group:not([data-status-group="ready"], :has(> h3:target, .finding:target)),
+          [data-section=readiness]:has(#f-status-ready:checked) .status-group:not(:has(> h3:target)) .finding:not([data-status="ready"], :target) {
             display: none;
           }
 
 
-          [data-section=readiness]:has([id='f-category-communication']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="communication"], :target),
-          [data-section=readiness]:has([id='f-category-communication']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="communication"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-communication']:checked) .status-group:not(:has(> h3:target)) .finding:not([data-category="communication"], :target),
+          [data-section=readiness]:has([id='f-category-communication']:checked) .status-group:not(:has(> h3:target, .finding[data-category="communication"], .finding:target)) {
             display: none;
           }
 
-          [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="files"], :target),
-          [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="files"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target)) .finding:not([data-category="files"], :target),
+          [data-section=readiness]:has([id='f-category-files']:checked) .status-group:not(:has(> h3:target, .finding[data-category="files"], .finding:target)) {
             display: none;
           }
 
-          [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="identity_devices"], :target),
-          [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="identity_devices"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target)) .finding:not([data-category="identity_devices"], :target),
+          [data-section=readiness]:has([id='f-category-identity_devices']:checked) .status-group:not(:has(> h3:target, .finding[data-category="identity_devices"], .finding:target)) {
             display: none;
           }
 
-          [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="automation_ai"], :target),
-          [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="automation_ai"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target)) .finding:not([data-category="automation_ai"], :target),
+          [data-section=readiness]:has([id='f-category-automation_ai']:checked) .status-group:not(:has(> h3:target, .finding[data-category="automation_ai"], .finding:target)) {
             display: none;
           }
 
-          [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target)) > .finding:not([data-category="security"], :target),
-          [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target, > .finding[data-category="security"], > .finding:target)) {
+          [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target)) .finding:not([data-category="security"], :target),
+          [data-section=readiness]:has([id='f-category-security']:checked) .status-group:not(:has(> h3:target, .finding[data-category="security"], .finding:target)) {
             display: none;
           }
 
@@ -876,16 +855,19 @@
           :has(#f-status-needs_work:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="needs_work"][data-category="security"])),
           :has(#f-status-unknown:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="unknown"][data-category="security"])),
           :has(#f-status-ready:checked):has([id='f-category-security']:checked):not(:has(.finding[data-status="ready"][data-category="security"]))
-        ) .areas-empty { display: block; }
+        ) {
+          .areas { display: none; }
+          .areas-empty { display: block; }
+        }
       }
     }
     .licence-plans { margin-block-start: 16px; font-size: var(--fs-subhead); }
     .licence-plan small { margin-block-end: 4px; }
     .licence-plan + .licence-plan { margin-block-start: 8px; }
-    .finding ul, .rule-details ul { margin: 4px 0; padding-inline-start: 16px; }
+    .finding ul, .rule-details ul { padding-inline-start: 16px; }
+    .finding-reason > ul { margin-block-start: 4px; }
     .readiness li + li { margin-block-start: 8px; }
     .mapping-gaps {
-      margin: 12px 0 0;
       padding: 0;
       list-style: none;
     }
@@ -895,16 +877,13 @@
     .mapping-gaps > li > small:first-of-type { margin-block-start: 8px; }
     .open-question { display: block; }
     .rows .open-details { color: var(--fg); }
-    .open-details p + p, .finding-missing li p + p { margin-block-start: 4px; }
     .open-label { color: var(--fg-2); }
     .path-actions { max-width: var(--measure); margin: 0; padding-inline-start: 16px; }
     .path-actions li + li { margin-block-start: 8px; }
-    h4 + .rows { margin-top: 12px; }
     .finding .rule-evidence {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 24px;
-      margin: 24px 0 0;
       padding: 0;
       font-size: var(--fs-subhead);
       list-style: none;
@@ -936,12 +915,10 @@
     summary > .icon { transition: transform 0.3s var(--ease); }
     details[open] > summary > .icon { transform: rotate(90deg); }
     .evidence-counts { color: var(--fg-2); }
-    .cost-inputs, .licence-products { margin-block-start: 32px; }
     .legend {
       display: flex;
       flex-wrap: wrap;
       gap: 8px 24px;
-      margin: 24px 0 8px;
       padding: 0;
       color: var(--fg-2);
       font-size: var(--fs-subhead);
@@ -955,7 +932,6 @@
     @media screen {
       .cost-swatch { outline: 1px solid var(--fg-2); }
     }
-    .cost-chart-row { margin-top: 24px; }
     .cost-chart-heading {
       display: flex;
       flex-wrap: wrap;
@@ -963,14 +939,12 @@
       justify-content: space-between;
       gap: 4px 16px;
     }
-    .cost-chart-heading h3, .cost-chart-heading > p { margin: 0; }
     .cost-chart-heading > p { text-align: end; }
     .cost-bar {
       display: flex;
       width: calc(var(--share) * (100% - 56px));
       height: 24px;
       gap: 2px;
-      margin-top: 8px;
       overflow: hidden;
       border-radius: var(--radius-pill);
     }
@@ -983,21 +957,19 @@
     .cost-productivity_loss { --cost-fill: color-mix(in srgb, var(--fg-2) 55%, var(--bg)); }
     .cost-parallel_running { --cost-fill: color-mix(in srgb, var(--fg-2) 25%, var(--bg)); }
     .cost-segment.is-unknown {
+      display: flex;
       justify-content: center;
       width: 48px;
       height: 24px;
-      margin-top: 8px;
       border: 1px dashed var(--fg-2);
       border-radius: var(--radius-pill);
       background: transparent;
       color: var(--fg-2);
     }
-    .cost-known-blocks { margin-top: 8px; }
     .cost-chart-values {
       display: flex;
       flex-wrap: wrap;
       gap: 4px 24px;
-      margin: 8px 0 0;
       padding: 0;
       color: var(--fg-2);
       font-size: var(--fs-subhead);
@@ -1015,22 +987,55 @@
     .cost-table .totals { background: var(--fill); }
     .cost-table :is(.subtotals, .totals) td { font-weight: 600; }
     .cost-table th:first-child { padding-inline-start: 16px; }
-    :is(.run-details, .rule-details, .mapping-details) { margin-block: 16px; }
     :is(.run-details, .rule-details, .mapping-details) dt { font-weight: 600; }
     :is(.run-details, .rule-details, .mapping-details) dd { margin: 4px 0 12px; }
     .mapping-details dd > :first-child { text-wrap: balance; }
     .condition-value { white-space: nowrap; }
-    [data-section=appendix] ul { margin-block: 8px; padding-inline-start: 16px; }
+    [data-section=appendix] ul { padding-inline-start: 16px; }
     [data-checksum] { display: block; font-size: var(--fs-subhead); }
     footer {
       width: calc(100% - 2 * var(--gutter));
       max-width: calc(var(--max) - 2 * var(--gutter));
       margin-inline: auto;
-      margin-block-start: 32px;
       padding-block: 16px 48px;
       border-block-start: 1px solid var(--line);
       color: var(--muted);
       font-size: var(--fs-footnote);
+    }
+    @media screen {
+      main { padding-block-end: var(--rhythm-footer); }
+      .page-intro {
+        padding-block-start: calc(var(--rhythm-page-heading) - 1lh - var(--rhythm-subheading));
+      }
+      .sec { padding-block-start: calc(1px + var(--rhythm-divider)); }
+
+      /* A nearer relation replaces the gap between content groups. */
+      main > * + section,
+      main :where(.page-intro, .sec-body, .subsection, .scope-requirements, .cost-bars, .cost-chart-row, .finding, [data-subsection], details, .finding-missing, #costs-missing) > * + * {
+        margin-block-start: var(--rhythm-group);
+      }
+      main :where(p:not(.tile-title, .tile-label, .summary-links)) + :where(p:not(.tile-title, .tile-label, .summary-links)) {
+        margin-block-start: var(--rhythm-paragraph);
+      }
+      main :where(p) + :where(ul, ol, dl, .table-scroll, .cost-bars, .sec-body .note) {
+        margin-block-start: var(--rhythm-lede-visual);
+      }
+      main :where(ul, ol, dl, .finding, .table-scroll, .cost-bars) + .summary-links {
+        margin-block-start: var(--rhythm-visual-link);
+      }
+      main :where(p) + .summary-links,
+      .finding-replacements + .more {
+        margin-block-start: var(--rhythm-text-link);
+      }
+      main :where(h1) + * { margin-block-start: var(--rhythm-section-heading); }
+      main :where(h3:not(.finding-area, .cost-chart-heading > h3), h4:not(.finding-area), summary, .eyebrow, .finding > .finding-head, .cost-chart-heading) + * {
+        margin-block-start: var(--rhythm-subheading);
+      }
+      main :where(.cost-origin, .legend) + *,
+      main :where(* + .cost-known-blocks, * + .cost-chart-values, * + .table-note) {
+        margin-block-start: var(--rhythm-caption);
+      }
+      caption { margin-block-end: var(--rhythm-caption); }
     }
     @media (prefers-reduced-motion: reduce) {
       a, summary > .icon, .segmented label { transition: none; }
@@ -1183,6 +1188,11 @@
       [data-section=path], [data-section=costs], [data-section=appendix] { break-before: page; }
       h1, h2, h3, h4 { break-after: avoid; }
       .sec-body h3 { margin-block: 16pt 4pt; }
+      .sec-body > h3:first-child { margin-block-start: 0; }
+      .finding > * + *, .cost-chart-row + .cost-chart-row { margin-block-start: 8pt; }
+      .table-scroll { margin-block: 8pt; }
+      caption { margin-block-end: 4pt; }
+      .finding-target > .more { margin-block: 4pt 0; }
       header, [data-section=summary] { line-height: 1.15; }
       .status-summary {
         display: grid;
@@ -1228,7 +1238,7 @@
         break-inside: avoid;
         break-after: avoid;
       }
-      [data-section=summary] .cost-notes { gap: 0; margin-top: 4pt; }
+      [data-section=summary] .cost-notes { margin-top: 4pt; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8pt; }
       .tiles li, .finding { padding: 12pt; }
       .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8pt; }
@@ -1237,7 +1247,7 @@
       .tiles-3 .tile-title, .tiles-3 .tile-label { margin-bottom: 0; }
       .sec-body .tiles-3 p + p { margin-top: 0; }
       a, a:hover, .more, .more:hover { color: var(--fg); text-shadow: none; }
-      footer { width: 100%; padding-block-end: 0; }
+      footer { width: 100%; margin-block-start: 24pt; padding-block-end: 0; }
       thead { display: table-header-group; break-after: avoid; }
       .coverage th, .coverage td, .cost-table th, .cost-table td {
         padding: 4pt 8pt 4pt 0;
@@ -1918,6 +1928,7 @@
 
               <div class="status-group" data-status-group="blocker">
                 <h3 id="status-blocker"><span class="status blocker symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span></h3>
+                <div class="finding-cards">
 
 
                   <article data-workload="telephony" data-status="blocker" data-category="communication" class="finding" id="readiness-telephony" aria-labelledby="area-telephony">
@@ -2038,20 +2049,24 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="telephony">Gesonderter Telefondienst · Nicht verfügbar ·
+                          <span data-target-function="telephony">Gesonderter Telefondienst · Nicht verfügbar ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
 
+                </div>
               </div>
 
               <div class="status-group" data-status-group="needs_work">
                 <h3 id="status-needs_work"><span class="status needs_work symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span></h3>
+                <div class="finding-cards">
 
 
                   <article data-workload="directory" data-status="needs_work" data-category="identity_devices" class="finding" id="readiness-directory" aria-labelledby="area-directory">
@@ -2220,12 +2235,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="identity_management">Nubus · In der Suite ·
+                          <span data-target-function="identity_management">Nubus · In der Suite ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -2434,12 +2451,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="mail_and_calendar">Open-Xchange (OX App Suite) · In der Suite ·
+                          <span data-target-function="mail_and_calendar">Open-Xchange (OX App Suite) · In der Suite ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -2640,17 +2659,19 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="team_files">Gemeinsame Ordner in Nextcloud Files · In der Suite mit Einschränkungen ·
-
-    <time datetime="2026-11-22">22. November 2026</time>
-  </span>
-
-                        <span data-target-function="sharepoint_workflows">Gesonderte Neugestaltung der Arbeitsabläufe · Direkte Übernahme nicht dokumentiert ·
+                          <span data-target-function="team_files">Gemeinsame Ordner in Nextcloud Files · In der Suite mit Einschränkungen ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                          <span data-target-function="sharepoint_workflows">Gesonderte Neugestaltung der Arbeitsabläufe · Direkte Übernahme nicht dokumentiert ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </span>
+
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -2884,17 +2905,19 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="office_editing">Collabora Online · In der Suite mit Einschränkungen ·
-
-    <time datetime="2026-11-22">22. November 2026</time>
-  </span>
-
-                        <span data-target-function="vba_macros">Gesonderte Konvertierung oder Neuentwicklung · Direkte Übernahme nicht dokumentiert ·
+                          <span data-target-function="office_editing">Collabora Online · In der Suite mit Einschränkungen ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                          <span data-target-function="vba_macros">Gesonderte Konvertierung oder Neuentwicklung · Direkte Übernahme nicht dokumentiert ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </span>
+
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -3078,17 +3101,19 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="device_management">Gesonderte Lösung zur Geräteverwaltung · Nicht verfügbar ·
-
-    <time datetime="2026-11-22">22. November 2026</time>
-  </span>
-
-                        <span data-target-function="desktop_operating_system">Separat verwaltetes Betriebssystem für Arbeitsplatzrechner · Nicht verfügbar ·
+                          <span data-target-function="device_management">Gesonderte Lösung zur Geräteverwaltung · Nicht verfügbar ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                          <span data-target-function="desktop_operating_system">Separat verwaltetes Betriebssystem für Arbeitsplatzrechner · Nicht verfügbar ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </span>
+
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -3201,12 +3226,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="windows_applications">Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen · Nicht verfügbar ·
+                          <span data-target-function="windows_applications">Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen · Nicht verfügbar ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -3316,12 +3343,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="automation_and_low_code">Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen · Nicht verfügbar ·
+                          <span data-target-function="automation_and_low_code">Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen · Nicht verfügbar ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -3456,12 +3485,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="single_sign_on">Keycloak · In der Suite ·
+                          <span data-target-function="single_sign_on">Keycloak · In der Suite ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -3556,20 +3587,24 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="application_integrations">Schnittstellen der openDesk-Komponenten · In der Suite mit Einschränkungen ·
+                          <span data-target-function="application_integrations">Schnittstellen der openDesk-Komponenten · In der Suite mit Einschränkungen ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
 
+                </div>
               </div>
 
               <div class="status-group" data-status-group="unknown">
                 <h3 id="status-unknown"><span class="status unknown symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unbekannt</span></span></h3>
+                <div class="finding-cards">
 
 
                   <article data-workload="security_compliance" data-status="unknown" data-incomplete data-category="security" class="finding" id="readiness-security_compliance" aria-labelledby="area-security_compliance">
@@ -3697,20 +3732,24 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="security_and_compliance">Zugriffssteuerung und Schadsoftware-Prüfung in openDesk · In der Suite mit Einschränkungen ·
+                          <span data-target-function="security_and_compliance">Zugriffssteuerung und Schadsoftware-Prüfung in openDesk · In der Suite mit Einschränkungen ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
 
+                </div>
               </div>
 
               <div class="status-group" data-status-group="ready">
                 <h3 id="status-ready"><span class="status ready symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span></span></h3>
+                <div class="finding-cards">
 
 
                   <article data-workload="onedrive" data-status="ready" data-category="files" class="finding" id="readiness-onedrive" aria-labelledby="area-onedrive">
@@ -3842,12 +3881,14 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="personal_files">Nextcloud Files · In der Suite ·
+                          <span data-target-function="personal_files">Nextcloud Files · In der Suite ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -4045,17 +4086,19 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="chat">Element · In der Suite ·
-
-    <time datetime="2026-11-22">22. November 2026</time>
-  </span>
-
-                        <span data-target-function="video_meetings">Jitsi · In der Suite ·
+                          <span data-target-function="chat">Element · In der Suite ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                          <span data-target-function="video_meetings">Jitsi · In der Suite ·
+
+    <time datetime="2026-11-22">22. November 2026</time>
+  </span>
+
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
@@ -4147,16 +4190,19 @@
                       </details>
 
                     <p class="finding-target">
+                      <span class="finding-replacements">
 
-                        <span data-target-function="forms_tasks_bookings">OpenProject und OX App Suite für Aufgaben · In der Suite mit Einschränkungen ·
+                          <span data-target-function="forms_tasks_bookings">OpenProject und OX App Suite für Aufgaben · In der Suite mit Einschränkungen ·
 
     <time datetime="2026-11-22">22. November 2026</time>
   </span>
 
+                      </span>
                       <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
                     </p>
                   </article>
 
+                </div>
               </div>
 
           </div>

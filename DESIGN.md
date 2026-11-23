@@ -18,7 +18,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - Colour carries meaning, nothing else. Status colours mean status; everything else, buttons and links included, is monochrome.
 - Never colour a heading, a tile or a background to decorate it.
 - Status is never colour alone: every status shows its symbol and its word.
-- Status symbols use Apple's system colours at full strength. A status badge tints its background with the same colour and keeps its text in the main text colour.
+- Status symbols use Apple's system colours at full strength. Status badges mix 12% of the status colour into the surface fill. In dark mode the symbol and label both use the status colour. In light mode the symbol uses the status colour and the label uses the main text colour. The Evidence incomplete badge uses the neutral fill and text.
 - With `prefers-contrast: more`, use Apple's increased contrast colours for the current screen theme. Print uses the default light palette.
 
 | Status | Apple colour | Light | Dark | Increased contrast, light | Increased contrast, dark |
@@ -29,6 +29,39 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 | Unknown | Gray (`systemGray`) | `#8E8E93` | `#8E8E93` | `#6C6C70` | `#AEAEB2` |
 
 Apple updated these values on 9 June 2025. Accessed on 23 November 2026. [Apple Human Interface Guidelines, Color](https://developer.apple.com/design/human-interface-guidelines/color#System-colors)
+
+WCAG contrast ratios against the badge's actual sRGB tint (`#F5F5F7` surface in light mode, `#111712` in dark). Small labels need at least 4.5:1. The light status colours fall below that threshold on their tints.
+
+| Status | Light status colour | Light label | Increased contrast light status colour | Increased contrast light label | Dark label | Increased contrast dark label |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Blocker | 1.93:1 | 14.09:1 | 3.58:1 | 13.24:1 | 6.72:1 | 7.31:1 |
+| Needs work | 1.33:1 | 14.75:1 | 3.64:1 | 13.36:1 | 9.84:1 | 10.34:1 |
+| Ready | 1.86:1 | 14.12:1 | 3.57:1 | 13.24:1 | 7.28:1 | 7.87:1 |
+| Unknown | 2.68:1 | 13.84:1 | 4.14:1 | 13.33:1 | 4.76:1 | 6.69:1 |
+
+## Vertical rhythm
+
+The website and report use the same screen gaps at every width. Measure from the end of one border box to the start of the next, including the actual separation left by collapsing margins. Use the inline axis for cards that share a row and for links in a row.
+
+| Relation | Token | Gap |
+| --- | --- | ---: |
+| Page top to first heading | `--rhythm-page-heading` | 64 px |
+| Section divider to section content | `--rhythm-divider` | 32 px |
+| Section heading to its first content | `--rhythm-section-heading` | 16 px |
+| Paragraph to paragraph | `--rhythm-paragraph` | 12 px |
+| Lede to visual | `--rhythm-lede-visual` | 24 px |
+| Visual to standalone link | `--rhythm-visual-link` | 16 px |
+| Text to standalone link | `--rhythm-text-link` | 24 px |
+| Card to card in a group | `--rhythm-card` | 12 px |
+| Group to group | `--rhythm-group` | 32 px |
+| Subsection heading to its content | `--rhythm-subheading` | 12 px |
+| Caption to the element it describes | `--rhythm-caption` | 16 px |
+| Last section to footer | `--rhythm-footer` | 48 px |
+| Inline gap between standalone links in a row | `--rhythm-inline-links` | 24 px |
+
+Page top is the content edge below the bar. An eyebrow uses some of the heading gap and can wrap above the heading. The section divider gap starts at the bottom of the rule and ends at the first item. When the section heading and its first content sit in columns, their top edges align. A disclosure title acts as a subsection heading when expanded.
+
+Visuals include cards, tile groups, lists, tables and command blocks. A lede introduces the next visual. A caption can sit above or below its visual. A standalone link can appear alone or in a row. The footer gap ends at the footer's top edge. The report uses compact print spacing so the council summary fits on the first page.
 
 ## Structure
 
@@ -77,4 +110,4 @@ Apple updated these values on 9 June 2025. Accessed on 23 November 2026. [Apple 
 
 ## Checks
 
-What a machine can check is checked automatically: colours only as tokens, only the two font families, symbols only from the shared set, and the shared palette between site and report. `uv run python site/check_site.py` and the report tests carry these checks; the design checks are added with the report redesign. Everything else in this file is checked by a person and by the release review before each release.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, and `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. The release review checks the remaining design rules.

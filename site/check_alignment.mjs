@@ -1,40 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { createServer } from "node:http";
-import { createRequire } from "node:module";
-import { extname, resolve, sep } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const modules = process.env.PLAYWRIGHT_DIR ?? "/home/roux/.local/share/playwright-1.62.1/node_modules/";
-const { chromium } = createRequire(resolve(modules, "check_alignment.cjs"))("playwright");
-const site = fileURLToPath(new URL(".", import.meta.url));
-const routes = [
-  ...["/", "/start/", "/coverage/", "/about/", "/security/", "/pilots/",
-    "/integrators/", "/roadmap/", "/privacy/", "/impressum/", "/404.html"].flatMap(route => [route, "/de" + route]),
-  "/demo/en/", "/demo/de/",
-];
-const types = {
-  ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript",
-  ".woff2": "font/woff2", ".png": "image/png", ".svg": "image/svg+xml", ".webp": "image/webp",
-};
-
-async function serve() {
-  const server = createServer(async (request, response) => {
-    const { pathname } = new URL(request.url, "http://127.0.0.1");
-    const file = resolve(site, "." + (pathname.endsWith("/") ? pathname + "index.html" : pathname));
-    const type = types[extname(file)];
-    try {
-      if (!file.startsWith(resolve(site) + sep) || !type) throw new Error("Outside the site");
-      const content = await readFile(file);
-      response.writeHead(200, { "Content-Type": type }).end(content);
-    } catch {
-      response.writeHead(404).end();
-    }
-  });
-  await new Promise((ready, fail) => server.listen(0, "127.0.0.1", ready).once("error", fail));
-  return server;
-}
+import { localContext, widths, withSite } from "./check_browser.mjs";
 
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
@@ -247,24 +213,16 @@ async function checkPage(page, route, width, origin, measure) {
   }
 }
 
-const server = await serve();
-const origin = `http://127.0.0.1:${server.address().port}`;
 const tolerance = 0.75;
 const failures = [];
 let maximum = 0;
 let count = 0;
 let views = 0;
-let browser;
-try {
-  browser = await chromium.launch();
-  for (const width of [360, 768, 1280]) {
+await withSite(async ({ browser, origin, routes }) => {
+  for (const width of widths) {
     for (const theme of ["light", "dark"]) {
-      const context = await browser.newContext({
-        viewport: { width, height: 900 }, colorScheme: theme, reducedMotion: "reduce",
-      });
+      const context = await localContext(browser, origin, width, theme);
       await context.grantPermissions(["clipboard-write"], { origin });
-      await context.route("**/*", route =>
-        new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
       const page = await context.newPage();
       page.setDefaultTimeout(3000);
       for (const route of routes) {
@@ -286,10 +244,7 @@ try {
       await context.close();
     }
   }
-} finally {
-  await browser?.close();
-  await new Promise(done => server.close(done));
-}
+});
 
 if (failures.length) {
   console.table(failures);

@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Badge contrast and vertical rhythm
+
+**D41. Use tinted status labels in dark mode and share one spacing rhythm.**
+
+The founder specified that in dark mode the symbol and badge label both use Apple's status colour. Light mode keeps the main text colour for badge labels to meet WCAG AA. The founder also asked for uniform spacing across the site and report. The screen gaps use the same named relations in both, verified in Chromium in English and German. [Contrast measurements and spacing values](DESIGN.md#colour)
+
 ## 2026-11-23 — Website language links
 
 **D40. Use the Material Symbols Outlined translate icon for the website language links.**
