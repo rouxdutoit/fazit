@@ -103,3 +103,15 @@ Rounds: 1 at `82d9d8f`, 2 at `1099e49`, 3 at `d39df08`, 4 at `0ae2be2`, 5 at `ac
 - **Agreed by both:** scans edited by hand to avoid a comparison are a phase 2 concern (MODL-05), because today every measured source is a sample source and the report says its measurements are simulated.
 - **Queued after the report redesign:** `261122-rv12-after-redesign` (account bound from first principles, two regressions from rv11, SharePoint from zero sites, 61 published licence names refused, a German plural).
 - **Still open for the founder:** R-35 (domain and PyPI name), R-36 (production headers and hosting claims), R-37 (Typer), R-38 ("Ready"), R-40 (`.planning/` and `.claude/` visibility, placeholders in `.claude/CLAUDE.md`), R-41 and R-42 (both reviewers agree they can wait), R-43 (wordmark and heading effects).
+
+## Closing note, 2026-11-23
+
+The founder set round 11 as the last review round and decided to ship with its one high open ("ship").
+
+- **Rounds 7 to 11** followed the queued and later batches `261122-rv12` and `261123-rv13` to `261123-rv16`. The main change was to decide from declared populations only (rv13): a scan is refused only when it is impossible from what it declares, and something is inferred only from what it declares consistent. rv16 made Directory Ready depend on a licence check that positively passed.
+- **Final verdicts at `9640fe2`:**
+  - Claude Fable 5.2: release as is (0 critical, 0 high, 1 medium, 3 low). No improving step among the project's own degradation kinds in about 586,000 evaluations.
+  - Codex GPT-6.2-Astra: hold (0 critical, 1 high, 5 medium of which 3 deferred, 2 low). The high: losing evidence can still turn Unknown into Ready outside Directory.
+- **Checks at `9640fe2`:** Ruff, 1,079 tests, the unpacked sdist (1,073 passed, 6 checkout-only skips), the deep simulation (31 properties), both demos and the site check pass, and CI is green on all four jobs.
+- **Open findings** are planned as to-dos in `.planning/todos/pending/` (twelve files, dated 2026-11-23). The high one, `2026-11-23-evidence-loss-never-improves-status.md`, is due before the first public release on PyPI. Its rule: a supplied value never overrides a recorded denial, skip or failure, and removing evidence never improves a status, gated by a monotonicity search.
+- **Accepted by the founder, not planned:** R-37 (Typer), R-38 ("Ready"), R-43 (heading and wordmark effects).
