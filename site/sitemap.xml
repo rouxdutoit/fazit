@@ -81,6 +81,16 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/about/"/>
   </url>
   <url>
+    <loc>https://fazit.dev/roadmap/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/roadmap/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/roadmap/"/>
+  </url>
+  <url>
+    <loc>https://fazit.dev/de/roadmap/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/roadmap/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/roadmap/"/>
+  </url>
+  <url>
     <loc>https://fazit.dev/impressum/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/impressum/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/impressum/"/>

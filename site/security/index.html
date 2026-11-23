@@ -54,6 +54,31 @@
       <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Report a vulnerability</a>
     </div>
 
+    <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
+      <h2 class="sec-label" id="safeguards-title">What Fazit will never do</h2>
+      <div class="sec-body">
+        <ul class="safeguards" role="list">
+          <li>Write to a Microsoft tenant or call an endpoint outside the read allowlist.</li>
+          <li>Send assessment data off your computer. The planned sign-in will talk only to Microsoft sign-in and Microsoft Graph.</li>
+          <li>Save tokens, or collected names and email addresses, to disk. The report can show the organisation name and Windows-only application names you enter.</li>
+          <li>Load external resources from the report.</li>
+          <li>Present a missing figure as measured or improve a status when a check is skipped.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="sec grid" id="offline" aria-labelledby="offline-title">
+      <h2 class="sec-label" id="offline-title">Verify offline operation</h2>
+      <div class="sec-body">
+        <ol class="steps">
+          <li>Set up Git and uv, clone the <a href="https://github.com/rouxdutoit/fazit">repository</a> and run <code>uv run fazit demo</code> once to install the dependencies.</li>
+          <li>Disconnect the computer from the network. In the same directory, run <code>uv run <span class="code-option">--offline</span> fazit demo</code>.</li>
+          <li>Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.</li>
+        </ol>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
+      </div>
+    </section>
+
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
       <h2 class="sec-label" id="principles-title">What is true today and what is planned</h2>
       <div class="sec-body">
@@ -113,22 +138,10 @@
       </div>
     </section>
 
-    <section class="sec grid" id="offline" aria-labelledby="offline-title">
-      <h2 class="sec-label" id="offline-title">Verify offline operation</h2>
-      <div class="sec-body">
-        <ol class="steps">
-          <li>Set up Git and uv, clone the <a href="https://github.com/rouxdutoit/fazit">repository</a> and run <code>uv run fazit demo</code> once to install the dependencies.</li>
-          <li>Disconnect the computer from the network. In the same directory, run <code>uv run <span class="code-option">--offline</span> fazit demo</code>.</li>
-          <li>Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.</li>
-        </ol>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
-      </div>
-    </section>
-
     <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
       <h2 class="sec-label" id="evidence-title">Limits of the evidence</h2>
       <div class="sec-body">
-        <p>Fazit rejects a scan whose figures cannot all be true, for example a subset larger than its population or a measurement from zero successful checks (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md">D31 in the decisions</a> lists every check). It shows disagreements between a scan and the answers in <code>inputs.yaml</code>, and labels the source of each figure. A fabrication whose figures fit together can still produce a report: the report depends on the people and tools that produced its evidence.</p>
+        <p>Fazit rejects a scan whose figures cannot all be true, for example a subset larger than its population or a measurement from zero successful checks (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md">D31 in the decisions</a> lists every check). It shows disagreements between a scan and the answers in <code>inputs.yaml</code>, and labels the source of each figure. Fazit cannot verify that a supplied inventory is accurate. A set of invented figures that fit together can still produce a report. The report depends on the people and tools that produced its evidence.</p>
         <p>The appendix records the scan’s stated origin, producer and version.</p>
       </div>
     </section>
@@ -158,6 +171,8 @@
             <p class="foot-heading">Project</p>
             <ul>
               <li><a href="/about/">About</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/coverage/">Compare openDesk and Nextcloud</a></li>
               <li><a href="/demo/en/">Sample report</a></li>
               <li><a href="https://github.com/rouxdutoit/fazit">Source code</a></li>
             </ul>

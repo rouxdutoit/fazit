@@ -33,7 +33,16 @@ PAGE_PAIRS = (
     ("/", "/de/"),
     *(
         (f"/{page}/", f"/de/{page}/")
-        for page in ("start", "pilots", "integrators", "security", "about", "impressum", "privacy")
+        for page in (
+            "start",
+            "pilots",
+            "integrators",
+            "security",
+            "about",
+            "roadmap",
+            "impressum",
+            "privacy",
+        )
     ),
     ("/coverage/", "/de/coverage/"),
     DEMO_ROUTES,
@@ -111,7 +120,6 @@ class Page(HTMLParser):
         self.errors: list[str] = []
         self.coverage: Counter[CoverageCell] = Counter()
         self.status_counts: Counter[str] = Counter()
-        self.tallies: list[str] = []
         self._buttons_needing_icons: dict[int, int] = {}
         self._buttons_without_icons: list[int] = []
         self._coverage_table = False
@@ -119,11 +127,11 @@ class Page(HTMLParser):
         self._target: str | None = None
         self._badge = ""
         self._cell_text: list[str] = []
-        self._tally_text: list[str] | None = None
         self.nav_controls: list[str] = []
         self.language = ""
         self.doctype = False
-        self.feed(path.read_text(encoding="utf-8"))
+        self.source = path.read_text(encoding="utf-8")
+        self.feed(self.source)
         self.close()
 
     def handle_decl(self, decl: str) -> None:
@@ -168,8 +176,6 @@ class Page(HTMLParser):
             self._cell_text.clear()
         elif self._target is not None and "cov" in classes:
             self._badge = " ".join(name for name in classes if name.startswith("cov-"))
-        elif tag == "div" and "tally" in classes:
-            self._tally_text = []
         if tag == "article" and values.get("id", "").startswith("readiness-"):
             self.status_counts[values.get("data-status", "")] += 1
 
@@ -240,8 +246,6 @@ class Page(HTMLParser):
             self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
         if self._target is not None:
             self._cell_text.append(data)
-        if self._tally_text is not None:
-            self._tally_text.append(data)
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.handle_starttag(tag, attrs)
@@ -261,9 +265,6 @@ class Page(HTMLParser):
             self._target = None
         elif tag == "table":
             self._coverage_table = False
-        elif tag == "div" and self._tally_text is not None:
-            self.tallies.append(" ".join("".join(self._tally_text).split()))
-            self._tally_text = None
 
     def check_structure(self, lang: str, *, demo: bool) -> None:
         if not self.doctype or self.language != lang:
@@ -524,14 +525,65 @@ def check_coverage(page: Page, lang: str) -> list[str]:
     return errors
 
 
-def check_tally(page: Page, demo: Page, lang: str) -> list[str]:
+def check_home_status(markup: str, demo: Page, lang: str) -> list[str]:
     labels = load_locale(lang)["status"]
-    total = demo.status_counts.total()
-    prefix = {"en": "Of {} areas in the sample", "de": "Von {} Bereichen im Beispiel"}[lang]
     order = ("blocker", "needs_work", "unknown", "ready")
-    counts = " ".join(f"{labels[status]} {demo.status_counts[status]}" for status in order)
-    expected = f"{prefix.format(total)}: {counts}"
-    return [] if page.tallies == [expected] else [f"Sample tally should read {expected!r}."]
+    summary = demo.source.partition('<dl class="status-summary">')[2].partition("</dl>")[0]
+    status_markup = r'<span class="status (\w+)">(<svg\b[^>]*>.*?</svg>)'
+    icons = dict(re.findall(status_markup, summary, re.S))
+    expected = [
+        (status, icons.get(status, ""), labels[status], str(demo.status_counts[status]))
+        for status in order
+    ]
+    actual = re.findall(
+        rf'<dt>{status_markup}\s*([^<]+?)\s*</span></dt>\s*<dd class="row-count">(\d+)</dd>',
+        markup,
+        re.S,
+    )
+    return [] if actual == expected else ["Status list must match the sample report."]
+
+
+def check_home_costs(markup: str, demo: Page) -> list[str]:
+    summary = demo.source.partition('<div class="subsection summary-costs">')[2]
+    summary = summary.partition("</ul>")[0]
+    tiles = (
+        r'<li data-cost-tile="([^"]+)">\s*<p class="tile-label">([^<]+)</p>\s*'
+        r'<span class="figure-num">([^<]+)</span>'
+    )
+    origin = r'<p class="note-text cost-origin" data-cost-origin="([^"]+)">([^<]+)</p>'
+    expected_tiles = re.findall(tiles, summary)
+    expected_origin = re.findall(origin, summary)
+    errors = []
+    if len(expected_tiles) != 3 or re.findall(tiles, markup) != expected_tiles:
+        errors.append("Cost tiles must show the three sample report totals.")
+    if len(expected_origin) != 1 or re.findall(origin, markup) != expected_origin:
+        errors.append("Cost tiles must show the calculation origin from the sample report.")
+    return errors
+
+
+def check_home(page: Page, demo: Page, lang: str) -> list[str]:
+    prefix = "/de" if lang == "de" else ""
+    sample = f"/demo/{lang}/"
+    destinations = {
+        "hero": [sample, sample],
+        "readiness": [sample],
+        "example": [f"{sample}#readiness-title"],
+        "costs": [f"{sample}#costs-title"],
+        "privacy": [f"{prefix}/security/"],
+        "how": [f"{prefix}/start/"],
+        "status": [f"{prefix}/pilots/", f"{prefix}/about/"],
+    }
+    main = page.source.partition("<main")[2].partition("</main>")[0]
+    sections = dict(re.findall(r'<section [^>]*\bid="([^"]+)"[^>]*>(.*?)</section>', main, re.S))
+    if list(sections) != list(destinations):
+        return ["Expected the seven home sections in order."]
+    errors = []
+    for section, links in destinations.items():
+        if re.findall(r'<a class="more(?: [^"]+)?" href="([^"]+)"', sections[section]) != links:
+            errors.append(f"Home section {section} must link to {', '.join(links)}.")
+    errors.extend(check_home_status(sections["readiness"], demo, lang))
+    errors.extend(check_home_costs(sections["costs"], demo))
+    return errors
 
 
 def check_area_counts(demo: Page, lang: str) -> list[str]:
@@ -539,9 +591,10 @@ def check_area_counts(demo: Page, lang: str) -> list[str]:
     prefix = "/de" if lang == "de" else ""
     pattern = r"<span data-assessed-areas>\s*([0-9]+)\s*</span>"
     errors = []
-    for route in (f"{prefix}/", f"{prefix}/pilots/"):
+    for route, number in ((f"{prefix}/", 2), (f"{prefix}/pilots/", 1)):
         path = local_path(route)
-        if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != [total]:
+        expected = [total] * number
+        if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != expected:
             errors.append(f"{path.relative_to(ROOT)}: Expected {total} assessed areas.")
     return errors
 
@@ -578,6 +631,18 @@ def check_commands(lang: str) -> list[str]:
             errors.append(f"{route}: Expected copy feedback and manual-copy instructions.")
     if len(components) == 2 and components[0] != components[1]:
         errors.append(f"{prefix}/: Home and Start should use the same command block.")
+    return errors
+
+
+def check_roadmap(page: Page) -> list[str]:
+    timeline = page.source.partition('<ol class="timeline"')[2].partition("</ol>")[0]
+    steps = re.findall(r'<li class="timeline-step( on)?"', timeline)
+    errors = []
+    if steps != [" on", "", ""]:
+        errors.append("Expected three timeline steps with only the first marked as available.")
+    guide = f"{REPOSITORY_URL}/blob/main/CONTRIBUTING.md#translating-fazit"
+    if not any(ref.plain_link and ref.value == guide for ref in page.references):
+        errors.append("Expected a link to the translation guide.")
     return errors
 
 
@@ -706,10 +771,12 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
                 page.check_metadata(route, other, pair)
             if en == "/coverage/":
                 page.errors.extend(check_coverage(page, lang))
+            elif en == "/roadmap/":
+                page.errors.extend(check_roadmap(page))
             elif en == "/":
                 page.errors.extend(check_commands(lang))
                 if demo_page := pages.get(local_path(f"/demo/{lang}/")):
-                    page.errors.extend(check_tally(page, demo_page, lang))
+                    page.errors.extend(check_home(page, demo_page, lang))
                     errors.extend(check_area_counts(demo_page, lang))
     for path, page in pages.items():
         if ORIGIN + route_for(path) not in declared:

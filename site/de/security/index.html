@@ -54,6 +54,31 @@
       <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Schwachstelle melden</a>
     </div>
 
+    <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
+      <h2 class="sec-label" id="safeguards-title">Was Fazit nie tun wird</h2>
+      <div class="sec-body">
+        <ul class="safeguards" role="list">
+          <li>In einen Microsoft-365-Mandanten schreiben oder Endpunkte außerhalb der Freigabeliste für Lesezugriffe aufrufen.</li>
+          <li>Prüfdaten von Ihrem Rechner übertragen. Für die geplante Anmeldung sind nur die Microsoft-Anmeldung und Microsoft Graph vorgesehen.</li>
+          <li>Anmeldetokens, erhobene Personennamen oder E-Mail-Adressen auf einem Datenträger speichern. Im Bericht können der von Ihnen angegebene Organisationsname und die Namen reiner Windows-Anwendungen stehen.</li>
+          <li>Externe Ressourcen in den Bericht nachladen.</li>
+          <li>Eine fehlende Zahl als erhoben ausgeben oder einen Bereich wegen einer ausgelassenen Prüfung besser einstufen.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="sec grid" id="offline" aria-labelledby="offline-title">
+      <h2 class="sec-label" id="offline-title">Betrieb ohne Netzwerk prüfen</h2>
+      <div class="sec-body">
+        <ol class="steps">
+          <li>Richten Sie Git und uv ein, klonen Sie das <a href="https://github.com/rouxdutoit/fazit">Repository</a> und führen Sie einmal <code>uv run fazit demo <span class="code-option">--lang de</span></code> aus. Dabei werden die benötigten Pakete installiert.</li>
+          <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus.</li>
+          <li>Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.</li>
+        </ol>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Offline-Test des installierten Pakets</a></p>
+      </div>
+    </section>
+
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
       <h2 class="sec-label" id="principles-title">Was heute gilt und was geplant ist</h2>
       <div class="sec-body">
@@ -113,22 +138,10 @@
       </div>
     </section>
 
-    <section class="sec grid" id="offline" aria-labelledby="offline-title">
-      <h2 class="sec-label" id="offline-title">Betrieb ohne Netzwerk prüfen</h2>
-      <div class="sec-body">
-        <ol class="steps">
-          <li>Richten Sie Git und uv ein, klonen Sie das <a href="https://github.com/rouxdutoit/fazit">Repository</a> und führen Sie einmal <code>uv run fazit demo <span class="code-option">--lang de</span></code> aus. Dabei werden die benötigten Pakete installiert.</li>
-          <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus.</li>
-          <li>Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.</li>
-        </ol>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Offline-Test des installierten Pakets</a></p>
-      </div>
-    </section>
-
     <section class="sec grid" id="evidence" aria-labelledby="evidence-title">
       <h2 class="sec-label" id="evidence-title">Grenzen der Aussagekraft</h2>
       <div class="sec-body">
-        <p>Fazit weist eine Erhebung zurück, deren Zahlen nicht alle zugleich stimmen können, etwa eine Teilmenge, die größer ist als ihre Gesamtmenge, oder einen Messwert ohne eine einzige erfolgreiche Prüfung (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md" hreflang="en">D31 in den Entscheidungen</a> listet alle Prüfungen). Abweichungen zwischen Erhebung und den Antworten in <code>inputs.yaml</code> zeigt es an, und es kennzeichnet die Herkunft jeder Zahl. Erfundene Angaben, die zueinander passen, können trotzdem zu einem Bericht führen: Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.</p>
+        <p>Fazit weist eine Erhebung zurück, deren Zahlen nicht alle zugleich stimmen können, etwa eine Teilmenge, die größer ist als ihre Gesamtmenge, oder einen Messwert ohne eine einzige erfolgreiche Prüfung (<a href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md" hreflang="en">D31 in den Entscheidungen</a> listet alle Prüfungen). Abweichungen zwischen Erhebung und den Antworten in <code>inputs.yaml</code> zeigt es an, und es kennzeichnet die Herkunft jeder Zahl. Ob die Angaben zum Bestand stimmen, kann Fazit nicht feststellen. Auch erfundene Angaben, die zueinander passen, können zu einem Bericht führen. Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.</p>
         <p>Der Anhang dokumentiert die angegebene Herkunft der Erhebung sowie das Programm und die Version, mit denen sie laut Erhebungsdatei erstellt wurde.</p>
       </div>
     </section>
@@ -158,6 +171,8 @@
             <p class="foot-heading">Projekt</p>
             <ul>
               <li><a href="/de/about/">Über Fazit</a></li>
+              <li><a href="/de/roadmap/">Fahrplan</a></li>
+              <li><a href="/de/coverage/">openDesk und Nextcloud vergleichen</a></li>
               <li><a href="/demo/de/">Beispielbericht</a></li>
               <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
             </ul>
