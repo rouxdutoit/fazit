@@ -579,15 +579,20 @@ def test_next_steps_name_both_functions_in_one_transfer_action(lang: str) -> Non
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])
-def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: str) -> None:
+@pytest.mark.parametrize("profile", PROFILES)
+def test_summary_scope_matches_the_replacements_and_gaps(lang: str, profile: str) -> None:
     entries = catalogue.load_catalogue()
     scan = load_scan(sample_scan_path("town"), entries)
     inputs = load_inputs(sample_inputs_path("town"), entries)
-    context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, inputs)
+    context, _ = report_module._prepare_report(scan, lang, profile, entries, inputs)
     scope = context["scope_statement"]
-    assert isinstance(scope, report_module.ScopeStatement)
     html = report_module._render_html(context)
-    summary = unescape(report_section(html, "summary")).split('data-summary="scope"', 1)[1]
+    summary = unescape(report_section(html, "summary"))
+    if profile == "generic":
+        assert scope is None and 'data-summary="scope"' not in summary
+        return
+    assert isinstance(scope, report_module.ScopeStatement)
+    summary = summary.split('data-summary="scope"', 1)[1]
     formatter = Formatter(lang)
     strings = formatter.strings
     blocks = re.search(r"<h3>([^<]+)</h3>\s*<p>([^<]+)</p>", summary)
@@ -601,10 +606,24 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
         (strings["mapping_coverage"][code], formatter.integer(count))
         for code, count in scope.by_coverage
     ]
-    assert re.findall(r'<a href="#(replacement-[^"]+)">([^<]+)</a>', summary) == [
-        (f"replacement-{anchor.removeprefix('transfer-gap-')}", name)
+    needed = re.search(r'<ul class="scope-links" role="list">(.*?)</ul>', summary, re.S)
+    assert needed and scope.needed
+    chevron = (ROOT / "site" / "icons" / "chevron-right.svg").read_text(encoding="utf-8")
+    path = re.search(r'<path d="([^"]+)"', chevron)[1]
+    links = re.findall(
+        r'<li><a href="#(replacement-[^"]+)" class="area-link more">([^<]+)'
+        r'<svg[^>]* aria-hidden="true"[^>]*><path d="([^"]+)"/></svg></a></li>',
+        needed[1],
+    )
+    assert links == [
+        (f"replacement-{anchor.removeprefix('transfer-gap-')}", name, path)
         for name, anchor in scope.needed
     ]
+    moves = unescape(report_section(html, "moves"))
+    replacements = dict(
+        re.findall(r'<tr[^>]* id="(replacement-[^"]+)">\s*<th[^>]*>([^<]+)</th>', moves)
+    )
+    assert all(replacements[target] == name for target, name, _ in links)
     assert (
         strings["summary"]["scope_unknown"].format(n=scope.unknown_need, profile=scope.profile)
         in summary
@@ -614,8 +633,6 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
     reviewed_context = context | {"scope_statement": replace(scope, reviewed_on=date(2026, 11, 22))}
     reviewed = report_section(report_module._render_html(reviewed_context), "summary")
     assert strings["moves"]["unreviewed"] not in reviewed
-    generic = _sample_report("town", tmp_path, lang, "generic")
-    assert 'data-summary="scope"' not in report_section(generic, "summary")
 
 
 @pytest.mark.parametrize(("sample", "lang"), SAMPLES)
@@ -1010,7 +1027,9 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
     assert re.search(r"@media\s+print\s*\{", css)
     assert re.search(r"break-inside:\s*avoid", css)
     assert re.search(r"print-color-adjust:\s*exact", css)
-    print_css = css.split("@media print", 1)[1]
+    screen_css, print_css = css.split("@media print", 1)
+    assert re.search(r"\.scope-links\s*\{[^}]*list-style:\s*none", screen_css)
+    assert not re.search(r"\.scope-links a\s*\{[^}]*text-decoration:\s*underline", screen_css)
     assert re.search(r"::details-content\s*\{[^}]*content-visibility:\s*visible", print_css)
 
 

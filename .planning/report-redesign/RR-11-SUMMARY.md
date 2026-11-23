@@ -45,3 +45,11 @@ The [viewport screenshots](../../.shots/report-redesign/rr11/) and [browser comp
 ## German copy
 
 The phone disclosure reuses `nav.on_this_page` (“Auf dieser Seite”). The existing homepage download label now reads “HTML herunterladen, 424 KB”. No new German locale strings were needed.
+
+## RR-11b
+
+- Recaptured the eight homepage previews and `site/og.png` in offline Chromium. The capture script applies `bar.style.background = "var(--bg)"` just before taking each screenshot. The WebPs use RR-05's lossless encoding and the same framing. All nine images match the RR-11 pixels below the bar, and the largest is 47,694 bytes. The English and German alt text matches the status counts and telephony blocker in the previews.
+- The scope lists show one body-sized link per row in the text colour, with a trailing chevron. Each link opens its matching row in the replacements table. The report tests cover list styling and destinations in both languages across all three profiles.
+- Regenerated both published demos and verified them byte for byte against fresh CLI output. Updated the homepage download labels to 412 KB in English and 425 KB in German.
+
+All six repository checks passed, with 959 pytest tests. Offline Chromium checked the scope links at 360, 768 and 1280 px in both themes and languages. The A4 council summary passed the first-page check for both samples and the all-Unknown report, with and without backgrounds.

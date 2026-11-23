@@ -719,11 +719,8 @@
       display: grid;
       gap: 4px;
       margin: 0 0 12px;
-      padding-inline-start: 16px;
-    }
-    .scope-links a {
-      text-decoration: underline 1px var(--fg-2);
-      text-underline-offset: 0.2em;
+      padding: 0;
+      list-style: none;
     }
     .rows {
       margin: 0;
@@ -1484,8 +1481,7 @@
       .coverage-summary, .scope-requirements { font-size: var(--fs-subhead); }
       .scope-requirements { margin-top: 4pt; }
       .scope-needed { margin-block: 0 2pt; }
-      .scope-links { gap: 2pt; margin: 0; padding: 0; list-style: none; }
-      .scope-links a { text-decoration: none; }
+      .scope-links { gap: 2pt; margin: 0; }
       .summary-costs .cost-origin { margin: 0 0 4pt; }
       [data-section=summary] .subsection { margin-top: 4pt; }
       [data-section=summary] .subsection h3 { margin-block: 0 4pt; }
@@ -1656,7 +1652,7 @@
                   <h4 class="scope-needed">{{ strings.summary.scope_needed.format(profile=scope.profile) }}</h4>
                   <ul class="scope-links" role="list">
                     {% for name, anchor in scope.needed %}
-                      <li><a href="#replacement-{{ anchor.removeprefix('transfer-gap-') }}">{{ name }}</a></li>
+                      <li><a href="#replacement-{{ anchor.removeprefix('transfer-gap-') }}" class="area-link more">{{ name }}{{ icon('chevron-right') }}</a></li>
                     {% endfor %}
                   </ul>
                 </div>

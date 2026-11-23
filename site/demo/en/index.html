@@ -374,11 +374,8 @@
       display: grid;
       gap: 4px;
       margin: 0 0 12px;
-      padding-inline-start: 16px;
-    }
-    .scope-links a {
-      text-decoration: underline 1px var(--fg-2);
-      text-underline-offset: 0.2em;
+      padding: 0;
+      list-style: none;
     }
     .rows {
       margin: 0;
@@ -1188,8 +1185,7 @@
       .coverage-summary, .scope-requirements { font-size: var(--fs-subhead); }
       .scope-requirements { margin-top: 4pt; }
       .scope-needed { margin-block: 0 2pt; }
-      .scope-links { gap: 2pt; margin: 0; padding: 0; list-style: none; }
-      .scope-links a { text-decoration: none; }
+      .scope-links { gap: 2pt; margin: 0; }
       .summary-costs .cost-origin { margin: 0 0 4pt; }
       [data-section=summary] .subsection { margin-top: 4pt; }
       [data-section=summary] .subsection h3 { margin-block: 0 4pt; }
@@ -1483,13 +1479,13 @@
                   <h4 class="scope-needed">Outside openDesk and needed here</h4>
                   <ul class="scope-links" role="list">
 
-                      <li><a href="#replacement-device_management">Device management with Microsoft Intune</a></li>
+                      <li><a href="#replacement-device_management" class="area-link more">Device management with Microsoft Intune<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
 
-                      <li><a href="#replacement-windows_applications">Running Windows-only applications</a></li>
+                      <li><a href="#replacement-windows_applications" class="area-link more">Running Windows-only applications<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
 
-                      <li><a href="#replacement-automation_and_low_code">Power Platform automation and low-code applications</a></li>
+                      <li><a href="#replacement-automation_and_low_code" class="area-link more">Power Platform automation and low-code applications<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
 
-                      <li><a href="#replacement-telephony">Teams Phone and public telephone calling</a></li>
+                      <li><a href="#replacement-telephony" class="area-link more">Teams Phone and public telephone calling<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
 
                   </ul>
                 </div>
