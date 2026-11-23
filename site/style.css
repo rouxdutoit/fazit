@@ -48,8 +48,8 @@
   --mono: "Geist Mono", ui-monospace, monospace;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --gutter: 20px;
-  --rhythm-page-heading: 64px;
-  --rhythm-section-gap: 40px;
+  --rhythm-site-page-top: 72px;
+  --rhythm-site-section-gap: 56px;
   --rhythm-section-heading: 16px;
   --rhythm-paragraph: 12px;
   --rhythm-lede-visual: 24px;
@@ -87,17 +87,24 @@
 @media print {
   :root {
     color-scheme: light;
-    --rhythm-section-gap: 32px;
+    --rhythm-site-page-top: 64px;
+    --rhythm-site-section-gap: 32px;
   }
   main { padding-block-end: 48px; }
 }
 
 @media screen and (min-width: 768px) {
-  :root { --rhythm-section-gap: 56px; }
+  :root {
+    --rhythm-site-page-top: 104px;
+    --rhythm-site-section-gap: 72px;
+  }
 }
 
 @media screen and (min-width: 1080px) {
-  :root { --rhythm-section-gap: 64px; }
+  :root {
+    --rhythm-site-page-top: 136px;
+    --rhythm-site-section-gap: 96px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -124,7 +131,7 @@ body {
 }
 
 @media screen {
-  main { padding-block-end: var(--rhythm-section-gap); }
+  main { padding-block-end: var(--rhythm-site-section-gap); }
 }
 
 body > footer {
@@ -1052,10 +1059,10 @@ code {
 /* Section rules align with the content edges. */
 .sec {
   position: relative;
-  padding-block-start: calc(1px + var(--rhythm-section-gap));
+  padding-block-start: calc(1px + var(--rhythm-site-section-gap));
 }
 
-main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
+main > * + .sec { margin-block-start: var(--rhythm-site-section-gap); }
 
 .sec::before, .foot-in::before {
   position: absolute;
@@ -1363,15 +1370,17 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
   grid-column: -2 / -1;
 }
 
-/* A nearer relation replaces the gap between content groups. */
 :is(.hero, .page-intro, .center-page) {
-  padding-block-start: var(--rhythm-page-heading);
+  padding-block-start: var(--rhythm-site-page-top);
 }
 
-:is(.hero, .page-intro, .center-page):has(.eyebrow) {
-  padding-block-start: calc(var(--rhythm-page-heading) - 1lh - var(--rhythm-subheading));
+@media print {
+  :is(.hero, .page-intro, .center-page):has(.eyebrow) {
+    padding-block-start: calc(var(--rhythm-site-page-top) - 1lh - var(--rhythm-subheading));
+  }
 }
 
+/* A nearer relation replaces the gap between content groups. */
 main :where(.hero, .page-intro, .center-page > div, .sec-body, .subsection, .preview-blockers, .finding) > * + * {
   margin-block-start: var(--rhythm-group);
 }
@@ -1440,16 +1449,16 @@ main :where(.sec-body, .preview-blockers) > a.more {
 
 @media screen {
   .legal-layout, .legal-part + .legal-part {
-    margin-block-start: var(--rhythm-section-gap);
+    margin-block-start: var(--rhythm-site-section-gap);
     border-block-start: 1px solid var(--rule);
-    padding-block-start: var(--rhythm-section-gap);
+    padding-block-start: var(--rhythm-site-section-gap);
   }
 
   @media (width < 880px) {
     .has-summary > article {
-      margin-block-start: var(--rhythm-section-gap);
+      margin-block-start: var(--rhythm-site-section-gap);
       border-block-start: 1px solid var(--rule);
-      padding-block-start: var(--rhythm-section-gap);
+      padding-block-start: var(--rhythm-site-section-gap);
     }
   }
 }

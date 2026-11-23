@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Website section spacing
+
+**D48. Give the website more room above and between sections.**
+
+The founder asked for more room below the website's bar, around section dividers and above the footer so the site reads like a product page. The report keeps D44's screen spacing and its compact print layout for reading as a document. [Design rules](DESIGN.md#vertical-rhythm)
+
 ## 2026-11-23 — Button spacing and the category picker
 
 **D47. Scale the symbol gap with the button label.**

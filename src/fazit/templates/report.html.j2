@@ -450,8 +450,8 @@
       --mono: "Geist Mono", ui-monospace, monospace;
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
       --gutter: 20px;
-      --rhythm-page-heading: 64px;
-      --rhythm-section-gap: 40px;
+      --rhythm-report-page-top: 64px;
+      --rhythm-report-section-gap: 40px;
       --rhythm-section-heading: 16px;
       --rhythm-paragraph: 12px;
       --rhythm-lede-visual: 24px;
@@ -485,10 +485,10 @@
       :root { --gutter: 16px; }
     }
     @media screen and (min-width: 768px) {
-      :root { --rhythm-section-gap: 56px; }
+      :root { --rhythm-report-section-gap: 56px; }
     }
     @media screen and (min-width: 1080px) {
-      :root { --rhythm-section-gap: 64px; }
+      :root { --rhythm-report-section-gap: 64px; }
     }
     * { box-sizing: border-box; }
     body {
@@ -1472,12 +1472,12 @@
       font-size: var(--fs-footnote);
     }
     @media screen {
-      main { padding-block-end: var(--rhythm-section-gap); }
+      main { padding-block-end: var(--rhythm-report-section-gap); }
       .page-intro {
-        padding-block-start: calc(var(--rhythm-page-heading) - 1lh - var(--rhythm-subheading));
+        padding-block-start: calc(var(--rhythm-report-page-top) - 1lh - var(--rhythm-subheading));
       }
-      .sec { padding-block-start: calc(1px + var(--rhythm-section-gap)); }
-      main > * + section { margin-block-start: var(--rhythm-section-gap); }
+      .sec { padding-block-start: calc(1px + var(--rhythm-report-section-gap)); }
+      main > * + section { margin-block-start: var(--rhythm-report-section-gap); }
 
       /* A nearer relation replaces the gap between content groups. */
       main :where(.page-intro, .sec-body, .subsection, .scope-requirements, .cost-bars, .cost-chart-row, .finding, [data-subsection], details, .finding-missing, #costs-missing) > * + * {

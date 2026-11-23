@@ -7,16 +7,23 @@ const relations = new Map(Array.from(
   design.matchAll(/^\| ([^|]+) \| `--([a-z-]+)` \| (\d+) px \| (\d+) px \| (\d+) px \|$/gm),
   ([, name, token, ...gaps]) => [token.replace(/^rhythm-/, ""), { name, expected: gaps.map(Number) }],
 ));
-const scale = [4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 96];
+const scale = [4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 72, 96, 104, 136];
+const references = new Map([
+  ["site-page-top", "/"],
+  ["site-section-gap", "/"],
+  ["report-page-top", "/demo/en/"],
+  ["report-section-gap", "/demo/en/"],
+]);
 // Allow for layout in steps of 1/64 of a CSS pixel.
 const tolerance = 0.02;
-if (relations.size !== 13 || [...relations.values()].some(({ expected }) => expected.some(gap => !scale.includes(gap)))) {
-  throw new Error("DESIGN.md must give one spacing-scale value per width for each of the 13 relations.");
+if (relations.size !== 15 || [...relations.values()].some(({ expected }) => expected.some(gap => !scale.includes(gap)))) {
+  throw new Error("DESIGN.md must give one spacing-scale value per width for each of the 15 relations.");
 }
 
-function measureInPage(filtered) {
+function measureInPage({ pageType, filtered }) {
   const measurements = [];
   const main = document.querySelector("main");
+  const sectionGap = `${pageType}-section-gap`;
   const columns = matchMedia("(min-width: 880px)").matches;
   const visual = "figure, ul, ol, dl, table, .finding, .command, .summary-costs, .table-scroll, .cost-bars, .sec-body .note";
   const flows = [
@@ -49,9 +56,12 @@ function measureInPage(filtered) {
 
   function measureStartAndEnd() {
     const heading = main.querySelector("h1");
-    record("page-heading", main, heading, box(heading).top - box(main).top);
+    const first = pageType === "site"
+      ? main.querySelector(".hero > .eyebrow, .center-page > div > .eyebrow") ?? heading
+      : heading;
+    record(`${pageType}-page-top`, document.querySelector(".bar"), first);
     const last = [...main.children].filter(visible).at(-1);
-    record("section-gap", last, document.querySelector("footer"), undefined, "above footer");
+    record(sectionGap, last, document.querySelector("footer"), undefined, "above footer");
   }
 
   function measureDivider(previous, section, firstItems, pseudo = false) {
@@ -60,9 +70,9 @@ function measureInPage(filtered) {
     const offset = pseudo ? parseFloat(style.top) : 0;
     const hasRule = size > 0 && (!pseudo || style.content !== "none" && style.display !== "none");
     const top = hasRule ? box(section).top + offset : NaN;
-    record("section-gap", previous, section, top - box(previous).bottom, "above divider");
+    record(sectionGap, previous, section, top - box(previous).bottom, "above divider");
     for (const first of firstItems) {
-      record("section-gap", section, first, box(first).top - (top + size), "below divider");
+      record(sectionGap, section, first, box(first).top - (top + size), "below divider");
     }
   }
 
@@ -237,8 +247,10 @@ async function checkSpacing({ browser, origin, routes }) {
       const context = await localContext(browser, origin, width, theme, options);
       const page = await context.newPage();
       for (const route of routes) {
+        const pageType = route.startsWith("/demo/") ? "report" : "site";
         const collect = async state => {
-          for (const { relation, ...result } of await page.evaluate(measureInPage, state === "filtered")) {
+          const measurements = await page.evaluate(measureInPage, { pageType, filtered: state === "filtered" });
+          for (const { relation, ...result } of measurements) {
             const bucket = buckets.get(width).get(relation);
             if (!bucket) throw new Error(`Missing rhythm definition for ${relation}`);
             bucket.push({ ...result, page: route, theme, state });
@@ -256,7 +268,7 @@ async function checkSpacing({ browser, origin, routes }) {
             await collect("expanded");
             expanded += 1;
           }
-          if (route.startsWith("/demo/") && await showEmptyResults(page)) {
+          if (pageType === "report" && await showEmptyResults(page)) {
             await collect("filtered");
             filtered += 1;
           }
@@ -284,16 +296,17 @@ function summarise(buckets) {
   const offenders = new Map();
   let count = 0;
   for (const [key, { name, expected }] of relations) {
+    const reference = references.get(key);
     for (const [width, byRelation] of buckets) {
       const samples = byRelation.get(key);
       count += samples.length;
       const target = expected[widthBand(width)];
-      const home = theme => samples.find(sample =>
-        sample.page === "/" && sample.theme === theme && sample.state === "initial")?.gap;
-      const homeGaps = { light: home("light"), dark: home("dark") };
+      const referenceGap = theme => samples.find(sample =>
+        sample.page === reference && sample.theme === theme && sample.state === "initial")?.gap;
+      const referenceGaps = reference && { light: referenceGap("light"), dark: referenceGap("dark") };
       const values = [...new Set(samples.map(({ gap }) => display(gap)))].sort((a, b) => a - b);
       const invalid = samples.filter(({ gap, theme }) => gap === null || onScale(gap) !== target
-        || (key === "section-gap" && (!Number.isFinite(homeGaps[theme]) || Math.abs(gap - homeGaps[theme]) > tolerance)));
+        || (referenceGaps && (!Number.isFinite(referenceGaps[theme]) || Math.abs(gap - referenceGaps[theme]) > tolerance)));
       rows.push({ relation: name, width, expected: target, "values found": values.join(", ") || "—", offenders: invalid.length || (samples.length ? 0 : "no measurements") });
       for (const { page, pair, theme, state, gap } of invalid) {
         const actual = display(gap);

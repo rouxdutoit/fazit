@@ -10,7 +10,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
 - **Type.** Figtree for all text, Geist Mono for code. The seven text sizes are display, title, headline, lead, body, subhead and footnote. Body copy uses weight 400, button labels 500, and headings and semibold labels 600.
-- **Spacing:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px. The section and command rules below also use 20, 40 and 56 px. The gutter is 20 px (16 px on phones).
+- **Spacing:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px. The rhythm table also uses 20, 40, 56, 72, 104 and 136 px. The gutter is 20 px (16 px on phones).
 - **Button tokens.** `--btn-height` is 44 px and `--btn-compact-height` is 28 px. `--btn-symbol-gap` is `0.4em` for buttons, filter segments, category options and language links. Status badges use a 4 px gap. The site and report share these tokens.
 - **Line length:** one measure, `--measure` (680 px), for all running text whatever its size; set in rem so small type does not wrap early. Paragraphs wrap with `text-wrap: pretty`, so no paragraph ends on a lone word; headings use `text-wrap: balance`. Never force line breaks with `<br>` or narrow boxes, except in postal addresses.
 
@@ -42,12 +42,14 @@ WCAG contrast ratios against the badge's actual sRGB tint (`#F5F5F7` surface in 
 
 ## Vertical rhythm
 
-The website and report share the same gaps for each screen width. Measure from the end of one border box to the start of the next, including the actual separation left by collapsing margins. Use the inline axis for cards that share a row and for links in a row.
+The website is read like a product page, with more space around sections. The report is a document for reading on screen and in print. Measure from the end of one border box to the start of the next, including the actual separation left by collapsing margins. Use the inline axis for cards that share a row and for links in a row.
 
 | Relation | Token | Below 768 px | 768–1079 px | 1080 px and up |
 | --- | --- | ---: | ---: | ---: |
-| Page top to first heading | `--rhythm-page-heading` | 64 px | 64 px | 64 px |
-| Before and after a section divider, and before the footer | `--rhythm-section-gap` | 40 px | 56 px | 64 px |
+| Website bar to first content | `--rhythm-site-page-top` | 72 px | 104 px | 136 px |
+| Website section gap | `--rhythm-site-section-gap` | 56 px | 72 px | 96 px |
+| Report bar to report heading | `--rhythm-report-page-top` | 64 px | 64 px | 64 px |
+| Report section gap | `--rhythm-report-section-gap` | 40 px | 56 px | 64 px |
 | Section heading to its first content | `--rhythm-section-heading` | 16 px | 16 px | 16 px |
 | Paragraph to paragraph | `--rhythm-paragraph` | 12 px | 12 px | 12 px |
 | Lede to visual | `--rhythm-lede-visual` | 24 px | 24 px | 24 px |
@@ -60,7 +62,7 @@ The website and report share the same gaps for each screen width. Measure from t
 | Inline gap between standalone links in a row | `--rhythm-inline-links` | 24 px | 24 px | 24 px |
 | Command block padding | `--card-padding` | 20 px | 24 px | 24 px |
 
-Page top is the content edge below the bar. An eyebrow uses some of the heading gap and can wrap above the heading. Measure the section gap from the end of the preceding block to the top of the rule, and from the bottom of the rule to the next content. This applies from the hero or page introduction to the first section as well. When the section heading and its first content sit in columns, their top edges align. A disclosure title acts as a subsection heading when expanded.
+Measure from the bottom of the bar to the eyebrow on the website's home and 404 pages and to the introduction heading on the other pages. The report's eyebrow uses some of the gap above its heading and can wrap. Measure the section gap from the end of the preceding block to the top of the rule, and from the bottom of the rule to the next content. This applies from the hero or page introduction to the first section as well. When the section heading and its first content sit in columns, their top edges align. A disclosure title acts as a subsection heading when expanded.
 
 Visuals include cards, tile groups, lists, tables and command blocks. A lede introduces the next visual. A caption can sit above or below its visual. The home report download is a centred caption. A standalone link can appear alone or in a row. The footer gap ends at the footer's top edge. The report uses compact print spacing so the council summary fits on the first page.
 
@@ -119,4 +121,4 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Checks
 
-`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. It checks button gaps within 0.5 px and measures the category trigger's gap and equal padding for every selection in both picker modes. Timeline dots are checked at device scales 1, 2 and 3, with 0.1 px allowed for centre and width-to-height differences. Alignment also checks underline behaviour for content and navigation links. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px and checks that the section gap matches the home page. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. It checks button gaps within 0.5 px and measures the category trigger's gap and equal padding for every selection in both picker modes. Timeline dots are checked at device scales 1, 2 and 3, with 0.1 px allowed for centre and width-to-height differences. Alignment also checks underline behaviour for content and navigation links. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. Website pages match the home page's opening and section gaps at each width, and the sample reports match each other. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.
