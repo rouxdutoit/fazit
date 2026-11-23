@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
-import { localContext, widths, withSite } from "./check_browser.mjs";
+import { iPhone, localContext, widths, withSite } from "./check_browser.mjs";
 import { checkLinkUnderlines } from "./check_link_underlines.mjs";
 
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
@@ -8,8 +8,8 @@ const menuItems = ".bar-links a, .category-filter option";
 const singleLine = `${capsules}, ${menuItems}, button, .menu-button, .category-filter`;
 const centredLabels = `${capsules}, ${menuItems}, a.language`;
 const symbolOnly = ".copy, .menu-button, .foot-mail, .report-card-control, .cost-segment.is-unknown";
-const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .finding-evidence dd";
-const chevronLabels = ".more, .tile-link h3, .replacement-status, .category-filter > button, summary:not(.menu-button)";
+const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .category-filter > button, .finding-evidence dd";
+const chevronLabels = ".more, .tile-link h3, .replacement-status, summary:not(.menu-button)";
 // Keep the component selectors so dropping the primitive from known markup fails the check.
 const components = [
   centredLabels, symbolOnly, chevronLabels, ".symbol-label", ".status",
@@ -337,7 +337,8 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       top: Math.min(...ys) - radius, bottom: Math.max(...ys) + radius,
     };
     const em = parseFloat(labelStyle.fontSize);
-    const turned = pair.matches(".category-filter > button, details[open] > summary");
+    const category = pair.matches(".category-picker");
+    const turned = category || pair.matches("details[open] > summary");
     const inkWidth = ink.right - ink.left;
     const inkHeight = ink.bottom - ink.top;
     const [ends, tip] = turned ? [ys, xs] : [xs, ys];
@@ -349,15 +350,53 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     compare(pair, "chevron ink height", (turned ? inkWidth : inkHeight) - 0.50 * em, 0.03 * em);
     compare(pair, "chevron stem width", stroke - stemWidth(label, em), 0.5);
 
-    const disclosure = pair.matches("summary");
-    const last = disclosure ? {} : lastLetter(label, em);
+    const trailingLink = !category && !pair.matches("summary");
+    const last = trailingLink ? lastLetter(label, em) : {};
     const lineBaseline = baseline(label) + (last.lineOffset ?? 0);
     if (turned) {
       compare(pair, "rotated chevron centre", centre(ink) - (lineBaseline - 0.25 * em));
     } else {
       compare(pair, "chevron baseline", ink.bottom - lineBaseline);
     }
-    if (!disclosure) compare(pair, "chevron ink gap", ink.left - last.right - 0.40 * em, 0.03 * em);
+    if (trailingLink) compare(pair, "chevron ink gap", ink.left - last.right - 0.40 * em, 0.03 * em);
+    return ink;
+  }
+
+  function measureButtonGap(button, gap) {
+    const style = getComputedStyle(button);
+    const token = style.getPropertyValue("--btn-symbol-gap").trim();
+    const expected = token === "0.4em" ? parseFloat(token) * parseFloat(style.fontSize) : NaN;
+    compare(button, "button symbol gap", gap - expected, 0.5);
+  }
+
+  function measureCategory(select) {
+    const picker = select.closest(".category-picker");
+    if (!picker) {
+      failures.push({ selector: selector(select), check: "missing category trigger", offset: "—" });
+      return;
+    }
+    const custom = getComputedStyle(select).appearance === "base-select";
+    const label = custom ? select.querySelector("selectedcontent > .symbol-text")
+      : [...picker.querySelectorAll(".category-label")].find(visible);
+    const arrow = picker.querySelector(":scope > .chevron");
+    if (!label || !visible(label) || label.textContent !== select.selectedOptions[0].label || !arrow || !visible(arrow)) {
+      failures.push({ selector: selector(select), check: "missing selected label or category chevron", offset: "—" });
+      return;
+    }
+    const ink = measureChevron(picker, arrow, label);
+    if (!ink) return;
+    const box = paddingBox(picker);
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const text = range.getBoundingClientRect();
+    const start = text.left - box.left;
+    const end = box.right - ink.right;
+    measureButtonGap(picker, ink.left - text.right);
+    compare(picker, "category start padding", start - 16, 0.5);
+    compare(picker, "category start and end padding", start - end, 0.5);
+    compare(picker, "wrap: category label", range.getClientRects().length - 1, 0);
+    compare(select, "category hit target width", select.getBoundingClientRect().width - (box.right - box.left), 0.5);
+    measureButton(select, select.getBoundingClientRect());
   }
 
   function measureButton(button, box) {
@@ -399,6 +438,13 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     const paddingCentre = centre(box) + (parseFloat(borderTopWidth) - parseFloat(borderBottomWidth)) / 2;
     for (const symbol of symbols) {
       compare(pair, selector(symbol), inkCentre(symbol) - (capCentres[0] ?? paddingCentre));
+    }
+    if (symbols.length && labels.length) {
+      const gap = labels[0].getBoundingClientRect().left - symbols[0].getBoundingClientRect().right;
+      if (pair.matches(".badge")) compare(pair, "badge symbol gap", gap - 4, 0.5);
+      if (pair.matches(".btn, a.language, .menu-button, .segmented label, .category-filter option")) {
+        measureButtonGap(pair, gap);
+      }
     }
     if (chevron) measureChevron(pair, chevron, labels[0]);
     if (pair.matches(".btn")) measureButton(pair, box);
@@ -448,6 +494,9 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
   }
   for (const track of document.querySelectorAll(".segmented")) {
     if (inScope(track)) measureSegments(track);
+  }
+  for (const select of document.querySelectorAll(".category-filter")) {
+    if (inScope(select)) measureCategory(select);
   }
 
   function measureBarAndPreview() {
@@ -563,6 +612,53 @@ async function checkStatusNames(page, width) {
   }
 }
 
+async function checkCategoryChoices(category, measure) {
+  const values = await category.locator("option").evaluateAll(options => options.map(option => option.value));
+  for (const value of values) {
+    await category.selectOption(value);
+    await measure(".category-picker");
+  }
+}
+
+async function disableCustomPicker(category) {
+  const native = await category.evaluate(select => {
+    // Exercise the native select used when appearance: base-select is unavailable.
+    const sheet = document.querySelector("style").sheet;
+    for (const media of [...sheet.cssRules].filter(rule => rule instanceof CSSMediaRule)) {
+      const index = [...media.cssRules].findIndex(rule =>
+        rule instanceof CSSSupportsRule && rule.conditionText.includes("appearance: base-select"));
+      if (index !== -1) media.deleteRule(index);
+    }
+    return getComputedStyle(select).appearance !== "base-select";
+  });
+  assert(native, "Native category picker fallback is active");
+}
+
+async function checkCategoryPicker(page, measure) {
+  const category = page.locator("#f-category");
+  await page.keyboard.press("Tab");
+  assert(await category.evaluate(element => element === document.activeElement), "Tab reaches the category picker");
+  const custom = await category.evaluate(element => getComputedStyle(element).appearance === "base-select");
+  if (custom) {
+    await page.keyboard.press("Space");
+    await category.locator("option:checked > .symbol").waitFor();
+    await measure(".category-picker");
+    const nextValue = await category.locator("option").nth(1).getAttribute("value");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    assert.equal(await category.inputValue(), nextValue);
+    const shown = await page.locator(".areas .finding:visible").evaluateAll(rows => rows.map(row => row.dataset.category));
+    assert(shown.length && shown.every(value => value === nextValue), `Incorrect areas for ${nextValue}`);
+    await checkCategoryChoices(category, measure);
+    await disableCustomPicker(category);
+  }
+  assert(await category.evaluate(select => {
+    const { left, right, top, height } = select.getBoundingClientRect();
+    return [left + 5, right - 5].every(x => document.elementFromPoint(x, top + height / 2) === select);
+  }), "Native select covers the entire category trigger");
+  await checkCategoryChoices(category, measure);
+}
+
 async function checkPage(page, route, width, origin, measure) {
   const report = route.startsWith("/demo/");
   const response = await page.goto(origin + route);
@@ -613,34 +709,18 @@ async function checkPage(page, route, width, origin, measure) {
 
   if (report) {
     await checkStatusKeyboard(page, measure);
-    const category = page.locator("#f-category");
-    await page.keyboard.press("Tab");
-    assert(await category.evaluate(element => element === document.activeElement), "Tab reaches the category picker");
-    await page.keyboard.press("Space");
-    await category.locator("option:checked > .symbol").waitFor();
-    await measure("#f-category");
-    const nextValue = await category.locator("option").nth(1).getAttribute("value");
-    await page.keyboard.press("ArrowDown");
-    await page.keyboard.press("Enter");
-    assert.equal(await category.inputValue(), nextValue);
-    await measure("#f-category > button");
-    const shown = await page.locator(".areas .finding:visible").evaluateAll(rows => rows.map(row => row.dataset.category));
-    assert(shown.length && shown.every(value => value === nextValue), `Incorrect areas for ${nextValue}`);
+    await checkCategoryPicker(page, measure);
     await checkStatusNames(page, width);
   }
 }
 
 const tolerance = 0.75;
-const iPhone = {
-  width: 390, device: "iPhone",
-  options: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 },
-};
 
-async function checkScaledTimelines(browser, origin, timelineRoutes, viewports, fullViews, measure) {
+async function checkScaledTimelines(browser, origin, timelineRoutes, viewports, measure) {
   for (const viewport of viewports) {
     const { width, device, options } = viewport;
     for (const scale of [1, 2, 3]) {
-      if (fullViews.includes(viewport) && scale === (options.deviceScaleFactor ?? 1)) continue;
+      if (scale === (options.deviceScaleFactor ?? 1)) continue;
       for (const theme of ["light", "dark"]) {
         const context = await localContext(browser, origin, width, theme, { ...options, deviceScaleFactor: scale });
         try {
@@ -669,7 +749,7 @@ async function checkAlignment({ browser, origin, routes }) {
   const chromium = browser.browserType().name() === "chromium";
   const viewports = [...widths, 390].sort((a, b) => a - b)
     .map(width => ({ width, device: "viewport", options: {} }));
-  const sizes = chromium ? viewports : [...viewports, iPhone];
+  const sizes = [...viewports, iPhone];
   async function measure(page, view, scope) {
     const result = await page.evaluate(measureInPage, {
       scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance, scale: view.scale,
@@ -706,12 +786,12 @@ async function checkAlignment({ browser, origin, routes }) {
       await reportContext.close();
     }
   }
-  await checkScaledTimelines(browser, origin, timelineRoutes, [...viewports, iPhone], sizes, measure);
+  await checkScaledTimelines(browser, origin, timelineRoutes, sizes, measure);
   if (failures.length) {
     console.table(failures);
     process.exitCode = 1;
   }
-  console.log(`${views} full page views and ${timelineViews} timeline views at device scales 1, 2 and 3.`);
+  console.log(`${views} full page views including iPhone emulation and ${timelineViews} timeline views at device scales 1, 2 and 3.`);
   console.log(`${count} alignment measurements. Maximum offset ${maximum.toFixed(2)} px. ${failures.length} failures.`);
 }
 

@@ -903,6 +903,11 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
         ("all", "all", " selected", strings["filter"]["all_categories"]),
         *((id, id, "", strings["category"][id]) for id in category_ids),
     ]
+    assert re.findall(
+        r'<span class="category-label" data-category-label="([^"]+)" aria-hidden="true">'
+        r"([^<]+)</span>",
+        readiness,
+    ) == [(id, text) for id, _, _, text in options]
 
     assert strings["filter"]["search_hint"] in unescape(readiness)
     assert f'<p class="areas-empty note">{strings["filter"]["empty"]}</p>' in unescape(readiness)

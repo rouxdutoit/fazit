@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Button spacing and the category picker
+
+**D47. Scale the symbol gap with the button label.**
+
+The founder set a 0.4 em gap for buttons, filter segments, category options and language links. Status badges keep their 4 px gap. The category pill follows the selected label with a down chevron at the same gap and 16 px padding at both ends. The browser still handles category selection, including in the native picker. The founder also updated both home page subheads to say the report is written on the reader's computer. [Design rules](DESIGN.md#links-and-buttons)
+
 ## 2026-11-23 — Timeline dots and content link underlines
 
 **D46. Give timeline dots fixed dimensions and draw content link underlines on interaction.**

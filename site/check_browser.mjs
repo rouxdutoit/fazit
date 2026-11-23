@@ -17,6 +17,10 @@ const types = {
 };
 
 export const widths = [360, 768, 1280];
+export const iPhone = {
+  width: 390, device: "iPhone",
+  options: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 },
+};
 
 async function serve() {
   const server = createServer(async (request, response) => {

@@ -97,6 +97,7 @@
       --bar-h: 52px;
       --btn-height: 44px;
       --btn-compact-height: 28px;
+      --btn-symbol-gap: 0.4em;
       --hit: var(--btn-height);
       --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
       --radius: 8px;
@@ -354,6 +355,7 @@
       .bar-in > .bar-links { display: none; }
       .bar-menu { display: block; }
       .menu-button {
+        --symbol-gap: var(--btn-symbol-gap);
         justify-content: center;
         width: var(--hit);
         height: var(--hit);
@@ -782,7 +784,7 @@
     .segmented label {
       position: relative;
       flex: 1;
-      --symbol-gap: 4px;
+      --symbol-gap: var(--btn-symbol-gap);
       justify-content: center;
       min-height: var(--hit);
       padding: 8px 4px;
@@ -802,7 +804,7 @@
       clip-path: inset(50%);
     }
     /* Fit every full label, allowing for a two-digit status count in each language. */
-    @container (inline-size >= 37.125rem) {
+    @container (inline-size >= 38.0625rem) {
       .segmented { inline-size: auto; }
       .segmented label { flex: none; padding-inline: 12px; }
       .segment-name {
@@ -814,45 +816,94 @@
       }
     }
     .segment-count { font-variant-numeric: tabular-nums; }
-    .category-filter {
-      field-sizing: content;
-      max-width: 100%;
+    .category-picker {
+      --category-padding: 16px;
+      --chevron-stem: 0.100;
+      position: relative;
+      display: flex;
+      align-items: center;
+      max-inline-size: 100%;
       min-block-size: var(--btn-height);
-      padding: 8px 16px;
-      border: 0;
       border-radius: var(--radius-pill);
       background: var(--fill);
       color: var(--fg);
-      font: 600 var(--fs-subhead) var(--sans);
-      overflow: visible;
+      font: 500 0.9375rem var(--sans);
       white-space: nowrap;
+    }
+    .category-picker > .chevron {
+      position: absolute;
+      inset-inline-end: calc(var(--category-padding) + 0.105em);
+      inset-block-start: 50%;
+      transform: translateY(calc(-50% + (var(--cap-height) - 0.50em) / 2)) rotate(90deg);
+      pointer-events: none;
+    }
+    .category-picker:has(> select:focus-visible) {
+      outline: 2px solid var(--link);
+      outline-offset: 3px;
+    }
+    .category-label, .category-filter > .btn {
+      display: none;
+      padding-block: 8px;
+      padding-inline: var(--category-padding) calc(var(--category-padding) + var(--btn-symbol-gap) + 0.50em);
+    }
+    .category-filter {
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: inherit;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      opacity: 0;
       cursor: pointer;
     }
+    .category-filter:focus { outline: none; }
     .category-filter :is(button, option, .symbol-text) {
       line-height: normal;
       text-box-trim: none;
       overflow: visible;
     }
     .category-filter .symbol-text { margin-block: 0; }
-    .category-filter:focus:not(:focus-visible) { outline: none; }
     @media screen {
+      /* Native selects can reserve space for their picker arrow and the longest option. */
+
+        .category-picker:where(:has(#f-category-all:checked)) > [data-category-label="all"] { display: block; }
+
+        .category-picker:where(:has(#f-category-communication:checked)) > [data-category-label="communication"] { display: block; }
+
+        .category-picker:where(:has(#f-category-files:checked)) > [data-category-label="files"] { display: block; }
+
+        .category-picker:where(:has(#f-category-identity_devices:checked)) > [data-category-label="identity_devices"] { display: block; }
+
+        .category-picker:where(:has(#f-category-automation_ai:checked)) > [data-category-label="automation_ai"] { display: block; }
+
+        .category-picker:where(:has(#f-category-security:checked)) > [data-category-label="security"] { display: block; }
+
       @supports (appearance: base-select) and selector(::picker(select)) {
         .category-filter, .category-filter::picker(select) {
           appearance: base-select;
         }
-        .category-filter { padding: 0; }
+        .category-picker > .category-label { display: none; }
+        .category-filter {
+          position: static;
+          field-sizing: content;
+          min-inline-size: 0;
+          inline-size: auto;
+          block-size: auto;
+          opacity: 1;
+          overflow: visible;
+        }
         .category-filter > .btn {
-          --symbol-gap: 0.365em;
-          --chevron-stem: 0.117;
+          display: inline-flex;
           min-block-size: var(--btn-height);
-          padding: 8px 12px 8px 16px;
+          cursor: inherit;
           font: inherit;
         }
-        .category-filter > .btn > .chevron {
-          translate: 0 calc((var(--cap-height) - 0.50em) / 2);
-          transform: rotate(90deg);
-        }
-        .category-filter::picker-icon, .category-filter option::checkmark, selectedcontent .symbol {
+        .category-filter::picker-icon, .category-filter option::checkmark, .category-filter selectedcontent .symbol {
           display: none;
         }
         .category-filter::picker(select) {
@@ -868,6 +919,7 @@
           .category-filter::picker(select) { border-color: var(--rule); }
         }
         .category-filter option {
+          --symbol-gap: var(--btn-symbol-gap);
           display: flex;
           padding: 8px 12px;
           border-radius: var(--radius);
@@ -2021,21 +2073,38 @@
                   </label>
 
               </fieldset>
-              <select id="f-category" name="f-category" aria-label="Bereiche nach Kategorie anzeigen" class="category-filter" data-filter="category">
-                <button type="button" class="btn symbol-label"><selectedcontent class="symbol-text"></selectedcontent><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></button>
-                <option id="f-category-all" value="all" class="symbol-label" selected><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Alle Kategorien</span></option>
+              <div class="category-picker">
+                <select id="f-category" name="f-category" aria-label="Bereiche nach Kategorie anzeigen" class="category-filter" data-filter="category">
+                  <button type="button" class="btn symbol-label"><selectedcontent class="symbol-text"></selectedcontent></button>
 
-                  <option id="f-category-communication" value="communication" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Kommunikation</span></option>
+                    <option id="f-category-all" value="all" class="symbol-label" selected><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Alle Kategorien</span></option>
 
-                  <option id="f-category-files" value="files" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Dateien und Dokumente</span></option>
+                    <option id="f-category-communication" value="communication" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Kommunikation</span></option>
 
-                  <option id="f-category-identity_devices" value="identity_devices" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Identität und Geräte</span></option>
+                    <option id="f-category-files" value="files" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Dateien und Dokumente</span></option>
 
-                  <option id="f-category-automation_ai" value="automation_ai" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Automatisierung und KI</span></option>
+                    <option id="f-category-identity_devices" value="identity_devices" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Identität und Geräte</span></option>
 
-                  <option id="f-category-security" value="security" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Sicherheit und Compliance</span></option>
+                    <option id="f-category-automation_ai" value="automation_ai" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Automatisierung und KI</span></option>
 
-              </select>
+                    <option id="f-category-security" value="security" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Sicherheit und Compliance</span></option>
+
+                </select>
+
+                  <span class="category-label" data-category-label="all" aria-hidden="true">Alle Kategorien</span>
+
+                  <span class="category-label" data-category-label="communication" aria-hidden="true">Kommunikation</span>
+
+                  <span class="category-label" data-category-label="files" aria-hidden="true">Dateien und Dokumente</span>
+
+                  <span class="category-label" data-category-label="identity_devices" aria-hidden="true">Identität und Geräte</span>
+
+                  <span class="category-label" data-category-label="automation_ai" aria-hidden="true">Automatisierung und KI</span>
+
+                  <span class="category-label" data-category-label="security" aria-hidden="true">Sicherheit und Compliance</span>
+
+                <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
+              </div>
             </div>
             <p class="note-text">Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht.</p>
           </div>

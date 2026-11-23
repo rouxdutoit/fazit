@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { readFile } from "node:fs/promises";
-import { localContext, widths, withSite } from "./check_browser.mjs";
+import { iPhone, localContext, widths, withSite } from "./check_browser.mjs";
 
 const design = await readFile(new URL("../DESIGN.md", import.meta.url), "utf8");
 const relations = new Map(Array.from(
@@ -226,14 +226,15 @@ async function showEmptyResults(page) {
 }
 
 async function checkSpacing({ browser, origin, routes }) {
-  const buckets = new Map(widths.map(width => [width, new Map([...relations.keys()].map(key => [key, []]))]));
+  const viewports = [...widths.map(width => ({ width, options: {} })), iPhone].sort((a, b) => a.width - b.width);
+  const buckets = new Map(viewports.map(({ width }) => [width, new Map([...relations.keys()].map(key => [key, []]))]));
   const errors = [];
   let views = 0;
   let expanded = 0;
   let filtered = 0;
-  for (const width of widths) {
+  for (const { width, options } of viewports) {
     for (const theme of ["light", "dark"]) {
-      const context = await localContext(browser, origin, width, theme);
+      const context = await localContext(browser, origin, width, theme, options);
       const page = await context.newPage();
       for (const route of routes) {
         const collect = async state => {
@@ -268,7 +269,7 @@ async function checkSpacing({ browser, origin, routes }) {
   }
   const { rows, offenders, count } = summarise(buckets);
   console.table(rows);
-  console.log(`${views} page views, ${expanded} expanded views, ${filtered} empty filter views, ${count} spacing measurements (px).`);
+  console.log(`${views} page views including iPhone emulation, ${expanded} expanded views, ${filtered} empty filter views, ${count} spacing measurements (px).`);
   if (offenders.length) console.table(offenders);
   if (errors.length) console.table(errors);
   if (errors.length || rows.some(row => row.offenders)) process.exitCode = 1;

@@ -67,6 +67,7 @@
   --bar-h: 52px;
   --btn-height: 44px;
   --btn-compact-height: 28px;
+  --btn-symbol-gap: 0.4em;
   --hit: var(--btn-height);
   --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
   --radius: 8px;
@@ -250,6 +251,8 @@ code {
   gap: var(--symbol-gap, 8px);
   line-height: 1;
 }
+
+:is(.btn, .menu-button, a.language) { --symbol-gap: var(--btn-symbol-gap); }
 
 @supports (height: 1cap) {
   :root { --cap-height: 1cap; }
@@ -611,7 +614,6 @@ code {
 }
 
 .btn {
-  --symbol-gap: 4px;
   justify-content: center;
   block-size: var(--btn-height);
   padding: 0 16px;
