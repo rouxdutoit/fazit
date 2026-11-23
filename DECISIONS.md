@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Report area filters on phones
+
+**D45. Keep the status filters in one row.**
+
+The founder chose a capsule track with a 2 px inset around same-height segments. When the full labels exceed the available width, the segments share it equally and show the status symbols and counts. The status words remain in the radio labels and in their titles. The category picker gives browser-managed text its normal line height and room for descenders. [Design rules](DESIGN.md#links-and-buttons)
+
 ## 2026-11-23 — Section spacing and sample report navigation
 
 **D44. Use a responsive section gap throughout the site and report.**

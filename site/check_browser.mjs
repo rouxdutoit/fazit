@@ -67,9 +67,9 @@ export async function withSite(check, { origin: suppliedOrigin, classicScrollbar
   }
 }
 
-export async function localContext(browser, origin, width, colorScheme) {
+export async function localContext(browser, origin, width, colorScheme, options = {}) {
   const context = await browser.newContext({
-    viewport: { width, height: 900 }, colorScheme, reducedMotion: "reduce",
+    viewport: { width, height: 900 }, colorScheme, reducedMotion: "reduce", ...options,
   });
   await context.route("**/*", route =>
     new URL(route.request().url()).origin === origin ? route.continue() : route.abort());

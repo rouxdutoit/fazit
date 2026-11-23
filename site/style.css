@@ -404,6 +404,7 @@ code {
 }
 
 .bar-links a:not(.btn) {
+  min-height: var(--hit);
   color: color-mix(in srgb, var(--fg) 80%, transparent);
   font-size: var(--fs-footnote);
   white-space: nowrap;
@@ -477,7 +478,6 @@ code {
   }
 
   .bar-links a:not(.btn) {
-    min-height: var(--hit);
     padding-inline: 8px;
     border-radius: var(--radius);
     color: var(--fg);
@@ -593,15 +593,16 @@ code {
 }
 
 .btn-solid {
-  background: var(--solid-bg);
+  --button-fill: var(--solid-bg);
+  background: var(--button-fill);
 }
 
 .btn-solid:hover {
-  background: var(--solid-hover);
+  --button-fill: var(--solid-hover);
 }
 
 .btn-solid:active {
-  background: var(--solid-active);
+  --button-fill: var(--solid-active);
 }
 
 @media (min-width: 820px) {
@@ -609,14 +610,19 @@ code {
 
   .bar-cta {
     position: relative;
-    block-size: var(--btn-compact-height);
+    isolation: isolate;
+    block-size: var(--hit);
     padding-inline: 12px;
     font-size: var(--fs-footnote);
+    background: transparent;
   }
 
   .bar-cta::before {
     position: absolute;
-    inset: calc((var(--btn-compact-height) - var(--hit)) / 2) 0;
+    z-index: -1;
+    inset: calc((var(--hit) - var(--btn-compact-height)) / 2) 0;
+    border-radius: inherit;
+    background: var(--button-fill);
     content: "";
   }
 }

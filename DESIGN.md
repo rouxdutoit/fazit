@@ -18,7 +18,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 - Colour carries meaning, nothing else. Status colours mean status; everything else, buttons and links included, is monochrome.
 - Never colour a heading, a tile or a background to decorate it.
-- Status is never colour alone: every status shows its symbol and its word.
+- Status is never colour alone. Each status has a symbol and a word. Compact report filters show the symbol and count, with the word in visually hidden text and in the segment's title.
 - Status symbols use Apple's system colours at full strength. Status badges mix 12% of the status colour into the surface fill. In dark mode the symbol and label both use the status colour. In light mode the symbol uses the status colour and the label uses the main text colour. The Evidence incomplete badge uses the neutral fill and text.
 - With `prefers-contrast: more`, use Apple's increased contrast colours for the current screen theme. Print uses the default light palette.
 
@@ -88,6 +88,8 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 - **Text links:** the text colour; on hover they lighten, and in dark mode they also glow. A link inside running text carries a thin static underline in the secondary text colour and no chevron; a standalone link ends in a chevron, has no underline and sits a step back in dark grey (`--link-quiet`), coming forward to the text colour on hover. Footer and bar links have neither.
 - **A card that leads to another page is one link as a whole.** Its title ends with the plain trailing chevron in the title's text colour. The same gap and baseline rules apply as for standalone links. On hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com.** Standard pills are 44 px high with 15 px text and 16 px horizontal padding. The desktop bar pill is 28 px high with 12 px text and 12 px horizontal padding. It has a hit area at least 44 px high. The copy button is 44 px square. The shared symbol and label primitive centres button content. Button labels use weight 500 in Figtree. The primary button lightens on hover and darkens when pressed while its text keeps the same colour.
+- **Report status filters** use a single capsule track with a 2 px inset and one row of same-height segments. The selected segment is a capsule. Use the full status labels when they fit the track. When space is tight, share the track width equally and show symbols and counts. Keep the word and count for All / Alle at every width.
+- **Browser-managed select text** uses normal line height with room for the full glyphs. Keep the trigger and options on one line.
 - Every button leads with a symbol that says what happens (Material Symbols, in the button's text colour, sized in `em`); a button whose action no symbol can name gets none, and then no button in its group has one.
 - One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".
 
@@ -115,4 +117,4 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Checks
 
-`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights and timeline geometry at 360, 768 and 1280 px. `node site/check_spacing.mjs` measures the rhythm on every page at the same widths and checks that the section gap matches the home page. Both checks run in Chromium and WebKit. The release review checks the remaining design rules.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. WebKit also runs at 390 × 844 px with iPhone touch and display settings. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px and checks that the section gap matches the home page. Both checks run in Chromium and WebKit. The release review checks the remaining design rules.

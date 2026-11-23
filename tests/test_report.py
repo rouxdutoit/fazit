@@ -856,10 +856,10 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
     assert {card["data-category"] for card in cards} == set(category_ids)
 
     assert f'<legend class="sr-only">{strings["filter"]["status_legend"]}</legend>' in status_group
-    labels = re.findall(r"<label\b[^>]*>(.*?)</label>", status_group, re.S)
+    labels = re.findall(r"(<label\b[^>]*>)(.*?)</label>", status_group, re.S)
     radios = [attrs for tag, attrs in ReportDocument(status_group).tags if tag == "input"]
     assert len(labels) == len(radios) == len(DISPLAY_ORDER) + 1
-    for option, label, radio in zip(("all", *DISPLAY_ORDER), labels, radios, strict=True):
+    for option, (tag, label), radio in zip(("all", *DISPLAY_ORDER), labels, radios, strict=True):
         assert radio["type"] == "radio" and radio["name"] == "f-status"
         assert radio["id"] == f"f-status-{option}"
         assert "<input " in label
@@ -870,6 +870,10 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
         name = strings["filter"]["all"] if option == "all" else strings["status"][option]
         assert text == f"{name} {formatter.integer(count)}"
         assert ("<svg" in label) is (option != "all")
+        assert "aria-label" not in radio
+        if option != "all":
+            assert f'title="{name}"' in unescape(tag)
+            assert f'<span class="symbol-text segment-name">{name}</span>' in unescape(label)
 
     ((legend, category_menu),) = re.findall(
         r'<select id="f-category" name="f-category" aria-label="([^"]+)"[^>]*>(.*?)</select>',

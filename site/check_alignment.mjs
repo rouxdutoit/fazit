@@ -4,6 +4,7 @@ import { localContext, widths, withSite } from "./check_browser.mjs";
 
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
+const singleLine = `${capsules}, ${menuItems}, button, .menu-button, .category-filter`;
 const centredLabels = `${capsules}, ${menuItems}, a.language`;
 const symbolOnly = ".copy, .menu-button, .foot-mail, .report-card-control, .cost-segment.is-unknown";
 const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .finding-evidence dd";
@@ -16,7 +17,7 @@ const components = [
   ".status-summary dt", ".finding-evidence dd", ".privacy-facts h3", ".flow-links > a",
 ].join(", ");
 
-function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, tolerance }) {
+function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance }) {
   const fontSample = 512;
   const surface = document.createElement("canvas");
   surface.width = surface.height = fontSample;
@@ -125,6 +126,162 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     }
   }
 
+  function visible(element) {
+    const style = getComputedStyle(element);
+    return element.checkVisibility({ visibilityProperty: true })
+      && !(style.position === "absolute" && style.clipPath !== "none");
+  }
+
+  function inScope(element) {
+    return (!scope || element.closest(scope)) && visible(element)
+      && (!element.matches("option") || element.closest("select:open"));
+  }
+
+  function oneRow(boxes) {
+    // A symbol and a trimmed label have different top edges on the same line.
+    return boxes.length < 2 ? 0 : Math.max(0,
+      Math.max(...boxes.map(box => box.top)) - Math.min(...boxes.map(box => box.bottom)) + 0.02);
+  }
+
+  const inkSurface = document.createElement("canvas");
+  const inkCanvas = inkSurface.getContext("2d", { willReadFrequently: true });
+  const inkCache = new Map();
+
+  function scanInk(text, label) {
+    const scale = 4;
+    const style = getComputedStyle(label);
+    const em = scale * parseFloat(style.fontSize);
+    const typeface = font(label, `${em}px`);
+    const tracking = `${scale * (parseFloat(style.letterSpacing) || 0)}px`;
+    const key = `${typeface} ${style.letterSpacing} ${text}`;
+    if (inkCache.has(key)) return inkCache.get(key);
+
+    inkCanvas.font = typeface;
+    inkCanvas.letterSpacing = tracking;
+    const advance = inkCanvas.measureText(text).width;
+    inkSurface.width = Math.ceil(advance + 2 * em);
+    inkSurface.height = Math.ceil(4 * em);
+    inkCanvas.font = typeface;
+    inkCanvas.letterSpacing = tracking;
+    inkCanvas.fillText(text, em, 2 * em);
+    const { width, height } = inkSurface;
+    const { data } = inkCanvas.getImageData(0, 0, width, height);
+    let left = width, right = 0, top = height, bottom = 0;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        if (data[4 * (y * width + x) + 3] < 128) continue;
+        left = Math.min(left, x);
+        right = Math.max(right, x + 1);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y + 1);
+      }
+    }
+    // Offsets from the start, end and baseline of the text run in the document.
+    const ink = { left: (left - em) / scale, right: (right - em - advance) / scale,
+      top: (top - 2 * em) / scale, bottom: (bottom - 2 * em) / scale };
+    inkCache.set(key, ink);
+    return ink;
+  }
+
+  function paddingBox(element) {
+    const box = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      left: box.left + parseFloat(style.borderLeftWidth), right: box.right - parseFloat(style.borderRightWidth),
+      top: box.top + parseFloat(style.borderTopWidth), bottom: box.bottom - parseFloat(style.borderBottomWidth),
+    };
+  }
+
+  function measureScroll(element) {
+    compare(element, "clipping: scroll height", Math.max(0, element.scrollHeight - element.clientHeight), 0);
+    compare(element, "clipping: scroll width", Math.max(0, element.scrollWidth - element.clientWidth), 0);
+  }
+
+  function measureInk(element, ink) {
+    const box = paddingBox(element);
+    compare(element, "clipping: label ink beyond padding", Math.max(0,
+      box.left - ink.left, ink.right - box.right, box.top - ink.top, ink.bottom - box.bottom), 0.25);
+  }
+
+  function textLines(node, range, first, end) {
+    range.setStart(node, first);
+    range.setEnd(node, end);
+    const boxes = [...range.getClientRects()];
+    if (boxes.length === 1) return [{ text: range.toString(), box: boxes[0] }];
+
+    // Disclosure titles can wrap. Find which characters belong to each line for the ink check.
+    return boxes.map(box => {
+      let text = "";
+      let offset = first;
+      for (const glyph of node.data.slice(first, end)) {
+        range.setStart(node, offset);
+        offset += glyph.length;
+        range.setEnd(node, offset);
+        if (Math.abs(range.getBoundingClientRect().top - box.top) < 0.02) text += glyph;
+      }
+      return { text, box };
+    }).filter(line => line.text.trim());
+  }
+
+  function measureControl(element) {
+    const oneLine = element.matches(singleLine);
+    const content = element.matches("select") ? element.querySelector(":scope > button") : element;
+    measureScroll(element);
+    if (!content || !visible(content)) return;
+    const children = [...content.children].filter(visible).map(child => child.getBoundingClientRect())
+      .filter(box => box.width && box.height);
+    if (oneLine) compare(element, "wrap: control children", oneRow(children), 0);
+
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    const labelBoxes = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const label = node.parentElement;
+      if (!node.data.trim() || !visible(label)) continue;
+      const first = node.data.length - node.data.trimStart().length;
+      const end = node.data.trimEnd().length;
+      const lines = textLines(node, range, first, end);
+      if (oneLine) compare(element, "wrap: text fragments", lines.length - 1, 0);
+      if (!lines.length) continue;
+      const firstBaseline = baseline(label);
+      const pickerLabel = element === content && label.closest("selectedcontent, option > .symbol-text");
+      if (pickerLabel) measureScroll(pickerLabel);
+      for (const { text, box } of lines) {
+        labelBoxes.push(box);
+        const ink = scanInk(text, label);
+        const y = firstBaseline + box.top - lines[0].box.top;
+        const footprint = { left: box.left + ink.left, right: box.right + ink.right,
+          top: y + ink.top, bottom: y + ink.bottom };
+        measureInk(element, footprint);
+        // The engine can clip glyphs at a picker label's line box inside the control.
+        if (pickerLabel) measureInk(pickerLabel, footprint);
+      }
+    }
+    if (oneLine) compare(element, "wrap: control text", oneRow(labelBoxes), 0);
+  }
+
+  function measureSegments(track) {
+    const segments = [...track.querySelectorAll(":scope > label")];
+    const boxes = segments.map(segment => segment.getBoundingClientRect());
+    const checked = track.querySelector("label:has(:checked)");
+    const selected = checked?.getBoundingClientRect();
+    const inner = paddingBox(track);
+    const names = [...track.querySelectorAll(".segment-name")];
+    const compact = names.length && !names.some(visible);
+    compare(track, "wrap: segment tops", Math.max(...boxes.map(box => box.top)) - Math.min(...boxes.map(box => box.top)), 0.02);
+    measureScroll(track);
+    compare(track, "height: selection fills the inset track", selected?.height - (inner.bottom - inner.top - 4), 0.02);
+    compare(track, "shape: selected segment top inset", selected?.top - inner.top - 2, 0.02);
+    for (const element of [track, checked].filter(Boolean)) {
+      const style = getComputedStyle(element);
+      compare(element, "shape: capsule radius", style.borderRadius === style.getPropertyValue("--radius-pill").trim() ? 0 : NaN, 0);
+    }
+    for (const [index, box] of boxes.entries()) {
+      compare(segments[index], "height: segment compared with selection", box.height - selected?.height, 0.02);
+      if (compact) compare(segments[index], "compact segment width", box.width - boxes[0].width, 0.02);
+    }
+  }
+
   function lastLetter(label, em) {
     // The picker clones the selected option's label into selectedcontent.
     const text = (label.querySelector(":scope > .symbol-text") ?? label).firstChild;
@@ -205,7 +362,9 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     const compact = button.matches(".bar-cta") && matchMedia("(min-width: 820px)").matches;
     const style = getComputedStyle(button);
     const token = compact ? "--btn-compact-height" : "--btn-height";
-    compare(button, token, box.height - parseFloat(style.getPropertyValue(token)), 0);
+    const fill = compact && getComputedStyle(button, "::before");
+    const height = fill && fill.backgroundColor !== "rgba(0, 0, 0, 0)" ? parseFloat(fill.height) : box.height;
+    compare(button, token, height - parseFloat(style.getPropertyValue(token)), 0);
     if (compact) {
       const hit = parseFloat(style.getPropertyValue("--hit"));
       const x = (box.left + box.right) / 2;
@@ -217,11 +376,9 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
   }
 
   for (const pair of document.querySelectorAll(components)) {
-    if (scope && !pair.closest(scope)) continue;
-    if (!pair.checkVisibility({ visibilityProperty: true })) continue;
-    if (pair.matches("option") && !pair.closest("select:open")) continue;
+    if (!inScope(pair)) continue;
 
-    const labels = [...pair.querySelectorAll(":scope > .symbol-text:not(.command-prompt)")];
+    const labels = [...pair.querySelectorAll(":scope > .symbol-text:not(.command-prompt)")].filter(visible);
     const symbols = [...pair.querySelectorAll(":scope > :is(.symbol, .command-prompt), :scope > .report-card-controls .symbol")];
     const chevron = pair.querySelector(":scope > .chevron, :scope > .symbol-text .chevron");
     const onlySymbol = pair.matches(symbolOnly);
@@ -282,6 +439,13 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       compare(pair, "copy hit target width", box.width - parseFloat(getComputedStyle(pair).getPropertyValue("--hit")), 0);
       compare(pair, "command block centre", centre(box) - centre(pair.closest(".command-line").getBoundingClientRect()));
     }
+  }
+
+  for (const control of document.querySelectorAll(`${singleLine}, summary`)) {
+    if (inScope(control)) measureControl(control);
+  }
+  for (const track of document.querySelectorAll(".segmented")) {
+    if (inScope(track)) measureSegments(track);
   }
 
   function measureBarAndPreview() {
@@ -356,6 +520,38 @@ async function clickCopyButton(page, button) {
   await page.mouse.click(point.x, point.y);
 }
 
+async function checkStatusKeyboard(page, measure) {
+  const radios = await page.locator(".segmented input:enabled").all();
+  const cards = page.locator(".areas .finding:visible");
+  const all = await cards.count();
+  await radios[0].focus();
+  for (const radio of radios.slice(1)) {
+    await page.keyboard.press("ArrowRight");
+    assert(await radio.isChecked(), "ArrowRight selects the next status");
+    const status = (await radio.getAttribute("id")).replace("f-status-", "");
+    const shown = await cards.evaluateAll(rows => rows.map(row => row.dataset.status));
+    assert(shown.length && shown.every(value => value === status), `Incorrect areas for ${status}`);
+    await measure(".segmented");
+  }
+  for (const radio of radios.slice(0, -1).reverse()) {
+    await page.keyboard.press("ArrowLeft");
+    assert(await radio.isChecked(), "ArrowLeft selects the previous status");
+  }
+  assert.equal(await cards.count(), all);
+}
+
+async function checkStatusNames(page, width) {
+  for (const segment of await page.locator(".segmented label.status").all()) {
+    const name = await segment.getAttribute("title");
+    const count = await segment.locator(".segment-count").textContent();
+    assert(name && await segment.getByRole("radio", { name: `${name} ${count}`, exact: true }).count(),
+      "Status title and radio name match");
+    const word = segment.locator(".segment-name");
+    assert.equal(await word.textContent(), name);
+    assert.equal(await word.evaluate(element => getComputedStyle(element).clipPath !== "none"), width <= 390);
+  }
+}
+
 async function checkPage(page, route, width, origin, measure) {
   const report = route.startsWith("/demo/");
   const response = await page.goto(origin + route);
@@ -405,39 +601,50 @@ async function checkPage(page, route, width, origin, measure) {
   }
 
   if (report) {
+    await checkStatusKeyboard(page, measure);
     const category = page.locator("#f-category");
-    await category.click();
+    await page.keyboard.press("Tab");
+    assert(await category.evaluate(element => element === document.activeElement), "Tab reaches the category picker");
+    await page.keyboard.press("Space");
     await category.locator("option:checked > .symbol").waitFor();
-    await measure("#f-category option");
-    const nextOption = category.locator("option").nth(1);
-    const nextValue = await nextOption.getAttribute("value");
-    await nextOption.click();
-    await category.locator(`option[value="${nextValue}"]:checked`).waitFor({ state: "attached" });
+    await measure("#f-category");
+    const nextValue = await category.locator("option").nth(1).getAttribute("value");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    assert.equal(await category.inputValue(), nextValue);
     await measure("#f-category > button");
+    const shown = await page.locator(".areas .finding:visible").evaluateAll(rows => rows.map(row => row.dataset.category));
+    assert(shown.length && shown.every(value => value === nextValue), `Incorrect areas for ${nextValue}`);
+    await checkStatusNames(page, width);
   }
 }
 
 const tolerance = 0.75;
+const iPhone = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
 async function checkAlignment({ browser, origin, routes }) {
   const failures = [];
   let maximum = 0;
   let count = 0;
   let views = 0;
-  for (const width of widths) {
+  const chromium = browser.browserType().name() === "chromium";
+  const sizes = [...widths, 390].sort((a, b) => a - b).map(width => ({ width, device: "viewport", options: {} }));
+  if (!chromium) sizes.push({ width: iPhone.viewport.width, device: "iPhone", options: iPhone });
+  for (const { width, device, options } of sizes) {
     for (const theme of ["light", "dark"]) {
-      const context = await localContext(browser, origin, width, theme);
-      if (browser.browserType().name() === "chromium") {
-        await context.grantPermissions(["clipboard-write"], { origin });
-      }
-      const page = await context.newPage();
-      page.setDefaultTimeout(3000);
+      const context = await localContext(browser, origin, width, theme, options);
+      const reportContext = await localContext(browser, origin, width, theme, { ...options, javaScriptEnabled: false });
+      if (chromium) await context.grantPermissions(["clipboard-write"], { origin });
+      const website = await context.newPage();
+      const report = await reportContext.newPage();
+      for (const page of [website, report]) page.setDefaultTimeout(3000);
       for (const route of routes) {
-        const view = { page: route, width, theme };
+        const view = { page: route, width, theme, device };
+        const page = route.startsWith("/demo/") ? report : website;
         views += 1;
         try {
           await checkPage(page, route, width, origin, async scope => {
             const result = await page.evaluate(measureInPage, {
-              scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, tolerance,
+              scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance,
             });
             failures.push(...result.failures.map(failure => ({ ...view, ...failure })));
             count += result.count;
@@ -448,6 +655,7 @@ async function checkAlignment({ browser, origin, routes }) {
         }
       }
       await context.close();
+      await reportContext.close();
     }
   }
   if (failures.length) {
