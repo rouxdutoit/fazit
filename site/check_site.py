@@ -165,7 +165,7 @@ class Page(HTMLParser):
             self.headings.append(int(tag[1]))
         if tag in {"base", "embed", "iframe", "object"}:
             self.errors.append(f"Unexpected <{tag}> on line {line}.")
-        if tag == "script" and values.get("src") != "/site.js":
+        if tag == "script" and urlsplit(values.get("src") or "").path != "/site.js":
             self.errors.append(f"Expected the local script on line {line}.")
         if any(name.startswith("on") or name == "ping" for name in values):
             self.errors.append(f"Event handlers and link tracking are disallowed on line {line}.")
