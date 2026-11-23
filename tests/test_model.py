@@ -239,6 +239,41 @@ def test_directory_counts_cannot_exceed_declared_checks(
     assert caught.value.field == f"findings[0].{field}"
 
 
+@pytest.mark.parametrize("total", range(1, 5))
+def test_joint_directory_counts_fit_declared_checks(
+    scan_data: dict, catalogue: Catalogue, total: int
+) -> None:
+    coverage = asdict(Coverage("partial", total=total))
+    scan_data["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan_data["generated_at"],
+        "coverage": coverage,
+    }
+    members, guests = (
+        _finding(f"directory.{kind}_count", period=None, coverage={"kind": "partial"})
+        for kind in ("user", "guest")
+    )
+    scan_data["findings"] = [members, guests]
+    for scanned, failed in product((None, *range(1, total + 1)), (None, *range(total))):
+        if (scanned or 0) + (failed or 0) > total:
+            continue
+        coverage.update(scanned=scanned, failed=failed)
+        possible = {
+            (roster.count("internal"), roster.count("guest"))
+            for roster in product(("internal", "guest", "other", "failed"), repeat=total)
+            if roster.count("failed") == (failed or 0)
+        }
+        limit = scanned if scanned is not None else max(member for member, _ in possible)
+        for counts in product(range(limit + 1), repeat=2):
+            members["value"], guests["value"] = counts
+            if counts in possible:
+                assert tuple(item.value for item in _load(scan_data, catalogue).findings) == counts
+            else:
+                with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
+                    _load(scan_data, catalogue)
+                assert caught.value.field == "findings[1].value"
+
+
 def test_complete_directory_count_inherits_the_declared_total(
     scan_data: dict, catalogue: Catalogue
 ) -> None:
@@ -277,13 +312,15 @@ def test_complete_directory_count_inherits_the_declared_total(
         ("2026-11-05T23:30:00Z", True),
         ("2026-11-05T19:30:00-05:00", True),
         ("2026-11-06T00:30:00Z", True),
+        ("2026-11-05T10:00:00Z", True),
+        ("2026-11-05T09:59:59Z", False),
         ("2026-11-05", True),
         ("2026-11-05T00:30:00+01:00", False),
         ("2026-11-04T23:30:00Z", False),
         ("2026-11-04", False),
     ],
 )
-def test_undated_interview_period_uses_scan_utc_day(
+def test_undated_interview_period_is_bounded_by_the_scan(
     scan_data: dict, catalogue: Catalogue, generated_at: str, valid: bool
 ) -> None:
     scan_data["generated_at"] = generated_at
@@ -304,13 +341,15 @@ def test_undated_interview_period_uses_scan_utc_day(
         ("2026-11-01T23:30:00Z", True),
         ("2026-11-01T19:30:00-05:00", True),
         ("2026-11-02T00:30:00Z", True),
+        ("2026-11-01T10:00:00Z", True),
+        ("2026-11-01T09:59:59Z", False),
         ("2026-11-01", True),
         ("2026-11-01T00:30:00+01:00", False),
         ("2026-10-31T23:30:00Z", False),
         ("2026-10-31", False),
     ],
 )
-def test_dated_period_uses_collection_utc_day(
+def test_dated_period_is_bounded_by_collection(
     scan_data: dict, catalogue: Catalogue, collected_at: str, valid: bool
 ) -> None:
     period = "2026-10-01/2026-11-02"
@@ -326,30 +365,37 @@ def test_dated_period_uses_collection_utc_day(
 @pytest.mark.parametrize(
     ("generated_at", "valid"),
     [
-        ("2026-11-02T00:30:00+01:00", True),
-        ("2026-11-01T23:30:00Z", True),
-        ("2026-11-01T19:30:00-05:00", True),
-        ("2026-11-02T00:30:00Z", True),
-        ("2026-11-01T00:30:00+01:00", False),
-        ("2026-10-31T23:30:00Z", False),
+        ("2026-11-05T00:00:00Z", False),
+        ("2026-11-04T19:00:00-05:00", False),
+        ("2026-11-05T09:59:59.999999Z", False),
+        ("2026-11-05T10:00:00Z", True),
+        ("2026-11-06T00:00:00+14:00", True),
+        ("2026-11-06T00:30:00+01:00", True),
+        ("2026-11-05T23:30:00Z", True),
+        ("2026-11-05T18:30:00-05:00", True),
+        ("2026-11-06T20:05:00-05:00", True),
+        ("2026-11-07T01:05:00Z", True),
+        ("2026-11-04", False),
+        ("2026-11-05", True),
     ],
 )
-def test_date_only_interview_uses_scan_utc_day(
+def test_date_only_interview_requires_the_day_to_have_started(
     scan_data: dict, catalogue: Catalogue, generated_at: str, valid: bool
 ) -> None:
     scan_data.update(generated_at=generated_at, findings=[scan_data["findings"][3]], licences=None)
-    scan_data["findings"][0]["collected_at"] = "2026-11-02"
+    scan_data["findings"][0]["collected_at"] = "2026-11-06"
     if valid:
-        assert _load(scan_data, catalogue).findings[0].collected_at == "2026-11-02"
+        assert _load(scan_data, catalogue).findings[0].collected_at == "2026-11-06"
     else:
         with pytest.raises(InputError, match="collection_after_scan") as caught:
             _load(scan_data, catalogue)
         assert caught.value.field == "findings[0].collected_at"
 
 
-def test_period_end_cannot_use_the_date_allowance_twice(
+def test_period_end_must_fit_both_collection_and_scan(
     scan_data: dict, catalogue: Catalogue
 ) -> None:
+    scan_data["generated_at"] = "2026-11-02T10:00:00Z"
     observation = scan_data["findings"][1]
     observation.update(collected_at="2026-11-03", period="2026-10-01/2026-11-03")
     assert _load(scan_data, catalogue).findings[1].collected_at == "2026-11-03"

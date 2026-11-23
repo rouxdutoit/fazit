@@ -31,9 +31,9 @@ The catalogue lists finding IDs, workloads, types, units, collectors, sources, r
 
 Use `directory_population` when the directory collector counts internal, guest and licensed accounts within a single population. Its `collector` must be `directory` and must appear in `collectors`. Give `collected_at` as a timestamp with a UTC offset or `Z` and `coverage` as an object with a `total`. The total includes all account rows in the scope. For complete coverage, set `kind` to `complete`, `scanned` to `total` and `failed` to zero.
 
-The declaration applies to measured `directory.user_count`, `directory.guest_count` and `directory.licensed_user_count` findings from that collector and instant with `period` set to `null`. Any `coverage.total` on those findings must match the declared total. Fazit uses the declared total for coverage checks when a matching finding omits its own. Values and successful checks fit within the declaration's successful checks. A partially checked declaration rules out complete coverage for a matching finding. Other directory findings keep their own scope.
+The declaration applies to measured `directory.user_count`, `directory.guest_count` and `directory.licensed_user_count` findings from that collector and instant with `period` set to `null`. Any `coverage.total` on those findings must match the declared total. Fazit uses the declared total for coverage checks when a matching finding omits its own. Values and successful checks fit within the declaration's successful checks. The internal and guest counts together fit within the declared total less its recorded failures. A partially checked declaration rules out complete coverage for a matching finding. Other directory findings keep their own scope.
 
-For Directory to be Ready, both the internal and guest counts must describe the complete declared population. A confirmed guest still requires a decision about access when the population is unverified.
+For Directory to be Ready, both the internal and guest counts must describe the complete declared population. A conflict between the licence inventory and the licensed account count prevents Ready. When this population has a complete licensed count, a skipped or partial licence collector leaves that check open and prevents Ready. A confirmed guest still requires a decision about access.
 
 To confirm licence absences, Fazit needs a complete directory declaration, a complete licensed account count and a complete licence inventory from the same instant. With independent scopes or incomplete coverage, Fazit reports the absence as unknown and retains any confirmed assignments.
 
@@ -52,7 +52,7 @@ All finding keys are required. The `provenance` determines which fields must hav
 - If you supply a `collector`, its ID must appear in `collectors` and the catalogue must allow it for the finding. Any supplied `source` must be registered for that collector and finding. Without a collector, only findings that accept supplied evidence can name a source, and the source must be registered for supplied evidence. The codes `inputs_yaml` and `sample.inputs_yaml` belong to evidence read from the inputs file.
 - Give `collected_at` as a date or a timestamp with a UTC offset or `Z`. A measurement without a reporting period requires the time of collection.
 - Give `period` as `YYYY-MM-DD/YYYY-MM-DD`, or as `null` if there is no reporting period.
-- A date-only collection stamp or period end may be up to one day after the scan's UTC calendar date. A period end with a collection stamp also has this allowance relative to the collection date. Fazit uses the stated calendar day for a date-only reference and compares clock times as instants.
+- A date-only collection stamp or period end must be on a day that has begun by the scan timestamp. The day starts at midnight UTC+14 for this check. Fazit also checks a period end against its collection date or time when supplied. Clock times are compared as instants. A date-only reference is treated as the end of its stated UTC day.
 - Give `coverage` as an object when it applies. The next section describes its fields.
 
 ## Coverage

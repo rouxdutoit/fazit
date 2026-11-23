@@ -194,10 +194,18 @@ def test_report_rejects_future_interview_evidence(
     _reject_scan(tmp_path / "future-interview", town_scan, f"findings[{index}].{field}")
 
 
-@pytest.mark.parametrize("stamp", ["2026-11-02", "2026-11-03", "2026-11-02T10:00:00+01:00"])
-def test_report_accepts_date_only_allowance_and_equal_instants(
-    tmp_path: Path, town_scan: dict, stamp: str
+@pytest.mark.parametrize(
+    ("scan_stamp", "stamp"),
+    [
+        ("2026-11-02T09:00:00Z", "2026-11-02"),
+        ("2026-11-02T10:00:00Z", "2026-11-03"),
+        ("2026-11-02T09:00:00Z", "2026-11-02T10:00:00+01:00"),
+    ],
+)
+def test_report_accepts_days_that_have_started_and_equal_instants(
+    tmp_path: Path, town_scan: dict, scan_stamp: str, stamp: str
 ) -> None:
+    town_scan["generated_at"] = scan_stamp
     _finding(town_scan, "teams.teams_with_guests_count")["collected_at"] = stamp
 
     _html(_report(tmp_path / "possible-date", town_scan))
@@ -803,6 +811,57 @@ def test_directory_ready_requires_counts_in_a_complete_declared_population(
     assert (absence[lang] in row) == (status == "ready")
     if status == "unknown":
         assert 'data-reason="directory_population_unverified"' in row
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+@pytest.mark.parametrize(
+    ("assigned", "guests", "licence_status", "status", "reason"),
+    [
+        (1, 0, "ok", "ready", None),
+        (2, 0, "ok", "unknown", "licence_assignments_conflict"),
+        (2, 1, "ok", "needs_work", "licence_assignments_conflict"),
+        (2, 0, "skipped", "unknown", "permission_denied"),
+        (2, 0, "partial", "unknown", "coverage_partial"),
+    ],
+    ids=["reconciled", "conflict", "conflict-with-guest", "licences-skipped", "licences-partial"],
+)
+def test_directory_accounts_are_checked_against_licences(
+    tmp_path: Path,
+    town_scan: dict,
+    lang: str,
+    assigned: int,
+    guests: int,
+    licence_status: str,
+    status: str,
+    reason: str | None,
+) -> None:
+    coverage = asdict(Coverage("complete", 1, 0, 1))
+    town_scan["directory_population"]["coverage"] = coverage
+    _finding(town_scan, "directory.user_count")["value"] = 1 - guests
+    _finding(town_scan, "directory.guest_count")["value"] = guests
+    _finding(town_scan, "directory.licensed_user_count")["value"] = 1
+    if licence_status != "ok":
+        collector = next(row for row in town_scan["collectors"] if row["id"] == "licences")
+        collector.update(status=licence_status, reason=reason)
+    if licence_status == "skipped":
+        town_scan["licences"] = None
+    else:
+        inventory = town_scan["licences"]
+        product = inventory["products"][0]
+        product["assigned"] = assigned
+        inventory.update(products=[product], coverage=coverage)
+    answers = "confirmations: {directory.account_list_reviewed: true}"
+
+    html = _html(_report(tmp_path / "licence-check", town_scan, answers, lang=lang))
+    row = readiness_row(html, "directory")
+    if reason == "licence_assignments_conflict":
+        assert f'data-reason="{reason}"' in report_section(html, "found")
+    assert f'data-status="{status}"' in row
+    absence = {"en": "there are no guest accounts", "de": "es gibt keine Gastkonten"}
+    assert (absence[lang] in html) == (status == "ready")
+    if reason is not None:
+        assert f'data-reason="{reason}"' in row and "data-incomplete" in row
+        assert load_locale(lang)["reason"][reason]["label"] in row
 
 
 @pytest.mark.parametrize("state", ["partial", "unknown", "different-instant"])
