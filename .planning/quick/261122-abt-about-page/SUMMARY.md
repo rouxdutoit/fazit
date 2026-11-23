@@ -1,6 +1,6 @@
 ---
 quick_id: 261122-abt-about-page
-status: incomplete
+status: complete
 date: 2026-11-22
 ---
 
@@ -36,3 +36,7 @@ Status is incomplete because the founder reviews the pages before anything is co
 
 - Nothing is staged, committed or pushed.
 - `.planning/STATE.md` is not updated, because it is shared with other sessions and this task is not yet complete.
+
+## Founder review, 2026-11-23
+
+The founder read the final copy and replied "Great". Three changes came out of the review, all in "Where it started" on both pages: "There was no quick, honest way to answer." was added, the post is introduced with "and it clicked", and the paragraph about earlier projects now says they were built in the founder's own time and that nobody had asked for them. `uv run python site/check_site.py` passes. The site's coordinating session makes the commit.

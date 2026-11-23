@@ -122,3 +122,11 @@ Still as drafted unless the founder objects: the headline, "Fazit stays free", a
 - A public list of the gaps Fazit's mappings record in openDesk and Nextcloud, once a named operator has reviewed the mappings.
 - Telling Jordan Krueger about Fazit after the first release. His post invites it; the founder sends it.
 - Note for any future badge idea: the pilots page already says "We also never ask for a logo, coat of arms, quote or badge on your website."
+
+## Added on 2026-11-23
+
+The founder asked for the main session's two remaining suggestions for "Where it started": "There was no quick, honest way to answer." after the companies' question, and "and it clicked" where the post is introduced ("made me click" is the founder's own phrase). German: "Eine schnelle und ehrliche Antwort darauf gab es nicht." and "und bei mir machte es klick". Changed in `site/about/index.html` and `site/de/about/index.html`, not committed.
+
+The founder also found "I had spent too long building products… Nobody needed them." too harsh ("Makes me sound silly"). Replaced on 2026-11-23, with the founder's choice of wording: "I had built things because a language model made them easy to build, not because anyone had asked for them. The post said what I already knew. This time, companies had asked." German: "Ich hatte Produkte entwickelt, weil ein Sprachmodell es mir leicht machte, nicht weil jemand danach gefragt hatte. Kruegers Beitrag sprach aus, was ich schon wusste. Diesmal hatten Unternehmen gefragt."
+
+The founder then clarified that those projects were personal, not consultancy work ("There I build what solves problems"). The sentence now opens "In my own time, I had built projects…" / "Privat hatte ich Projekte entwickelt…".
