@@ -20,6 +20,7 @@ content_type() {
     *.html) printf '%s' 'text/html; charset=utf-8' ;;
     *.css) printf '%s' 'text/css; charset=utf-8' ;;
     *.js|*.mjs) printf '%s' 'text/javascript; charset=utf-8' ;;
+    *.txt) printf '%s' 'text/plain; charset=utf-8' ;;
     *.xml) printf '%s' 'application/xml; charset=utf-8' ;;
     *) file --brief --mime-type -- "$1" ;;
   esac
@@ -49,7 +50,7 @@ list_remote_files() {
 }
 
 # Publish the new files before pruning old ones.
-find site -type f ! -path 'site/check_site.py' ! -path 'site/_headers' \
+find site -type f ! -name '*.py' ! -name '*.pyc' ! -path 'site/generate_og.mjs' ! -path 'site/_headers' \
   ! -path 'site/.htaccess' ! -name '*.license' -print0 |
   while IFS= read -r -d '' file; do
     url=$(storage_url "${file#site/}")
@@ -74,6 +75,9 @@ if [[ -n "${BUNNY_API_KEY:-}" ]]; then
   curl "${curl_options[@]}" --request POST --header "AccessKey: $BUNNY_API_KEY" \
     --header 'Content-Type: application/json' --data '{}' --output /dev/null \
     'https://api.bunny.net/pullzone/7064266/purgeCache'
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    printf '%s\n' 'purged=true' >> "$GITHUB_OUTPUT"
+  fi
 else
   printf '%s\n' '::notice::The CDN cache was not purged because BUNNY_API_KEY is unset.'
 fi

@@ -9,6 +9,9 @@ header:
   local: The person who ran Fazit created this report locally from scan.json. The command contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
+demo_page:
+  title: Microsoft 365 migration sample report · Fazit
+  description: See a sample Fazit report on moving from Microsoft 365 to openDesk, with simulated evidence, per-area readiness and a five-year cost comparison.
 nav:
   summary: Summary
   next_steps: Next steps

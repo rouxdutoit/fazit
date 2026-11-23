@@ -67,7 +67,11 @@ Every command succeeds, and the two reports open with the network off. Changes t
 
 The alignment, spacing and scrollbar checks use local Playwright and run in Chromium and WebKit by default, with separate results and the same limits for each engine. Set `PLAYWRIGHT_ENGINE` to `chromium` or `webkit` to run a single engine. Set `PLAYWRIGHT_DIR` to the directory containing the `playwright` package if it differs from `/home/roux/.local/share/playwright-1.62.1/node_modules/`. The spacing check measures the named relations in [DESIGN.md](DESIGN.md#vertical-rhythm) on all pages at 360, 768 and 1280 px and in the 390 px iPhone emulation. It lists any gaps that differ.
 
-If report output changes, copy the HTML from the two demo runs above to `site/demo/de/index.html` and `site/demo/en/index.html`, using the matching language for each file.
+Rebuild the link previews with `node site/generate_og.mjs`. Local Chromium renders both home headlines, eyebrows and the wordmark with the site stylesheet and fonts.
+
+Run `uv run python site/generate_llms.py` after changing the main pages. It rebuilds `site/llms-full.txt` from their HTML.
+
+If report output changes, run `uv run python site/check_site.py --write-demos`. It generates both language versions and adds website metadata to the published copies in `site/demo/`.
 
 ## Commits
 

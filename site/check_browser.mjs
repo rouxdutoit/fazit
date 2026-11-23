@@ -39,8 +39,9 @@ async function serve() {
   return server;
 }
 
-export async function withSite(check, { origin: suppliedOrigin, classicScrollbars = false } = {}) {
-  const engine = process.env.PLAYWRIGHT_ENGINE;
+export async function withSite(check, {
+  origin: suppliedOrigin, classicScrollbars = false, engine = process.env.PLAYWRIGHT_ENGINE,
+} = {}) {
   if (engine !== undefined && !Object.hasOwn(engines, engine)) {
     throw new Error("PLAYWRIGHT_ENGINE must be chromium or webkit.");
   }

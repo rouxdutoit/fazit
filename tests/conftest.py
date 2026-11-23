@@ -38,9 +38,14 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         ("test_report.py", "test_coverage_symbols_match_the_site"): "site/icons",
         ("test_report.py", "test_report_and_website_share_colour_tokens"): style,
         ("test_report.py", "test_status_palette_is_shared_by_the_site_and_report"): style,
+        ("test_site.py", "test_site_only_accepts_inert_json_ld_inline"): "site/check_site.py",
+        (
+            "test_site.py",
+            "test_llms_text_keeps_coverage_and_commands_readable",
+        ): "site/generate_llms.py",
     }
     for item in items:
-        path = checkout_files.get((item.path.name, item.name))
+        path = checkout_files.get((item.path.name, item.name.partition("[")[0]))
         if path is not None and not (config.rootpath / path).exists():
             item.add_marker(pytest.mark.skip(reason=f"The source distribution omits {path}."))
 

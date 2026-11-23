@@ -38,6 +38,7 @@ jobs:
         run: uv run --locked --no-dev --python "${{ steps.python.outputs.python-path }}" python3 site/check_site.py
       # Sync Bunny Storage before optionally purging the CDN cache.
       - name: Deploy to Bunny.net
+        id: bunny
         env:
           BUNNY_STORAGE_PASSWORD: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
           BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
@@ -56,3 +57,30 @@ jobs:
             done
             printf '::warning::%s did not return HTTP 200 within the retry window.\n' "$url"
           done
+      - name: Submit the sitemap URLs to IndexNow
+        if: steps.bunny.outputs.purged == 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          INDEXNOW_KEY_FILE: site/cd2d2cf855b74f31822e3a675111053d.txt
+        run: |
+          python3 - <<'PY' | curl --disable --fail --silent --show-error \
+            --connect-timeout 5 --max-time 15 \
+            --header 'Content-Type: application/json; charset=utf-8' \
+            --output /dev/null --data-binary @- https://api.indexnow.org/indexnow
+          import json
+          import os
+          from pathlib import Path
+          from xml.etree import ElementTree
+
+          site = "fazit.dev"
+          key_file = Path(os.environ["INDEXNOW_KEY_FILE"])
+          sitemap = ElementTree.parse("site/sitemap.xml")
+          urls = sitemap.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
+          print(json.dumps({
+              "host": site,
+              "key": key_file.read_text(encoding="utf-8").strip(),
+              "keyLocation": f"https://{site}/{key_file.name}",
+              "urlList": [url.text for url in urls],
+          }))
+          PY

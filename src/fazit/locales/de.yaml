@@ -9,6 +9,9 @@ header:
   local: Wer Fazit ausgeführt hat, hat diesen Bericht lokal aus der Datei scan.json erstellt. Bei der Berichtserstellung wurde keine Netzwerkverbindung aufgebaut.
   offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
   sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
+demo_page:
+  title: Beispielbericht zum Umstieg von Microsoft 365 · Fazit
+  description: Der Fazit-Beispielbericht zum Umstieg von Microsoft 365 auf openDesk zeigt simulierte Nachweise, den Stand je Bereich und einen Kostenvergleich über fünf Jahre.
 nav:
   summary: Überblick
   next_steps: Nächste Schritte

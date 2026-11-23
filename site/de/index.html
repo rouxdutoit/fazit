@@ -4,28 +4,80 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
-  <title>Fazit · Was beim Umstieg von Microsoft 365 nötig ist</title>
+  <meta name="description" content="Fazit ist ein kostenloses, quelloffenes Werkzeug zur Prüfung eines Umstiegs von Microsoft 365. Der lokale Beispielbericht zeigt Abhängigkeiten und Kosten.">
+  <title>Was beim Umstieg von Microsoft 365 nötig ist · Fazit</title>
   <link rel="canonical" href="https://fazit.dev/de/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/">
   <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
+  <link rel="alternate" hreflang="x-default" href="https://fazit.dev/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
-  <meta property="og:title" content="Fazit · Was beim Umstieg von Microsoft 365 nötig ist">
-  <meta property="og:description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
+  <meta property="og:title" content="Was beim Umstieg von Microsoft 365 nötig ist · Fazit">
+  <meta property="og:description" content="Fazit ist ein kostenloses, quelloffenes Werkzeug zur Prüfung eines Umstiegs von Microsoft 365. Der lokale Beispielbericht zeigt Abhängigkeiten und Kosten.">
   <meta property="og:url" content="https://fazit.dev/de/">
   <meta property="og:locale" content="de_DE">
   <meta property="og:locale:alternate" content="en_GB">
-  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image" content="https://fazit.dev/og-de.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
+  <meta property="og:image:alt" content="Fazit: Was beim Umstieg von Microsoft 365 nötig ist">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Was beim Umstieg von Microsoft 365 nötig ist · Fazit">
+  <meta name="twitter:description" content="Fazit ist ein kostenloses, quelloffenes Werkzeug zur Prüfung eines Umstiegs von Microsoft 365. Der lokale Beispielbericht zeigt Abhängigkeiten und Kosten.">
+  <meta name="twitter:image" content="https://fazit.dev/og-de.png">
+  <meta name="twitter:image:alt" content="Fazit: Was beim Umstieg von Microsoft 365 nötig ist">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/site.js?v=20261123"></script>
   <link rel="stylesheet" href="/style.css?v=20261123">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://fazit.dev/#software",
+          "name": "Fazit",
+          "url": "https://fazit.dev/de/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Windows, macOS, Linux",
+          "offers": {
+            "@type": "Offer",
+            "price": 0,
+            "priceCurrency": "EUR"
+          },
+          "license": "https://spdx.org/licenses/AGPL-3.0-or-later.html",
+          "sameAs": "https://github.com/rouxdutoit/fazit",
+          "softwareVersion": "0.1.0",
+          "inLanguage": "de",
+          "description": "Fazit ist ein kostenloses, quelloffenes Werkzeug zur Prüfung eines Umstiegs von Microsoft 365. Der lokale Beispielbericht zeigt Abhängigkeiten und Kosten.",
+          "author": {
+            "@id": "https://fazit.dev/#ruan-du-toit"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://fazit.dev/#website",
+          "name": "Fazit",
+          "url": "https://fazit.dev/",
+          "inLanguage": [
+            "en",
+            "de"
+          ],
+          "mainEntity": {
+            "@id": "https://fazit.dev/#software"
+          }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://fazit.dev/#ruan-du-toit",
+          "name": "Ruan du Toit",
+          "url": "https://rouxdutoit.com"
+        }
+      ]
+    }
+  </script>
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
@@ -52,7 +104,7 @@
       <div class="hero">
         <p class="eyebrow">Kostenlos und quelloffen</p>
         <h1 id="hero-title">Was beim Umstieg von Microsoft&nbsp;365 nötig ist</h1>
-        <p class="hero-sub">Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, alles in einem Bericht, der auf Ihrem Rechner entsteht.</p>
+        <p class="hero-sub">Die kostenlose Demo erstellt ohne Mandantenzugriff einen Bericht auf Ihrem Rechner. Er zeigt Organisationen beispielhaft Abhängigkeiten von Microsoft 365 und Umstiegskosten.</p>
         <div class="hero-actions">
           <a class="btn btn-solid symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
           <a class="btn btn-secondary symbol-label" href="/demo/de/"><span class="btn-icon mask symbol icon-description" aria-hidden="true"></span><span class="symbol-text">Beispielbericht ansehen</span></a>
@@ -109,7 +161,7 @@
           </div>
         </div>
         <figcaption>
-          <a class="more symbol-label symbol-wrap" href="/demo/de/" download="fazit-sample-report-de.html"><span class="symbol-text"><span class="link-text">HTML herunterladen, 440 KB</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+          <a class="more symbol-label symbol-wrap" href="/demo/de/" download="fazit-sample-report-de.html"><span class="symbol-text"><span class="link-text">HTML herunterladen, 442 KB</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
         </figcaption>
       </figure>
     </section>

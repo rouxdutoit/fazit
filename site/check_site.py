@@ -1,27 +1,34 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Check the bilingual static site and verify the checked-in demo reports."""
 
+import json
 import re
 import struct
+from argparse import ArgumentParser
 from collections import Counter
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+from html import escape
 from html.parser import HTMLParser
 from itertools import pairwise
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Never
 from urllib.parse import unquote, unquote_to_bytes, urljoin, urlsplit
 from xml.etree import ElementTree
 
+from generate_llms import render_llms_full
 from typer.testing import CliRunner
 
-from fazit import REPOSITORY_URL
+from fazit import REPOSITORY_URL, __version__
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
+from fazit.errors import InputError
 from fazit.fonts.css import CSS_DECLARATION, CSS_FONT_FACE, check_font_families
 from fazit.i18n import load_locale
 from fazit.mappings import load_mapping
+from fazit.output import write_inside
 from fazit.status import STATUSES
 
 ROOT = Path(__file__).resolve().parent
@@ -29,6 +36,26 @@ ORIGIN = "https://fazit.dev"
 LANGUAGES = ("en", "de")
 DEMO_ROUTES = ("/demo/en/", "/demo/de/")
 ERROR_ROUTES = ("/404.html", "/de/404.html")
+JSON_LD_TYPE = "application/ld+json"
+STRUCTURED_TYPES = {
+    "/": "SoftwareApplication",
+    "/about/": "AboutPage",
+    "/roadmap/": "WebPage",
+    "/start/": "WebPage",
+    "/security/": "WebPage",
+}
+ROBOTS_AGENTS = (
+    "*",
+    "GPTBot",
+    "OAI-SearchBot",
+    "ChatGPT-User",
+    "ClaudeBot",
+    "Claude-SearchBot",
+    "PerplexityBot",
+    "Google-Extended",
+    "Applebot-Extended",
+    "CCBot",
+)
 PAGE_PAIRS = (
     ("/", "/de/"),
     *(
@@ -119,6 +146,10 @@ def css_references(css: str, first_line: int) -> Iterator[Reference]:
         )
 
 
+def invalid_json_constant(value: str) -> Never:
+    raise ValueError(f"{value} is not valid JSON.")
+
+
 class Page(HTMLParser):
     def __init__(self, path: Path) -> None:
         super().__init__()
@@ -136,6 +167,10 @@ class Page(HTMLParser):
         self.status_counts: Counter[str] = Counter()
         self._buttons_needing_icons: dict[int, int] = {}
         self._buttons_without_icons: list[int] = []
+        self._title_text: list[str] = []
+        self._heading_text: list[str] = []
+        self._json_ld_text: list[str] | None = None
+        self.json_ld: list[dict] = []
         self._coverage_table = False
         self._workload = ""
         self._target: str | None = None
@@ -147,6 +182,8 @@ class Page(HTMLParser):
         self.source = path.read_text(encoding="utf-8")
         self.feed(self.source)
         self.close()
+        self.title = " ".join("".join(self._title_text).split())
+        self.heading = " ".join("".join(self._heading_text).split())
 
     def handle_decl(self, decl: str) -> None:
         self.doctype = decl.lower() == "doctype html"
@@ -165,8 +202,15 @@ class Page(HTMLParser):
             self.headings.append(int(tag[1]))
         if tag in {"base", "embed", "iframe", "object"}:
             self.errors.append(f"Unexpected <{tag}> on line {line}.")
-        if tag == "script" and urlsplit(values.get("src") or "").path != "/site.js":
-            self.errors.append(f"Expected the local script on line {line}.")
+        if tag == "script":
+            if attrs == [("type", JSON_LD_TYPE)] and self.stack[-2:-1] == ["head"]:
+                self._json_ld_text = []
+            elif (
+                urlsplit(values.get("src", "")).path != "/site.js"
+                or "type" in values
+                or len(attrs) != len(values)
+            ):
+                self.errors.append(f"Expected the local script or inline JSON-LD on line {line}.")
         if any(name.startswith("on") or name == "ping" for name in values):
             self.errors.append(f"Event handlers and link tracking are disallowed on line {line}.")
         self.record_metadata(tag, values, line)
@@ -212,6 +256,8 @@ class Page(HTMLParser):
         hreflang = attrs.get("hreflang", "")
         if tag == "link":
             relations = attrs.get("rel", "").lower().split()
+            if {"canonical", "alternate"}.intersection(relations) and "head" not in self.stack:
+                self.errors.append(f"Canonical and alternate links belong in head on line {line}.")
             if "canonical" in relations:
                 self.canonicals.append(href)
             if "alternate" in relations:
@@ -222,9 +268,13 @@ class Page(HTMLParser):
             if attrs.get("http-equiv", "").lower() == "refresh":
                 self.errors.append(f"Unexpected meta refresh on line {line}.")
             key = attrs.get("property") or attrs.get("name", "")
-            self.meta[key] = attrs.get("content", "")
-            if key in {"og:url", "og:image", "twitter:image"}:
-                self.references.append(Reference(key, self.meta[key], line))
+            if key in {"description", "robots"} or key.startswith(("og:", "twitter:")):
+                attribute = "property" if key.startswith("og:") else "name"
+                if "head" not in self.stack or attrs.get(attribute) != key or key in self.meta:
+                    self.errors.append(f"Misplaced, malformed or duplicate metadata {key}.")
+                self.meta[key] = attrs.get("content", "")
+                if key in {"og:url", "og:image", "twitter:image"}:
+                    self.references.append(Reference(key, self.meta[key], line))
 
     def record_references(self, tag: str, attrs: dict[str, str], line: int) -> None:
         dimensions = None
@@ -256,8 +306,15 @@ class Page(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self.stack and self.stack[-1] == "style":
             self.references.extend(css_references(data, self.getpos()[0]))
-        if self.stack and self.stack[-1] == "script" and data.strip():
-            self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
+        if self.stack and self.stack[-1] == "script":
+            if self._json_ld_text is not None:
+                self._json_ld_text.append(data)
+            elif data.strip():
+                self.errors.append(f"Unexpected inline script on line {self.getpos()[0]}.")
+        if self.stack[-2:] == ["head", "title"]:
+            self._title_text.append(data)
+        if "h1" in self.stack:
+            self._heading_text.append(data)
         if self._target is not None:
             self._cell_text.append(data)
 
@@ -273,12 +330,26 @@ class Page(HTMLParser):
             if button_line := self._buttons_needing_icons.pop(len(self.stack), None):
                 self._buttons_without_icons.append(button_line)
             self.stack.pop()
+        if tag == "script" and self._json_ld_text is not None:
+            self.record_json_ld(self._json_ld_text)
+            self._json_ld_text = None
         if tag in {"th", "td"} and self._target is not None:
             cell = " ".join("".join(self._cell_text).split())
             self.coverage[CoverageCell(self._workload, self._target, self._badge, cell)] += 1
             self._target = None
         elif tag == "table":
             self._coverage_table = False
+
+    def record_json_ld(self, parts: list[str]) -> None:
+        try:
+            data = json.loads("".join(parts), parse_constant=invalid_json_constant)
+        except ValueError as error:
+            self.errors.append(f"Invalid JSON-LD: {error}")
+            return
+        if not isinstance(data, dict) or data.get("@context") != "https://schema.org":
+            self.errors.append("Expected a Schema.org JSON-LD object.")
+            return
+        self.json_ld.append(data)
 
     def check_structure(self, lang: str, *, demo: bool) -> None:
         if not self.doctype or self.language != lang:
@@ -305,31 +376,81 @@ class Page(HTMLParser):
                 for line in sorted(self._buttons_without_icons)
             )
 
-    def check_metadata(self, route: str, other_lang: str, pair: dict[str, str]) -> None:
-        switch = (pair[other_lang], other_lang, other_lang)
-        if self.switches != [switch, switch]:
-            self.errors.append("Both language links must point to the corresponding page.")
+    def check_metadata(self, route: str, pair: dict[str, str], lang: str, heading: str) -> None:
+        description = self.meta.get("description", "")
+        if not self.title.endswith(" · Fazit") or len(self.title) >= 60:
+            self.errors.append(
+                "Title must have a subject, end in ' · Fazit' and be under 60 characters."
+            )
+        if not 120 <= len(description.strip()) <= 160:
+            self.errors.append("Meta description must be 120–160 characters.")
         if self.canonicals != [ORIGIN + route]:
             self.errors.append("Expected one canonical URL for the page.")
         if Counter(self.alternates) != Counter(alternates(pair).items()):
-            self.errors.append("Expected English and German hreflang links for the page pair.")
-        expected = {
-            "og:url": ORIGIN + route,
-            "og:image": ORIGIN + "/og.png",
-            "og:image:width": "1200",
-            "og:image:height": "630",
-            "twitter:card": "summary_large_image",
-        }
-        for key, value in expected.items():
+            self.errors.append("Expected en, de and x-default hreflang links for the page pair.")
+        noindex = "noindex" in re.split(r"[\s,]+", self.meta.get("robots", "").lower())
+        if noindex != (route in ERROR_ROUTES):
+            self.errors.append("Only the error pages should set noindex.")
+        for key, value in social_metadata(route, lang, self.title, description, heading).items():
             if self.meta.get(key) != value:
                 self.errors.append(f"Incorrect or missing metadata {key}.")
-        for key in ("og:title", "og:description", "og:image:alt"):
-            if not self.meta.get(key, "").strip():
-                self.errors.append(f"Missing metadata {key}.")
+
+    def check_structured_data(self, en_route: str) -> None:
+        expected = STRUCTURED_TYPES.get(en_route)
+        if len(self.json_ld) != int(expected is not None):
+            self.errors.append("Incorrect number of Schema.org JSON-LD blocks.")
+            return
+        if expected is None:
+            return
+        (data,) = self.json_ld
+        if en_route == "/":
+            graph = data.get("@graph")
+            if not isinstance(graph, list) or not all(isinstance(node, dict) for node in graph):
+                self.errors.append("Home JSON-LD must have a graph of Schema.org objects.")
+                return
+            types = [node.get("@type") for node in graph]
+            if len(types) != 3 or any(
+                kind not in types for kind in (expected, "WebSite", "Person")
+            ):
+                self.errors.append("Home JSON-LD must describe the software, site and author.")
+                return
+            software = graph[types.index(expected)]
+            if software.get("softwareVersion") != __version__:
+                self.errors.append(f"JSON-LD softwareVersion must match Fazit {__version__}.")
+        elif data.get("@type") != expected:
+            self.errors.append(f"Expected JSON-LD of type {expected}.")
+
+
+def social_metadata(
+    route: str, lang: str, title: str, description: str, heading: str
+) -> dict[str, str]:
+    image = ORIGIN + ("/og-de.png" if lang == "de" else "/og.png")
+    alt = f"Fazit: {heading}"
+    locale, other = ("de_DE", "en_GB") if lang == "de" else ("en_GB", "de_DE")
+    return {
+        "og:type": "website",
+        "og:site_name": "Fazit",
+        "og:title": title,
+        "og:description": description,
+        "og:url": ORIGIN + route,
+        "og:locale": locale,
+        "og:locale:alternate": other,
+        "og:image": image,
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "og:image:alt": alt,
+        "twitter:card": "summary_large_image",
+        "twitter:title": title,
+        "twitter:description": description,
+        "twitter:image": image,
+        "twitter:image:alt": alt,
+    }
 
 
 def alternates(pair: dict[str, str]) -> dict[str, str]:
-    return {lang: ORIGIN + route for lang, route in pair.items()}
+    return {lang: ORIGIN + route for lang, route in pair.items()} | {
+        "x-default": ORIGIN + pair["en"]
+    }
 
 
 def route_for(path: Path) -> str:
@@ -429,6 +550,14 @@ def check_sitemap(expected: dict[str, dict[str, str]]) -> list[str]:
         errors.append("sitemap.xml: Expected exactly one canonical URL per indexable page.")
     for node in urls:
         location = node.findtext(f"{{{SITEMAP_NS}}}loc", "")
+        lastmods = node.findall(f"{{{SITEMAP_NS}}}lastmod")
+        lastmod = (lastmods[0].text or "") if len(lastmods) == 1 else ""
+        try:
+            valid_lastmod = date.fromisoformat(lastmod).isoformat() == lastmod
+        except ValueError:
+            valid_lastmod = False
+        if not valid_lastmod:
+            errors.append(f"sitemap.xml: Expected one YYYY-MM-DD lastmod for {location}.")
         links = Counter(
             (item.get("hreflang"), item.get("href"))
             for item in node.findall(f"{{{XHTML_NS}}}link")
@@ -535,8 +664,17 @@ def check_headers() -> list[str]:
     )
     for name, contents, site_rule, demo_rule in policies:
         for rule, sources in ((site_rule, "'self'"), (demo_rule, "'self' data:")):
-            if not re.search(rf"{rule}[^\n]*; font-src {sources};", contents, re.M):
+            matches = re.findall(rf'{rule}([^"\n]+)', contents, re.M)
+            directives = [part.strip() for policy in matches for part in policy.split(";")]
+            if [part for part in directives if part.startswith("font-src ")] != [
+                f"font-src {sources}"
+            ]:
                 errors.append(f"{name}: Expected font-src {sources} in the matching CSP rule.")
+            # JSON-LD is a data block. Executable scripts need a same-origin source.
+            if [part for part in directives if part.lower().startswith("script-src")] != [
+                "script-src 'self'"
+            ]:
+                errors.append(f"{name}: Expected only script-src 'self' in the matching CSP rule.")
     return errors
 
 
@@ -695,9 +833,39 @@ def check_roadmap(page: Page) -> list[str]:
     return errors
 
 
-def check_demo_reports() -> list[str]:
+def demo_with_metadata(markup: str, lang: str, heading: str) -> str:
+    pair = dict(zip(LANGUAGES, DEMO_ROUTES, strict=True))
+    route = pair[lang]
+    copy = load_locale(lang)["demo_page"]
+    title, description = copy["title"], copy["description"]
+    head = [
+        f'<meta name="description" content="{escape(description)}">',
+        f"<title>{escape(title)}</title>",
+        f'<link rel="canonical" href="{ORIGIN}{route}">',
+    ]
+    head.extend(
+        f'<link rel="alternate" hreflang="{language}" href="{url}">'
+        for language, url in alternates(pair).items()
+    )
+    for key, value in social_metadata(route, lang, title, description, heading).items():
+        attribute = "property" if key.startswith("og:") else "name"
+        head.append(f'<meta {attribute}="{key}" content="{escape(value)}">')
+    result, count = re.subn(
+        r"^  <title>[^<]+</title>$",
+        lambda _: "\n".join(f"  {line}" for line in head),
+        markup,
+        count=1,
+        flags=re.M,
+    )
+    if not count:
+        raise ValueError("The CLI demo is missing its title.")
+    return result
+
+
+def check_demo_reports(headlines: dict[str, str], *, write: bool = False) -> list[str]:
     errors = []
     runner = CliRunner()
+    updates: dict[Path, str] = {}
     with TemporaryDirectory(prefix="fazit-site-") as temporary:
         for lang, route in zip(LANGUAGES, DEMO_ROUTES, strict=True):
             target = local_path(route)
@@ -709,24 +877,67 @@ def check_demo_reports() -> list[str]:
                 errors.append(f"{name}: Fazit demo failed. {result.output.strip()}")
                 continue
             generated = Path(result.stdout.splitlines()[-1])
-            if not generated.is_file() or not target.is_file():
-                errors.append(f"{name}: Demo report is missing.")
-            elif target.read_bytes() != generated.read_bytes():
-                errors.append(f"{name}: Differs from a fresh fazit {' '.join(command)} run.")
+            if not generated.is_file():
+                errors.append(f"{name}: Fazit demo produced no report.")
+                continue
+            expected = demo_with_metadata(
+                generated.read_text(encoding="utf-8"), lang, headlines.get(lang, "")
+            )
+            if write:
+                updates[target] = expected
+            elif not target.is_file() or target.read_bytes() != expected.encode("utf-8"):
+                errors.append(f"{name}: Rebuild with python site/check_site.py --write-demos.")
+    if not errors:
+        for target, markup in updates.items():
+            try:
+                write_inside(target.parent, target.name, markup)
+            except InputError:
+                return [f"{target.relative_to(ROOT)}: Could not write the published demo."]
     return errors
 
 
 def check_assets() -> list[str]:
     errors = []
-    for filename, dimensions in (("og.png", (1200, 630)), ("apple-touch-icon.png", (180, 180))):
+    for filename, dimensions in (
+        ("og.png", (1200, 630)),
+        ("og-de.png", (1200, 630)),
+        ("apple-touch-icon.png", (180, 180)),
+    ):
         image = ROOT / filename
         if not image.is_file() or png_dimensions(image) != dimensions:
             errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
-        elif filename == "og.png" and image.stat().st_size >= 150_000:
-            errors.append(f"{filename}: Must be under 150 KB.")
-    if f"Sitemap: {ORIGIN}/sitemap.xml" not in (ROOT / "robots.txt").read_text().splitlines():
+        elif filename.startswith("og") and image.stat().st_size >= 100_000:
+            errors.append(f"{filename}: Must be under 100 KB.")
+    return errors
+
+
+def check_robots() -> list[str]:
+    robots = (ROOT / "robots.txt").read_text(encoding="utf-8")
+    allowed = {
+        line.removeprefix("User-agent: ")
+        for part in robots.split("\n\n")
+        if "Allow: /" in part.splitlines()
+        for line in part.splitlines()
+        if line.startswith("User-agent: ")
+    }
+    errors = [
+        f"robots.txt: Explicitly allow {agent}." for agent in ROBOTS_AGENTS if agent not in allowed
+    ]
+    if re.search(r"^[ \t]*Disallow:[ \t]*\S", robots, re.M | re.I):
+        errors.append("robots.txt: All paths should be allowed.")
+    if f"Sitemap: {ORIGIN}/sitemap.xml" not in robots.splitlines():
         errors.append("robots.txt: Missing sitemap URL.")
     return errors
+
+
+def check_llms_full() -> list[str]:
+    path = ROOT / "llms-full.txt"
+    try:
+        if path.read_text(encoding="utf-8") == render_llms_full(ROOT):
+            return []
+    except OSError as error:
+        return [f"llms-full.txt: {error}"]
+    return ["llms-full.txt: Rebuild with python site/generate_llms.py."]
 
 
 def _check_design_urls(css: str) -> Iterator[str]:
@@ -820,7 +1031,9 @@ def check_design(css: str, template: str) -> list[str]:
     return [f"style.css: {error}" for error in errors]
 
 
-def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
+def check_pages(
+    pages: dict[Path, Page], headlines: dict[str, str]
+) -> tuple[list[str], dict[str, dict[str, str]]]:
     errors = []
     declared = {}
     for en, de in PAGE_PAIRS:
@@ -834,8 +1047,11 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
                 continue
             demo = route in DEMO_ROUTES
             page.check_structure(lang, demo=demo)
-            if not demo:
-                page.check_metadata(route, other, pair)
+            page.check_metadata(route, pair, lang, headlines.get(lang, ""))
+            page.check_structured_data(en)
+            switch = (pair[other], other, other)
+            if not demo and page.switches != [switch, switch]:
+                page.errors.append("Both language links must point to the corresponding page.")
             if en == "/coverage/":
                 page.errors.extend(check_coverage(page, lang))
             elif en == "/roadmap/":
@@ -853,18 +1069,51 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
     return errors, {url: pair for url, pair in declared.items() if url not in error_urls}
 
 
+def check_unique_metadata(pages: dict[Path, Page]) -> Iterator[str]:
+    seen: dict[tuple[str, str], Path] = {}
+    for path, page in pages.items():
+        for field, value in (
+            ("title", page.title),
+            ("description", page.meta.get("description", "")),
+        ):
+            key = (field, " ".join(value.casefold().split()))
+            if key in seen:
+                first = seen[key].relative_to(ROOT)
+                yield f"{path.relative_to(ROOT)}: Duplicate {field} from {first}."
+            elif value:
+                seen[key] = path
+
+
 def main() -> int:
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--write-demos", action="store_true", help="Rebuild the public sample reports."
+    )
+    args = parser.parse_args()
     pages = {
         path: Page(path)
         for path in sorted(ROOT.rglob("*.html"))
         if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
     }
-    errors, sitemap = check_pages(pages)
+    headlines = {
+        lang: pages[path].heading
+        for lang, route in zip(LANGUAGES, PAGE_PAIRS[0], strict=True)
+        if (path := local_path(route)) in pages
+    }
+    if args.write_demos:
+        errors = check_demo_reports(headlines, write=True)
+        for error in errors:
+            print(error)
+        return int(bool(errors))
+    errors, sitemap = check_pages(pages, headlines)
+    errors.extend(check_unique_metadata(pages))
     errors.extend(check_sitemap(sitemap))
     errors.extend(check_security_txt(datetime.now(UTC)))
     errors.extend(check_assets())
+    errors.extend(check_robots())
+    errors.extend(check_llms_full())
     errors.extend(check_headers())
-    errors.extend(check_demo_reports())
+    errors.extend(check_demo_reports(headlines))
 
     references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"

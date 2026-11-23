@@ -1,0 +1,993 @@
+# Fazit
+
+## What leaving Microsoft 365 would take
+
+https://fazit.dev/
+
+Free and open source
+
+Fazit’s free demo builds a local report for organisations assessing Microsoft 365 dependencies and costs. It needs no tenant access.
+
+Get started View sample report
+
+Today with sample data. Import of your own Microsoft 365 exports comes next.
+
+report-2026-11-02-en.html
+
+### Where the organisation stands
+
+Of 14 areas:
+
+Blocker 1
+
+A confirmed obstacle that must be resolved before this move.
+
+Needs work 9
+
+The checks found work to do before a move.
+
+Unknown 1
+
+Evidence is missing, so this version cannot assess the area.
+
+Ready 3
+
+The current checks found no blocker and no missing evidence.
+
+#### What blocks this move
+
+##### Telephony
+
+Communication
+
+Blocker
+
+The organisation uses Microsoft telephony and has confirmed that it has no replacement.
+
+All blockers
+
+Download HTML, 429 KB
+
+### Every finding shows its evidence
+
+The report marks missing evidence as “Unknown”.
+
+#### Mail
+
+Communication
+
+Needs work Evidence incomplete
+
+Mailboxes
+
+91 Measured (simulated)
+
+Shared mailboxes
+
+Unknown
+
+See all areas
+
+### See what it would cost
+
+Compare the five-year costs of staying, a partial move and a full move using your figures.
+
+Calculated from sample inputs
+
+Stay
+
+EUR 600,000
+
+Partial move
+
+EUR 527,800
+
+Full move
+
+EUR 464,350
+
+How costs are calculated
+
+### Nothing leaves your computer
+
+After setup, Fazit uses bundled sample data to create an HTML report on your computer. It makes no network requests.
+
+#### Runs locally
+
+Demo runs offline.
+
+#### Read-only
+
+No tenant changes.
+
+#### Open source
+
+Code and rules are public.
+
+How Fazit handles data
+
+### Try it in three commands
+
+Run in a terminal
+
+git clone https://github.com/rouxdutoit/fazit
+
+cd fazit
+
+uv run fazit demo
+
+Needs Git and uv. What you need
+
+Get started
+
+Sample data today, with import of your own exports next.
+
+Pilot assessments About Fazit
+
+14 areas, three targets, English and German, one file that opens offline
+
+## Get started with Fazit
+
+https://fazit.dev/start/
+
+Run the free Fazit demo on your computer to see how a Microsoft 365 assessment works. It uses sample data and needs no Microsoft account. After setup it runs offline.
+
+Run in a terminal
+
+git clone https://github.com/rouxdutoit/fazit
+
+cd fazit
+
+uv run fazit demo
+
+Needs Git and uv. What you need
+
+### What you need
+
+#### Get Git
+
+Downloads Fazit's source code.
+
+#### Install uv
+
+Sets up the right Python and every package on the first run.
+
+Fazit is tested on Windows, macOS and Linux.
+
+### Run the demo
+
+This builds the sample report for a fictional town administration, in English. For German, run uv run fazit demo --lang de in the same folder.
+
+### Open the report
+
+The last line of the output shows where the report was saved. Open that HTML file in your browser.
+
+To check that Fazit works without a network, disconnect, run uv run --offline fazit demo and open the report again.
+
+How to verify offline operation
+
+### With your own data
+
+Today Fazit builds reports from the bundled samples, with your own answers and costs in inputs.yaml. The inventory figures still come from the fictional town. Importing exports from the Microsoft 365 admin centre comes next; until then, you can register interest in a pilot.
+
+Pilot assessments
+
+### See the result without installing
+
+#### Sample report
+
+Browse the results for a fictional town with simulated measurements.
+
+## The functions openDesk and Nextcloud cover
+
+https://fazit.dev/coverage/
+
+The table shows which Microsoft 365 functions openDesk and Nextcloud cover. It is free to use and gives organisations a starting point. It does not show which functions you need or what your move would cost.
+
+### Compare the suites by area
+
+In the suite
+
+With limits
+
+Community app
+
+Not in the suite
+
+Coverage of each area by openDesk and Nextcloud
+
+Area | openDesk | Nextcloud
+
+Directory | In the suite: Nubus | With limits: Nextcloud user and group administration
+
+Mail | In the suite: Open-Xchange (OX App Suite) | With limits: Nextcloud Mail and Calendar with a separate mail server
+
+OneDrive | In the suite: Nextcloud Files | In the suite: Nextcloud Files
+
+SharePoint | With limits: Shared folders in Nextcloud Files · Separate redesign of workflows · XWiki | With limits: Team Folders in Nextcloud Files · Rebuild supported workflows with Nextcloud Flow
+
+Teams | With limits: Element · Jitsi · Separate decision on retaining past chats | With limits: Nextcloud Talk · Separate decision on retaining past chats
+
+Office files | With limits: Collabora Online · Separate conversion or redevelopment · Notes · CryptPad with diagrams.net | With limits: Nextcloud Office · Separate conversion or redevelopment
+
+Device management | Not in the suite: Separate device management service · Separately managed workstation operating system | Not in the suite: Separate device management service · Separately managed workstation operating system
+
+Windows-only software | Not in the suite: Separate hosting or replacement of each application | Not in the suite: Separate hosting or replacement of each application
+
+Power Platform | Not in the suite: Separate review and redevelopment of applications and flows | With limits: Nextcloud Flow and Nextcloud Tables
+
+Telephony | Not in the suite: Separate telephone service | With limits: Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway
+
+Identity and access | In the suite: Keycloak | Community app: OIDC Identity Provider app for Nextcloud
+
+Security and compliance | With limits: Access controls and malware scanning in openDesk | With limits: Nextcloud file protection and retention controls
+
+Small applications | With limits: OpenProject and OX App Suite for tasks | With limits: Nextcloud Forms, Deck and Calendar
+
+Integrations | With limits: Interfaces in the openDesk components | With limits: Nextcloud application interfaces and integrations
+
+For public telephone calls with Nextcloud Talk, include the quoted recurring cost in the comparison and check call routing and queues. The openDesk and Nextcloud profiles were drafted from the projects’ documentation on 21 and 22 November 2026 and have not yet been reviewed by someone who runs these suites. Licences appear in the cost comparison. The generic profile covers other setups, such as desktops with Linux and LibreOffice.
+
+Read the mappings and their sources
+
+### Sources
+
+City of Zurich evaluation of openDesk Bern University of Applied Sciences
+
+Alternatives to Microsoft 365 and the implications of switching (PDF) Study for Digitale Verwaltung Schweiz
+
+#### Target projects
+
+The openDesk and Nextcloud profiles describe functions covered by projects such as Collabora Online, Open-Xchange, Element, Jitsi and Keycloak. Use the generic profile to consider other setups, such as desktops with Linux and LibreOffice.
+
+## Security and privacy
+
+https://fazit.dev/security/
+
+Fazit is free to use and runs on your computer. Its current version has no network code and needs no access to your Microsoft 365 tenant. The planned Microsoft sign-in will be read-only.
+
+The planned import will read usage exports offline.
+
+Report a vulnerability
+
+### What Fazit will never do
+
+Write to a Microsoft tenant or call an endpoint outside the read allowlist.
+
+Send assessment data off your computer. The planned sign-in will talk only to Microsoft sign-in and Microsoft Graph.
+
+Save tokens, or collected names and email addresses, to disk. The report can show the organisation name and Windows-only application names you enter.
+
+Load external resources from the report.
+
+Present a missing figure as measured or improve a status when a check is skipped.
+
+### Verify offline operation
+
+Set up Git and uv, clone the repository and run uv run fazit demo once to install the dependencies.
+
+Disconnect the computer from the network. In the same directory, run uv run --offline fazit demo.
+
+Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.
+
+See the installed package’s offline test
+
+### What is true today and what is planned
+
+#### True today
+
+##### Local processing
+
+Use local folders without synchronisation for the scan file, the inputs file and the output directory (--out). Network shares and synchronised folders can send your files over the network.
+
+##### Offline report
+
+The report is one HTML file with inline CSS and embedded Figtree and Geist Mono fonts. It opens and prints without a network connection, JavaScript or external resources.
+
+##### Personal data
+
+The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in inputs.yaml.
+
+##### One command
+
+After setup, one command builds a report from the bundled samples with your own answers and costs. The measured figures in the samples are simulated.
+
+##### Honest figures
+
+The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.
+
+#### Planned for sign-in
+
+Sign-in will contact only login.microsoftonline.com and graph.microsoft.com. Fazit will omit telemetry, analytics, update checks and content delivery networks.
+
+Sign-in will use the browser with PKCE and offer a device code as a fallback.
+
+##### Read-only
+
+The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses GET.
+
+##### Tokens in memory
+
+When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.
+
+##### Metadata only
+
+Planned collection will be limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.
+
+Read the project’s principles
+
+### Limits of the evidence
+
+Fazit rejects a scan whose figures cannot all be true, for example a subset larger than its population or a measurement from zero successful checks (D31 in the decisions lists every check). It shows disagreements between a scan and the answers in inputs.yaml, and labels the source of each figure. Fazit cannot verify that a supplied inventory is accurate. A set of invented figures that fit together can still produce a report. The report depends on the people and tools that produced its evidence.
+
+The appendix records the scan’s stated origin, producer and version.
+
+### Print a PDF without file paths
+
+Your browser may add the local file path when you print. Turn off Headers and footers in the print settings, then check the preview for the file path before you save or share the PDF.
+
+### Report a vulnerability
+
+Use GitHub’s private vulnerability form. If the form is unavailable, email the maintainer.
+
+Do not disclose the vulnerability publicly. Use fictional examples, not real scans or reports.
+
+## Roadmap
+
+https://fazit.dev/roadmap/
+
+### Project status
+
+Organisations planning a move from Microsoft 365 can run Fazit from source for free. Use the sample data with your own answers and costs to build a report on your computer. Import of Microsoft 365 exports comes next.
+
+#### Now
+
+The measured figures in the samples are simulated. Fazit is not yet on PyPI.
+
+#### Next
+
+Import CSV exports from the Microsoft 365 admin centre on your computer, keeping only aggregates, and show where your tenant’s data is stored.
+
+#### Later
+
+Install with one command, or run a signed Windows program without Python. Each release lists its checksums and contents.
+
+The report will cover Microsoft 365 Copilot and Copilot Studio and show the deadline for a renewal decision. CSV export for project plans, a report integrity check and links to the sovereignty criteria of ZenDiS, the federal centre behind openDesk, are planned.
+
+Sign in read-only to check permissions and count licences and directory entries.
+
+French and Italian are planned with the Swiss pilot. The translation guide shows how to add a language.
+
+## Enough open source exists. Fazit helps you reach it.
+
+https://fazit.dev/about/
+
+I’m Ruan “Roux” du Toit. I build Fazit in Feldkirchen, near Munich, to help public bodies and other organisations assess a move from Microsoft 365. Fazit is free and recommends no supplier. I started in November 2026, four days after reading Jordan Krueger’s post. I want what I build to be for all of us. That is why Fazit is copyleft: anyone may use it, change it and share it, and it stays open.
+
+### Where it started
+
+In my consulting work, companies have asked me whether they could go open source, and what it would take. There was no quick, honest way to answer.
+
+Then I read a post by Jordan Krueger, and it clicked: we do not need more apps, we need better open source. Krueger asked people who build with AI to stop adding new things and help the tools others already rely on.
+
+In my own time, I had built projects because a language model made them easy to build, not because anyone had asked for them. The post said what I already knew. This time, companies had asked.
+
+Fazit is a new tool, so it does not follow that advice to the letter. It replaces nothing. openDesk, Nextcloud and LibreOffice already exist. What was missing was a way for an organisation to see, in its own numbers, what moving to them would take.
+
+Public bodies and companies consider leaving Microsoft 365 for reasons such as digital sovereignty, data protection or cost. Before deciding, they need to know which functions they rely on. An assigned Teams Phone licence, for example, can reveal a dependency that has yet to make it into the migration plan.
+
+Fazit shows the evidence for each finding and marks missing evidence as “Unknown”. It gives no overall score and recommends no supplier.
+
+### Why it is free
+
+The organisations that most need these numbers are public bodies. The public pays for their software, so the public should be able to read the tool that measures it.
+
+Fazit is free and open source under AGPL-3.0-or-later. All features and rules are in the repository. Anyone may use, change and share it. Anyone who passes on a changed version shares the changes too.
+
+I believe machines should serve all of us. This is my part of that.
+
+### What you can check
+
+Each of these is a statement you can test, not a promise to take on trust.
+
+#### Open
+
+All code and rules are public under the AGPL-3.0-or-later licence.
+
+#### Local
+
+Today’s version runs on your computer and contains no network code.
+
+#### Unknown stays unknown
+
+The report shows a missing figure as missing, with the reason and a next step.
+
+#### No tracking
+
+This site sets no cookies and loads nothing from other servers.
+
+#### Not finished
+
+Fazit runs on sample data today. Import of real exports and a first release come next.
+
+### How it is made
+
+I design Fazit: what it does, how it is structured and what counts as correct. I answer for what ships.
+
+The AI tools Claude and Codex write the code. I work with them as I would with a team. We settle the architecture together, they write and test, and before each release other AI models read the whole codebase cold and look for faults.
+
+I do not write the code and I do not read every line. I check the review findings, which are public.
+
+Before each release, an open model running on my own computer will also review the code, so anyone can repeat the check offline with public weights.
+
+The mappings to openDesk and Nextcloud need a person who runs them, not a model. That review has not happened yet.
+
+Read the reviews
+
+### How it pays its way
+
+Fazit stays free. I plan to earn from assessments and support around it, through my consultancy at rouxdutoit.com. The first three pilot assessments are free.
+
+### How to help
+
+Fazit’s mappings record where openDesk and Nextcloud cover a Microsoft 365 function and where they fall short. If you run either, read a mapping and correct what is wrong.
+
+When Fazit shows a gap in an open source project, the fix belongs in that project, with the people who maintain it.
+
+To add a language, follow the translation guide.
+
+Read the mappings and their sources
+
+## Three free pilot assessments
+
+https://fazit.dev/pilots/
+
+Fazit is offering three free assessments of what a move from Microsoft 365 would take. The offer is for organisations with 200 to 2,000 staff, one each in Germany, Austria and Switzerland. Pilot assessments will start once local import of admin-centre exports is available.
+
+Expressions of interest are open until 28 February 2027 or until all three places are filled.
+
+Express interest
+
+### What you receive
+
+We help you run Fazit on a computer in your organisation. You keep the resulting HTML report. It opens with a summary for the council, prepared for the first printed page. The report assesses 14 areas and sets out dependencies, open source alternatives and a five-year cost comparison based on the figures you supply.
+
+You can review the sample report today.
+
+### Taking part
+
+Name a contact for the pilot.
+
+Run Fazit on a computer in your organisation.
+
+Join one feedback session about the tool and report.
+
+Public bodies receive a one-page agreement for their approval process.
+
+### Data and publicity
+
+We never ask for your assessment data, exclusivity or a commitment to buy or migrate. We also never ask for a logo, coat of arms, quote or badge on your website.
+
+If you want us to name your organisation publicly, you can agree to it separately, in writing, later. You can withdraw it at any time.
+
+### Express interest
+
+To express interest, email hello@rouxdutoit.com with your country and approximate staff count.
+
+## Plan the next steps from the findings
+
+https://fazit.dev/integrators/
+
+The free Fazit sample report shows IT providers which exports and answers to request from a Microsoft 365 client, and who to ask. It groups requests by evidence so you ask once per item. Fazit cannot import client exports yet.
+
+CSV export for project plans is planned for phase 1.2.
+
+### Use Fazit in an assessment
+
+When local import is available, you will be able to run Fazit at the client’s site and use the report to discuss dependencies, work to plan separately and costs for each scenario.
+
+Today you can try the bundled example and add your own answers and costs. The measured figures in the samples are simulated. Local import of admin-centre exports comes next; the roadmap shows what follows.
+
+Compare openDesk and Nextcloud
+
+### Firms can request a directory entry
+
+After the first assessments, firms that have run at least one real assessment with Fazit can request a free entry in the alphabetical directory. Email the maintainer with your firm’s name, public website and consent to be listed.
+
+Do not send us client names, scan files or reports. They stay with the client.
+
+## Was beim Umstieg von Microsoft 365 nötig ist
+
+https://fazit.dev/de/
+
+Kostenlos und quelloffen
+
+Die kostenlose Demo erstellt ohne Mandantenzugriff einen Bericht auf Ihrem Rechner. Er zeigt Organisationen beispielhaft Abhängigkeiten von Microsoft 365 und Umstiegskosten.
+
+Jetzt starten Beispielbericht ansehen
+
+Derzeit mit Beispieldaten. Als Nächstes kommt der Import Ihrer eigenen Microsoft-365-Exporte.
+
+report-2026-11-02-de.html
+
+### Wo die Organisation steht
+
+Von 14 Bereichen:
+
+Hindernis 1
+
+Ein bestätigtes Hindernis, das vor diesem Umstieg ausgeräumt sein muss.
+
+Handlungsbedarf 9
+
+Die Prüfungen haben Aufgaben ergeben, die vor einem Umstieg zu erledigen sind.
+
+Unbekannt 1
+
+Es fehlen Nachweise, daher kann diese Version von Fazit den Bereich nicht bewerten.
+
+Bereit 3
+
+Die aktuellen Prüfungen haben weder ein Hindernis noch fehlende Nachweise ergeben.
+
+#### Was diesem Umstieg entgegensteht
+
+##### Telefonie
+
+Kommunikation
+
+Hindernis
+
+Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
+
+Alle Hindernisse
+
+HTML herunterladen, 442 KB
+
+### Jeder Befund führt die Nachweise auf
+
+Fehlende Angaben kennzeichnet der Bericht als „Unbekannt“.
+
+#### E-Mail
+
+Kommunikation
+
+Handlungsbedarf Nachweise unvollständig
+
+Postfächer
+
+91 Erhoben (simuliert)
+
+Freigegebene Postfächer
+
+Unbekannt
+
+Alle Bereiche ansehen
+
+### Was der Umstieg kosten würde
+
+Aus Ihren Angaben berechnet Fazit die Kosten für fünf Jahre bei Verbleib, teilweisem und vollständigem Umstieg.
+
+Aus Beispielangaben berechnet
+
+Verbleib
+
+600.000 EUR
+
+Teilweiser Umstieg
+
+527.800 EUR
+
+Vollständiger Umstieg
+
+464.350 EUR
+
+So werden die Kosten berechnet
+
+### Prüfdaten bleiben auf Ihrem Rechner
+
+Nach der Einrichtung erstellt Fazit auf Ihrem Rechner einen HTML-Bericht aus den mitgelieferten Beispieldaten. Dabei greift das Programm nicht auf das Netzwerk zu.
+
+#### Läuft lokal
+
+Die Demo läuft offline.
+
+#### Nur Lesezugriff
+
+Keine Änderungen am Mandanten.
+
+#### Quelloffen
+
+Code und Regeln sind öffentlich.
+
+So verarbeitet Fazit Ihre Daten
+
+### Drei Befehle genügen
+
+Im Terminal ausführen
+
+git clone https://github.com/rouxdutoit/fazit
+
+cd fazit
+
+uv run fazit demo --lang de
+
+Sie brauchen Git und uv. Was Sie brauchen
+
+Jetzt starten
+
+Derzeit arbeitet Fazit mit Beispieldaten. Der Import eigener Exporte folgt.
+
+Pilotprüfungen Über Fazit
+
+14 Bereiche, drei Zielprofile, Deutsch und Englisch, eine offline lesbare HTML-Datei
+
+## Mit Fazit starten
+
+https://fazit.dev/de/start/
+
+Mit der kostenlosen Demo sehen Sie, wie Fazit einen Umstieg von Microsoft 365 prüft. Die Demo nutzt Beispieldaten und benötigt kein Microsoft-Konto. Nach der Einrichtung läuft sie ohne Netzwerkverbindung auf Ihrem Rechner.
+
+Im Terminal ausführen
+
+git clone https://github.com/rouxdutoit/fazit
+
+cd fazit
+
+uv run fazit demo --lang de
+
+Sie brauchen Git und uv. Was Sie brauchen
+
+### Was Sie brauchen
+
+#### Git herunterladen
+
+Lädt den Quellcode von Fazit herunter.
+
+#### uv installieren
+
+Richtet beim ersten Start die passende Python-Version und alle Pakete ein.
+
+Fazit wird unter Windows, macOS und Linux getestet.
+
+### Das Beispiel ausführen
+
+Der Befehl erzeugt den Beispielbericht für eine fiktive Stadtverwaltung auf Deutsch. Für die englische Fassung führen Sie im selben Ordner uv run fazit demo aus.
+
+### Den Bericht öffnen
+
+Die letzte Zeile der Ausgabe nennt den Pfad des Berichts. Öffnen Sie die HTML-Datei in Ihrem Browser.
+
+Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen uv run --offline fazit demo --lang de aus und öffnen den Bericht erneut.
+
+Anleitung zur Prüfung ohne Netzwerk
+
+### Mit eigenen Daten
+
+Derzeit erstellt Fazit Berichte aus den Beispieldaten, ergänzt um Ihre eigenen Antworten und Kosten in inputs.yaml. Die Bestandszahlen stammen dabei weiter aus der fiktiven Stadtverwaltung. Als Nächstes kommt der Import von Exporten aus dem Microsoft 365 Admin Center; bis dahin können Sie Interesse an einer Pilotprüfung bekunden.
+
+Pilotprüfungen
+
+### Das Ergebnis ohne Installation ansehen
+
+#### Beispielbericht
+
+Der Bericht zeigt die Ergebnisse für eine fiktive Stadtverwaltung mit simulierten Messwerten.
+
+## Diese Funktionen decken openDesk und Nextcloud ab
+
+https://fazit.dev/de/coverage/
+
+Die Übersicht zu openDesk und Nextcloud ist kostenlos zugänglich. Sie zeigt, welche Funktionen von Microsoft 365 beide Suiten abdecken. Welche Funktionen Ihre Organisation braucht und was der Umstieg kosten würde, klären Sie bei der Bestandsaufnahme.
+
+### Funktionsumfang nach Bereich vergleichen
+
+In der Suite
+
+Mit Einschränkungen
+
+Community-App
+
+Nicht in der Suite
+
+Abdeckung der Bereiche durch openDesk und Nextcloud
+
+Bereich | openDesk | Nextcloud
+
+Verzeichnisdienst | In der Suite: Nubus | Mit Einschränkungen: Benutzer- und Gruppenverwaltung in Nextcloud
+
+E-Mail | In der Suite: Open-Xchange (OX App Suite) | Mit Einschränkungen: Nextcloud Mail und Calendar mit einem gesonderten Mailserver
+
+OneDrive | In der Suite: Nextcloud Files | In der Suite: Nextcloud Files
+
+SharePoint | Mit Einschränkungen: Gemeinsame Ordner in Nextcloud Files · Gesonderte Neugestaltung der Arbeitsabläufe · XWiki | Mit Einschränkungen: Team Folders in Nextcloud Files · Unterstützte Arbeitsabläufe mit Nextcloud Flow neu erstellen
+
+Teams | Mit Einschränkungen: Element · Jitsi · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats | Mit Einschränkungen: Nextcloud Talk · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats
+
+Office-Dateien | Mit Einschränkungen: Collabora Online · Gesonderte Konvertierung oder Neuentwicklung · Notes · CryptPad mit diagrams.net | Mit Einschränkungen: Nextcloud Office · Gesonderte Konvertierung oder Neuentwicklung
+
+Geräteverwaltung | Nicht in der Suite: Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner | Nicht in der Suite: Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner
+
+Reine Windows-Anwendungen | Nicht in der Suite: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen | Nicht in der Suite: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen
+
+Power Platform | Nicht in der Suite: Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen | Mit Einschränkungen: Nextcloud Flow und Nextcloud Tables
+
+Telefonie | Nicht in der Suite: Gesonderter Telefondienst | Mit Einschränkungen: Nextcloud Talk mit SIP-Bridge (Talk-Enterprise-Abonnement) und SIP-Gateway
+
+Identitäten und Zugriff | In der Suite: Keycloak | Community-App: App OIDC Identity Provider für Nextcloud
+
+Sicherheit und Regelkonformität | Mit Einschränkungen: Zugriffssteuerung und Schadsoftware-Prüfung in openDesk | Mit Einschränkungen: Dateischutz und Aufbewahrungseinstellungen in Nextcloud
+
+Kleinere Anwendungen | Mit Einschränkungen: OpenProject und OX App Suite für Aufgaben | Mit Einschränkungen: Nextcloud Forms, Deck und Calendar
+
+Anwendungsanbindungen | Mit Einschränkungen: Schnittstellen der openDesk-Komponenten | Mit Einschränkungen: Schnittstellen und Anbindungen für Nextcloud
+
+Wenn Sie mit Nextcloud Talk das öffentliche Telefonnetz anbinden, nehmen Sie die angebotenen laufenden Kosten in den Vergleich auf und prüfen Sie Rufnummernweiterleitung und Warteschleifen. Die Profile für openDesk und Nextcloud wurden am 21. und 22. November 2026 aus der jeweiligen Projektdokumentation erstellt und noch nicht von jemandem geprüft, der diese Lösungen betreibt. Lizenzen erscheinen in der Kostenrechnung. Das allgemeine Profil deckt weitere Umgebungen ab, etwa Arbeitsplätze mit Linux und LibreOffice.
+
+Zuordnungen und Quellen ansehen
+
+### Fachliche Grundlagen
+
+Evaluation openDesk für die Stadt Zürich Berner Fachhochschule
+
+Alternativen zu Microsoft 365 und Folgen eines Umstiegs (PDF) Studie im Auftrag der Digitalen Verwaltung Schweiz
+
+#### Zielprojekte
+
+Die Profile für openDesk und Nextcloud zeigen, welche Funktionen Projekte wie Collabora Online, Open-Xchange, Element, Jitsi und Keycloak abdecken. Für andere Umgebungen, etwa Arbeitsplätze mit Linux und LibreOffice, können Sie das allgemeine Profil verwenden.
+
+## Sicherheit und Datenschutz
+
+https://fazit.dev/de/security/
+
+Fazit ist kostenlos und läuft auf Ihrem Rechner. Die aktuelle Version enthält keinen Code für Netzwerkzugriffe und benötigt keinen Zugang zu Ihrem Microsoft-365-Mandanten. Geplant ist eine Anmeldung bei Microsoft mit reinem Lesezugriff.
+
+Beim geplanten Import sollen Nutzungsberichte ohne Netzwerkverbindung eingelesen werden.
+
+Schwachstelle melden
+
+### Was Fazit nie tun wird
+
+In einen Microsoft-365-Mandanten schreiben oder Endpunkte außerhalb der Freigabeliste für Lesezugriffe aufrufen.
+
+Prüfdaten von Ihrem Rechner übertragen. Für die geplante Anmeldung sind nur die Microsoft-Anmeldung und Microsoft Graph vorgesehen.
+
+Anmeldetokens, erhobene Personennamen oder E-Mail-Adressen auf einem Datenträger speichern. Im Bericht können der von Ihnen angegebene Organisationsname und die Namen reiner Windows-Anwendungen stehen.
+
+Externe Ressourcen in den Bericht nachladen.
+
+Eine fehlende Zahl als erhoben ausgeben oder einen Bereich wegen einer ausgelassenen Prüfung besser einstufen.
+
+### Betrieb ohne Netzwerk prüfen
+
+Richten Sie Git und uv ein, klonen Sie das Repository und führen Sie einmal uv run fazit demo --lang de aus. Dabei werden die benötigten Pakete installiert.
+
+Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis uv run --offline fazit demo --lang de aus.
+
+Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.
+
+Offline-Test des installierten Pakets
+
+### Was heute gilt und was geplant ist
+
+#### Gilt heute
+
+##### Lokale Verarbeitung
+
+Verwenden Sie für die Erhebungsdatei, die Eingabedatei und das Ausgabeverzeichnis (--out) lokale Ordner ohne Synchronisierung. Über Netzwerkfreigaben oder synchronisierte Ordner können Ihre Dateien übertragen werden.
+
+##### Bericht ohne Netzwerk
+
+Der Bericht enthält die Formatvorlagen und die Schriften Figtree und Geist Mono direkt in der HTML-Datei. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.
+
+##### Personenbezogene Daten
+
+Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in inputs.yaml in den Bericht übernommen werden.
+
+##### Ein Befehl
+
+Nach der Einrichtung erstellt ein Befehl den Bericht aus den Beispieldaten mit eigenen Antworten und Kosten. Die Messwerte in den Beispielen sind simuliert.
+
+##### Nachvollziehbare Zahlen
+
+Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.
+
+#### Für die Anmeldung geplant
+
+Für die Anmeldung soll Fazit nur login.microsoftonline.com und graph.microsoft.com kontaktieren. Ausgeschlossen sind Telemetrie, Nutzungsanalysen, Update-Abfragen und CDN-Zugriffe.
+
+Für die Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.
+
+##### Nur Lesezugriff
+
+Für die geplante Anmeldung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie GET verwenden.
+
+##### Tokens im Arbeitsspeicher
+
+Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.
+
+##### Nur Metadaten
+
+Für die geplante Erhebung sind nur Anzahlen, Größen und codierte Nachweise vorgesehen. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.
+
+Grundsätze des Projekts
+
+### Grenzen der Aussagekraft
+
+Fazit weist eine Erhebung zurück, deren Zahlen nicht alle zugleich stimmen können, etwa eine Teilmenge, die größer ist als ihre Gesamtmenge, oder einen Messwert ohne eine einzige erfolgreiche Prüfung (D31 in den Entscheidungen listet alle Prüfungen). Abweichungen zwischen Erhebung und den Antworten in inputs.yaml zeigt es an, und es kennzeichnet die Herkunft jeder Zahl. Ob die Angaben zum Bestand stimmen, kann Fazit nicht feststellen. Auch erfundene Angaben, die zueinander passen, können zu einem Bericht führen. Die Aussagekraft hängt von den Personen und Programmen ab, die die Nachweise erstellt haben.
+
+Der Anhang dokumentiert die angegebene Herkunft der Erhebung sowie das Programm und die Version, mit denen sie laut Erhebungsdatei erstellt wurde.
+
+### PDF ohne Dateipfad erstellen
+
+Ihr Browser kann beim Drucken den lokalen Dateipfad ergänzen. Schalten Sie in den Druckeinstellungen Kopf- und Fußzeilen aus. Prüfen Sie vor dem Speichern oder Weitergeben in der Vorschau, ob der Pfad ausgeblendet ist.
+
+### Schwachstelle melden
+
+Nutzen Sie das vertrauliche Meldeformular auf GitHub. Falls es nicht verfügbar ist, schreiben Sie an hello@rouxdutoit.com.
+
+Behandeln Sie die Meldung vertraulich und verwenden Sie fiktive Beispiele anstelle echter Erhebungsdateien oder Berichte.
+
+## Fahrplan
+
+https://fazit.dev/de/roadmap/
+
+### Projektstand
+
+Für eine Prüfung des Umstiegs von Microsoft 365 können Sie Fazit kostenlos aus dem Quellcode starten. Fazit erstellt den Bericht lokal aus Beispieldaten und Ihren eigenen Antworten und Kosten. Der Import eigener Exporte folgt.
+
+#### Verfügbar
+
+Die Messwerte in den Beispielen sind simuliert. Das Paket ist noch nicht auf PyPI veröffentlicht.
+
+#### Als Nächstes
+
+Fazit soll CSV-Exporte aus dem Microsoft 365 Admin Center auf Ihrem Rechner einlesen, nur zusammengefasste Werte speichern und zeigen, wo die Daten Ihres Mandanten liegen.
+
+#### Später
+
+Geplant sind die Installation mit einem Befehl und ein signiertes Windows-Programm, das ohne Python läuft. Zu jeder Version gehören Prüfsummen und eine Liste der Komponenten.
+
+Der Bericht soll Microsoft 365 Copilot und Copilot Studio als eigenen Bereich abdecken und die Frist für die Entscheidung über die Lizenzverlängerung nennen. Vorgesehen sind außerdem ein CSV-Export für Projektpläne, eine Prüfung auf nachträgliche Änderungen am Bericht und Verweise auf die Souveränitätskriterien des ZenDiS, des Bundeszentrums hinter openDesk.
+
+Nach einer Anmeldung mit reinem Lesezugriff soll Fazit Berechtigungen prüfen und Lizenzen und Verzeichniseinträge zählen.
+
+Französisch und Italienisch sind mit dem Schweizer Pilotprojekt geplant. Die Übersetzungsanleitung zeigt, wie eine Sprache hinzukommt.
+
+## Open-Source-Software gibt es genug. Fazit zeigt, was der Umstieg erfordert.
+
+https://fazit.dev/de/about/
+
+Ich bin Ruan „Roux“ du Toit und entwickle Fazit in Feldkirchen bei München. Das Programm hilft Verwaltungen und anderen Organisationen, einen Umstieg von Microsoft 365 zu prüfen. Es ist kostenlos und empfiehlt keinen Anbieter. Angefangen habe ich im November 2026, vier Tage nachdem ich den Beitrag von Jordan Krueger gelesen hatte. Was ich baue, soll uns allen gehören. Deshalb steht Fazit unter einer Copyleft-Lizenz: Alle dürfen es nutzen, ändern und weitergeben, und es bleibt offen.
+
+### Der Anlass
+
+In meiner Beratungsarbeit haben mich Unternehmen gefragt, ob sie auf Open Source umsteigen können und was dafür nötig wäre. Eine schnelle und ehrliche Antwort darauf gab es nicht.
+
+Dann las ich einen Beitrag von Jordan Krueger, und bei mir machte es klick. Darin heißt es, wir bräuchten nicht noch mehr Apps, sondern bessere Open-Source-Software. Wer mit KI Software entwickelt, solle nicht noch etwas Neues schaffen, sondern die Werkzeuge verbessern, auf die sich andere längst verlassen.
+
+Privat hatte ich Projekte entwickelt, weil ein Sprachmodell es mir leicht machte, nicht weil jemand danach gefragt hatte. Kruegers Beitrag sprach aus, was ich schon wusste. Diesmal hatten Unternehmen gefragt.
+
+Fazit ist ein neues Werkzeug und hält sich deshalb nicht wörtlich an Kruegers Rat. Es ersetzt nichts: openDesk, Nextcloud und LibreOffice gibt es bereits. Es fehlte ein Werkzeug, mit dem eine Organisation an ihren eigenen Zahlen ablesen kann, was der Umstieg erfordert.
+
+Öffentliche Stellen und Unternehmen erwägen einen Umstieg von Microsoft 365, etwa aus Gründen der digitalen Souveränität, des Datenschutzes oder der Kosten. Vor der Entscheidung müssen sie wissen, welche Funktionen sie benötigen. Eine zugewiesene Lizenz für Teams Phone kann zum Beispiel auf eine Abhängigkeit hinweisen, die im Umstiegsplan noch fehlt.
+
+Fazit führt die Nachweise zu jedem Befund auf und kennzeichnet fehlende Angaben als „Unbekannt“. Fazit vergibt keine Gesamtnote und empfiehlt keinen Anbieter.
+
+### Warum Fazit kostenlos ist
+
+Vor allem öffentliche Stellen brauchen diese Zahlen. Deren Software wird aus öffentlichen Mitteln bezahlt. Deshalb sollen alle nachlesen können, wie das Werkzeug rechnet, das diese Abhängigkeit misst.
+
+Fazit ist kostenlos und quelloffen unter der AGPL-3.0-or-later. Alle Funktionen und Prüfregeln liegen im offenen Repository. Alle dürfen Fazit nutzen, ändern und weitergeben. Wer eine geänderte Fassung weitergibt, muss auch die Änderungen offenlegen.
+
+Ich bin überzeugt, dass Maschinen uns allen dienen sollten. Fazit ist mein Beitrag dazu.
+
+### Was Sie nachprüfen können
+
+Jede der folgenden Aussagen können Sie selbst prüfen. Sie müssen sich nicht auf mein Wort verlassen.
+
+#### Offen
+
+Der Quellcode und alle Prüfregeln sind unter der Lizenz AGPL-3.0-or-later öffentlich zugänglich.
+
+#### Lokal
+
+Die aktuelle Version läuft auf Ihrem Rechner und enthält keinen Netzwerkcode.
+
+#### Unbekannt bleibt unbekannt
+
+Fehlt eine Zahl, weist der Bericht sie als fehlend aus und nennt den Grund und den nächsten Prüfschritt.
+
+#### Kein Tracking
+
+Diese Website setzt keine Cookies und lädt nichts von fremden Servern.
+
+#### Noch nicht fertig
+
+Derzeit arbeitet Fazit mit Beispieldaten. Geplant sind der Import Ihrer Microsoft-365-Exporte und die erste öffentliche Version.
+
+### Wie Fazit entsteht
+
+Ich lege fest, was Fazit leistet, wie es aufgebaut ist und was als richtig gilt. Für das, was veröffentlicht wird, stehe ich ein.
+
+Die KI-Werkzeuge Claude und Codex schreiben den Code. Ich arbeite mit ihnen wie mit einem Team. Die Architektur legen wir gemeinsam fest, die beiden schreiben und testen. Vor jeder Veröffentlichung lesen weitere KI-Modelle den gesamten Code ohne Vorwissen und suchen nach Fehlern.
+
+Ich schreibe den Code nicht selbst und lese nicht jede Zeile. Ich prüfe die Befunde dieser Modelle. Die Befunde sind öffentlich.
+
+Künftig lasse ich den Code vor jeder Veröffentlichung zusätzlich von einem offenen Modell auf meinem eigenen Rechner prüfen, damit sich die Prüfung mit öffentlich verfügbaren Modellgewichten auch offline wiederholen lässt.
+
+Die Zuordnungen zu openDesk und Nextcloud muss ein Mensch prüfen, der diese Lösungen betreibt. Ein Modell genügt dafür nicht. Diese Prüfung steht noch aus.
+
+Prüfberichte lesen
+
+### Wie sich Fazit finanziert
+
+Fazit bleibt kostenlos. Geld verdienen will ich mit Prüfungen und Unterstützung rund um Fazit, über meine Beratung rouxdutoit.com. Die ersten drei Pilotprüfungen sind kostenlos.
+
+### Mitwirken
+
+Die Zuordnungen in Fazit halten fest, welche Microsoft-365-Funktionen openDesk und Nextcloud abdecken und wo Lücken bleiben. Wenn Sie eine der beiden Lösungen betreiben, lesen Sie bitte eine Zuordnung und berichtigen Sie, was nicht stimmt.
+
+Zeigt Fazit eine Lücke in einem Open-Source-Projekt, gehört die Verbesserung in dieses Projekt, in Abstimmung mit denen, die es betreuen.
+
+Wenn Sie eine Sprache ergänzen möchten, folgen Sie der Übersetzungsanleitung.
+
+Zuordnungen und Quellen ansehen
+
+## Pilotprüfungen
+
+https://fazit.dev/de/pilots/
+
+Fazit bietet drei kostenlose Pilotprüfungen zum Umstieg von Microsoft 365 an, je eine in Deutschland, Österreich und der Schweiz. Das Angebot richtet sich an Organisationen mit 200 bis 2.000 Beschäftigten. Die Pilotprüfungen beginnen, sobald Fazit Exporte aus dem Admin Center lokal einlesen kann.
+
+Sie können Ihr Interesse bis zum 28. Februar 2027 bekunden. Die Frist endet früher, wenn alle Plätze vergeben sind.
+
+Interesse bekunden
+
+### Was Sie erhalten
+
+Wir unterstützen Sie dabei, Fazit auf einem Rechner Ihrer Organisation auszuführen. Der HTML-Bericht bleibt bei Ihnen. Die Übersicht für das Entscheidungsgremium steht auf der ersten Druckseite. Der Bericht bewertet 14 Bereiche und zeigt Abhängigkeiten, mögliche Open-Source-Alternativen und einen Kostenvergleich über fünf Jahre auf Grundlage Ihrer Angaben.
+
+Den Beispielbericht können Sie bereits ansehen.
+
+### Teilnahme
+
+Sie benennen eine Ansprechperson.
+
+Sie führen Fazit auf einem Rechner Ihrer Organisation aus.
+
+Sie nehmen an einem Auswertungsgespräch zum Programm und zum Bericht teil.
+
+Für die interne Freigabe erhalten öffentliche Stellen eine einseitige Vereinbarung.
+
+### Prüfdaten und öffentliche Nennung
+
+Wir verlangen weder Prüfdaten noch Exklusivität oder eine Kauf- oder Umstiegszusage. Auch um ein Logo, ein Wappen, ein Zitat oder einen Hinweis auf Fazit auf Ihrer Website bitten wir Sie nicht.
+
+Möchten Sie, dass wir Ihre Organisation öffentlich nennen, genügt später eine gesonderte, formlose schriftliche Zustimmung. Sie können Ihre Zustimmung jederzeit widerrufen.
+
+### Interesse bekunden
+
+Wenn Sie Interesse haben, schreiben Sie an hello@rouxdutoit.com. Geben Sie bitte das Land und die ungefähre Zahl der Beschäftigten an.
+
+## Mit den Befunden die nächsten Schritte planen
+
+https://fazit.dev/de/integrators/
+
+Der kostenlose Fazit-Beispielbericht zeigt IT-Dienstleistern, welche Exporte und Antworten sie von ihren Kunden zu Microsoft 365 brauchen. Er bündelt die Anfragen nach Nachweis und nennt die zuständige Rolle. Der Import von Kundenexporten ist noch nicht verfügbar.
+
+Für Phase 1.2 ist ein CSV-Export für die Projektplanung vorgesehen.
+
+### Fazit in der Beratung einsetzen
+
+Sobald der lokale Import verfügbar ist, können Sie Fazit auf einem Rechner der beauftragenden Organisation ausführen. Der Bericht soll als Grundlage dienen, um Abhängigkeiten, gesondert zu planende Arbeiten und die Kosten der einzelnen Szenarien zu besprechen.
+
+Sie können das mitgelieferte Beispiel ausprobieren und um eigene Antworten und Kosten ergänzen. Die Messwerte in den Beispielen sind simuliert. Als Nächstes kommt der lokale Import von Exporten aus dem Admin Center; der Projektfahrplan zeigt, was danach folgt.
+
+Funktionsumfang von openDesk und Nextcloud vergleichen
+
+### Wie Unternehmen in das Verzeichnis aufgenommen werden
+
+Nach den ersten Bestandsaufnahmen können Sie einen kostenlosen Eintrag im alphabetischen Verzeichnis beantragen, wenn Sie Fazit mindestens einmal mit realen Daten eingesetzt haben und den Namen und die öffentliche Website Ihres Unternehmens sowie Ihre Zustimmung an hello@rouxdutoit.com senden.
+
+Senden Sie uns keine Kundennamen, Erhebungsdateien oder Berichte. Sie bleiben bei der jeweiligen Organisation.

@@ -2,112 +2,156 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://fazit.dev/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/"/>
   </url>
   <url>
     <loc>https://fazit.dev/pilots/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/pilots/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/pilots/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/pilots/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/pilots/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/pilots/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/pilots/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/pilots/"/>
   </url>
   <url>
     <loc>https://fazit.dev/start/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/start/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/start/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/start/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/start/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/start/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/start/"/>
   </url>
   <url>
     <loc>https://fazit.dev/integrators/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/integrators/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/integrators/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/integrators/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/integrators/"/>
   </url>
   <url>
     <loc>https://fazit.dev/coverage/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/coverage/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/coverage/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/coverage/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/coverage/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/coverage/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/coverage/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/coverage/"/>
   </url>
   <url>
     <loc>https://fazit.dev/security/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/security/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/security/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/security/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/security/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/security/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/security/"/>
   </url>
   <url>
     <loc>https://fazit.dev/demo/en/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/demo/en/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/demo/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/demo/en/"/>
   </url>
   <url>
     <loc>https://fazit.dev/demo/de/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/demo/en/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/demo/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/demo/en/"/>
   </url>
   <url>
     <loc>https://fazit.dev/about/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/about/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/about/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/about/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/about/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/about/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/about/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/about/"/>
   </url>
   <url>
     <loc>https://fazit.dev/roadmap/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/roadmap/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/roadmap/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/roadmap/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/roadmap/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/roadmap/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/roadmap/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/roadmap/"/>
   </url>
   <url>
     <loc>https://fazit.dev/impressum/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/impressum/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/impressum/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/impressum/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/impressum/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/impressum/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/impressum/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/impressum/"/>
   </url>
   <url>
     <loc>https://fazit.dev/privacy/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/privacy/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/privacy/"/>
   </url>
   <url>
     <loc>https://fazit.dev/de/privacy/</loc>
+    <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://fazit.dev/privacy/"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://fazit.dev/de/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fazit.dev/privacy/"/>
   </url>
 </urlset>

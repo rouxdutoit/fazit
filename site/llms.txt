@@ -1,0 +1,22 @@
+# Fazit
+
+> Fazit is a free, open source, read-only command-line tool licensed under AGPL-3.0-or-later. It runs locally to help organisations of roughly 200 to 2,000 seats in Germany, Austria and Switzerland assess a move from Microsoft 365. Sample data is available today. Local import of Microsoft 365 admin-centre exports comes next. Reports are available in German and English for openDesk, Nextcloud and a product-neutral open source setup. Fazit does not carry out migrations, give an overall readiness score or recommend a supplier.
+
+## Try and compare
+
+- [Start](https://fazit.dev/start/): Run the demo from source on your own computer without a Microsoft account.
+- [Sample report (EN)](https://fazit.dev/demo/en/): An English example with simulated findings and a five-year cost comparison based on sample inputs.
+- [Sample report (DE)](https://fazit.dev/demo/de/): The German version of the example report with the same simulated findings and costs.
+- [Coverage comparison](https://fazit.dev/coverage/): See which Microsoft 365 functions openDesk and Nextcloud cover and where there are limits.
+
+## Project and documentation
+
+- [Security and data handling](https://fazit.dev/security/): Read the safeguards for local processing, how to verify offline operation and how to report a vulnerability.
+- [Roadmap](https://fazit.dev/roadmap/): See what works with sample data today, what local import will add and when read-only live collection is planned.
+- [About](https://fazit.dev/about/): Read why Ruan du Toit builds Fazit and why it stays free and open source.
+- [Source code](https://github.com/rouxdutoit/fazit): Browse the AGPL-licensed source, rules and tests.
+- [Scan format docs](https://github.com/rouxdutoit/fazit/blob/main/docs/scan-format.md): Read the fields and evidence rules for the scan.json format.
+
+## Optional
+
+- [Full site text (EN and DE)](https://fazit.dev/llms-full.txt): Read the main pages together in plain text.
