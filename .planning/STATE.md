@@ -77,6 +77,7 @@ None yet.
 
 | ID | Date | Task | Directory |
 |----|------|------|-----------|
+| 261123-home-redesign | 2026-11-23 | Home page redesign: sample report first, five sections with panels, wider gutters, darker links, buttons without symbols (D49) | `.planning/quick/261123-home-redesign/` |
 | 261122-ego | 2026-11-22 | Home page rework after the Pandex comparison, with the text-scramble effect | `.planning/quick/261122-ego-home-page-rework-after-pandex-comparison/` |
 
 ## Deferred Items

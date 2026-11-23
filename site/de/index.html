@@ -29,8 +29,8 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="/site.js?v=20261123"></script>
-  <link rel="stylesheet" href="/style.css?v=20261123">
+  <script src="/site.js?v=20261123-2"></script>
+  <link rel="stylesheet" href="/style.css?v=20261123-2">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -93,24 +93,25 @@
           <a class="symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht</span></a>
           <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Quellcode</span></a>
           <a class="language symbol-label" href="/" lang="en" hreflang="en"><span class="symbol mask icon-translate" aria-hidden="true"></span><span class="symbol-text">English</span></a>
-          <a class="btn btn-solid bar-cta symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/de/start/"><span class="symbol-text">Jetzt starten</span></a>
         </div>
       </nav>
     </div>
   </header>
 
-  <main id="main" tabindex="-1">
+  <main class="home" id="main" tabindex="-1">
     <section id="hero" aria-labelledby="hero-title">
       <div class="hero">
         <p class="eyebrow">Kostenlos und quelloffen</p>
         <h1 id="hero-title">Was beim Umstieg von Microsoft&nbsp;365 nötig ist</h1>
-        <p class="hero-sub">Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, alles in einem Bericht, der auf Ihrem Rechner entsteht.</p>
+        <p class="hero-sub">Worauf Ihre Organisation angewiesen ist, was einem Umstieg auf Open Source entgegensteht und was er kosten würde. Ein Bericht, der auf Ihrem Rechner entsteht.</p>
         <div class="hero-actions">
-          <a class="btn btn-solid symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
-          <a class="btn btn-secondary symbol-label" href="/demo/de/"><span class="btn-icon mask symbol icon-description" aria-hidden="true"></span><span class="symbol-text">Beispielbericht ansehen</span></a>
+          <a class="btn btn-solid symbol-label" href="/de/start/"><span class="symbol-text">Jetzt starten</span></a>
+          <a class="btn btn-secondary symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht ansehen</span></a>
         </div>
         <p class="hero-status">Derzeit mit Beispieldaten. Als Nächstes kommt der Import Ihrer eigenen Microsoft-365-Exporte.</p>
       </div>
+
       <figure class="report-preview">
         <div class="report-card">
           <span class="report-card-bar symbol-label" aria-hidden="true">
@@ -121,62 +122,79 @@
               <span class="report-card-control symbol-label"><span class="symbol mask icon-close"></span></span>
             </span>
           </span>
-          <div class="grid preview-summary">
+          <div class="preview-summary">
+            <p class="eyebrow">Stadtverwaltung Musterstadt · Zielprofil openDesk</p>
             <h2 class="preview-title">Wo die Organisation steht</h2>
-            <div class="sec-body">
-              <p class="sec-intro">Von 14 Bereichen:</p>
-              <dl class="status-summary">
-                <div>
-                  <dt class="status blocker symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span><span class="row-count symbol-text">1</span></dt>
-                  <dd>Ein bestätigtes Hindernis, das vor diesem Umstieg ausgeräumt sein muss.</dd>
+            <p class="sec-intro">Von <span data-assessed-areas>14</span> Bereichen:</p>
+            <ul class="tiles preview-statuses" role="list">
+              <li data-status="blocker">
+                <p class="preview-label tile-label"><span class="status blocker symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span></p>
+                <span class="figure-num preview-value">1<small> Bereich</small></span>
+                <p class="preview-caption">Ein bestätigtes Hindernis, das zuerst auszuräumen ist.</p>
+              </li>
+              <li data-status="needs_work">
+                <p class="preview-label tile-label"><span class="status needs_work symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span></p>
+                <span class="figure-num preview-value">9<small> Bereiche</small></span>
+                <p class="preview-caption">Vor einem Umstieg ist etwas zu erledigen.</p>
+              </li>
+              <li data-status="unknown">
+                <p class="preview-label tile-label"><span class="status unknown symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unbekannt</span></span></p>
+                <span class="figure-num preview-value">1<small> Bereich</small></span>
+                <p class="preview-caption">Es fehlen Nachweise.</p>
+              </li>
+              <li data-status="ready">
+                <p class="preview-label tile-label"><span class="status ready symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span></span></p>
+                <span class="figure-num preview-value">3<small> Bereiche</small></span>
+                <p class="preview-caption">Kein Hindernis, keine fehlenden Nachweise.</p>
+              </li>
+            </ul>
+            <ul class="tiles preview-details" role="list">
+              <li>
+                <div class="preview-label">
+                  <p class="tile-label">Was diesem Umstieg entgegensteht</p>
+                  <span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span>
                 </div>
-                <div>
-                  <dt class="status needs_work symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><span class="row-count symbol-text">9</span></dt>
-                  <dd>Die Prüfungen haben Aufgaben ergeben, die vor einem Umstieg zu erledigen sind.</dd>
-                </div>
-                <div>
-                  <dt class="status unknown symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unbekannt</span><span class="row-count symbol-text">1</span></dt>
-                  <dd>Es fehlen Nachweise, daher kann diese Version von Fazit den Bereich nicht bewerten.</dd>
-                </div>
-                <div>
-                  <dt class="status ready symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><span class="row-count symbol-text">3</span></dt>
-                  <dd>Die aktuellen Prüfungen haben weder ein Hindernis noch fehlende Nachweise ergeben.</dd>
-                </div>
-              </dl>
-              <div class="preview-blockers">
-                <h3>Was diesem Umstieg entgegensteht</h3>
-                <div class="finding">
-                  <div class="finding-head">
-                    <div>
-                      <h4 class="finding-area"><a class="more symbol-label symbol-wrap" href="/demo/de/#readiness-telephony"><span class="symbol-text"><span class="link-text">Telefonie</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></h4>
-                      <span class="finding-category">Kommunikation</span>
-                    </div>
-                    <span class="finding-status"><span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span></span>
-                  </div>
-                  <p>Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.</p>
-                </div>
-                <a class="more symbol-label symbol-wrap" href="/demo/de/#status-blocker"><span class="symbol-text"><span class="link-text">Alle Hindernisse</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
-              </div>
-            </div>
+                <h3 class="figure-num preview-value">Telefonie</h3>
+                <p class="preview-caption">Telefonie über Microsoft ohne bestätigte Alternative.</p>
+              </li>
+              <li>
+                <p class="preview-label tile-label">Vollständiger Umstieg, fünf Jahre</p>
+                <span class="figure-num preview-value">464.350 EUR</span>
+                <p class="preview-caption">135.650 EUR weniger als beim Verbleib, aus Beispielangaben.</p>
+              </li>
+            </ul>
           </div>
         </div>
-        <figcaption>
-          <a class="more symbol-label symbol-wrap" href="/demo/de/" download="fazit-sample-report-de.html"><span class="symbol-text"><span class="link-text">HTML herunterladen, 442 KB</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
-        </figcaption>
       </figure>
     </section>
 
-    <section class="sec grid" id="example" aria-labelledby="example-title">
-      <h2 class="sec-label" id="example-title">Jeder Befund führt die Nachweise auf</h2>
-      <div class="sec-body">
-        <p class="lead">Fehlende Angaben kennzeichnet der Bericht als „Unbekannt“.</p>
-        <!-- Mail header and shared-mailbox evidence from the matching demo. -->
-        <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
+    <section class="home-beat" id="blocker" aria-labelledby="blocker-title">
+      <div class="home-beat-copy">
+        <h2 id="blocker-title">Hindernisse stehen an erster Stelle</h2>
+        <p class="lead">Was den Umstieg verhindert, steht oben, mit der Begründung in einem Satz.</p>
+        <a class="more symbol-label symbol-wrap" href="/demo/de/#status-blocker"><span class="symbol-text"><span class="link-text">Alle Hindernisse</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      </div>
+      <div class="home-panel">
+        <article class="finding" aria-labelledby="area-telephony">
           <div class="finding-head">
-            <div>
-              <h3 class="finding-area" id="area-mail">E-Mail</h3>
-              <span class="finding-category">Kommunikation</span>
-            </div>
+            <h3 class="finding-area" id="area-telephony">Telefonie</h3>
+            <span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span>
+          </div>
+          <p>Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="home-beat home-beat--reverse" id="example" aria-labelledby="example-title">
+      <div class="home-beat-copy">
+        <h2 id="example-title">Jeder Befund führt die Nachweise auf</h2>
+        <p class="lead">Fehlen Nachweise, steht im Bericht „Unbekannt“. Eine Lücke gilt nie als „Bereit“.</p>
+        <a class="more symbol-label symbol-wrap" href="/demo/de/#readiness-title"><span class="symbol-text"><span class="link-text">Alle Bereiche ansehen</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      </div>
+      <div class="home-panel">
+        <article class="finding" id="readiness-mail" aria-labelledby="area-mail">
+          <div class="finding-head">
+            <h3 class="finding-area" id="area-mail">E-Mail</h3>
             <p class="finding-status">
               <span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span>
               <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
@@ -193,41 +211,47 @@
             </div>
           </dl>
         </article>
-        <a class="more symbol-label symbol-wrap" href="/demo/de/#readiness-title"><span class="symbol-text"><span class="link-text">Alle Bereiche ansehen</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       </div>
     </section>
 
-    <section class="sec grid" id="costs" aria-labelledby="costs-title">
-      <h2 class="sec-label" id="costs-title">Was der Umstieg kosten würde</h2>
-      <div class="sec-body">
-        <p class="lead">Aus Ihren Angaben berechnet Fazit die Kosten für fünf Jahre bei Verbleib, teilweisem und vollständigem Umstieg.</p>
-        <!-- Totals and calculation origin from the matching demo's summary. -->
-        <div class="summary-costs">
+    <section class="home-beat" id="costs" aria-labelledby="costs-title">
+      <div class="home-beat-copy">
+        <h2 id="costs-title">Was der Umstieg kosten würde</h2>
+        <p class="lead">Vergleichen Sie fünf Jahre Verbleib mit einem teilweisen oder vollständigen Umstieg, auf Basis Ihrer eigenen Zahlen.</p>
+        <a class="more symbol-label symbol-wrap" href="/demo/de/#costs-title"><span class="symbol-text"><span class="link-text">So werden die Kosten berechnet</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      </div>
+      <div class="home-panel">
+        <div class="home-costs">
           <p class="note-text cost-origin" data-cost-origin="calculated_with_examples">Aus Beispielangaben berechnet</p>
-          <ul class="tiles tiles-3" role="list">
+          <ul class="tiles" role="list">
             <li data-cost-tile="stay">
               <p class="tile-label">Verbleib</p>
               <span class="figure-num">600.000 EUR</span>
+              <p>Die heutigen Jahreskosten für fünf Jahre</p>
             </li>
             <li data-cost-tile="partial_exit">
               <p class="tile-label">Teilweiser Umstieg</p>
               <span class="figure-num">527.800 EUR</span>
+              <p>72.200 EUR weniger als beim Verbleib</p>
             </li>
             <li data-cost-tile="full_exit">
               <p class="tile-label">Vollständiger Umstieg</p>
               <span class="figure-num">464.350 EUR</span>
+              <p>135.650 EUR weniger als beim Verbleib</p>
             </li>
           </ul>
         </div>
-        <a class="more symbol-label symbol-wrap" href="/demo/de/#costs-title"><span class="symbol-text"><span class="link-text">So werden die Kosten berechnet</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       </div>
     </section>
 
-    <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
-      <h2 class="sec-label" id="privacy-title">Prüfdaten bleiben auf Ihrem Rechner</h2>
-      <div class="sec-body">
-        <p class="lead">Nach der Einrichtung erstellt Fazit auf Ihrem Rechner einen HTML-Bericht aus den mitgelieferten Beispieldaten. Dabei greift das Programm nicht auf das Netzwerk zu.</p>
-        <ul class="tiles tiles-3 privacy-facts" role="list">
+    <section class="home-beat home-beat--reverse" id="privacy" aria-labelledby="privacy-title">
+      <div class="home-beat-copy">
+        <h2 id="privacy-title">Prüfdaten bleiben auf Ihrem Rechner</h2>
+        <p class="lead">Nach der Einrichtung läuft die Demo offline und greift nicht auf das Netzwerk zu. Fazit ändert nichts an Ihrem Microsoft-365-Mandanten.</p>
+        <a class="more symbol-label symbol-wrap" href="/de/security/"><span class="symbol-text"><span class="link-text">So verarbeitet Fazit Ihre Daten</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      </div>
+      <div class="home-panel">
+        <ul class="tiles privacy-facts" role="list">
           <li>
             <h3 class="symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-computer" aria-hidden="true"></span><span class="symbol-text">Läuft lokal</span></h3>
             <p>Die Demo läuft offline.</p>
@@ -241,34 +265,33 @@
             <p>Code und Regeln sind öffentlich.</p>
           </li>
         </ul>
-        <a class="more symbol-label symbol-wrap" href="/de/security/"><span class="symbol-text"><span class="link-text">So verarbeitet Fazit Ihre Daten</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       </div>
     </section>
 
-    <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">Drei Befehle genügen</h2>
-      <div class="sec-body">
+    <section class="home-beat" id="how" aria-labelledby="how-title">
+      <div class="home-beat-copy">
+        <h2 id="how-title">Drei Befehle genügen</h2>
+        <p class="lead">So sehen Sie den Beispielbericht auf Ihrem eigenen Rechner.</p>
+        <p class="note-text">Sie brauchen Git und uv. <a href="/de/start/#start-need">Was Sie brauchen</a></p>
+        <a class="more symbol-label symbol-wrap" href="/de/start/"><span class="symbol-text"><span class="link-text">Jetzt starten</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      </div>
+      <div class="home-panel">
         <div class="command" role="group" aria-label="Im Terminal ausführen">
-          <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
+          <p class="command-label symbol-label" aria-hidden="true"><span class="symbol mask icon-terminal" aria-hidden="true"></span><span class="symbol-text">Im Terminal ausführen</span></p>
           <div class="command-line">
             <code><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">git clone https://github.com/<wbr>rouxdutoit/fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">cd fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">uv run fazit demo --lang de</span></span></code>
             <button class="btn copy symbol-label" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon mask symbol icon-content-copy" aria-hidden="true"></span></button>
           </div>
           <p class="copy-message" role="status"></p>
         </div>
-        <p class="note-text">Sie brauchen Git und uv. <a href="/de/start/#start-need">Was Sie brauchen</a></p>
-        <a class="more symbol-label symbol-wrap" href="/de/start/"><span class="symbol-text"><span class="link-text">Jetzt starten</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       </div>
     </section>
 
-    <section class="sec grid home-closing" id="status" aria-label="Projektstand">
-      <div class="sec-body">
-        <p class="lead">Derzeit arbeitet Fazit mit Beispieldaten. Der Import eigener Exporte folgt.</p>
-        <div class="flow-links">
-          <a class="more symbol-label symbol-wrap" href="/de/pilots/"><span class="symbol-text"><span class="link-text">Pilotprüfungen</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
-          <a class="more symbol-label symbol-wrap" href="/de/about/"><span class="symbol-text"><span class="link-text">Über Fazit</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
-        </div>
-        <p class="note-text"><span data-assessed-areas>14</span> Bereiche, drei Zielprofile, Deutsch und Englisch, eine offline lesbare HTML-Datei</p>
+    <section class="home-closing" id="status" aria-labelledby="close-title">
+      <h2 id="close-title">Beginnen Sie mit dem Beispielbericht</h2>
+      <div class="hero-actions">
+        <a class="btn btn-solid symbol-label" href="/de/start/"><span class="symbol-text">Jetzt starten</span></a>
+        <a class="btn btn-secondary symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht ansehen</span></a>
       </div>
     </section>
   </main>

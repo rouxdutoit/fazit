@@ -10,7 +10,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
 - **Type.** Figtree for all text, Geist Mono for code. The seven text sizes are display, title, headline, lead, body, subhead and footnote. Body copy uses weight 400, button labels 500, and headings and semibold labels 600.
-- **Spacing:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px. The rhythm table also uses 20, 40, 56, 72, 104 and 136 px. The gutter is 20 px (16 px on phones).
+- **Spacing.** Use 4, 8, 12, 16, 24, 32, 48, 64 and 96 px. The rhythm tables also specify fixed and fluid gaps. The website gutter is `clamp(16px, 5.5vw, 64px)`, with 16 px at 600 px and below. The report gutter is 20 px (16 px on phones).
 - **Button tokens.** `--btn-height` is 44 px and `--btn-compact-height` is 28 px. `--btn-symbol-gap` is `0.4em` for buttons, filter segments, category options and language links. Status badges use a 4 px gap. The site and report share these tokens.
 - **Line length:** one measure, `--measure` (680 px), for all running text whatever its size; set in rem so small type does not wrap early. Paragraphs wrap with `text-wrap: pretty`, so no paragraph ends on a lone word; headings use `text-wrap: balance`. Never force line breaks with `<br>` or narrow boxes, except in postal addresses.
 
@@ -62,16 +62,28 @@ The website is read like a product page, with more space around sections. The re
 | Inline gap between standalone links in a row | `--rhythm-inline-links` | 24 px | 24 px | 24 px |
 | Command block padding | `--card-padding` | 20 px | 24 px | 24 px |
 
-Measure from the bottom of the bar to the eyebrow on the website's home and 404 pages and to the introduction heading on the other pages. The report's eyebrow uses some of the gap above its heading and can wrap. Measure the section gap from the end of the preceding block to the top of the rule, and from the bottom of the rule to the next content. This applies from the hero or page introduction to the first section as well. When the section heading and its first content sit in columns, their top edges align. A disclosure title acts as a subsection heading when expanded.
+| Home relation | Token | All widths |
+| --- | --- | --- |
+| Hero status to report window | `--rhythm-home-preview` | `clamp(48px, 7vw, 72px)` |
+| Report window to first beat and beat to beat | `--rhythm-home-section-gap` | `clamp(120px, 14vw, 200px)` |
+| Last beat to closing section | `--rhythm-home-closing` | `clamp(136px, 16vw, 216px)` |
+| Closing section to footer | `--rhythm-home-footer` | `clamp(96px, 12vw, 136px)` |
 
-Visuals include cards, tile groups, lists, tables and command blocks. A lede introduces the next visual. A caption can sit above or below its visual. The home report download is a centred caption. A standalone link can appear alone or in a row. The footer gap ends at the footer's top edge. The report uses compact print spacing so the council summary fits on the first page.
+Measure from the bottom of the bar to the eyebrow on the website's home and 404 pages and to the introduction heading on the other pages. The report's eyebrow uses some of the gap above its heading and can wrap. On pages with dividers, measure the section gap on both sides of the rule, starting with the first divider after the introduction. In those sections, align the top edges of the heading and first content when they sit in columns. A disclosure title acts as a subsection heading when expanded.
+
+Visuals include cards, tile groups, lists, tables and command blocks. A lede introduces the next visual. A caption can sit above or below its visual. Measure the configured inline gap when a report link row shows one link. The footer gap ends at the footer's top edge. The report uses compact print spacing so the council summary fits on the first page.
 
 Command lines use a line height of 1.7 with no added gap. Centre the copy button vertically and inset it so the symbol has the same right padding as the text has on the left.
 
 ## Structure
 
 - **Hierarchy:** the conclusion first, then the evidence. Each screen has one thing to look at first.
-- **Sections:** a label on the left, the content on the right; one line between sections, running from the content's left edge to its right edge.
+- **Sections.** On the inner pages and in the report, place the label on the left and the content on the right. Run the section rule from the content's left edge to its right edge.
+- **Home.** Centre the hero and the closing actions. Between them, pair each beat's title, secondary lede and standalone link with a panel. At 880 px and up, split the columns 5 to 7 and alternate the panel's side, starting on the right. Below 880 px, put the copy first in one column. Leave open space between beats.
+- **Home report window.** Use the Linux window bar and limit the window to 62.5 rem. Use four status tiles and two detail cards. Below 760 px, arrange the status tiles two by two and stack the details. Give each card a 32 px label row, a 2.25 rem value at weight 600 and a secondary caption at subhead size. Align the values and captions within each row and keep the status tiles equal in height. Show the status symbol and word without a badge on the status tiles.
+- **Home panels.** Centre each panel in its column. Use a neutral fill, a 32 px radius, `clamp(20px, 2.6vw, 32px)` padding and a width of `min(100%, 48vw, 34rem)`. Fill the column below 880 px. Let the content set the height. Cards use the page background and a `0 16px 32px -16px rgb(0 0 0 / 16%)` shadow. Fill the available panel width up to 30 rem.
+- **Home examples.** Omit category lines on finding cards. Put the three equal-height cost tiles below their sample-inputs note. Give privacy tiles equal heights and put each symbol above its single-line title. Below 26 rem of inner panel width, stack short rows with inline symbols. Put the terminal symbol, command label, commands and copy button in one card.
+- **Safeguards.** Give each row 16 px of top and bottom padding. A one-line row is 44 px high.
 - **Lists of facts are tiles:** a soft fill, no border, the card radius, 24 px padding. Each tile has one anchor (a symbol, a large number or a name), never two, then a short label or main line, then one line of detail. Within a group, either every tile has a symbol or none does.
 - **A sequence is a timeline.** Use 11 × 11 px dots with a 50% radius. The dot and the 1 px rail use the same left edge as their reference, with the rail in the dot's centre column. Each dot centres on its title's cap band. The current step uses a solid dot in the text colour. Future steps use an outlined dot with an opaque fill in the page background colour, so the rail meets each dot at its edge.
 - **No borders on cards.** Lines only separate rows and sections; in icon lists they start at the text.
@@ -87,14 +99,14 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Links and buttons
 
-- **Text links** use the text colour. On hover they lighten, and in dark mode they also glow. At rest, only links in running text carry a 1 px underline in the secondary text colour. A standalone link uses a trailing chevron and sits a step back in dark grey (`--link-quiet`) until hover, when it takes the text colour.
+- **Text links** use the text colour. On hover they lighten and gain a glow in dark mode. Standalone links keep the text colour on hover. Report area links use the lighter hover colour. At rest, only links in running text carry a 1 px underline in the secondary text colour. Standalone links use body size, weight 500, `-0.01em` letter spacing and a trailing chevron with a 0.100 em stem.
 - **Underline on interaction.** On hover or keyboard focus, a 1 px underline in the link's current colour draws from left to right over 250 ms with `--ease` and retracts when the interaction ends. A gradient's `background-size` transition keeps the layout in place. The line sits over the resting underline in running text. On standalone links and linked card titles, it sits at the same offset and covers only the words. The chevron keeps its gap. The top bar, navigation, phone menu and footer are outside this rule. Reduced motion shows the line immediately. Print uses the resting styles.
 - **A card that leads to another page is one link as a whole.** Its title ends with the plain trailing chevron in the title's text colour. The same gap and baseline rules apply as for standalone links. On hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com.** Standard pills are 44 px high with 15 px text and 16 px horizontal padding. The desktop bar pill is 28 px high with 12 px text and 12 px horizontal padding. It has a hit area at least 44 px high. The copy button is 44 px square. The shared symbol and label primitive centres button content. Button labels use weight 500 in Figtree. The primary button lightens on hover and darkens when pressed while its text keeps the same colour.
 - **Report status filters** use a single capsule track with a 2 px inset and one row of same-height segments. The selected segment is a capsule. Use the full status labels when they fit the track. When space is tight, share the track width equally and show symbols and counts. Keep the word and count for All / Alle at every width.
 - **Browser-managed select text** uses normal line height with room for the full glyphs. Keep the trigger and options on one line.
 - **The category pill** fits the selected label. A down chevron follows at `--btn-symbol-gap`, with 16 px padding at both ends. The native picker uses the same trigger geometry.
-- Every button leads with a symbol that says what happens (Material Symbols, in the button's text colour, sized in `em`); a button whose action no symbol can name gets none, and then no button in its group has one.
+- Text buttons omit leading symbols. The copy button uses the copy symbol and an accessible name.
 - One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".
 
 ## Motion
@@ -121,4 +133,8 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Checks
 
-`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. It checks button gaps within 0.5 px and measures the category trigger's gap and equal padding for every selection in both picker modes. Timeline dots are checked at device scales 1, 2 and 3, with 0.1 px allowed for centre and width-to-height differences. Alignment also checks underline behaviour for content and navigation links. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. Website pages match the home page's opening and section gaps at each width, and the sample reports match each other. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. It checks button gaps within 0.5 px and measures the category trigger's gap and equal padding for every selection in both picker modes. Timeline dots are checked at device scales 1, 2 and 3, with 0.1 px allowed for centre and width-to-height differences. Alignment also checks underline behaviour for content and navigation links.
+
+The home layout checks cover 360, 390, 768, 960, 1130 and 1280 px in both languages and themes, with and without increased contrast. They measure overflow, card heights, value and caption alignment, and panel widths and contents. The keyboard check covers the desktop and phone focus order.
+
+`node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. The home gaps follow their fluid tokens. The website opening gap and the inner pages' divider and footer gaps match the Start page at each width. The sample reports match each other. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.

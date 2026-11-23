@@ -57,6 +57,9 @@ async function checkContentLink(link, motion, { inline = false, hit = link } = {
   const hovered = await underline(label, motion);
   assert.equal(hovered.size, activeSize, `${name}: hover underline`);
   assert(hovered.image.includes(hovered.colour), `${name}: underline in the link colour`);
+  if (await link.evaluate(element => element.matches("a.more:not(.area-link)"))) {
+    assert.equal(hovered.colour, initial.colour, `${name}: standalone link keeps the text colour`);
+  }
   await page.mouse.move(0, 0);
   assert.equal((await underline(label, motion)).size, baseSize, `${name}: retraction after hover`);
 }

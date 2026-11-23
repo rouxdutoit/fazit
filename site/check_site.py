@@ -165,8 +165,8 @@ class Page(HTMLParser):
         self.errors: list[str] = []
         self.coverage: Counter[CoverageCell] = Counter()
         self.status_counts: Counter[str] = Counter()
-        self._buttons_needing_icons: dict[int, int] = {}
-        self._buttons_without_icons: list[int] = []
+        self._text_button_depths: set[int] = set()
+        self._copy_buttons_needing_icons: dict[int, int] = {}
         self._title_text: list[str] = []
         self._json_ld_text: list[str] | None = None
         self.json_ld: list[dict] = []
@@ -236,18 +236,16 @@ class Page(HTMLParser):
             self.status_counts[values.get("data-status", "")] += 1
 
     def record_button_icon(self, tag: str, classes: list[str], line: int) -> None:
-        if self._buttons_needing_icons and tag == "span" and "btn-icon" in classes:
-            if any(
-                re.fullmatch(r"icon-[\w-]+", name)
-                and (ROOT / "icons" / f"{name.removeprefix('icon-')}.svg").is_file()
-                for name in classes
-            ):
-                self._buttons_needing_icons.clear()
-        if "btn" in classes:
-            if tag in VOID:
-                self._buttons_without_icons.append(line)
+        depth = len(self.stack)
+        if self._text_button_depths and {"symbol", "btn-icon"}.intersection(classes):
+            self.errors.append(f"Text buttons must omit leading symbols on line {line}.")
+        if tag == "span" and {"btn-icon", "icon-content-copy"}.issubset(classes):
+            self._copy_buttons_needing_icons.pop(depth - 1, None)
+        if "btn" in classes and tag not in VOID:
+            if "copy" in classes:
+                self._copy_buttons_needing_icons[depth] = line
             else:
-                self._buttons_needing_icons[len(self.stack)] = line
+                self._text_button_depths.add(depth)
 
     def record_metadata(self, tag: str, attrs: dict[str, str], line: int) -> None:
         href = attrs.get("href", "")
@@ -323,8 +321,9 @@ class Page(HTMLParser):
         if not self.stack or self.stack[-1] != tag:
             self.errors.append(f"Unexpected closing tag </{tag}> on line {self.getpos()[0]}.")
         else:
-            if button_line := self._buttons_needing_icons.pop(len(self.stack), None):
-                self._buttons_without_icons.append(button_line)
+            if button_line := self._copy_buttons_needing_icons.pop(len(self.stack), None):
+                self.errors.append(f"Expected the copy symbol in the button on line {button_line}.")
+            self._text_button_depths.discard(len(self.stack))
             self.stack.pop()
         if tag == "script" and self._json_ld_text is not None:
             self.record_json_ld(self._json_ld_text)
@@ -367,10 +366,6 @@ class Page(HTMLParser):
                 self.errors.append("Missing skip link to #main.")
             if self.nav_controls != ["toggle", "links", "action"]:
                 self.errors.append("Expected the menu toggle, navigation and one action in order.")
-            self.errors.extend(
-                f"Expected a btn-icon span with a matching SVG for the button on line {line}."
-                for line in sorted(self._buttons_without_icons)
-            )
 
     def check_metadata(self, route: str, pair: dict[str, str], lang: str) -> None:
         description = self.meta.get("description", "")
@@ -701,7 +696,7 @@ def check_coverage(page: Page, lang: str) -> list[str]:
     return errors
 
 
-def check_home_costs(markup: str, demo: Page) -> list[str]:
+def check_home_costs(markup: str, hero: str, demo: Page, lang: str) -> list[str]:
     summary = demo.source.partition('<div class="subsection summary-costs">')[2]
     summary = summary.partition("</ul>")[0]
     tiles = (
@@ -716,50 +711,92 @@ def check_home_costs(markup: str, demo: Page) -> list[str]:
         errors.append("Cost tiles must show the three sample report totals.")
     if len(expected_origin) != 1 or re.findall(origin, markup) != expected_origin:
         errors.append("Cost tiles must show the calculation origin from the sample report.")
+    captions = re.findall(tiles + r"\s*<p>([^<]+)</p>", markup)
+    if len(captions) != 3:
+        errors.append("Each cost tile must have a caption.")
+    if lang == "de":
+        expected_captions = [
+            " ".join(re.sub(r"<[^>]+>", "", caption).split())
+            for caption in re.findall(r'<p class="tile-title"[^>]*>(.*?)</p>', summary, re.S)
+        ]
+        if [caption for *_, caption in captions] != expected_captions:
+            errors.append("German cost captions must use the sample report's wording.")
+    preview_total = re.findall(r'<span class="figure-num preview-value">([^<]+)</span>', hero)
+    if preview_total != [amount for key, _, amount in expected_tiles if key == "full_exit"]:
+        errors.append("The hero preview must show the sample report's full move total.")
     return errors
 
 
-def status_preview(markup: str) -> str:
-    summary = re.search(
-        r'<p class="sec-intro">[^<]+</p>\s*<dl class="status-summary">.*?</dl>', markup, re.S
+def check_home_statuses(markup: str, demo: Page, lang: str) -> list[str]:
+    report_intro = re.search(r'<p class="sec-intro">([^<]+)</p>', demo.source)
+    preview_intro = re.search(r'<p class="sec-intro">(.*?)</p>', markup)
+    summary = demo.source.partition('<dl class="status-summary">')[2].partition("</dl>")[0]
+    expected = re.findall(
+        r'<dt class="status ([\w]+) symbol-label">(.*?)\s*'
+        r'<span class="row-count symbol-text">(\d+)</span></dt>',
+        summary,
+        re.S,
     )
-    return re.sub(r">\s+<", "><", summary[0]) if summary else ""
+    previews = markup.partition('<ul class="tiles preview-statuses"')[2].partition("</ul>")[0]
+    actual = re.findall(
+        r'<li data-status="([\w]+)">\s*<p class="preview-label tile-label">'
+        r'<span class="status \1 symbol-label">(.*?)</span></p>\s*'
+        r'<span class="figure-num preview-value">(\d+)<small> ([^<]+)</small></span>',
+        previews,
+        re.S,
+    )
+    singular, plural = ("Bereich", "Bereiche") if lang == "de" else ("area", "areas")
+    unit = [
+        (status, label, count, singular if count == "1" else plural)
+        for status, label, count in expected
+    ]
+    errors = []
+    if len(expected) != 4 or actual != unit:
+        errors.append(
+            "The hero preview must show the sample report's four status labels and counts."
+        )
+    if (
+        not report_intro
+        or not preview_intro
+        or re.sub(r"<[^>]+>", "", preview_intro[1]) != report_intro[1]
+    ):
+        errors.append("The hero preview must state the sample report's assessed area count.")
+    return errors
 
 
 def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     prefix = "/de" if lang == "de" else ""
     sample = f"/demo/{lang}/"
     destinations = {
-        "hero": [f"{sample}#readiness-telephony", f"{sample}#status-blocker", sample],
+        "hero": [],
+        "blocker": [f"{sample}#status-blocker"],
         "example": [f"{sample}#readiness-title"],
         "costs": [f"{sample}#costs-title"],
         "privacy": [f"{prefix}/security/"],
         "how": [f"{prefix}/start/"],
-        "status": [f"{prefix}/pilots/", f"{prefix}/about/"],
+        "status": [],
     }
     main = page.source.partition("<main")[2].partition("</main>")[0]
     sections = dict(re.findall(r'<section [^>]*\bid="([^"]+)"[^>]*>(.*?)</section>', main, re.S))
     if list(sections) != list(destinations):
-        return ["Expected the six home sections in order."]
+        return ["Expected the hero, five beats and closing section in order."]
     errors = []
+    if page.tags["style"]:
+        errors.append("Home styles must live in the shared stylesheet.")
     for section, links in destinations.items():
         if re.findall(r'<a class="more(?: [^"]+)?" href="([^"]+)"', sections[section]) != links:
-            errors.append(f"Home section {section} must link to {', '.join(links)}.")
-    caption = re.search(r"<figcaption\b[^>]*>(.*?)</figcaption>", sections["hero"], re.S)
-    download = rf'<a\b[^>]* href="{sample}" download="fazit-sample-report-{lang}\.html"'
-    if (
-        not caption
-        or len(re.findall(r"<a\b", caption[1])) != 1
-        or not re.search(download, caption[1])
-    ):
-        errors.append("The home report caption must contain one link that downloads the sample.")
-    preview = status_preview(sections["hero"])
-    if not preview or preview != status_preview(demo.source):
-        errors.append("The hero preview must show the sample report's four status rows.")
+            errors.append(f"Home section {section} has incorrect standalone links.")
+    for section in ("hero", "status"):
+        buttons = re.findall(r'<a class="btn [^"]+" href="([^"]+)"', sections[section])
+        if buttons != [f"{prefix}/start/", sample]:
+            errors.append(
+                f"Home section {section} must link to Start and the sample report in order."
+            )
     headings = re.findall(r"<h[1-6]\b[^>]*>(.*?)</h[1-6]>", main, re.S)
     if any(re.sub(r"<[^>]+>", "", heading).rstrip().endswith(".") for heading in headings):
         errors.append("Home headings should omit the final full stop.")
-    errors.extend(check_home_costs(sections["costs"], demo))
+    errors.extend(check_home_statuses(sections["hero"], demo, lang))
+    errors.extend(check_home_costs(sections["costs"], sections["hero"], demo, lang))
     return errors
 
 
@@ -797,7 +834,21 @@ def check_commands(lang: str) -> list[str]:
             errors.append(f"{route}: Expected the shared command block and its copy status.")
             continue
         block = component[0]
-        components.append(re.sub(r">\s+<", "><", block))
+        shared = block
+        if route == f"{prefix}/":
+            label = re.search(
+                r'<p class="command-label symbol-label" aria-hidden="true">'
+                r'<span class="symbol mask icon-terminal" aria-hidden="true"></span>'
+                r'<span class="symbol-text">([^<]+)</span></p>',
+                block,
+            )
+            if label:
+                shared = block.replace(
+                    label[0], f'<p class="command-label" aria-hidden="true">{label[1]}</p>'
+                )
+            else:
+                errors.append(f"{route}: Expected the terminal symbol in the home command label.")
+        components.append(re.sub(r">\s+<", "><", shared))
         code = re.search(r"<code>(.*?)</code>", block, re.S)
         commands = (
             re.findall(r'<span class="symbol-text">([^<]+)</span>', code[1].replace("<wbr>", ""))

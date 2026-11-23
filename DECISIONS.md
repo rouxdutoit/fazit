@@ -13,6 +13,14 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Home page redesign
+
+**D49. Show the sample report first, then explain it in five sections.**
+
+The founder approved the redesign on 23 November 2026. The home page centres the hero and shows the sample report in a Linux window. Its cards share a fixed label row, a 2.25 rem value and a secondary caption. Five sections pair the copy with alternating panels on wide screens and put the copy first on narrow screens. Panels fit their content. Inner pages use label-left sections with dividers. Home spacing tokens set the gaps before the report, between sections, before the closing actions and above the footer.
+
+The website uses a wider responsive gutter above 600 px. Standalone links use the text colour and weight 500. Text buttons omit leading symbols. The safeguards list uses 16 px of vertical padding on each side of a row. [Design rules](DESIGN.md)
+
 ## 2026-11-23 — Website section spacing
 
 **D48. Give the website more room above and between sections.**

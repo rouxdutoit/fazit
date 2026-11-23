@@ -92,7 +92,6 @@
       --fill: var(--surface);
       --link: var(--accent);
       --link-hover: var(--accent-hover);
-      --link-quiet: var(--accent-hover);
       --solid-bg: var(--text);
       --solid-fg: var(--bg);
       --link-glow: transparent;
@@ -128,7 +127,6 @@
     @media screen and (prefers-color-scheme: dark) {
       :root {
         --link-glow: rgb(196 247 208 / 45%);
-        --link-quiet: #9ec9a8;
       }
     }
     @media (max-width: 600px) {
@@ -761,7 +759,12 @@
       font-size: var(--fs-footnote);
     }
     .finding-replacements > span { display: block; }
-    .more { color: var(--link-quiet); }
+    .more:where(:not(.finding-area)) {
+      --chevron-stem: 0.100;
+      font-size: var(--fs-body);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
     .more:hover { color: var(--link); }
     .area-link { color: var(--fg); }
     .area-link:hover { color: var(--link-hover); }

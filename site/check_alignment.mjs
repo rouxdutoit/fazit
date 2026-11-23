@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
 import { iPhone, localContext, widths, withSite } from "./check_browser.mjs";
+import { checkHomeLayout } from "./check_home_layout.mjs";
 import { checkLinkUnderlines } from "./check_link_underlines.mjs";
 
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
@@ -8,14 +9,14 @@ const menuItems = ".bar-links a, .category-filter option";
 const singleLine = `${capsules}, ${menuItems}, button, .menu-button, .category-filter`;
 const centredLabels = `${capsules}, ${menuItems}, a.language`;
 const symbolOnly = ".copy, .menu-button, .foot-mail, .report-card-control, .cost-segment.is-unknown";
-const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .category-filter > button, .finding-evidence dd";
+const textOnly = ".btn:not(.copy), .badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .finding-evidence dd";
 const chevronLabels = ".more, .tile-link h3, .replacement-status, summary:not(.menu-button)";
 // Keep the component selectors so dropping the primitive from known markup fails the check.
 const components = [
   centredLabels, symbolOnly, chevronLabels, ".symbol-label", ".status",
   ".cov-cell", ".coverage-key", ".safeguards li", ":is(h3, h4):has(> .tile-icon)",
   ".timeline-name", ".report-card-bar", ".cost-bars .legend li", ".command-line code > span",
-  ".status-summary dt", ".finding-evidence dd", ".privacy-facts h3", ".flow-links > a",
+  ".status-summary dt", ".finding-evidence dd", ".privacy-facts h3",
 ].join(", ");
 
 function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance, scale }) {
@@ -434,12 +435,22 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
 
     const capCentres = labels.map(capCentre);
     const box = pair.getBoundingClientRect();
-    const { borderTopWidth, borderBottomWidth } = getComputedStyle(pair);
+    const pairStyle = getComputedStyle(pair);
+    const { borderTopWidth, borderBottomWidth } = pairStyle;
     const paddingCentre = centre(box) + (parseFloat(borderTopWidth) - parseFloat(borderBottomWidth)) / 2;
+    const symbolAbove = pair.matches(".privacy-facts h3") && pairStyle.flexDirection === "column";
     for (const symbol of symbols) {
-      compare(pair, selector(symbol), inkCentre(symbol) - (capCentres[0] ?? paddingCentre));
+      if (symbolAbove) {
+        const icon = symbol.getBoundingClientRect();
+        const text = labels[0].getBoundingClientRect();
+        const gap = parseFloat(pairStyle.getPropertyValue("--rhythm-section-heading"));
+        compare(pair, "privacy symbol left edge", icon.left - text.left, 0.02);
+        compare(pair, "privacy symbol above title", text.top - icon.bottom - gap, 0.02);
+      } else {
+        compare(pair, selector(symbol), inkCentre(symbol) - (capCentres[0] ?? paddingCentre));
+      }
     }
-    if (symbols.length && labels.length) {
+    if (!symbolAbove && symbols.length && labels.length) {
       const gap = labels[0].getBoundingClientRect().left - symbols[0].getBoundingClientRect().right;
       if (pair.matches(".badge")) compare(pair, "badge symbol gap", gap - 4, 0.5);
       if (pair.matches(".btn, a.language, .menu-button, .segmented label, .category-filter option")) {
@@ -476,6 +487,10 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     if (pair.matches(".finding-evidence dd")) {
       compare(pair, "evidence term", capCentres[0] - capCentre(pair.previousElementSibling));
     }
+    if (pair.matches(".safeguards li")) {
+      compare(pair, "safeguard top padding", parseFloat(pairStyle.paddingTop) - 16, 0);
+      compare(pair, "safeguard bottom padding", parseFloat(pairStyle.paddingBottom) - 16, 0);
+    }
     if (pair.matches(".command-line code > span")) {
       const { lineHeight, fontSize } = getComputedStyle(labels[0]);
       compare(pair, "command line height", parseFloat(lineHeight) - 1.7 * parseFloat(fontSize), 0.02);
@@ -499,20 +514,12 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     if (inScope(select)) measureCategory(select);
   }
 
-  function measureBarAndPreview() {
+  function measureBar() {
     const bar = document.querySelector(".bar-in");
     const wordmark = bar?.querySelector(".wordmark");
     const visible = wordmark?.checkVisibility({ opacityProperty: true, visibilityProperty: true });
     compare(wordmark ?? document.body, "wordmark centre", visible
       ? centre(wordmark.getBoundingClientRect()) - centre(bar.getBoundingClientRect()) : NaN);
-
-    const preview = document.querySelector(".report-preview");
-    if (preview) {
-      const card = preview.querySelector(".report-card")?.getBoundingClientRect();
-      const link = preview.querySelector("figcaption a[download]");
-      const box = link?.getBoundingClientRect();
-      compare(link ?? preview, "download centred under preview", (box?.left + box?.right - card?.left - card?.right) / 2);
-    }
   }
 
   function measureTimeline(timeline) {
@@ -551,7 +558,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
   const timelines = !scope || scope === ".timeline" ? document.querySelectorAll(".timeline") : [];
   for (const timeline of timelines) measureTimeline(timeline);
   if (!scope) {
-    measureBarAndPreview();
+    measureBar();
     const costTiles = [...document.querySelectorAll("#costs [data-cost-tile]")];
     const [firstTile] = costTiles;
     for (const tile of costTiles) {
@@ -559,7 +566,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       const amount = tile.querySelector(".figure-num");
       const offset = amount?.getBoundingClientRect().left - label?.getBoundingClientRect().left;
       compare(tile, "cost figure column", offset);
-      if (tile !== firstTile && matchMedia("(min-width: 640px)").matches) {
+      if (tile !== firstTile && !tile.closest(".home") && matchMedia("(min-width: 640px)").matches) {
         compare(tile, "cost label row", capCentre(label) - capCentre(firstTile.querySelector(".tile-label")));
         compare(tile, "cost figure row", capCentre(amount) - capCentre(firstTile.querySelector(".figure-num")));
       }
@@ -796,6 +803,7 @@ async function checkAlignment({ browser, origin, routes }) {
 }
 
 await withSite(async site => {
+  await checkHomeLayout(site);
   await checkAlignment(site);
   await checkLinkUnderlines(site);
 });
