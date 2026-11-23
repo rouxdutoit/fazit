@@ -96,7 +96,9 @@
       --max: 1120px;
       --measure: 42.5rem;
       --bar-h: 52px;
-      --hit: 44px;
+      --btn-height: 44px;
+      --btn-compact-height: 28px;
+      --hit: var(--btn-height);
       --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
       --radius: 8px;
       --radius-pill: 999px;
@@ -227,7 +229,41 @@
       block-size: var(--symbol-size, 1em);
     }
 
-    .chevron { --symbol-size: var(--cap-height); }
+    .chevron {
+      display: inline-block;
+      flex: none;
+      inline-size: 0.29em;
+      block-size: 0.50em;
+      vertical-align: baseline;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: calc(var(--chevron-stem, 0.084) * 1em);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      overflow: visible;
+    }
+
+    .chevron > path {
+      /* Leave room for the stroke so every weight has the same ink dimensions. */
+      --stem: var(--chevron-stem, 0.084);
+      vector-effect: non-scaling-stroke;
+      transform-box: view-box;
+      transform-origin: center;
+      scale: calc((0.29 - var(--stem)) / 0.206) calc((0.50 - var(--stem)) / 0.416);
+    }
+
+    .chevron-tail {
+      padding-inline-start: calc(var(--chevron-gap, 0.38em) + var(--chevron-tracking, 0em));
+      letter-spacing: normal;
+    }
+
+    /* Keep the chevron with the last word and adjust for wider Figtree side bearings. */
+    .chevron-tail::before { content: "\2060"; }
+    .chevron-close { --chevron-gap: 0.35em; }
+
+    /* The rotated chevron needs the same space as the right-facing one. */
+    .symbol-label > .chevron { margin-inline: 0.105em; }
+    .symbol-wrap > .chevron { margin-block-start: calc(var(--cap-height) - 0.50em); }
 
     .bar-links { margin-inline-start: auto; }
     .bar-links-in {
@@ -458,7 +494,7 @@
       overflow-wrap: anywhere;
     }
     .rows > div + div { border-top: 1px solid var(--rule); }
-    .rows dt { font-weight: 600; }
+    .rows dt { font-weight: 600; --chevron-stem: 0.117; }
     .rows dd { max-width: var(--measure); margin: 0; color: var(--fg-2); }
     [data-summary] .rows > div { gap: 8px; }
     .summary-links {
@@ -589,12 +625,12 @@
     .cov-none > .icon { color: var(--fg-2); }
     /* Material Symbols (Apache-2.0), inline so the report needs no other file. */
     .icon { fill: currentColor; }
-    .status { color: var(--fg); font-weight: 600; }
+    .status { color: var(--fg); font-weight: 600; --chevron-stem: 0.117; }
     .ready { --status-fill: var(--status-ready); }
     .needs_work { --status-fill: var(--status-needs-work); }
     .blocker { --status-fill: var(--status-blocker); }
     .unknown { --status-fill: var(--status-unknown); }
-    .status > .icon:not(.chevron) { color: var(--status-fill); }
+    .status > .icon { color: var(--status-fill); }
     .finding {
       padding: var(--card-padding);
       border-radius: var(--radius-card);
@@ -608,6 +644,8 @@
     }
     .finding-head > div { min-inline-size: 0; }
     .finding-area {
+      --chevron-stem: 0.117;
+      --chevron-tracking: 0.02em;
       margin: 0;
       color: var(--fg);
       font-size: var(--fs-headline);
@@ -656,7 +694,7 @@
       font-size: var(--fs-footnote);
     }
     .finding-replacements > span { display: block; }
-    .more { --symbol-gap: 4px; color: var(--link-quiet); }
+    .more { color: var(--link-quiet); }
     .more:hover { color: var(--link); }
     .area-link { color: var(--fg); }
     .area-link:hover { color: var(--link-hover); }
@@ -713,7 +751,7 @@
     .category-filter {
       field-sizing: content;
       max-width: 100%;
-      min-height: var(--hit);
+      block-size: var(--btn-height);
       padding: 8px 16px;
       border: 0;
       border-radius: var(--radius-pill);
@@ -729,12 +767,17 @@
           appearance: base-select;
         }
         .category-filter { padding: 0; }
-        .category-filter > button {
-          min-height: var(--hit);
-          padding: 8px 12px 8px 16px;
+        .category-filter > .btn {
+          --symbol-gap: 0.365em;
+          --chevron-stem: 0.117;
+          block-size: var(--btn-height);
+          padding: 0 12px 0 16px;
           font: inherit;
         }
-        .category-filter > button > .chevron { transform: rotate(90deg); }
+        .category-filter > .btn > .chevron {
+          translate: 0 calc((var(--cap-height) - 0.50em) / 2);
+          transform: rotate(90deg);
+        }
         .category-filter::picker-icon, .category-filter option::checkmark, selectedcontent .symbol {
           display: none;
         }
@@ -912,8 +955,8 @@
       list-style: none;
     }
     summary::-webkit-details-marker { display: none; }
-    summary > .icon { transition: transform 0.3s var(--ease); }
-    details[open] > summary > .icon { transform: rotate(90deg); }
+    summary > .chevron { transition: transform 0.3s var(--ease); }
+    details[open] > summary > .chevron { transform: rotate(90deg); }
     .evidence-counts { color: var(--fg-2); }
     .legend {
       display: flex;
@@ -1038,7 +1081,7 @@
       caption { margin-block-end: var(--rhythm-caption); }
     }
     @media (prefers-reduced-motion: reduce) {
-      a, summary > .icon, .segmented label { transition: none; }
+      a, summary > .chevron, .segmented label { transition: none; }
     }
     @media screen and (max-width: 600px) {
       .replacements tbody th { text-wrap: balance; }
@@ -1233,7 +1276,7 @@
       .rows .finding-area { font-size: var(--fs-body); }
       .rows .finding-category { display: inline; margin-inline-start: 4pt; }
       .rows .badge { padding: 0 4pt; }
-      :is(.more, .replacement-status) > .chevron { display: none; }
+      .chevron-tail { display: none; }
       .finding-head, .finding-reason, .finding-next {
         break-inside: avoid;
         break-after: avoid;
@@ -1262,7 +1305,7 @@
       .cost-segment.is-unknown { border-width: 0.5pt; }
       tr:has(> th[scope="rowgroup"]) { break-after: avoid; }
       summary { min-height: 0; padding-block: 8pt; break-after: avoid; }
-      summary > .icon { display: none; }
+      summary > .chevron { display: none; }
       details::details-content {
         content-visibility: visible;
         display: block;
@@ -1377,7 +1420,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-telephony" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Telefonie</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+      <a href="#readiness-telephony" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Telefonie<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Kommunikation</span>
     </div>
     <span class="finding-status"><span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span></span>
@@ -1388,7 +1431,7 @@
                   </div>
 
               </dl>
-              <p class="summary-links"><a class="more symbol-label" href="#status-blocker"><span class="symbol-text">Alle Hindernisse</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+              <p class="summary-links"><a class="more symbol-label" href="#status-blocker"><span class="symbol-text">Alle Hindernisse<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
           </div>
           <div class="subsection" data-summary="unknown">
@@ -1399,7 +1442,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-mail" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+      <a href="#readiness-mail" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Kommunikation</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span>
@@ -1417,7 +1460,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-sharepoint" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+      <a href="#readiness-sharepoint" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Dateien und Dokumente</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span>
@@ -1435,7 +1478,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-office_files" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+      <a href="#readiness-office_files" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Dateien und Dokumente</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span>
@@ -1453,7 +1496,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-device_management" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+      <a href="#readiness-device_management" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Identität und Geräte</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span></span>
@@ -1471,7 +1514,7 @@
               </dl>
 
             <p class="summary-links">
-              <a class="more symbol-label symbol-wrap" href="#not-examined"><span class="symbol-text">Alle offenen Punkte</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+              <a class="more symbol-label symbol-wrap" href="#not-examined"><span class="symbol-text">Alle offenen Punkte<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
             </p>
 
@@ -1509,13 +1552,13 @@
                   <h4 class="scope-needed">Nicht in openDesk enthalten, aber in dieser Organisation benötigt</h4>
                   <ul class="scope-links" role="list">
 
-                      <li><a href="#replacement-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung mit Microsoft Intune</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
+                      <li><a href="#replacement-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung mit Microsoft Intune<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-windows_applications" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Betrieb reiner Windows-Anwendungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
+                      <li><a href="#replacement-windows_applications" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Betrieb reiner Windows-Anwendungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-automation_and_low_code" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Automatisierung und Low-Code-Anwendungen mit Power Platform</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
+                      <li><a href="#replacement-automation_and_low_code" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Automatisierung und Low-Code-Anwendungen mit Power Platform<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Teams Phone und Anrufe ins öffentliche Telefonnetz</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></li>
+                      <li><a href="#replacement-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Teams Phone und Anrufe ins öffentliche Telefonnetz<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
                   </ul>
                 </div>
@@ -1602,7 +1645,7 @@
           <dl class="rows">
 
       <div>
-        <dt><a href="#readiness-directory" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Verzeichnisdienst</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-directory" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Verzeichnisdienst<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="decide">Die fachlich verantwortliche Stelle entscheidet, welche Gastkonten weiterhin Zugriff erhalten.</li>
@@ -1611,7 +1654,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die fachlich verantwortliche Stelle erfasst, welche Arbeitsabläufe von den individuell angepassten Lösungen abhängen.</li>
@@ -1620,7 +1663,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die fachlich verantwortliche Stelle prüft, welche Dateien Makros enthalten, die die Beschäftigten noch nutzen.</li><li data-step-kind="clarify">Die fachlich verantwortliche Stelle erfasst, für welche Aufgaben die Beschäftigten die Datenbanken nutzen.</li><li data-step-kind="clarify">Die fachlich verantwortliche Stelle prüft, welche Layoutdateien die Beschäftigten noch bearbeiten müssen.</li><li data-step-kind="clarify">Die fachlich verantwortliche Stelle ermittelt, welche Diagramme die Beschäftigten weiterhin bearbeiten müssen.</li>
@@ -1629,7 +1672,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die IT-Abteilung prüft, welche Geräte sich für ein anderes Betriebssystem eignen.</li>
@@ -1638,7 +1681,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Reine Windows-Anwendungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Reine Windows-Anwendungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die IT-Abteilung klärt für jede betroffene Anwendung mit der fachlich verantwortlichen Stelle, ob die Beschäftigten sie auf ihren Arbeitsplatzrechnern benötigen oder auf einem gesonderten Windows-System nutzen können.</li><li data-step-kind="clarify">Die fachlich verantwortliche Stelle erfasst, welche Aufgaben von den Anwendungen in der Bestandsliste abhängen.</li>
@@ -1647,7 +1690,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die Lizenzverwaltung ermittelt, welche Anwendungen und Abläufe auf die zugewiesenen Zusatzlizenzen angewiesen sind.</li>
@@ -1656,7 +1699,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identitäten und Zugriff</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identitäten und Zugriff<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die für Informationssicherheit zuständige Person erfasst, unter welchen Bedingungen die Organisation derzeit Zugriff gewährt.</li>
@@ -1665,7 +1708,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-integrations" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Anwendungsanbindungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-integrations" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Anwendungsanbindungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Die IT-Abteilung erfasst, welche Daten jede Schnittstelle überträgt und welche Vorgänge sie auslöst.</li>
@@ -1689,7 +1732,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+        <p><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Wer gibt Auskunft:</span>
     IT-Abteilung
@@ -1715,7 +1758,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+        <p><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Wer gibt Auskunft:</span>
     Fachlich verantwortliche Stelle
@@ -1738,7 +1781,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+        <p><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Wer gibt Auskunft:</span>
     Fachlich verantwortliche Stelle
@@ -1761,7 +1804,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+        <p><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Wer gibt Auskunft:</span>
     IT-Abteilung
@@ -1784,7 +1827,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-security_compliance" data-unexamined-workload="security_compliance" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Sicherheit und Regelkonformität</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></p>
+        <p><a href="#readiness-security_compliance" data-unexamined-workload="security_compliance" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Sicherheit und Regelkonformität<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Wer gibt Auskunft:</span>
     Für Informationssicherheit zuständige Person
@@ -1805,7 +1848,7 @@
             <dl class="rows">
 
       <div>
-        <dt><a href="#readiness-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Telefonie</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Telefonie<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung plant eine Ersatzlösung, mit der die benötigten Telefondienste beim Umstieg weiterlaufen können.</li><li data-step-kind="replace">Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie Teams Phone und Anrufe ins öffentliche Telefonnetz nach dem Umstieg bereitgestellt werden.</li>
@@ -1814,7 +1857,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">E-Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für E-Mails.</li>
@@ -1823,7 +1866,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office-Dateien<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung erprobt die Übernahme der Notizbücher, die nach dem Umstieg benötigt werden.</li>
@@ -1832,7 +1875,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Geräteverwaltung<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung plant, wie sie die Geräte in eine andere Geräteverwaltung aufnimmt.</li><li data-step-kind="replace">Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die Geräte nach dem Umstieg verwaltet werden.</li>
@@ -1841,7 +1884,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Reine Windows-Anwendungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Reine Windows-Anwendungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie reine Windows-Anwendungen nach dem Umstieg betrieben werden.</li>
@@ -1850,7 +1893,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung plant eine Ersatzlösung für die Anwendungen und Abläufe, die nach dem Umstieg weiter benötigt werden.</li><li data-step-kind="replace">Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die automatisierten Abläufe und Low-Code-Anwendungen nach dem Umstieg betrieben werden.</li>
@@ -1859,7 +1902,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identitäten und Zugriff</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></dt>
+        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identitäten und Zugriff<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">Die IT-Abteilung plant die Anbindung der betroffenen Anwendungen an einen anderen Dienst für die zentrale Anmeldung.</li>
@@ -1907,7 +1950,7 @@
 
               </fieldset>
               <select id="f-category" name="f-category" aria-label="Bereiche nach Kategorie anzeigen" class="category-filter" data-filter="category">
-                <button type="button" class="symbol-label"><selectedcontent class="symbol-text"></selectedcontent><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></button>
+                <button type="button" class="btn symbol-label"><selectedcontent class="symbol-text"></selectedcontent><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></button>
                 <option id="f-category-all" value="all" class="symbol-label" selected><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Alle Kategorien</span></option>
 
                   <option id="f-category-communication" value="communication" class="symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z"/></svg><span class="symbol-text">Kommunikation</span></option>
@@ -1959,7 +2002,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="telephony">
                         <summary id="evidence-telephony" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">1 erhoben, 2 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -2057,7 +2100,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2093,7 +2136,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="directory">
                         <summary id="evidence-directory" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">4 erhoben, 1 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -2243,7 +2286,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2298,7 +2341,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="mail">
                         <summary id="evidence-mail" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">4 erhoben, 1 bereitgestellt, 1 unbekannt</small>
                           </span>
@@ -2459,7 +2502,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2508,7 +2551,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="sharepoint">
                         <summary id="evidence-sharepoint" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">4 erhoben, 1 bereitgestellt, 1 unbekannt</small>
                           </span>
@@ -2672,7 +2715,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2725,7 +2768,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="office_files">
                         <summary id="evidence-office_files" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">1 erhoben, 5 bereitgestellt, 1 unbekannt</small>
                           </span>
@@ -2918,7 +2961,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2971,7 +3014,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="device_management">
                         <summary id="evidence-device_management" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">2 erhoben, 3 bereitgestellt, 1 unbekannt</small>
                           </span>
@@ -3114,7 +3157,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3147,7 +3190,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="windows_software">
                         <summary id="evidence-windows_software" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">0 erhoben, 2 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -3234,7 +3277,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3267,7 +3310,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="power_platform">
                         <summary id="evidence-power_platform" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">2 erhoben, 1 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -3351,7 +3394,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3384,7 +3427,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="identity_access">
                         <summary id="evidence-identity_access" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">2 erhoben, 2 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -3493,7 +3536,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3522,7 +3565,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="integrations">
                         <summary id="evidence-integrations" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">1 erhoben, 1 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -3595,7 +3638,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3654,7 +3697,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="security_compliance">
                         <summary id="evidence-security_compliance" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">2 erhoben, 0 bereitgestellt, 1 unbekannt</small>
                           </span>
@@ -3740,7 +3783,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3773,7 +3816,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="onedrive">
                         <summary id="evidence-onedrive" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">2 erhoben, 1 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -3889,7 +3932,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3915,7 +3958,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="teams">
                         <summary id="evidence-teams" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">5 erhoben, 2 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -4099,7 +4142,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -4125,7 +4168,7 @@
 
                       <details class="workload-evidence" data-evidence-workload="small_apps">
                         <summary id="evidence-small_apps" class="symbol-label symbol-wrap">
-                          <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+                          <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
                           <span class="symbol-text">Nachweise
                             <small class="evidence-counts">1 erhoben, 1 bereitgestellt, 0 unbekannt</small>
                           </span>
@@ -4198,7 +4241,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">Alle Ersatzlösungen<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -4754,7 +4797,7 @@
           <p class="note-text">Alle Beträge wie eingetragen. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten.</p>
 
           <details class="cost-inputs">
-            <summary id="cost-inputs-title" class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Kostenangaben</span></summary>
+            <summary id="cost-inputs-title" class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Kostenangaben</span></summary>
             <div class="table-scroll" role="region" aria-labelledby="cost-inputs-title" tabindex="0">
               <table class="cost-table" role="table">
                 <caption data-invented-amounts>Die Beträge in dieser Tabelle beruhen auf frei erfundenen Preisen für das Beispiel.</caption>
@@ -5228,7 +5271,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-directory" aria-label="Verzeichnisdienst: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-directory" aria-label="Verzeichnisdienst: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5252,7 +5295,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-mail" aria-label="E-Mail: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-mail" aria-label="E-Mail: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5276,7 +5319,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-onedrive" aria-label="OneDrive: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-onedrive" aria-label="OneDrive: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5300,7 +5343,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5324,7 +5367,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5348,7 +5391,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5372,7 +5415,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5396,7 +5439,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5421,7 +5464,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-teams" aria-label="Teams: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5445,7 +5488,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5469,7 +5512,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5493,7 +5536,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5517,7 +5560,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-office_files" aria-label="Office-Dateien: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5542,7 +5585,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5566,7 +5609,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-device_management" aria-label="Geräteverwaltung: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5591,7 +5634,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-windows_software" aria-label="Reine Windows-Anwendungen: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-windows_software" aria-label="Reine Windows-Anwendungen: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5616,7 +5659,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-power_platform" aria-label="Power Platform: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-power_platform" aria-label="Power Platform: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5641,7 +5684,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-telephony" aria-label="Telefonie: Hindernis" class="area-link replacement-status status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-telephony" aria-label="Telefonie: Hindernis" class="area-link replacement-status status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Hindernis<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5665,7 +5708,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-identity_access" aria-label="Identitäten und Zugriff: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-identity_access" aria-label="Identitäten und Zugriff: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5689,7 +5732,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-security_compliance" aria-label="Sicherheit und Regelkonformität: Unbekannt" class="area-link replacement-status status unknown badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unbekannt</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-security_compliance" aria-label="Sicherheit und Regelkonformität: Unbekannt" class="area-link replacement-status status unknown badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unbekannt<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Nachweise unvollständig</span></span>
                     </td>
                   </tr>
@@ -5713,7 +5756,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-small_apps" aria-label="Kleinere Anwendungen: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-small_apps" aria-label="Kleinere Anwendungen: Bereit" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Bereit<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5737,7 +5780,7 @@
                     </td>
 
                     <td role="cell" data-label="Status des Bereichs">
-                      <a href="#readiness-integrations" aria-label="Anwendungsanbindungen: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+                      <a href="#readiness-integrations" aria-label="Anwendungsanbindungen: Handlungsbedarf" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Handlungsbedarf<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -6226,7 +6269,7 @@
 
           <details class="licence-products">
             <summary id="licences-title" class="symbol-label symbol-wrap">
-              <svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
+              <svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg>
               <span class="symbol-text">
 
                   Erfasste Lizenzprodukte: 3 · Erhoben (simuliert)
@@ -6408,7 +6451,7 @@
           </details>
 
             <details class="workload-evidence" data-evidence-workload="licences">
-              <summary id="evidence-licences" class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Lizenzen</span></summary>
+              <summary id="evidence-licences" class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Lizenzen</span></summary>
               <div class="table-scroll" role="region" aria-labelledby="evidence-licences" tabindex="0">
     <table class="coverage" role="table">
       <caption data-sample>Die Messwerte der Erhebung sind simuliert.</caption>
@@ -6449,7 +6492,7 @@
         <h2 class="sec-label" id="appendix-title">Wie dieser Bericht entstanden ist</h2>
         <div class="sec-body">
           <details>
-            <summary class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Erhebungsverfahren</span></summary>
+            <summary class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Erhebungsverfahren</span></summary>
             <p>Für diesen Bericht wurden keine Microsoft-Berechtigungen verwendet.</p>
             <div class="table-scroll" role="region" aria-label="Erhebungsverfahren" tabindex="0">
               <table class="coverage" role="table">
@@ -6535,7 +6578,7 @@
 
           </details>
           <details>
-            <summary class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Regeln für die Einstufung</span></summary>
+            <summary class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Regeln für die Einstufung</span></summary>
             <p>Regeldatei · <code>status.yaml</code></p>
             <dl class="rule-details">
 
@@ -7239,7 +7282,7 @@
             </dl>
           </details>
           <details>
-            <summary class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Zuordnung der Funktionen</span></summary>
+            <summary class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Zuordnung der Funktionen</span></summary>
             <p>Dokumentierte Funktionen von openDesk und Lücken, die gesondert bearbeitet werden müssen.</p>
             <p data-mapping-review="unreviewed">Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.</p>
 
@@ -7557,7 +7600,7 @@
             </dl>
           </details>
           <details>
-            <summary class="symbol-label symbol-wrap"><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span class="symbol-text">Berechnung der Kosten</span></summary>
+            <summary class="symbol-label symbol-wrap"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg><span class="symbol-text">Berechnung der Kosten</span></summary>
             <ul>
               <li>Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenposten für den Umstieg betragen null.</li><li>Ziehen Sie bei beiden Umstiegsszenarien die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.</li><li>Multiplizieren Sie den monatlichen Hostingpreis pro Person mit der Zahl der Nutzenden und mit 60. Das Hosting beginnt im ersten Monat. Die Jahreskosten für Betrieb, sonstige Kosten des Zielsystems und sonstige bisherige IT-Kosten werden jeweils mit fünf multipliziert.</li><li>Die direkten Projektkosten umfassen einmalige Migration, Anpassung von Anwendungen, externe Beratung und Schulung. Die Schulungskosten ergeben sich aus Schulungstagen pro Person mal Tagessatz pro Person mal Zahl der zu schulenden Personen.</li><li>Für verlorene Arbeitszeit wird der angegebene Betrag angesetzt.</li><li>Für den Parallelbetrieb multiplizieren Sie die bisherigen jährlichen Microsoft-Lizenzkosten mit den Monaten des Parallelbetriebs und teilen das Ergebnis durch 12.</li><li>Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenposten für den Umstieg. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.</li><li>Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.</li>
             </ul>

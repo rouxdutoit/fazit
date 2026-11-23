@@ -66,7 +66,9 @@
   /* One line length for all running text, in rem so small type does not wrap early. */
   --measure: 42.5rem;
   --bar-h: 52px;
-  --hit: 44px;
+  --btn-height: 44px;
+  --btn-compact-height: 28px;
+  --hit: var(--btn-height);
   --menu-shadow: 0 24px 32px -16px rgb(0 0 0 / 18%);
   --radius: 8px;
   --radius-card: 14px;
@@ -237,7 +239,37 @@ code {
   block-size: var(--symbol-size, 1em);
 }
 
-.chevron { --symbol-size: var(--cap-height); }
+.chevron {
+  display: inline-block;
+  flex: none;
+  inline-size: 0.29em;
+  block-size: 0.50em;
+  vertical-align: baseline;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: calc(var(--chevron-stem, 0.084) * 1em);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.chevron > path {
+  /* Leave room for the stroke so every weight has the same ink dimensions. */
+  --stem: var(--chevron-stem, 0.084);
+  vector-effect: non-scaling-stroke;
+  transform-box: view-box;
+  transform-origin: center;
+  scale: calc((0.29 - var(--stem)) / 0.206) calc((0.50 - var(--stem)) / 0.416);
+}
+
+.chevron-tail {
+  padding-inline-start: calc(var(--chevron-gap, 0.38em) + var(--chevron-tracking, 0em));
+  letter-spacing: normal;
+}
+
+/* Keep the chevron with the last word and adjust for wider Figtree side bearings. */
+.chevron-tail::before { content: "\2060"; }
+.chevron-close { --chevron-gap: 0.35em; }
 
 /* The source comments identify the SVGs checked by check_site.py. */
 .mask {
@@ -447,7 +479,6 @@ code {
 
   .bar-cta {
     align-self: flex-start;
-    min-height: var(--hit);
     margin: 8px;
   }
 
@@ -541,7 +572,8 @@ code {
 .btn {
   --symbol-gap: 4px;
   justify-content: center;
-  padding: 7px 15px;
+  block-size: var(--btn-height);
+  padding: 0 16px;
   border-radius: var(--radius-pill);
   font-size: 0.9375rem;
   font-weight: 500;
@@ -565,8 +597,16 @@ code {
   .menu-button { display: none; }
 
   .bar-cta {
-    padding: 3px 10px;
+    position: relative;
+    block-size: var(--btn-compact-height);
+    padding-inline: 12px;
     font-size: var(--fs-footnote);
+  }
+
+  .bar-cta::before {
+    position: absolute;
+    inset: calc((var(--btn-compact-height) - var(--hit)) / 2) 0;
+    content: "";
   }
 }
 
@@ -618,7 +658,6 @@ code {
 .copy {
   flex: none;
   width: var(--hit);
-  height: var(--hit);
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -673,6 +712,8 @@ code {
 }
 
 .finding-area {
+  --chevron-stem: 0.117;
+  --chevron-tracking: 0.02em;
   margin: 0;
   color: var(--fg);
   font-size: var(--fs-headline);
@@ -1172,7 +1213,7 @@ code {
 }
 
 .tile-link h3 {
-  justify-content: space-between;
+  --chevron-stem: 0.117;
 }
 
 .tile-link:hover {
@@ -1181,16 +1222,28 @@ code {
 }
 
 .tile-arrow {
-  --symbol-size: 24px;
-  justify-content: center;
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  isolation: isolate;
+}
+
+.tile-arrow > .chevron { display: block; }
+
+.tile-arrow::before {
+  position: absolute;
+  z-index: -1;
+  inset: 50% auto auto 50%;
+  inline-size: 1em;
+  block-size: 1em;
+  translate: -50% -50%;
   border-radius: var(--radius-pill);
   background: var(--fill-2);
   transition: background-color 0.3s cubic-bezier(0, 0, 0.5, 1);
+  content: "";
 }
 
-.icon-chevron { --icon: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20height=%2224%22%20viewBox=%220%20-960%20960%20960%22%20width=%2224%22%3E%3Cpath%20d=%22M504-480%20348-636q-11-11-11-28t11-28q11-11%2028-11t28%2011l184%20184q6%206%208.5%2013t2.5%2015q0%208-2.5%2015t-8.5%2013L404-268q-11%2011-28%2011t-28-11q-11-11-11-28t11-28l156-156Z%22/%3E%3C/svg%3E") /* icons/chevron-right.svg */; }
-
-.tile-link:hover .tile-arrow {
+.tile-link:hover .tile-arrow::before {
   background: color-mix(in srgb, var(--fg) 16%, var(--bg));
 }
 
@@ -1245,7 +1298,6 @@ code {
 }
 
 .more {
-  --symbol-gap: 4px;
   color: var(--link-quiet);
 }
 
@@ -1470,7 +1522,7 @@ main :where(.sec-body, .preview-blockers) > a.more {
 .needs_work { --status-fill: var(--status-needs-work); }
 .blocker { --status-fill: var(--status-blocker); }
 .unknown { --status-fill: var(--status-unknown); }
-.status > .icon:not(.chevron) { color: var(--status-fill); }
+.status > .icon { color: var(--status-fill); }
 
 .badge {
   --symbol-gap: 4px;

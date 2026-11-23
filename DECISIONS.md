@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Button heights and chevrons
+
+**D42. Use 44 px standard buttons and align chevrons with lowercase text.**
+
+The founder chose the phone menu's 44 px button height for standard buttons on the site and report. The desktop bar pill is 28 px high and has a hit area at least 44 px high. The chevron follows the dimensions measured on Apple's Continuity link and takes its stroke weight from Figtree. Linked card titles keep their neutral circle around the trailing chevron. [Design rules](DESIGN.md#links-and-buttons) · [Apple's Continuity link](https://www.apple.com/macbook-air/)
+
 ## 2026-11-23 — Badge contrast and vertical rhythm
 
 **D41. Use tinted status labels in dark mode and share one spacing rhythm.**

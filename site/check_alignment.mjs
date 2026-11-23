@@ -5,18 +5,23 @@ import { localContext, widths, withSite } from "./check_browser.mjs";
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
 const centredLabels = `${capsules}, ${menuItems}, a.language`;
-const symbolOnly = ".copy, .menu-button, .foot-mail, .tile-arrow, .report-card-control, .cost-segment.is-unknown";
+const symbolOnly = ".copy, .menu-button, .foot-mail, .report-card-control, .cost-segment.is-unknown";
 const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .finding-evidence dd";
+const chevronLabels = ".more, .tile-link h3, .replacement-status, .category-filter > button, summary:not(.menu-button)";
 // Keep the component selectors so dropping the primitive from known markup fails the check.
 const components = [
-  centredLabels, symbolOnly, ".symbol-label", ".more", "summary", ".status",
-  ".cov-cell", ".coverage-key", ".safeguards li", ".tile-link h3", ":is(h3, h4):has(> .tile-icon)",
+  centredLabels, symbolOnly, chevronLabels, ".symbol-label", ".status",
+  ".cov-cell", ".coverage-key", ".safeguards li", ":is(h3, h4):has(> .tile-icon)",
   ".timeline-name", ".report-card-bar", ".cost-bars .legend li", ".command-line code > span",
   ".status-summary dt", ".finding-evidence dd", ".privacy-facts h3", ".flow-links > a",
 ].join(", ");
 
-function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, tolerance }) {
-  const canvas = document.createElement("canvas").getContext("2d");
+function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, tolerance }) {
+  const fontSample = 512;
+  const surface = document.createElement("canvas");
+  surface.width = surface.height = fontSample;
+  const canvas = surface.getContext("2d", { willReadFrequently: true });
+  const stems = new Map();
   const failures = [];
   let count = 0;
   let maximum = 0;
@@ -30,10 +35,31 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       + classes.map(name => "." + CSS.escape(name)).join("") + (href ? `[href="${href}"]` : "");
   }
 
-  function metrics(element, text) {
+  function font(element, size) {
     const style = getComputedStyle(element);
-    canvas.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    return `${style.fontStyle} ${style.fontWeight} ${size ?? style.fontSize} ${style.fontFamily}`;
+  }
+
+  function metrics(element, text, size) {
+    canvas.font = font(element, size);
     return canvas.measureText(text);
+  }
+
+  function stemWidth(label, em) {
+    canvas.font = font(label, `${fontSample}px`);
+    if (!stems.has(canvas.font)) {
+      // The left stem of H is clear of the crossbar at this height.
+      const base = fontSample - 32;
+      canvas.clearRect(0, 0, fontSample, fontSample);
+      canvas.fillText("H", 16, base);
+      const { data } = canvas.getImageData(0, base - Math.round(0.2 * fontSample), fontSample, 1);
+      let first = 3;
+      while (first < data.length && data[first] < 128) first += 4;
+      let last = first;
+      while (last < data.length && data[last] >= 128) last += 4;
+      stems.set(canvas.font, (last - first) / (4 * fontSample));
+    }
+    return stems.get(canvas.font) * em;
   }
 
   function baseline(element) {
@@ -70,11 +96,94 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     return box.width && box.height ? centre(box) : NaN;
   }
 
-  function compare(element, check, offset) {
+  function compare(element, check, offset, limit = tolerance) {
     count += 1;
     if (Number.isFinite(offset)) maximum = Math.max(maximum, Math.abs(offset));
-    if (!Number.isFinite(offset) || Math.abs(offset) > tolerance) {
+    if (!Number.isFinite(offset) || Math.abs(offset) > limit) {
       failures.push({ selector: selector(element), check, offset: Number.isFinite(offset) ? offset.toFixed(2) : "missing box" });
+    }
+  }
+
+  function lastLetter(label, em) {
+    // The picker clones the selected option's label into selectedcontent.
+    const text = (label.querySelector(":scope > .symbol-text") ?? label).firstChild;
+    if (text?.nodeType !== Node.TEXT_NODE || !text.data.trim()) return {};
+    const letters = [...text.data.trim()];
+    const first = text.data.length - text.data.trimStart().length;
+    const end = text.data.trimEnd().length;
+    const last = letters.at(-1);
+    const range = document.createRange();
+    range.setStart(text, first);
+    range.setEnd(text, first + letters[0].length);
+    const firstLine = range.getBoundingClientRect().top;
+    range.setStart(text, end - last.length);
+    range.setEnd(text, end);
+    const box = range.getBoundingClientRect();
+    const { width, actualBoundingBoxRight } = metrics(label, last, `${fontSample}px`);
+    const tracking = parseFloat(getComputedStyle(label).letterSpacing) || 0;
+    const bearing = (width - actualBoundingBoxRight) * em / fontSample + tracking;
+    return { right: box.right - bearing, lineOffset: box.top - firstLine };
+  }
+
+  function measureChevron(pair, svg, label) {
+    const path = svg.querySelector(":scope > path:only-child");
+    const style = path && getComputedStyle(path);
+    const labelStyle = getComputedStyle(label);
+    if (!path || style.stroke !== labelStyle.color || style.fill !== "none"
+      || style.strokeLinecap !== "round" || style.strokeLinejoin !== "round"
+      || style.vectorEffect !== "non-scaling-stroke") {
+      failures.push({ selector: selector(pair), check: "chevron path, stroke or colour", offset: "—" });
+      return;
+    }
+
+    // Round caps and joins extend the line bounds by half the non-scaling stroke.
+    const stroke = parseFloat(style.strokeWidth);
+    const radius = stroke / 2;
+    const matrix = path.getScreenCTM();
+    const length = path.getTotalLength();
+    const points = [0, length / 2, length].map(offset => path.getPointAtLength(offset).matrixTransform(matrix));
+    const xs = points.map(point => point.x);
+    const ys = points.map(point => point.y);
+    const ink = {
+      left: Math.min(...xs) - radius, right: Math.max(...xs) + radius,
+      top: Math.min(...ys) - radius, bottom: Math.max(...ys) + radius,
+    };
+    const em = parseFloat(labelStyle.fontSize);
+    const turned = pair.matches(".category-filter > button, details[open] > summary");
+    const inkWidth = ink.right - ink.left;
+    const inkHeight = ink.bottom - ink.top;
+    const [ends, tip] = turned ? [ys, xs] : [xs, ys];
+    if (ends[1] <= Math.max(ends[0], ends[2])) {
+      failures.push({ selector: selector(pair), check: "chevron direction", offset: "—" });
+    }
+    compare(pair, "chevron angle", tip[1] - (tip[0] + tip[2]) / 2);
+    compare(pair, "chevron ink width", (turned ? inkHeight : inkWidth) - 0.29 * em, 0.01 * em);
+    compare(pair, "chevron ink height", (turned ? inkWidth : inkHeight) - 0.50 * em, 0.03 * em);
+    compare(pair, "chevron stem width", stroke - stemWidth(label, em), 0.5);
+
+    const disclosure = pair.matches("summary");
+    const last = disclosure ? {} : lastLetter(label, em);
+    const lineBaseline = baseline(label) + (last.lineOffset ?? 0);
+    if (turned) {
+      compare(pair, "rotated chevron centre", centre(ink) - (lineBaseline - 0.25 * em));
+    } else {
+      compare(pair, "chevron baseline", ink.bottom - lineBaseline);
+    }
+    if (!disclosure) compare(pair, "chevron ink gap", ink.left - last.right - 0.40 * em, 0.03 * em);
+  }
+
+  function measureButton(button, box) {
+    const compact = button.matches(".bar-cta") && matchMedia("(min-width: 820px)").matches;
+    const style = getComputedStyle(button);
+    const token = compact ? "--btn-compact-height" : "--btn-height";
+    compare(button, token, box.height - parseFloat(style.getPropertyValue(token)), 0);
+    if (compact) {
+      const hit = parseFloat(style.getPropertyValue("--hit"));
+      const x = (box.left + box.right) / 2;
+      const clicks = [-1, 1].map(side => document.elementFromPoint(x, centre(box) + side * (hit / 2 - 0.25)));
+      if (!clicks.every(element => button.contains(element))) {
+        failures.push({ selector: selector(button), check: "compact button hit area", offset: "—" });
+      }
     }
   }
 
@@ -85,11 +194,13 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
 
     const labels = [...pair.querySelectorAll(":scope > .symbol-text:not(.command-prompt)")];
     const symbols = [...pair.querySelectorAll(":scope > :is(.symbol, .command-prompt), :scope > .report-card-controls .symbol")];
+    const chevron = pair.querySelector(":scope > .chevron, :scope > .symbol-text .chevron");
     const onlySymbol = pair.matches(symbolOnly);
     const measuredEvidence = pair.matches(".finding-evidence dd[data-provenance=measured]");
     if (!pair.matches(".symbol-label") || (!onlySymbol && !labels.length)
       || (measuredEvidence && labels.length !== 2)
-      || (!pair.matches(textOnly) && !symbols.length)) {
+      || (pair.matches(chevronLabels) && !chevron)
+      || (!pair.matches(textOnly) && !symbols.length && !chevron)) {
       failures.push({ selector: selector(pair), check: "missing primitive, label or symbol", offset: "—" });
       continue;
     }
@@ -101,6 +212,8 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     for (const symbol of symbols) {
       compare(pair, selector(symbol), inkCentre(symbol) - (capCentres[0] ?? paddingCentre));
     }
+    if (chevron) measureChevron(pair, chevron, labels[0]);
+    if (pair.matches(".btn")) measureButton(pair, box);
     if (pair.matches(centredLabels)) {
       for (const cap of capCentres) compare(pair, "padding box", cap - paddingCentre);
     }
@@ -231,7 +344,7 @@ await withSite(async ({ browser, origin, routes }) => {
         try {
           await checkPage(page, route, width, origin, async scope => {
             const result = await page.evaluate(measureInPage, {
-              scope, components, centredLabels, symbolOnly, textOnly, tolerance,
+              scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, tolerance,
             });
             failures.push(...result.failures.map(failure => ({ ...view, ...failure })));
             count += result.count;

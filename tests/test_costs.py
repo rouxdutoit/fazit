@@ -486,7 +486,7 @@ def test_nonprofit_full_cost_tile_is_unknown_and_shows_known_blocks(tmp_path: Pa
         re.S,
     )
     assert "Total for known cost categories: EUR 40,600" in _visible_text(full)
-    assert 'href="#costs-missing"><span class="symbol-text">1 input is missing</span>' in full
+    assert 'href="#costs-missing"><span class="symbol-text">1 input is missing<' in full
     assert 'data-break-even="full_exit"' not in summary
     partial = re.search(r'data-break-even="partial_exit">([^<]+)</p>', summary)
     assert partial and "EUR 26" in partial[1] and "entered: EUR 1,600" in partial[1]
@@ -508,7 +508,7 @@ def test_known_move_total_with_unknown_cost_comparison(tmp_path: Path) -> None:
     assert "Total for known cost categories" not in stay
     assert '<span class="figure-num">EUR 507,800</span>' in partial
     assert 'data-comparison="unknown"' in partial and "Comparison unknown" in partial
-    assert 'href="#costs-missing"><span class="symbol-text">1 input is missing</span>' in partial
+    assert 'href="#costs-missing"><span class="symbol-text">1 input is missing<' in partial
     assert 'class="status unknown symbol-label"' in full
     assert "Total for known cost categories: EUR 364,350" in full
     assert "data-break-even=" not in summary

@@ -207,7 +207,11 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
             area=strings["workload"][item.workload], status=strings["status"][status]
         )
         assert f"status {status} badge" in link[0]
-        label = re.search(r'<span class="symbol-text">([^<]+)</span><svg', link[3])
+        label = re.search(
+            r'<span class="symbol-text">([^<]+)<span class="chevron-tail[^"]*" aria-hidden="true">'
+            r'<svg class="chevron"',
+            link[3],
+        )
         assert label and unescape(label[1]) == strings["status"][status]
         assert re.findall(r'<path d="([^"]+)"', link[3]) == [status_paths[status], chevron]
         for _, attrs in ReportDocument(row.replace(link[0], "")).tags:
@@ -298,7 +302,7 @@ def test_summary_caps_blockers_and_open_areas_in_catalogue_order(
     strings = load_locale("en")
     assert strings["summary"]["confirmed"].format(shown=3, total=len(blocker_ids)) in blockers
     all_blockers = strings["summary"]["all_blockers"]
-    assert f'href="#status-blocker"><span class="symbol-text">{all_blockers}</span>' in blockers
+    assert f'href="#status-blocker"><span class="symbol-text">{all_blockers}<span' in blockers
 
     for term, workload, detail in rows:
         card = readiness_row(readiness, workload)
@@ -346,7 +350,7 @@ def test_summary_counts_and_links_match_the_report(tmp_path: Path, sample: str, 
     assert counts["blocker"] <= 3
     assert strings["summary"]["confirmed"].split("{shown}")[0] not in summary
     all_blockers = strings["summary"]["all_blockers"]
-    blocker_link = f'href="#status-blocker"><span class="symbol-text">{all_blockers}</span>'
+    blocker_link = f'href="#status-blocker"><span class="symbol-text">{all_blockers}<span'
     assert (blocker_link in summary) == (counts["blocker"] > 0)
     assert not any(text in summary for text in ("data-segment", "readiness-bar", "%"))
     ids = {attrs.get("id") for _, attrs in document.tags}
@@ -373,14 +377,14 @@ def test_summary_keeps_all_unknown_areas_unknown(tmp_path: Path, lang: str) -> N
     assert strings["summary"]["caveat"].format(n=formatter.integer(len(unknown_areas))) in summary
     assert [workload for _, workload, _ in _summary_area_rows(summary)] == unknown_areas[:4]
     open_points = strings["summary"]["not_examined"]
-    assert f'href="#not-examined"><span class="symbol-text">{open_points}</span>' in summary
+    assert f'href="#not-examined"><span class="symbol-text">{open_points}<span' in summary
     costs = report_section(html, "costs")
     missing = re.findall(r'data-missing-cost="([^"]+)"', costs)
     assert 0 < len(set(missing)) < len(missing)
     missing_label = strings["costs"]["inputs_missing"].format(
         n=formatter.integer(len(set(missing)))
     )
-    assert f'href="#costs-missing"><span class="symbol-text">{missing_label}</span>' in summary
+    assert f'href="#costs-missing"><span class="symbol-text">{missing_label}<span' in summary
     assert 'id="costs-missing">' in costs and strings["costs"]["missing_fix"] in costs
     assert "#status-blocker" not in summary
 
@@ -626,8 +630,8 @@ def test_summary_scope_matches_the_replacements_and_gaps(lang: str, profile: str
     path = re.search(r'<path d="([^"]+)"', chevron)[1]
     links = re.findall(
         r'<li><a href="#(replacement-[^"]+)" class="area-link more\b[^"]*">'
-        r'<span class="symbol-text">([^<]+)</span>'
-        r'<svg[^>]* aria-hidden="true"[^>]*><path d="([^"]+)"/></svg></a></li>',
+        r'<span class="symbol-text">([^<]+)<span class="chevron-tail[^"]*" aria-hidden="true">'
+        r'<svg class="chevron"[^>]*><path d="([^"]+)"/></svg></span></span></a></li>',
         needed[1],
     )
     assert links == [
@@ -1162,9 +1166,7 @@ def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[
             selector = status.replace("-", "_")
             assert f".{selector} {{ --status-fill: var(--status-{status}); }}" in css
         assert re.search(r"@media print\s*\{\s*:root\s*\{\s*color-scheme:\s*light;", css)
-        assert re.search(
-            r"\.status > \.icon:not\(\.chevron\)\s*\{\s*color:\s*var\(--status-fill\);\s*\}", css
-        )
+        assert re.search(r"\.status > \.icon\s*\{\s*color:\s*var\(--status-fill\);\s*\}", css)
         assert re.search(
             r"\.badge\.status\s*\{\s*color:\s*light-dark\(var\(--fg\),\s*var\(--status-fill\)\);"
             r"\s*background:\s*color-mix\(in srgb,\s*"

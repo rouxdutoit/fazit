@@ -9,8 +9,9 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - Use the tokens in `site/style.css` `:root`. No colour, font or radius values anywhere else. The report defines the same tokens, and a test keeps both in step.
 - **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
-- **Type:** Figtree for all text, Geist Mono only for code. Seven sizes only: display, title, headline, lead, body, subhead, footnote. Three weights: 400, 600 for labels and buttons, 700 never in body copy.
+- **Type.** Figtree for all text, Geist Mono for code. The seven text sizes are display, title, headline, lead, body, subhead and footnote. Body copy uses weight 400, button labels 500, and headings and semibold labels 600.
 - **Spacing:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px. The gutter is 20 px (16 px on phones).
+- **Button heights.** `--btn-height` is 44 px and `--btn-compact-height` is 28 px. Both the site and report define these tokens.
 - **Line length:** one measure, `--measure` (680 px), for all running text whatever its size; set in rem so small type does not wrap early. Paragraphs wrap with `text-wrap: pretty`, so no paragraph ends on a lone word; headings use `text-wrap: balance`. Never force line breaks with `<br>` or narrow boxes, except in postal addresses.
 
 ## Colour
@@ -76,13 +77,15 @@ Visuals include cards, tile groups, lists, tables and command blocks. A lede int
 
 - Google Material Symbols, rounded, from `site/icons/` (the report inlines the same paths). The website language link uses Material Symbols Outlined (D40). The symbols use the Apache-2.0 licence. Keep the licence file.
 - A symbol sits on the first line of its text, sized in `em`, with wrapped lines aligned after it.
+- Leading action symbols centre on the cap band. Fazit's chevron uses a two-segment SVG with round caps and joins in the text colour. Its ink is 0.29 em wide and 0.50 em high. A right-facing chevron sits on the baseline up to the x-height, with 0.40 em from the last letter's ink to the chevron's ink. A trailing chevron stays with the last word when a label wraps. Disclosure chevrons sit beside the first line and rotate around the same centre.
+- Match the chevron stroke to the Figtree stem. The measured widths are 0.084 em at weight 400, 0.100 em at weight 500 and 0.117 em at weight 600.
 - Never reuse a status symbol (check, warning triangle, stop octagon, question mark) for anything but status.
 
 ## Links and buttons
 
 - **Text links:** the text colour; on hover they lighten, and in dark mode they also glow. A link inside running text carries a thin static underline in the secondary text colour and no chevron; a standalone link ends in a chevron, has no underline and sits a step back in dark grey (`--link-quiet`), coming forward to the text colour on hover. Footer and bar links have neither.
-- **A card that leads to another page is one link as a whole:** black title, a circled neutral chevron in the corner, and on hover the card grows by about 1.5 % with a deeper shadow.
-- **Buttons follow apple.com:** pill shape, regular weight (500 in Figtree), 15 px text with 7 × 15 px padding in content, 12 px with 3 × 10 px in the bar. The primary button lightens on hover and darkens when pressed; the text never changes colour.
+- **A card that leads to another page is one link as a whole.** Its black title ends with a circled neutral chevron. On hover the card grows by about 1.5 % with a deeper shadow.
+- **Buttons follow apple.com.** Standard pills are 44 px high with 15 px text and 16 px horizontal padding. The desktop bar pill is 28 px high with 12 px text and 12 px horizontal padding. It has a hit area at least 44 px high. The copy button is 44 px square. The shared symbol and label primitive centres button content. Button labels use weight 500 in Figtree. The primary button lightens on hover and darkens when pressed while its text keeps the same colour.
 - Every button leads with a symbol that says what happens (Material Symbols, in the button's text colour, sized in `em`); a button whose action no symbol can name gets none, and then no button in its group has one.
 - One main action per screen. The bar holds the page links and one button. The main action is "Get started" / "Jetzt starten" until the first release, then "Install" / "Installieren".
 
@@ -110,4 +113,4 @@ Visuals include cards, tile groups, lists, tables and command blocks. A lede int
 
 ## Checks
 
-`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, and `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. The release review checks the remaining design rules.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink and button heights at 360, 768 and 1280 px. `node site/check_spacing.mjs` measures the rhythm on every page at the same widths. The release review checks the remaining design rules.
