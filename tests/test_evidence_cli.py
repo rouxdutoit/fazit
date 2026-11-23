@@ -1225,9 +1225,9 @@ def test_disagreeing_provided_answers_remain_visible_and_undecided(
     ]
     assert strings["source"]["interview"] in evidence[0]
     assert strings["source"]["inputs_yaml"] in evidence[0]
-    assert "2 November 2026" in evidence[0]
+    assert "2\u00a0November\u00a02026" in evidence[0]
     supplied_date = (
-        f"{int(inputs_date[-2:])} November 2026"
+        f"{int(inputs_date[-2:])}\u00a0November\u00a02026"
         if inputs_date
         else strings["common"]["date_not_supplied"]
     )

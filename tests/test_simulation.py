@@ -664,9 +664,11 @@ def _display(amount: Amount, strings: dict, currency: str) -> str:
     cents = int(abs(amount) * 100 + Fraction(1, 2))
     whole, decimal = divmod(cents, 100)
     settings = strings["format"]
-    sign = "-" if amount < 0 and cents else ""
+    sign = "−" if amount < 0 and cents else ""
     grouped = f"{whole:,}".replace(",", settings["thousands_separator"])
-    number = f"{sign}{grouped}{settings['decimal_separator']}{decimal:02d}"
+    number = f"{sign}{grouped}"
+    if decimal:
+        number += f"{settings['decimal_separator']}{decimal:02d}"
     return settings["money"].format(amount=number, currency=currency).strip()
 
 

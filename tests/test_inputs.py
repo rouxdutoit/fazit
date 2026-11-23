@@ -579,7 +579,7 @@ def test_sample_inputs_and_rendered_statuses(
 
 
 @pytest.mark.parametrize(
-    ("as_of", "label"), [("2026-11-20", "20 November 2026"), (None, "Date not supplied")]
+    ("as_of", "label"), [("2026-11-20", "20\u00a0November\u00a02026"), (None, "Date not supplied")]
 )
 def test_report_dates_provided_values_and_keeps_measured_values_separate(
     catalogue: Catalogue, as_of: str | None, label: str

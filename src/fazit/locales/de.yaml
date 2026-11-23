@@ -87,7 +87,7 @@ costs:
   not_provided: Nicht angegeben
   not_applicable: Entfällt
   invented_amounts: Die Beträge in dieser Tabelle beruhen auf frei erfundenen Preisen für das Beispiel.
-  rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
+  rounding: Die Gesamtkosten in der Übersicht und die Beträge im Vergleich der jährlichen Betriebskosten sind auf ganze Währungseinheiten gerundet. Die Tabellen zeigen bei Bedarf zwei Nachkommastellen. Die Summen beruhen auf ungerundeten Beträgen und können daher von der Summe der angezeigten Beträge abweichen.
   provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
   missing: 'Fehlende Angaben für das Szenario „{scenario}“'
   stay_basis: Die heutigen Jahreskosten für fünf Jahre
@@ -162,7 +162,8 @@ readiness:
   incomplete: Nachweise unvollständig
   missing: Noch benötigte Angaben
   conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
-  evidence_summary: Nachweise · {measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt
+  evidence: Nachweise
+  evidence_summary: '{measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt'
   all_replacements: Alle Ersatzlösungen
 filter:
   status_legend: Bereiche nach Status anzeigen
@@ -181,6 +182,8 @@ moves:
   workload_status: Status des Bereichs
   status_link: '{area}: {status}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
+  licences_excluded: Lizenzen stehen nicht in dieser Tabelle, weil hier keine Funktion zu übertragen ist.
+  area_excluded: 'Der Bereich {area} steht nicht in dieser Tabelle, weil hier keine Funktion zu übertragen ist.'
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
   unreviewed: Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.
   reviewed: Diese Zuordnung wurde am {date} von einer Person geprüft, die das Zielsystem betreibt.
@@ -213,7 +216,16 @@ path:
   title: Was als Nächstes zu tun ist
   even_if_staying: Sinnvoll, auch wenn Sie bei Microsoft 365 bleiben
   for_move: Für einen Umstieg nötig
-  input_field: Feld in inputs.yaml
+  who_answers: 'Wer gibt Auskunft:'
+  source: 'Quelle:'
+  input_field: 'Feld in inputs.yaml:'
+  finding_question: 'Was geht aus den Nachweisen zu „{finding}“ hervor?'
+  area_question: 'Welche Nachweise fehlen im Bereich {area}?'
+  collector_question: Welche Nachweise fehlen aus dieser Erhebung?
+  guidance:
+    not_in_export: Erfragen Sie die fehlende Angabe bei der fachlich verantwortlichen Stelle.
+    needs_recipient_export: Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln.
+    source_not_supplied: Klären Sie, aus welcher Quelle die fehlenden Daten stammen.
   questions:
     licences.contract_terms_known: Hat die Vergabestelle die Vertragsbedingungen der Microsoft-Lizenzen geprüft?
     directory.account_list_reviewed: Hat die IT-Abteilung die aktuelle Kontenliste geprüft?
@@ -245,7 +257,12 @@ path:
     small_apps.in_use: Nutzen die Fachbereiche kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings?
     integrations.application_count: Wie viele Fachanwendungen sind an Microsoft 365 angebunden?
   transfer_actions:
-    not_available: Für die genannten Funktionen ({functions}) planen die fachlich verantwortliche Stelle und die IT-Abteilung den Ersatz nach dem Umstieg.
+    not_available: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, womit sie {functions} nach dem Umstieg ersetzen.
+    not_available.device_management: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die Geräte nach dem Umstieg verwaltet werden.
+    not_available.desktop_operating_system: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie das Betriebssystem für die Arbeitsplatzrechner nach dem Umstieg bereitgestellt wird.
+    not_available.windows_applications: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie reine Windows-Anwendungen nach dem Umstieg betrieben werden.
+    not_available.automation_and_low_code: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die automatisierten Abläufe und Low-Code-Anwendungen nach dem Umstieg betrieben werden.
+    not_available.telephony: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie {functions} nach dem Umstieg bereitgestellt werden.
     transfer_undocumented: Die fachlich verantwortliche Stelle und die IT-Abteilung planen und erproben die Übernahme oder den Neuaufbau der Inhalte für {functions}.
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.

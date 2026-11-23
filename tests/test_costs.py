@@ -297,8 +297,8 @@ def test_cost_groups_sum_unrounded_lines() -> None:
 @pytest.mark.parametrize(
     ("lang", "whole", "negative_half", "carry"),
     [
-        ("en", "EUR 527,800.00", "EUR -0.01", "EUR 1,000.00"),
-        ("de", "527.800,00 EUR", "-0,01 EUR", "1.000,00 EUR"),
+        ("en", "EUR 527,800", "EUR −0.01", "EUR 1,000"),
+        ("de", "527.800 EUR", "−0,01 EUR", "1.000 EUR"),
     ],
 )
 def test_money_format(lang: str, whole: str, negative_half: str, carry: str) -> None:
@@ -307,8 +307,8 @@ def test_money_format(lang: str, whole: str, negative_half: str, carry: str) -> 
     assert formatter.money(Decimal("-0.005"), "EUR") == negative_half
     assert formatter.money(Decimal("999.995"), "EUR") == carry
     expected = {
-        "en": ("EUR 1,235", "EUR -1", "EUR 0"),
-        "de": ("1.235 EUR", "-1 EUR", "0 EUR"),
+        "en": ("EUR 1,235", "EUR −1", "EUR 0"),
+        "de": ("1.235 EUR", "−1 EUR", "0 EUR"),
     }[lang]
     assert (
         tuple(
@@ -451,11 +451,12 @@ def test_town_cost_tiles_use_whole_units_and_show_the_break_even(tmp_path: Path,
     figures = re.findall(r'class="figure-num">([^<]+)</', summary)
     assert figures == [money(amount) for amount in (600000, 527800, 464350)]
     assert all(formatter.strings["format"]["decimal_separator"] not in text for text in figures)
+    origin = strings["origins"]["calculated_with_examples"]
+    assert summary.count(origin) == 1 and 'data-cost-origin="calculated_with_examples"' in summary
     for scenario in SCENARIOS:
         tile = _cost_tile(summary, scenario)
         assert f'<p class="tile-label">{strings[scenario]}</p>' in tile
-        origin = strings["origins"]["calculated_with_examples"]
-        assert f'<p data-cost-origin="calculated_with_examples">{origin}</p>' in tile
+        assert "data-cost-origin=" not in tile
 
     assert strings["stay_basis"] in _visible_text(_cost_tile(summary, "stay"))
     assert strings["stay_assumption"] in summary
@@ -552,6 +553,7 @@ def test_cost_chart_uses_one_scale(tmp_path: Path, sample: str, shares: list[str
     assert list(rows) == list(SCENARIOS)
     assert re.findall(r"--share: ([0-9.]+)", section) == shares
     assert max(shares) == "1.0000"
+    assert section.count('data-cost-origin="calculated_with_examples"') == 1
     for result in results:
         row = rows[result.id]
         if result.total is None:
@@ -559,7 +561,7 @@ def test_cost_chart_uses_one_scale(tmp_path: Path, sample: str, shares: list[str
         else:
             share = f"{result.total / largest:.4f}"
             assert f'<div class="cost-bar" aria-hidden="true" style="--share: {share}">' in row
-            assert 'data-cost-origin="calculated_with_examples"' in row
+        assert 'data-cost-origin="calculated_with_examples"' not in row
     assert re.findall(r'data-chart-block="([^"]+)"', rows["stay"]) == ["running"]
 
 
@@ -604,7 +606,7 @@ def test_nonprofit_chart_shows_unknown_without_a_bar(tmp_path: Path) -> None:
     assert 'class="cost-bar"' not in full and "--share:" not in full
     assert "data-chart-block" not in full
     text = _visible_text(full)
-    assert "Total for known cost categories: EUR 40,600.00" in text
+    assert "Total for known cost categories: EUR 40,600" in text
     assert "Lost working time (internal estimate, not a payment) · Unknown" in text
     assert '<span class="status unknown">' in full
     for comparison in ("Difference from staying", "less than staying", "more than staying"):
@@ -620,7 +622,7 @@ def test_chart_keeps_a_known_total_when_staying_is_unknown(tmp_path: Path) -> No
     row = _chart_rows(report_section(html, "costs"))["partial_exit"]
 
     assert "--share: 1.0000" in row
-    assert "EUR 507,800.00 · Difference from staying · Unknown" in _visible_text(row)
+    assert "EUR 507,800 · Difference from staying · Unknown" in _visible_text(row)
 
 
 @pytest.mark.parametrize("with_example", [False, True])
@@ -695,7 +697,7 @@ def test_cost_section_order_intro_and_shared_notes(tmp_path: Path, lang: str) ->
     assert positions == sorted(set(positions)) and min(positions) >= 0
     intro = re.search(r'<p class="sec-intro">(.*?)</p>', section, re.S)
     assert intro is not None and inputs.as_of
-    assert _visible_text(intro[1]) == " · ".join(
+    expected = " · ".join(
         (
             inputs.organisation_name,
             f"{formatter.strings['header']['scan_date']} {formatter.date(scan.generated_at)}",
@@ -703,6 +705,7 @@ def test_cost_section_order_intro_and_shared_notes(tmp_path: Path, lang: str) ->
             strings["origins"]["invented"],
         )
     )
+    assert _visible_text(intro[1]) == " ".join(expected.split())
     assert section.count(strings["profile_note"]) == section.count(strings["vat_note"]) == 1
     notes = r'<div class="cost-notes">(.*?)</div>'
     assert re.search(notes, section, re.S)[1] == re.search(notes, summary, re.S)[1]
@@ -724,6 +727,10 @@ def test_demo_cost_comparison(
 
     assert _rendered_totals(section) == dict(zip(SCENARIOS, totals, strict=True))
     assert re.findall(r'data-block="([^"]+)"', section) == ["running", *BLOCKS]
+    if sample == "town":
+        difference = re.search(rf">\s*{strings['difference']}\s*</th>(.*?)</tr>", section, re.S)
+        expected = "EUR −72,200" if lang == "en" else "−72.200 EUR"
+        assert difference and expected in difference[1]
     assert section.count("<caption data-invented-amounts>") == 2
     assert strings["rounding"] in section
     assert 'data-cost-origin="invented"' in section

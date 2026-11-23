@@ -114,17 +114,23 @@
     {% endfor %}
   </ul>
 {%- endmacro %}
-{% macro status_label(status) -%}
-  <span class="status {{ status }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {{ strings.status[status] }}</span>
+{% macro status_label(status, badge=false) -%}
+  <span class="status {{ status }}{{ ' badge' if badge }}">{{ icon({'ready': 'check-circle', 'needs_work': 'warning', 'blocker': 'report', 'unknown': 'help'}[status]) }} {% if badge %}<span>{{ strings.status[status] }}</span>{% else %}{{ strings.status[status] }}{% endif %}</span>
+{%- endmacro %}
+{% macro incomplete_badge() -%}
+  <span class="badge"><span>{{ strings.readiness.incomplete }}</span></span>
 {%- endmacro %}
 {% macro finding_badges(row) -%}
-  {{ status_label(row.status) }}
-  {% if row.incomplete %}<span class="badge">{{ strings.readiness.incomplete }}</span>{% endif %}
+  {{ status_label(row.status, badge=true) }}
+  {% if row.incomplete %}{{ incomplete_badge() }}{% endif %}
+{%- endmacro %}
+{% macro area_link(workload, unexamined=false) -%}
+  <a href="#readiness-{{ workload }}"{% if unexamined and status_by_workload[workload].status == 'unknown' %} data-unexamined-workload="{{ workload }}"{% endif %} class="area-link more">{{ workload_labels[workload] }}{{ icon('chevron-right') }}</a>
 {%- endmacro %}
 {% macro summary_area(row) -%}
   <dt class="finding-head">
     <div>
-      <a href="#readiness-{{ row.workload }}" class="finding-area more">{{ workload_labels[row.workload] }}{{ icon('chevron-right') }}</a>
+      <a href="#readiness-{{ row.workload }}" class="finding-area area-link more">{{ workload_labels[row.workload] }}{{ icon('chevron-right') }}</a>
       <span class="finding-category">{{ category_labels[workload_categories[row.workload]] }}</span>
     </div>
     <span class="finding-status">{{ finding_badges(row) }}</span>
@@ -175,7 +181,7 @@
   <dl class="rows">
     {% for workload, actions in steps.items() %}
       <div>
-        <dt><a href="#readiness-{{ workload }}" class="more">{{ workload_labels[workload] }}{{ icon('chevron-right') }}</a></dt>
+        <dt>{{ area_link(workload) }}</dt>
         <dd>
           <ul class="path-actions">
             {% for action in actions %}<li data-step-kind="{{ action.kind }}">{{ action.text }}</li>{% endfor %}
@@ -185,47 +191,47 @@
     {% endfor %}
   </dl>
 {%- endmacro %}
+{% macro evidence_question(finding_id) -%}
+  {{ strings.path.questions.get(finding_id) or strings.path.finding_question.format(finding=finding_labels[finding_id]) }}
+{%- endmacro %}
+{% macro open_details(owners, input_key, collector, skipped=none) -%}
+  <p><span class="open-label">{{ strings.path.who_answers }}</span>
+    {% for owner in owners %}{{ strings.role[owner] }}{{ ' · ' if not loop.last }}{% endfor %}
+  </p>
+  {% if input_key %}
+    <p><span class="open-label">{{ strings.path.input_field }}</span> {{ wrapped_code(input_key, '.') }}</p>
+  {% endif %}
+  {% if collector or not input_key %}
+    <p{% if skipped %} data-unexamined-collector="{{ skipped.id }}" data-reason="{{ skipped.reasons[0] }}"{% endif %}>
+      <span class="open-label">{{ strings.path.source }}</span>
+      {{ code_label('collector', collector) if collector else strings.common.not_stated }}
+    </p>
+  {% endif %}
+{%- endmacro %}
 {% macro open_point(point) -%}
-  {% set first = point.items[0] %}
-  {% set question = strings.path.questions.get(first.id) %}
-  {% set fixes = point.reasons|reject('eq', 'answer_not_provided')|list if point.input_key else point.reasons %}
+  {% set skipped = point.items|selectattr('kind', 'eq', 'collector')|first|default(none) %}
   <div>
-    <dt data-open-point="{{ point.key }}">{{
-      code_label('collector', point.collector) if point.collector else
-      (workload_labels[first.id] if first.kind == 'area' else question or finding_labels[first.id])
-    }}</dt>
-    <dd>
-      <ul class="open-items" role="list">
-        {% for item in point.items %}
-          {% if item.kind == 'collector' %}
-            <li data-unexamined-collector="{{ item.id }}">
-              {{ code_label('collector', item.id) }} · <span data-reason="{{ item.reasons[0] }}">{{ reason_text(item.reasons[0])[0] }}</span>
-            </li>
-          {% else %}
-            <li{% if item.unknown %} data-unexamined-finding="{{ item.id }}"{% endif %}{% if item.gap %} data-unexamined-gap="{{ item.id }}"{% endif %}>
-              {% set show_label = item.kind == 'finding' and (point.collector or point.items|length > 1 or not item.areas) %}
-              {% if show_label %}{{ strings.path.questions.get(item.id) or finding_labels[item.id] }}{% endif %}
-              {% for workload in item.areas %}
-                {% if show_label or not loop.first %} · {% endif %}
-                <a href="#readiness-{{ workload }}"{% if status_by_workload[workload].status == 'unknown' %} data-unexamined-workload="{{ workload }}"{% endif %} class="more">{{ workload_labels[workload] }}{{ icon('chevron-right') }}</a>
-              {% endfor %}
-            </li>
-          {% endif %}
-        {% endfor %}
-      </ul>
-      <p>
-        <strong>{% for owner in point.owners %}{{ strings.role[owner] }}{{ ' · ' if not loop.last }}{% endfor %}</strong>
-      </p>
-      {% if point.input_key %}
-        <p class="input-field">{{ strings.path.input_field }} {{ wrapped_code(point.input_key, '.') }}</p>
+    <dt data-open-point="{{ point.key }}">
+      {% for item in point.items if item.kind != 'collector' %}
+        <span class="open-question"{% if item.unknown %} data-unexamined-finding="{{ item.id }}"{% endif %}{% if item.gap %} data-unexamined-gap="{{ item.id }}" data-areas="{{ item.areas|join(' ') }}"{% endif %}>
+          {{ evidence_question(item.id) if item.kind == 'finding' else strings.path.area_question.format(area=workload_labels[item.id]) }}
+        </span>
+      {% else %}{{ strings.path.collector_question }}{% endfor %}
+    </dt>
+    <dd class="open-details">
+      {% if point.areas %}
+        <p>{% for area in point.areas %}{{ area_link(area, unexamined=true) }}{{ ' · ' if not loop.last }}{% endfor %}</p>
       {% endif %}
-      {% if fixes %}<p>{% for code in fixes %}{{ reason_text(code)[1] }}{{ ' ' if not loop.last }}{% endfor %}</p>{% endif %}
+      {{ open_details(point.owners, point.input_key, point.collector, skipped) }}
+      {% set reasons = point.reasons|reject('eq', 'answer_not_provided')|list if point.input_key else point.reasons %}
+      {% if reasons %}<p>{{ strings.path.guidance.get(reasons[0]) or reason_text(reasons[0])[1] }}</p>{% endif %}
     </dd>
   </div>
 {%- endmacro %}
 {% set costs = strings.costs %}
 {% set prices_invented = inputs and inputs.amounts_are_invented %}
 {% set calculation_origin = 'calculated_with_examples' if prices_invented else 'calculated' %}
+{% set input_amount_origin = 'invented' if prices_invented else 'provided' %}
 {% macro cost_columns(label) -%}
   <thead role="rowgroup">
     <tr role="row">
@@ -242,8 +248,8 @@
   <tr data-cost-input="{{ field }}" role="row">
     <th scope="row" role="rowheader" data-label="{{ costs.input }}">
       {{ costs.input_fields[field] }}
-      {% if amounts|reject('none')|list %}
-        {% set origin = 'invented' if prices_invented and not quantity else ('sample_input' if inputs and inputs.answers_are_sample and quantity else 'provided') %}
+      {% set origin = ('sample_input' if inputs and inputs.answers_are_sample else 'provided') if quantity else input_amount_origin %}
+      {% if origin != input_amount_origin and amounts|reject('none')|list %}
         <small data-cost-origin="{{ origin }}">{{ costs.origins[origin] }}</small>
       {% endif %}
     </th>
@@ -259,13 +265,13 @@
     {% endfor %}
   </tr>
 {%- endmacro %}
-{% macro cost_heading(text, known) -%}
+{% macro cost_heading(text) -%}
   <th scope="row" role="rowheader" data-label="{{ costs.category }}">
     {{ text }}
-    {% if known %}
-      <small data-cost-origin="{{ calculation_origin }}">{{ costs.origins[calculation_origin] }}</small>
-    {% endif %}
   </th>
+{%- endmacro %}
+{% macro cost_origin() -%}
+  <p class="note-text cost-origin" data-cost-origin="{{ calculation_origin }}">{{ costs.origins[calculation_origin] }}</p>
 {%- endmacro %}
 {% macro cost_amount(amount, whole=false) -%}
   {{ strings.status.unknown if amount is none else format.money(amount, cost_currency, whole=whole) }}
@@ -317,7 +323,6 @@
                   {{ costs.difference }} · {{ status_label('unknown') }}
                 {% else %}{{ cost_comparison(row.tile.comparison) }}{% endif %}
               {% endif %}
-              <small data-cost-origin="{{ calculation_origin }}">{{ costs.origins[calculation_origin] }}</small>
             </p>
           {% endif %}
         </div>
@@ -459,8 +464,10 @@
     html { scroll-padding-block-start: 24px; hyphens: manual; }
     code {
       font-family: var(--mono);
+      font-size: 0.9em;
       overflow-wrap: break-word;
     }
+    time { white-space: nowrap; }
     h1, h2, h3, h4, p { margin: 0; }
     h1, h2, h3, h4, strong, b { font-weight: 600; }
     h1, h2, h3, h4 { text-wrap: balance; }
@@ -593,7 +600,6 @@
       margin-top: 12px;
       color: var(--fg-2);
     }
-    .page-intro time { white-space: nowrap; }
     .eyebrow {
       color: var(--fg-2);
       font-weight: 600;
@@ -646,7 +652,7 @@
       max-width: var(--measure);
       margin: 12px 0 0;
     }
-    .status-summary { --status-indent: calc(1.2 * var(--fs-lead) + 8px); }
+    .status-summary { --status-indent: calc(1.2 * var(--fs-body) + 8px); }
     .status-summary > div {
       display: grid;
       gap: 4px;
@@ -659,7 +665,6 @@
       gap: 8px;
     }
     .status-summary dt {
-      font-size: var(--fs-lead);
       line-height: 1.2;
     }
     .status-summary .status {
@@ -682,7 +687,6 @@
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .coverage-summary { font-size: var(--fs-subhead); }
     .coverage-summary > div + div { margin-block-start: 4px; }
     .coverage-summary dd { margin: 0; }
     .scope-needed { margin-block: 12px 4px; }
@@ -690,8 +694,11 @@
       display: grid;
       gap: 4px;
       margin: 0 0 12px;
-      padding: 0;
-      list-style: none;
+      padding-inline-start: 16px;
+    }
+    .scope-links a {
+      text-decoration: underline 1px var(--fg-2);
+      text-underline-offset: 0.2em;
     }
     .rows {
       margin: 0;
@@ -771,6 +778,7 @@
     }
     .tiles-3 .figure-num { font-size: var(--fs-headline); }
     .summary-costs .tiles { margin-top: 0; }
+    .summary-costs .cost-origin { margin: 0 0 12px; }
     .tiles strong.tile-label { color: var(--fg-2); font-size: var(--fs-subhead); }
     .cost-value { white-space: nowrap; }
     .cost-notes {
@@ -824,13 +832,20 @@
       display: block;
       padding-inline-start: calc(1.2em + 8px);
     }
-    .replacements .note-text { margin-block-start: 4px; }
+    .checked-on { display: block; }
+    .replacement-status {
+      display: flex;
+      align-items: center;
+      width: fit-content;
+      gap: 4px;
+    }
+    .replacement-status + .badge { margin-block-start: 4px; }
     @media screen and (min-width: 70rem) {
       .replacements { table-layout: fixed; }
-      .replacements thead th:nth-child(1) { width: 26%; min-width: 12rem; }
-      .replacements thead th:nth-child(2) { width: 29%; min-width: 14rem; }
+      .replacements thead th:nth-child(1) { width: 24%; min-width: 12rem; }
+      .replacements thead th:nth-child(2) { width: 27%; min-width: 14rem; }
       .replacements thead th:nth-child(3) { width: 12%; }
-      .replacements thead th:nth-child(4) { width: 14%; }
+      .replacements thead th:nth-child(4):not(:last-child) { width: 17%; }
       .replacements tbody th { width: auto; }
       .replacements :is(th, td):is(:nth-child(3), :nth-child(4)) { padding-inline-end: 8px; }
     }
@@ -893,18 +908,29 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
-      font-size: var(--fs-footnote);
-      font-weight: 600;
     }
-    .finding-status > :is(.status, .badge) {
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       padding: 4px 8px;
       border-radius: var(--radius-pill);
+      background: var(--fill-2);
+      font-size: var(--fs-footnote);
+      font-weight: 600;
+      line-height: 1;
       white-space: nowrap;
     }
-    .finding-status .status {
+    .badge.status {
       background: color-mix(in srgb, var(--status-fill) 12%, var(--fill));
     }
-    .finding-status .badge { background: var(--fill-2); }
+    .badge > span { text-box: trim-both cap alphabetic; }
+    .badge > .icon {
+      width: 0.85em;
+      height: 0.85em;
+      width: 1.2cap;
+      height: 1.2cap;
+    }
     @media screen and (max-width: 600px) {
       .finding-head { flex-direction: column; }
       .finding-status { justify-content: flex-start; }
@@ -930,6 +956,8 @@
       height: 1em;
       vertical-align: -0.2em;
     }
+    .area-link { color: var(--fg); }
+    .area-link:hover { color: var(--link-hover); }
     .table-note, .note-text {
       margin-top: 16px;
       color: var(--fg-2);
@@ -938,7 +966,7 @@
     .finding-next { max-width: var(--measure); margin-top: 16px; }
     .finding-next > strong { display: block; font-size: var(--fs-subhead); }
     .finding-missing { margin-top: 16px; font-size: var(--fs-subhead); }
-    .finding-missing li > strong { display: block; }
+    .finding-missing li > strong { display: block; margin-block-end: 4px; }
     .finding .workload-evidence { margin-top: 12px; }
     .workload-evidence .table-scroll { margin-block: 24px; }
     .status-group {
@@ -1003,6 +1031,7 @@
       font: 600 var(--fs-subhead) / 1.3 var(--sans);
       cursor: pointer;
     }
+    .category-filter select:focus:not(:focus-visible) { outline: none; }
     .category-filter .icon {
       position: absolute;
       inset-inline-end: 12px;
@@ -1010,6 +1039,40 @@
       pointer-events: none;
       transform: translateY(-50%) rotate(90deg);
       font-size: var(--fs-subhead);
+    }
+    @media screen {
+      @supports (appearance: base-select) and selector(::picker(select)) {
+        .category-filter select, .category-filter select::picker(select) {
+          appearance: base-select;
+        }
+        .category-filter select::picker-icon { display: none; }
+        .category-filter select::picker(select) {
+          margin-block: 4px;
+          padding: 4px;
+          border: 1px solid transparent;
+          border-radius: var(--radius-card);
+          background: var(--bg);
+          color: var(--fg);
+          box-shadow: 0 8px 24px var(--segment-shadow);
+        }
+        @media (prefers-color-scheme: dark) {
+          .category-filter select::picker(select) { border-color: var(--rule); }
+        }
+        .category-filter option {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          border-radius: var(--radius);
+          cursor: pointer;
+        }
+        .category-filter option:is(:checked, :hover, :focus-visible) { background: var(--fill); }
+        .category-filter option:focus-visible { outline-offset: -2px; }
+        .category-filter option::checkmark {
+          flex: none;
+          width: 1em;
+        }
+      }
     }
     .note {
       padding: var(--card-padding);
@@ -1074,9 +1137,10 @@
     .mapping-gaps > li + li { border-top: 1px solid var(--rule); }
     .mapping-gaps > li > strong { display: block; margin-block-end: 4px; }
     .mapping-gaps > li > small:first-of-type { margin-block-start: 8px; }
-    .open-items { margin: 0 0 8px; padding: 0; list-style: none; }
-    .input-field { margin-block-start: 4px; font-size: var(--fs-subhead); }
-    .input-field code { display: block; }
+    .open-question { display: block; }
+    .rows .open-details { color: var(--fg); }
+    .open-details p + p, .finding-missing li p + p { margin-block-start: 4px; }
+    .open-label { color: var(--fg-2); }
     .path-actions { max-width: var(--measure); margin: 0; padding-inline-start: 16px; }
     .path-actions li + li { margin-block-start: 8px; }
     h4 + .rows { margin-top: 12px; }
@@ -1119,6 +1183,7 @@
       transition: transform 0.3s var(--ease);
     }
     details[open] > summary > .icon { transform: rotate(90deg); }
+    .evidence-counts { color: var(--fg-2); }
     .cost-inputs, .licence-products { margin-block-start: 32px; }
     .legend {
       display: flex;
@@ -1152,7 +1217,6 @@
     }
     .cost-chart-heading h3, .cost-chart-heading > p { margin: 0; }
     .cost-chart-heading > p { text-align: end; }
-    .cost-chart-heading small { margin-block-start: 4px; }
     .cost-bar {
       display: flex;
       width: calc(var(--share) * (100% - 56px));
@@ -1225,7 +1289,7 @@
       a, summary > .icon, .segmented label { transition: none; }
     }
     @media screen and (max-width: 600px) {
-      .scope-links li, .replacements tbody th { text-wrap: balance; }
+      .replacements tbody th { text-wrap: balance; }
       .coverage thead {
         position: absolute;
         width: 1px;
@@ -1287,6 +1351,7 @@
       }
       .replacements tbody th { font-size: var(--fs-body); }
       .replacements tbody :is(th, td:nth-child(2), td:nth-child(3)) { grid-column: 1 / -1; }
+      .replacements:has(.checked-on) tbody td:nth-child(3) { grid-column: auto; }
       .replacements td::before, .replacement-name::before {
         display: block;
         margin-block-end: 4px;
@@ -1299,7 +1364,7 @@
       .replacement-name { margin-block-start: 12px; padding: 0; }
     }
     @media screen and (640px <= width < 70rem) {
-      .replacements tbody tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .replacements:not(:has(.checked-on)) tbody tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .replacements tbody td:nth-child(3) { grid-column: auto; }
     }
     @media screen and (width < 22.5rem) {
@@ -1390,9 +1455,12 @@
       [data-summary=scope] > :is(h3, p) { grid-column: 1 / -1; }
       .coverage-summary { margin-top: 4pt; }
       .coverage-summary > div + div { margin: 0; }
-      .scope-requirements { margin-top: 4pt; font-size: var(--fs-subhead); }
+      .coverage-summary, .scope-requirements { font-size: var(--fs-subhead); }
+      .scope-requirements { margin-top: 4pt; }
       .scope-needed { margin-block: 0 2pt; }
-      .scope-links { gap: 2pt; margin: 0; }
+      .scope-links { gap: 2pt; margin: 0; padding: 0; list-style: none; }
+      .scope-links a { text-decoration: none; }
+      .summary-costs .cost-origin { margin: 0 0 4pt; }
       [data-section=summary] .subsection { margin-top: 4pt; }
       [data-section=summary] .subsection h3 { margin-block: 0 4pt; }
       [data-section=summary] .subsection > p,
@@ -1408,7 +1476,7 @@
       }
       .rows .finding-area { font-size: var(--fs-body); }
       .rows .finding-category { display: inline; margin-inline-start: 4pt; }
-      .rows .finding-status > :is(.status, .badge) { padding: 0 4pt; }
+      .rows .badge { padding: 0 4pt; }
       .more > .icon { display: none; }
       .finding-head, .finding-reason, .finding-next {
         break-inside: avoid;
@@ -1563,7 +1631,7 @@
                   <h4 class="scope-needed">{{ strings.summary.scope_needed.format(profile=scope.profile) }}</h4>
                   <ul class="scope-links" role="list">
                     {% for name, anchor in scope.needed %}
-                      <li><a href="#replacement-{{ anchor.removeprefix('transfer-gap-') }}" class="more">{{ name }}{{ icon('chevron-right') }}</a></li>
+                      <li><a href="#replacement-{{ anchor.removeprefix('transfer-gap-') }}">{{ name }}</a></li>
                     {% endfor %}
                   </ul>
                 </div>
@@ -1577,6 +1645,9 @@
           {% endif %}
           <div class="subsection summary-costs">
             <h3>{{ costs.total }}</h3>
+            {% if (cost_tiles|rejectattr('result.total', 'none')|list) or (cost_tiles|rejectattr('known_blocks', 'none')|list) %}
+              {{ cost_origin() }}
+            {% endif %}
             <ul class="tiles tiles-3" role="list">
             {% for tile in cost_tiles %}
               {% set result = tile.result %}
@@ -1600,7 +1671,6 @@
                   {% else %}
                     <p class="tile-title" data-comparison="{{ tile.comparison.direction }}">{{ cost_comparison(tile.comparison, whole=true) }}</p>
                   {% endif %}
-                  <p data-cost-origin="{{ calculation_origin }}">{{ costs.origins[calculation_origin] }}</p>
                 {% endif %}
               </li>
             {% endfor %}
@@ -1696,10 +1766,13 @@
                         <p><strong>{{ strings.readiness.missing }}</strong></p>
                         <ul>
                           {% for gap in row.missing %}
+                            {% set field = finding_inputs.get(gap.finding_id) %}
                             <li data-missing="{{ gap.finding_id }}">
-                              <strong>{{ finding_labels[gap.finding_id] }}</strong>
-                              {% if gap.collector %}<small>{{ code_label('collector', gap.collector) }}</small>{% endif %}
-                              {{ reason_detail(gap.reason_code) }}
+                              <strong data-reason="{{ gap.reason_code }}">{{ evidence_question(gap.finding_id) }}</strong>
+                              {{ open_details((finding_owners.get(gap.finding_id, 'licence_management'),), field, gap.collector) }}
+                              {% if gap.reason_code != 'answer_not_provided' or not field %}
+                                <p>{{ reason_detail(gap.reason_code) }}</p>
+                              {% endif %}
                             </li>
                           {% endfor %}
                         </ul>
@@ -1709,7 +1782,12 @@
                     {% if observations or row.evidence %}
                       {% set counts = evidence_counts[row.workload] %}
                       <details class="workload-evidence" data-evidence-workload="{{ row.workload }}">
-                        <summary id="evidence-{{ row.workload }}">{{ icon('chevron-right') }}{{ strings.readiness.evidence_summary.format(measured=format.integer(counts.measured), provided=format.integer(counts.provided), unknown=format.integer(counts.unknown)) }}</summary>
+                        <summary id="evidence-{{ row.workload }}">
+                          {{ icon('chevron-right') }}
+                          <span>{{ strings.readiness.evidence }}
+                            <small class="evidence-counts">{{ strings.readiness.evidence_summary.format(measured=format.integer(counts.measured), provided=format.integer(counts.provided), unknown=format.integer(counts.unknown)) }}</small>
+                          </span>
+                        </summary>
                         {% if row.evidence %}
                           <ul class="rule-evidence" role="list">
                             {% for finding in row.evidence %}
@@ -1752,10 +1830,13 @@
             {% if inputs and inputs.as_of %}<time datetime="{{ inputs.as_of }}">{{ format.date(inputs.as_of) }}</time>
             {% elif inputs %}{{ strings.common.date_not_supplied }}
             {% else %}{{ costs.not_provided }}{% endif %}
-            · {{ costs.origins['invented' if prices_invented else 'provided'] if inputs else costs.not_provided }}
+            · {% if inputs %}<span data-cost-origin="{{ input_amount_origin }}">{{ costs.origins[input_amount_origin] }}</span>
+            {%- else %}{{ costs.not_provided }}{% endif %}
           </p>
           <p class="note-text">{{ costs.profile_note }}</p>
-          {% if cost_chart_rows %}{{ cost_chart() }}
+          {% if cost_chart_rows %}
+            {{ cost_origin() }}
+            {{ cost_chart() }}
           {% else %}<p class="note">{{ costs.provide_inputs }}</p>{% endif %}
           {{ cost_notes() }}
           <h3 id="cost-results-title">{{ costs.results }}</h3>
@@ -1770,7 +1851,7 @@
                   </tr>
                   {% for id, lines in block.lines %}
                     <tr role="row" data-cost-line="{{ id }}">
-                      {{ cost_heading(costs.line_items[id], lines|reject('none')|rejectattr('amount', 'none')|list) }}
+                      {{ cost_heading(costs.line_items[id]) }}
                       {% for line in lines %}
                         {% set result = scenarios[loop.index0] %}
                         <td role="cell" data-label="{{ costs[result.id] }}"{% if line %} data-amount="{{ plain_amount(line.amount) }}"{% endif %}>
@@ -1780,7 +1861,7 @@
                     </tr>
                   {% endfor %}
                   <tr class="subtotals" role="row">
-                    {{ cost_heading(costs.subtotal, block.groups|rejectattr('total', 'none')|list) }}
+                    {{ cost_heading(costs.subtotal) }}
                     {% for group in block.groups %}
                       <td role="cell" data-label="{{ costs[scenarios[loop.index0].id] }}" data-amount="{{ plain_amount(group.total) }}">{{ cost_amount(group.total) }}</td>
                     {% endfor %}
@@ -1789,13 +1870,13 @@
               {% endfor %}
               <tbody role="rowgroup">
                 <tr class="totals" role="row">
-                  {{ cost_heading(costs.total, scenarios|rejectattr('total', 'none')|list) }}
+                  {{ cost_heading(costs.total) }}
                   {% for result in scenarios %}
                     <td data-scenario="{{ result.id }}" data-total="{{ plain_amount(result.total) }}" role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.total) }}</td>
                   {% endfor %}
                 </tr>
                 <tr role="row">
-                  {{ cost_heading(costs.difference, scenarios|rejectattr('difference_to_stay', 'none')|list) }}
+                  {{ cost_heading(costs.difference) }}
                   {% for result in scenarios %}
                     <td role="cell" data-label="{{ costs[result.id] }}">{{ cost_amount(result.difference_to_stay) }}</td>
                   {% endfor %}
@@ -1843,6 +1924,8 @@
         <h2 class="sec-label" id="moves-title">{{ strings.moves.title }}</h2>
         <div class="sec-body">
           {{ mapping_review() }}
+          {% set check_dates = mapping.functions|map(attribute='checked_on')|unique|list %}
+          {% set shared_check = check_dates|length == 1 and check_dates[0] is not none %}
           {% set coverage_icons = {
             'in_suite': 'circle',
             'in_suite_with_limits': 'contrast',
@@ -1856,13 +1939,18 @@
           } %}
           <div class="table-scroll" role="region" aria-labelledby="moves-title" tabindex="0">
             <table class="coverage replacements" role="table">
-              {% if sample_scan %}<caption data-sample>{{ strings.found.sample }}</caption>{% endif %}
+              {% if sample_scan or shared_check %}
+                <caption{% if sample_scan %} data-sample{% endif %}>
+                  {% if sample_scan %}{{ strings.found.sample }}{% endif %}
+                  {% if shared_check %}<span class="checked-on">{{ strings.appendix.mapping_date }} {{ mapping_date(mapping.functions[0]) }}</span>{% endif %}
+                </caption>
+              {% endif %}
               <thead role="rowgroup">
                 <tr role="row">
                   {{ column(strings.moves.microsoft) }}
                   {{ column(strings.moves.replacement) }}
                   {{ column(strings.moves.need) }}
-                  {{ column(strings.appendix.mapping_date) }}
+                  {% if not shared_check %}{{ column(strings.appendix.mapping_date) }}{% endif %}
                   {{ column(strings.moves.workload_status) }}
                 </tr>
               </thead>
@@ -1890,10 +1978,10 @@
                         {{ strings.moves.need_not_assessed }}
                       {% endif %}
                     </td>
-                    <td role="cell" data-label="{{ strings.appendix.mapping_date }}">{{ mapping_date(item) }}</td>
+                    {% if not shared_check %}<td role="cell" data-label="{{ strings.appendix.mapping_date }}">{{ mapping_date(item) }}</td>{% endif %}
                     <td role="cell" data-label="{{ strings.moves.workload_status }}">
-                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}" class="more">{{ status_label(row.status) }}{{ icon('chevron-right') }}</a>
-                      {% if row.incomplete %}<small class="note-text">{{ strings.readiness.incomplete }}</small>{% endif %}
+                      <a href="#readiness-{{ item.workload }}" aria-label="{{ strings.moves.status_link.format(area=workload_labels[item.workload], status=strings.status[row.status]) }}" class="area-link more replacement-status">{{ status_label(row.status, badge=true) }}{{ icon('chevron-right') }}</a>
+                      {% if row.incomplete %}{{ incomplete_badge() }}{% endif %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -1901,7 +1989,7 @@
             </table>
           </div>
           {% for workload in mapping.no_function %}
-            <p><strong>{{ workload_labels[workload] }}</strong> · {{ strings.moves.no_function }}</p>
+            <p class="note-text">{{ strings.moves.licences_excluded if workload == 'licences' else strings.moves.area_excluded.format(area=workload_labels[workload]) }}</p>
           {% endfor %}
         </div>
       </div>
@@ -2197,9 +2285,6 @@
                 </dd>
               {% endfor %}
             </dl>
-            {% for workload in mapping.no_function %}
-              <p><strong>{{ workload_labels[workload] }}</strong> · {{ strings.moves.no_function }}</p>
-            {% endfor %}
           </details>
           <details>
             <summary>{{ icon('chevron-right') }}{{ costs.formulas_title }}</summary>

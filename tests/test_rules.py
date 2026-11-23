@@ -287,11 +287,11 @@ def test_reviewed_mapping_shows_the_date(
     html = render_report(sample_scan("town", catalogue), lang=lang)
     sentence = {
         "en": (
-            "This mapping was reviewed on 1 December 2026 by someone who operates "
+            "This mapping was reviewed on 1\u00a0December\u00a02026 by someone who operates "
             "the target system."
         ),
         "de": (
-            "Diese Zuordnung wurde am 1. Dezember 2026 von einer Person geprüft, "
+            "Diese Zuordnung wurde am 1.\u00a0Dezember\u00a02026 von einer Person geprüft, "
             "die das Zielsystem betreibt."
         ),
     }[lang]
@@ -1021,7 +1021,9 @@ def test_windows_software_shows_confirmed_dependency_and_unanswered_item(
     assert 'data-status="needs_work" data-incomplete' in row
     assert "At least one Windows-only application has no web version" in row
     assert "At least 1 application" in row and "1 of 2 answers supplied" in row
-    assert "answer_not_provided" in row and "The answer is missing." in row
+    assert 'data-reason="answer_not_provided"' in row
+    assert "Which Windows-only applications have no web version?" in row
+    assert "<code>windows_only_software</code>" in row
 
 
 @pytest.mark.parametrize(
@@ -2131,7 +2133,7 @@ def test_next_steps_and_open_evidence_follow_the_findings(
         rule for rule in status_rules.workloads["telephony"].rules if rule.status == "blocker"
     )
     assert re.search(
-        r'<dt><a href="#readiness-telephony" class="more">.*?</a></dt>\s*'
+        r'<dt><a href="#readiness-telephony" class="area-link more">.*?</a></dt>\s*'
         r'<dd>\s*<ul class="path-actions">\s*'
         rf'<li data-step-kind="{rule.next_step.kind}">{re.escape(rule.next_step.text["en"])}</li>',
         path,
@@ -2141,11 +2143,12 @@ def test_next_steps_and_open_evidence_follow_the_findings(
     assert set(re.findall(r'data-step-kind="([^"]+)"', staying)) == {"clarify", "decide"}
     assert set(re.findall(r'data-step-kind="([^"]+)"', moving)) == {"replace"}
     assert re.search(
-        rf'<li [^>]*data-unexamined-gap="{re.escape(mail_gap.id)}"[^>]*>'
-        r'[^<]*<a href="#readiness-mail"[^>]*>',
+        rf'<span [^>]*data-unexamined-gap="{re.escape(mail_gap.id)}" data-areas="mail"[^>]*>'
+        r'.*?</dt>\s*<dd class="open-details">\s*<p><a href="#readiness-mail"[^>]*>',
         moving,
+        re.S,
     )
-    assert load_locale("en")["reason"]["needs_recipient_export"]["fix"] in moving
+    assert load_locale("en")["path"]["guidance"]["needs_recipient_export"] in moving
     for workload in re.findall(r'href="#readiness-([^"]+)"', path):
         assert 'data-status="ready"' not in readiness_row(html, workload)
     assert "%" not in path and "<ol" not in path and "pilot" not in path.casefold()

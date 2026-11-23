@@ -204,8 +204,11 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
     mapping = load_mapping(profile, load_catalogue())
     strings = load_locale("en")
     moves = report_section(html, "moves")
+    caption = re.search(r"<caption data-sample>.*?</caption>", moves, re.S)
     assert mapping.label["en"] in html.split("</header>", 1)[0]
-    assert "<caption data-sample>" in moves
+    assert caption
+    dates = {row.checked_on for row in mapping.functions}
+    shared_check = len(dates) == 1 and None not in dates
     assert re.findall(r'<tr data-function="([^"]+)"', moves) == [
         row.function for row in mapping.functions
     ]
@@ -233,13 +236,14 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
             assert strings["moves"]["no_project_check"] in move[0]
             assert strings["moves"]["no_project_check"] in detail[0]
         else:
-            assert row.checked_on.isoformat() in move[0] and row.checked_on.isoformat() in detail[0]
+            assert row.checked_on.isoformat() in (caption[0] if shared_check else move[0])
+            assert row.checked_on.isoformat() in detail[0]
             text = unescape(detail[0].replace("<wbr>", ""))
             assert row.reference_url and row.reference_url in text
         if row.note:
             assert row.note["en"] in unescape(detail[0])
     assert "data-move-evidence=" not in moves and "href=" not in appendix
-    assert strings["moves"]["no_function"] in moves
+    assert strings["moves"]["licences_excluded"] in moves
     assert "Other systems send mail" in readiness_html
     assert strings["provenance"]["provided"] in readiness_html
     assert strings["source"]["sample.interview"] in readiness_html
@@ -515,8 +519,8 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
             "52,5 GB",
             strings["provenance"]["measured"],
             strings["source"]["sample.onedrive_usage"],
-            "5. November 2026",
-            "9. Mai bis 4. Nov. 2026",
+            "5.\u00a0November\u00a02026",
+            "9.\u00a0Mai bis 4.\u00a0Nov.\u00a02026",
             "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen",
         ):
             assert text in onedrive
@@ -577,8 +581,8 @@ def test_nonprofit_partial_coverage_has_all_counts_and_localised_dates() -> None
     assert row is not None
     assert "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen" in row[1]
     assert "52,5 GB" in row[1]
-    assert "5. November 2026" in row[1]
-    assert "9. Mai bis 4. Nov. 2026" in row[1]
+    assert "5.\u00a0November\u00a02026" in row[1]
+    assert "9.\u00a0Mai bis 4.\u00a0Nov.\u00a02026" in row[1]
 
 
 @pytest.mark.parametrize(
@@ -888,7 +892,7 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     assert scan_only.stdout.splitlines() == [str(report)] and not scan_only.stderr
     assert list(out.iterdir()) == [report]
     scan_html = report.read_text(encoding="utf-8")
-    assert 'lang="de"' in scan_html and "2. November 2026" in scan_html
+    assert 'lang="de"' in scan_html and "2.\u00a0November\u00a02026" in scan_html
     assert 'data-workload="telephony" data-status="unknown"' in report_section(
         scan_html, "readiness"
     )
@@ -1117,7 +1121,9 @@ def test_demo_and_report_use_the_scan_date_independently_of_the_clock(
         result = runner.invoke(app, ["demo", "--out", str(demo)])
     assert result.exit_code == 0 and not result.stderr, result.output
     assert Path(result.stdout.splitlines()[-1]) == original
-    assert "2 November 2026" in original.read_text(encoding="utf-8").split("</header>", 1)[0]
+    assert (
+        "2\u00a0November\u00a02026" in original.read_text(encoding="utf-8").split("</header>", 1)[0]
+    )
 
     scan = demo / "scan-2026-11-02-en.json"
     inputs = demo / "inputs-2026-11-02-en.yaml"

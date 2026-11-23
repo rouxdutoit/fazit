@@ -122,6 +122,19 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
     strings = load_locale(lang)
     mapping = load_mapping(profile, catalogue.load_catalogue())
     moves = report_section(html, "moves")
+    shared = {item.checked_on for item in mapping.functions}
+    shared_check = len(shared) == 1 and None not in shared
+    date_label = strings["appendix"]["mapping_date"]
+    if shared_check:
+        day = next(iter(shared))
+        assert day is not None
+        assert (
+            re.search(r"<caption[^>]*>.*?</caption>", moves, re.S)[0].count(
+                f'<time datetime="{day.isoformat()}">'
+            )
+            == 1
+        )
+        assert f'data-label="{date_label}"' not in moves
     rows = dict(re.findall(r'<tr data-function="([^"]+)"(.*?)</tr>', moves, re.S))
     assert list(rows) == [item.function for item in mapping.functions]
     needs = dict(re.findall(r'<li data-gap="([^"]+)" data-need="([^"]+)"', html))
@@ -148,7 +161,9 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
     for item in mapping.functions:
         row = rows[item.function]
         status = re.search(r'data-status="([^"]+)"', row)[1]
-        assert row.count("<td ") == 4
+        assert row.count("<td ") == (3 if shared_check else 4)
+        if not shared_check:
+            assert f'data-label="{date_label}"' in row
         need = re.search(
             rf'<td role="cell" data-label="{strings["moves"]["need"]}">\s*([^<]+)',
             row,
@@ -170,15 +185,40 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         assert path not in status_paths
         assert strings["mapping_coverage"][item.coverage] in unescape(coverage[0])
         link = re.search(
-            r'<a href="#readiness-([^"]+)" aria-label="([^"]+)" class="more">(.*?)</a>', row, re.S
+            r'<a href="#readiness-([^"]+)" aria-label="([^"]+)" '
+            r'class="area-link more replacement-status">(.*?)</a>',
+            row,
+            re.S,
         )
         assert link and link[1] == item.workload
         assert unescape(link[2]) == strings["moves"]["status_link"].format(
             area=strings["workload"][item.workload], status=strings["status"][status]
         )
-        assert f'<span class="status {status}">' in link[3]
+        assert f'<span class="status {status} badge">' in link[3]
         for _, attrs in ReportDocument(row.replace(link[0], "")).tags:
             assert not ({"status", *DISPLAY_ORDER} & set(attrs.get("class", "").split()))
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_replacements_keep_per_row_dates_when_checks_differ(lang: str) -> None:
+    entries = catalogue.load_catalogue()
+    scan = load_scan(sample_scan_path("town"), entries)
+    context, _ = report_module._prepare_report(scan, lang, "opendesk", entries, None)
+    mapping = context["mapping"]
+    first, *rest = mapping.functions
+    first = replace(first, checked_on=date(2026, 11, 20))
+    context["mapping"] = replace(mapping, functions=(first, *rest))
+
+    moves = report_section(report_module._render_html(context), "moves")
+    assert 'class="checked-on"' not in moves
+    formatter = Formatter(lang)
+    date_label = formatter.strings["appendix"]["mapping_date"]
+    cells = re.findall(rf'data-label="{date_label}">\s*(<time [^<]+</time>)', moves)
+    assert cells == [
+        f'<time datetime="{item.checked_on.isoformat()}">'
+        f"{formatter.date(item.checked_on.isoformat())}</time>"
+        for item in context["mapping"].functions
+    ]
 
 
 def _assert_status_summary(summary: str, counts: Counter[str], formatter: Formatter) -> None:
@@ -328,7 +368,7 @@ def test_summary_keeps_all_unknown_areas_unknown(tmp_path: Path, lang: str) -> N
 
 
 def _open_point_rows(path: str) -> list[tuple[str, str]]:
-    return re.findall(r'<dt data-open-point="([^"]+)">.*?</dt>\s*<dd>(.*?)</dd>', path, re.S)
+    return re.findall(r'<dt data-open-point="([^"]+)">(.*?)</dd>', path, re.S)
 
 
 @pytest.mark.parametrize(
@@ -349,7 +389,8 @@ def test_open_points_include_every_gap_unknown_finding_and_skipped_collector(
     points = _open_point_rows(path)
     statuses = context["statuses"]
     unknown_areas = {row.workload for row in statuses if row.status == "unknown"}
-    roles = set(load_locale(lang)["role"].values())
+    strings = load_locale(lang)
+    roles = set(strings["role"].values())
 
     assert points and len(dict(points)) == len(points)
     assert html.count('id="not-examined"') == 1 and '<h4 id="not-examined">' in path
@@ -369,32 +410,40 @@ def test_open_points_include_every_gap_unknown_finding_and_skipped_collector(
         assert not key.startswith(("confirmations.", "provided_counts.")) or (
             f"<code>{key}</code>" in body.replace("<wbr>", "")
         )
-        assert re.search(r"<p>\s*<strong>([^<]+)</strong>", unescape(body))[1] in roles
-        for hooks, item in re.findall(r"<li([^>]*)>(.*?)</li>", body, re.S):
-            gap = re.search(r'data-unexamined-gap="([^"]+)"', hooks)
-            if gap and "data-unexamined-finding" in hooks:
-                assert hooks.startswith(f' data-unexamined-finding="{gap[1]}"')
-            for link in ReportDocument(item).tags:
-                tag, attrs = link
-                if tag == "a":
-                    workload = attrs["href"].removeprefix("#readiness-")
-                    assert attrs.get("data-unexamined-workload") == (
-                        workload if workload in unknown_areas else None
-                    )
-                    if gap:
-                        gaps.add((workload, gap[1]))
+        owner = re.search(r'<p><span class="open-label">[^<]+</span>\s*([^<]+)', unescape(body))
+        assert owner and set(owner[1].strip().split(" · ")) <= roles
+        tags = ReportDocument(body).tags
+        links = {}
+        for tag, attrs in tags:
+            if tag == "a":
+                workload = attrs["href"].removeprefix("#readiness-")
+                assert workload not in links
+                links[workload] = attrs
+                assert attrs.get("data-unexamined-workload") == (
+                    workload if workload in unknown_areas else None
+                )
+        for tag, attrs in tags:
+            if tag == "span" and (gap := attrs.get("data-unexamined-gap")):
+                assert attrs.get("data-unexamined-finding", gap) == gap
+                areas = attrs["data-areas"].split()
+                assert areas and set(areas) <= links.keys()
+                gaps.update((area, gap) for area in areas)
     assert gaps == {(row.workload, gap.finding_id) for row in statuses for gap in row.missing}
     if sample == "town":
         recipients = dict(points)["collector.exchange_recipients"]
         assert 'data-unexamined-collector="exchange_recipients"' in recipients
         assert 'data-unexamined-finding="mail.shared_mailbox_count"' in recipients
         assert 'href="#readiness-mail"' in recipients
+        assert recipients.count(strings["path"]["questions"]["mail.shared_mailbox_count"]) == 1
+        assert recipients.count(strings["collector"]["exchange_recipients"]) == 1
+        assert re.search(
+            rf"{strings['path']['who_answers']}</span>\s*{strings['role']['it_team']}", recipients
+        )
     if sample == "nonprofit":
         sharepoint = unescape(dict(points)["collector.sharepoint_site_usage"])
-        reasons = load_locale(lang)["reason"]
-        fixes = [reasons[code]["fix"] for code in ("collector_skipped", "source_not_supplied")]
-        assert " ".join(fixes) in sharepoint
-        assert all(sharepoint.count(fix) == 1 for fix in fixes)
+        fix = strings["reason"]["collector_skipped"]["fix"]
+        assert sharepoint.count(fix) == 1
+        assert strings["path"]["guidance"]["source_not_supplied"] not in sharepoint
 
 
 def test_open_points_group_both_software_counts_by_the_input_list(tmp_path: Path) -> None:
@@ -405,7 +454,7 @@ def test_open_points_group_both_software_counts_by_the_input_list(tmp_path: Path
         "windows_software.application_count",
         "windows_software.without_web_version_count",
     ]
-    assert software.count('href="#readiness-windows_software"') == 2
+    assert software.count('href="#readiness-windows_software"') == 1
     assert "<code>windows_only_software</code>" in software
 
 
@@ -423,16 +472,26 @@ def test_manual_open_points_name_the_actual_question_and_input(tmp_path: Path, l
     ):
         key = f"confirmations.{finding_id}"
         question = strings["path"]["questions"][finding_id]
-        assert f'<dt data-open-point="{key}">{question}</dt>' in path
+        assert question in points[key].split("</dt>")[0]
         assert question in summary
         wrapped_key = key.replace(".", ".<wbr>")
-        assert f"{strings['path']['input_field']} <code>{wrapped_key}</code>" in points[key]
+        assert f"{strings['path']['input_field']}</span> <code>{wrapped_key}</code>" in points[key]
         assert strings["reason"]["answer_not_provided"]["fix"] not in points[key]
+        workload = finding_id.split(".")[0]
+        card = unescape(readiness_row(html, workload))
+        missing = re.search(rf'<li data-missing="{re.escape(finding_id)}">(.*?)</li>', card, re.S)[
+            1
+        ]
+        assert question in missing and f"<code>{wrapped_key}</code>" in missing
+        assert strings["path"]["who_answers"] in missing
+        entry = catalogue.load_catalogue().finding(finding_id)
+        assert entry and strings["role"][entry.owner] in missing
+        assert strings["reason"]["answer_not_provided"]["fix"] not in missing
 
 
 def _path_action_rows(part: str) -> list[tuple[str, list[tuple[str, str]]]]:
     groups = re.findall(
-        r'<dt><a href="#readiness-([^"]+)" class="more">.*?</a></dt>\s*'
+        r'<dt><a href="#readiness-([^"]+)" class="area-link more">.*?</a></dt>\s*'
         r'<dd>\s*<ul class="path-actions">(.*?)</ul>',
         part,
         re.S,
@@ -472,13 +531,17 @@ def test_next_steps_group_actions_by_area_in_display_order(sample: str, lang: st
                     continue
                 if target is not None:
                     grouped.add(target)
-                    functions = ", ".join(
-                        gap.mapping.microsoft[lang]
+                    affected = [
+                        gap.mapping
                         for gap in row.transfer_gaps
                         if gap.need == "yes" and gap.mapping.coverage == target
+                    ]
+                    assert affected
+                    function_key = f"{target}.{affected[0].function}"
+                    copy = transfer_copy.get(function_key) if len(affected) == 1 else None
+                    text = (copy or transfer_copy[target]).format(
+                        functions=", ".join(item.microsoft[lang] for item in affected)
                     )
-                    assert functions
-                    text = transfer_copy[target].format(functions=functions)
                 group = expected_move if kind == "replace" else expected_stay
                 group.setdefault(row.workload, []).append((kind, text))
     assert _path_action_rows(before) == list(expected_stay.items())
@@ -534,7 +597,7 @@ def test_summary_scope_matches_the_replacements_and_gaps(tmp_path: Path, lang: s
         (strings["mapping_coverage"][code], formatter.integer(count))
         for code, count in scope.by_coverage
     ]
-    assert re.findall(r'<a href="#([^"]+)" class="more">([^<]+)<svg', summary) == [
+    assert re.findall(r'<a href="#(replacement-[^"]+)">([^<]+)</a>', summary) == [
         (f"replacement-{anchor.removeprefix('transfer-gap-')}", name)
         for name, anchor in scope.needed
     ]
@@ -573,9 +636,11 @@ def test_readiness_cards_keep_status_order_and_show_the_area_and_action(
         assert f'<span class="finding-category">{category}</span>' in unescape(card)
         status = re.search(r'data-status="([^"]+)"', card)[1]
         label = strings["status"][status]
-        assert re.search(rf'<p class="finding-status">.*?</svg> {label}</span>', card, re.S)
+        assert re.search(rf'<p class="finding-status">.*?</svg> <span>{label}</span>', card, re.S)
         incomplete = strings["readiness"]["incomplete"]
-        assert (f'<span class="badge">{incomplete}</span>' in card) == (" data-incomplete" in card)
+        assert (f'<span class="badge"><span>{incomplete}</span></span>' in card) == (
+            " data-incomplete" in card
+        )
         reason = re.search(r'<div class="finding-reason">(.*?)</div>', card, re.S)
         assert reason and re.sub(r"<[^>]+>", "", reason[1]).strip()
         if status != "ready":
@@ -616,11 +681,15 @@ def test_card_disclosures_count_each_observation_once(
         counts = Counter(
             provenance for evidence in observations.values() for provenance in evidence
         )
-        expected = load_locale(lang)["readiness"]["evidence_summary"].format(
+        copy = load_locale(lang)["readiness"]
+        expected = copy["evidence_summary"].format(
             **{kind: counts[kind] for kind in ("measured", "provided", "unknown")}
         )
         assert re.search(
-            rf'<summary id="evidence-{workload}">.*?</svg>{expected}</summary>', detail
+            rf'<summary id="evidence-{workload}">.*?</svg>\s*<span>{copy["evidence"]}\s*'
+            rf'<small class="evidence-counts">{expected}</small>',
+            detail,
+            re.S,
         )
         if '<table class="coverage"' in detail and '<ul class="rule-evidence"' in detail:
             assert detail.index('<ul class="rule-evidence"') < detail.index(
@@ -658,7 +727,7 @@ def test_card_disclosure_counts_two_disagreeing_observations_with_the_same_prove
     )
     inputs = load_inputs(sample_inputs_path("town"), entries)
     card = readiness_row(report_module.render_report(scan, lang="en", inputs=inputs), "small_apps")
-    assert "Evidence · 0 measured, 2 provided, 0 unknown" in card
+    assert '<small class="evidence-counts">0 measured, 2 provided, 0 unknown</small>' in card
     assert card.count('class="evidence-meta"><span class="prov">Provided</span>') == 4
 
 
@@ -1124,8 +1193,8 @@ def test_run_details_use_dates_and_roles_without_filenames(tmp_path: Path, with_
     periods = sorted({row["period"] for row in data["findings"] if row["period"]})
     assert re.findall(r'data-reporting-period="([^"]+)"', details) == periods
     if with_date:
-        assert '<time datetime="2026-11-10">10 November 2026</time>' in details
-        assert '<time datetime="2026-11-10">10 November 2026</time>' in header
+        assert '<time datetime="2026-11-10">10\u00a0November\u00a02026</time>' in details
+        assert '<time datetime="2026-11-10">10\u00a0November\u00a02026</time>' in header
     else:
         assert strings["common"]["date_not_supplied"] in details
         assert strings["common"]["date_not_supplied"] in header

@@ -87,7 +87,7 @@ costs:
   not_provided: Not provided
   not_applicable: Not applicable
   invented_amounts: Amounts in this table are based on invented prices for the demonstration.
-  rounding: Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
+  rounding: The summary totals and break-even figures are rounded to whole currency units. The tables show cents where needed. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
   provide_inputs: Supply a cost input file with the report command's --inputs option.
   missing: 'Missing inputs for {scenario}'
   stay_basis: Today's yearly costs for five years
@@ -162,7 +162,8 @@ readiness:
   incomplete: Evidence incomplete
   missing: Evidence still needed
   conflict: The report uses the measured minimum because the supplied total is lower.
-  evidence_summary: Evidence · {measured} measured, {provided} provided, {unknown} unknown
+  evidence: Evidence
+  evidence_summary: '{measured} measured, {provided} provided, {unknown} unknown'
   all_replacements: All replacements
 filter:
   status_legend: Show areas by status
@@ -181,6 +182,8 @@ moves:
   workload_status: Area status
   status_link: '{area}: {status}'
   no_function: There is no function to move.
+  licences_excluded: Licences have no function to move, so they are not in this table.
+  area_excluded: '{area} has no function to move, so it is not in this table.'
   no_project_check: This row has no project-specific documentation check.
   unreviewed: This mapping has not yet been reviewed by someone who operates the target system.
   reviewed: This mapping was reviewed on {date} by someone who operates the target system.
@@ -213,7 +216,16 @@ path:
   title: What to do next
   even_if_staying: Worth doing even if you stay
   for_move: Needed for a move
-  input_field: Field in inputs.yaml
+  who_answers: 'Who answers:'
+  source: 'Source:'
+  input_field: 'Field in inputs.yaml:'
+  finding_question: 'What does the evidence show for “{finding}”?'
+  area_question: 'What evidence is still needed for {area}?'
+  collector_question: What evidence is missing from this collection?
+  guidance:
+    not_in_export: Ask the service owner for the missing information.
+    needs_recipient_export: Ask the mail administrator to check the count separately.
+    source_not_supplied: Find out which source can provide the missing evidence.
   questions:
     licences.contract_terms_known: Has procurement reviewed the Microsoft licence terms?
     directory.account_list_reviewed: Has the IT team reviewed the current account list?
@@ -245,7 +257,12 @@ path:
     small_apps.in_use: Do departments use smaller Microsoft applications such as Forms, Planner or Bookings?
     integrations.application_count: How many business applications are connected to Microsoft 365?
   transfer_actions:
-    not_available: For the functions listed here ({functions}), the service lead and IT team plan how to provide them after the move.
+    not_available: The service lead and IT team decide on replacements for {functions} after the move.
+    not_available.device_management: The service lead and IT team decide how to manage devices after the move.
+    not_available.desktop_operating_system: The service lead and IT team decide how to provide the desktop operating system after the move.
+    not_available.windows_applications: The service lead and IT team decide how to run Windows-only applications after the move.
+    not_available.automation_and_low_code: The service lead and IT team decide how to run the automations and low-code applications after the move.
+    not_available.telephony: The service lead and IT team decide how {functions} are provided after the move.
     transfer_undocumented: The service lead and IT team plan and test how to transfer or rebuild the content for {functions}.
   empty:
     blocker: The evidence identified no blocker.

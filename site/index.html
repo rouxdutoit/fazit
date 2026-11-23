@@ -53,7 +53,7 @@
       <p class="hero-sub">What you rely on, what needs work and what it would cost, in one report that Fazit writes on your own computer.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
-        <a class="more" href="/demo/en/">View sample report</a>
+        <a class="btn btn-secondary" href="/demo/en/"><span class="btn-icon icon-description" aria-hidden="true"></span>View sample report</a>
       </div>
       <p class="hero-status">Today with sample data. Import of your own Microsoft 365 exports comes next.</p>
     </section>
@@ -69,17 +69,17 @@
           </span>
         </span>
         <picture>
-          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1440">
-          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1440">
-          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1120">
-          <img src="/images/readiness-en-light.webp" width="2016" height="1120" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The report identifies telephony as the blocker." decoding="async" fetchpriority="high">
+          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1312">
+          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1312">
+          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1116">
+          <img src="/images/readiness-en-light.webp" width="2016" height="1116" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The report identifies telephony as the blocker." decoding="async" fetchpriority="high">
         </picture>
       </div>
       <figcaption>
         <span><span data-assessed-areas>14</span> areas, three targets (openDesk, Nextcloud and a product-neutral checklist), in English and German, as one file that opens offline.</span>
         <span class="caption-links">
           <a class="more" href="/demo/en/">Open the sample report</a>
-          <a class="more" href="/demo/en/" download="fazit-sample-report-en.html">Download HTML, 410 KB</a>
+          <a class="more" href="/demo/en/" download="fazit-sample-report-en.html">Download HTML, 411 KB</a>
         </span>
       </figcaption>
     </figure>
@@ -96,7 +96,7 @@
     <section class="sec grid" id="example" aria-labelledby="example-title">
       <h2 class="sec-label" id="example-title">Evidence and a next step for every area</h2>
       <div class="sec-body">
-        <p class="sec-intro">Each area shows its status, the evidence behind it and what is still missing. This example covers Mail in the report for a fictional town. Its measurements are simulated.</p>
+        <p class="lead">Each area shows its status, the evidence behind it and what is still missing. This example covers Mail in the report for a fictional town. Its measurements are simulated.</p>
         <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
           <div class="finding-head">
             <div>
@@ -104,8 +104,8 @@
               <span class="finding-category">Communication</span>
             </div>
             <p class="finding-status">
-              <span class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work</span>
-              <span class="badge">Evidence incomplete</span>
+              <span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Needs work</span></span>
+              <span class="badge"><span>Evidence incomplete</span></span>
             </p>
           </div>
           <div class="finding-reason">
@@ -116,20 +116,21 @@
             <p><strong>Evidence still needed</strong></p>
             <ul>
               <li data-missing="mail.shared_mailbox_count">
-                <strong>Shared mailboxes</strong>
-                <small>Exchange recipient export</small>
-                <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Ask the mail administrator to check the count separately. It stays Unknown in this report.</span>
+                <strong data-reason="needs_recipient_export">How many shared mailboxes does the organisation have?</strong>
+                <p><span class="open-label">Who answers:</span> IT team</p>
+                <p><span class="open-label">Source:</span> Exchange recipient export</p>
+                <p><span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Ask the mail administrator to check the count separately. It stays Unknown in this report.</span></p>
               </li>
             </ul>
           </div>
           <details class="workload-evidence" data-evidence-workload="mail">
-            <summary id="evidence-mail"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>Evidence · 4 measured, 1 provided, 1 unknown</summary>
+            <summary id="evidence-mail"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span>Evidence<small class="evidence-counts">4 measured, 1 provided, 1 unknown</small></span></summary>
             <ul class="rule-evidence" role="list">
               <li data-evidence="mail.mailbox_count">
                 <strong>Mailboxes</strong>
                 <div data-provenance="measured">
                   91 mailboxes
-                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2 November 2026 · 6 May to 1 Nov 2026 · Complete</small>
+                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
                 </div>
               </li>
               <li data-evidence="mail.shared_mailbox_count">
@@ -144,14 +145,14 @@
                 <strong>Other systems send mail through Microsoft</strong>
                 <div data-provenance="provided">
                   Yes
-                  <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10 November 2026</small>
+                  <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10&nbsp;November&nbsp;2026</small>
                 </div>
               </li>
               <li data-evidence="mail.licence_bundled_assigned">
                 <strong>Included licence assigned for Mail</strong>
                 <div data-provenance="measured">
                   Yes
-                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample licence inventory · 2 November 2026 · Complete, 3 of 3 scanned, 0 failed</small>
+                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample licence inventory · 2&nbsp;November&nbsp;2026 · Complete, 3 of 3 scanned, 0 failed</small>
                 </div>
               </li>
             </ul>
@@ -170,7 +171,7 @@
                     <td role="cell" data-label="Value">
                       <div data-provenance="measured">
                         91 mailboxes
-                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2 November 2026 · 6 May to 1 Nov 2026 · Complete</small>
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
                       </div>
                       <small>Collection method · Mailbox usage report</small>
                     </td>
@@ -191,7 +192,7 @@
                     <td role="cell" data-label="Value">
                       <div data-provenance="measured">
                         312.4 GB
-                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2 November 2026 · 6 May to 1 Nov 2026 · Complete</small>
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
                       </div>
                       <small>Collection method · Mailbox usage report</small>
                     </td>
@@ -201,7 +202,7 @@
                     <td role="cell" data-label="Value">
                       <div data-provenance="measured">
                         504,210 items
-                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2 November 2026 · 6 May to 1 Nov 2026 · Complete</small>
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
                       </div>
                       <small>Collection method · Mailbox usage report</small>
                     </td>
@@ -211,7 +212,7 @@
                     <td role="cell" data-label="Value">
                       <div data-provenance="provided">
                         Yes
-                        <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10 November 2026</small>
+                        <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10&nbsp;November&nbsp;2026</small>
                       </div>
                     </td>
                   </tr>
@@ -221,7 +222,7 @@
           </details>
           <p class="finding-target">
             <span data-target-function="mail_and_calendar">Open-Xchange (OX App Suite) · In the suite ·
-              <time datetime="2026-11-22">22 November 2026</time>
+              <time datetime="2026-11-22">22&nbsp;November&nbsp;2026</time>
             </span>
             <a class="more" href="/demo/en/#moves-title">All replacements<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
           </p>
@@ -243,6 +244,7 @@
     <section class="sec grid" id="report" aria-labelledby="report-title">
       <h2 class="sec-label" id="report-title">What you get</h2>
       <div class="sec-body">
+        <p class="lead">The report shows which functions your organisation needs.</p>
         <ul class="tiles tiles-2">
           <li>
             <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
@@ -281,7 +283,7 @@
           </li>
         </ul>
         <div class="subsection">
-          <p>The coverage table compares the documented functions in openDesk and Nextcloud. The report shows which functions your organisation needs.</p>
+          <p>The coverage table compares the documented functions in openDesk and Nextcloud.</p>
           <p><a class="more" href="/coverage/">Compare openDesk and Nextcloud</a></p>
         </div>
       </div>
@@ -290,7 +292,7 @@
     <section class="sec grid" id="how" aria-labelledby="how-title">
       <h2 class="sec-label" id="how-title">How it works</h2>
       <div class="sec-body">
-        <p>Install Git and uv, then run these commands. The first run downloads the dependencies. After setup, the demo runs offline and needs no Microsoft account.</p>
+        <p class="lead">Install Git and uv, then run these commands. The first run downloads the dependencies. After setup, the demo runs offline and needs no Microsoft account.</p>
         <div class="command" role="group" aria-label="Run in a terminal">
           <p class="command-label" aria-hidden="true">Run in a terminal</p>
           <div class="command-line">
@@ -328,11 +330,12 @@
     <section class="sec grid" id="status" aria-labelledby="status-title">
       <h2 class="sec-label" id="status-title">Project status</h2>
       <div class="sec-body">
+        <p class="lead">You can run Fazit from source and build reports from the bundled samples with your own answers and costs.</p>
         <ol class="timeline">
           <li class="timeline-step on">
             <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Now</p>
-            <p class="timeline-text">Run from source. Fazit builds reports from the bundled samples, with your own answers and costs. The measured figures in the samples are simulated. It is not yet on PyPI.</p>
+            <p class="timeline-text">The measured figures in the samples are simulated. Fazit is not yet on PyPI.</p>
           </li>
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
@@ -354,7 +357,7 @@
     <section class="sec grid" id="free" aria-labelledby="free-title">
       <h2 class="sec-label" id="free-title">Free and open source</h2>
       <div class="sec-body">
-        <p class="sec-intro">Fazit is free and open source under AGPL-3.0-or-later. All features and rules are in the open repository. The maintainer plans to earn from assessments and support around it.</p>
+        <p class="lead">Fazit is free and open source under AGPL-3.0-or-later. All features and rules are in the open repository. The maintainer plans to earn from assessments and support around it.</p>
         <p>Claude and Codex write the code under the maintainer’s direction.</p>
         <p><a class="more" href="/about/#about-made">How Fazit is made</a></p>
         <ul class="tiles">

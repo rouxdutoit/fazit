@@ -97,8 +97,8 @@ class Formatter:
     def money(self, amount: Fraction | Decimal, currency: str, *, whole: bool = False) -> str:
         sign, units, fraction = _money_parts(amount, whole=whole)
         settings = self.strings["format"]
-        display = f"{sign}{self.integer(units)}"
-        if not whole:
+        display = f"{'−' if sign else ''}{self.integer(units)}"
+        if fraction:
             display += f"{settings['decimal_separator']}{fraction:02d}"
         return settings["money"].format(amount=display, currency=currency).strip()
 
@@ -115,9 +115,10 @@ class Formatter:
         return f"{self.integer(whole)}{settings['decimal_separator']}{fraction} {units[index]}"
 
     def _date(self, day: date, layout: str, months: str) -> str:
-        return self.strings["format"][layout].format(
+        formatted = self.strings["format"][layout].format(
             day=day.day, month=self.strings[months][day.month - 1], year=day.year
         )
+        return formatted.replace(" ", "\N{NO-BREAK SPACE}")
 
     def date(self, value: str) -> str:
         return self._date(date.fromisoformat(value[:10]), "date", "months")

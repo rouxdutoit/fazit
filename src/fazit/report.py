@@ -375,6 +375,7 @@ class _OpenPoint:
     collector: str | None
     input_key: str | None
     items: tuple[_OpenItem, ...]
+    areas: tuple[str, ...]
     owners: tuple[str, ...]
     reasons: tuple[str, ...]
 
@@ -450,6 +451,7 @@ def _open_point(key: str, items: list[_OpenItem], catalogue: Catalogue) -> _Open
         collector,
         input_key,
         tuple(items),
+        tuple(dict.fromkeys(area for item in items for area in item.areas)),
         tuple(role for role in ROLES if role in owners),
         tuple(dict.fromkeys(code for item in items for code in item.reasons)),
     )
@@ -532,12 +534,13 @@ class _PathAction:
 def _area_actions(
     row: WorkloadStatus, status_rules: StatusRuleSet, lang: str, strings: dict
 ) -> Iterator[_PathAction]:
-    functions: dict[str, list[str]] = defaultdict(list)
+    functions: dict[str, list[FunctionMapping]] = defaultdict(list)
     for gap in row.transfer_gaps:
         if gap.need == "yes":
-            functions[gap.mapping.coverage].append(gap.mapping.microsoft[lang])
+            functions[gap.mapping.coverage].append(gap.mapping)
 
     fired_steps = {rule.id: rule.next_step for rule in (row.deciding, *row.notes) if rule}
+    actions = strings["path"]["transfer_actions"]
     for step in fired_steps.values():
         # The evaluator attaches the template's action to each fired transfer rule.
         coverage = next(
@@ -546,9 +549,11 @@ def _area_actions(
         )
         if coverage is None:
             yield _PathAction(step.kind, step.text[lang])
-        elif names := functions.pop(coverage, None):
-            text = strings["path"]["transfer_actions"][coverage].format(functions=", ".join(names))
-            yield _PathAction(step.kind, text)
+        elif affected := functions.pop(coverage, None):
+            key = f"{coverage}.{affected[0].function}" if len(affected) == 1 else coverage
+            action = actions.get(key, actions[coverage])
+            names = ", ".join(item.microsoft[lang] for item in affected)
+            yield _PathAction(step.kind, action.format(functions=names))
 
 
 def _next_steps(
@@ -777,6 +782,8 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
         category_labels={entry.id: _label(strings, entry.label) for entry in catalogue.categories},
         categories=catalogue.categories,
         finding_labels=_finding_labels(catalogue, strings, workload_labels),
+        finding_owners={entry.id: entry.owner for entry in catalogue.findings},
+        finding_inputs={entry.id: _finding_input_key(entry) for entry in catalogue.findings},
     )
 
 
