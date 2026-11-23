@@ -4,7 +4,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Iterable
-from dataclasses import replace
+from dataclasses import asdict, replace
 from fractions import Fraction
 from html import unescape
 from math import prod
@@ -210,12 +210,15 @@ def test_load_rejects_one_inconsistent_field(violation: str, size: int, phone_in
         value=size,
         coverage={"kind": "partial", "scanned": size + 1, "failed": 1, "total": size + 2},
     )
+    scan["directory_population"]["coverage"] = asdict(Coverage("complete", size + 2, 0, size + 2))
     internal = findings["directory.user_count"][1]
     internal["value"] = 1
     guests = findings["directory.guest_count"][1]
     guests["value"] = size + 1
     if violation == "account-upper-bound":
-        internal.update(value=0, coverage={"kind": "partial", "scanned": size, "total": size + 1})
+        internal.update(
+            value=0, coverage={"kind": "partial", "scanned": size + 1, "total": size + 2}
+        )
         guests["value"] = size
         accounts.update(value=size + 1, coverage={"kind": "complete"})
     findings["teams.team_count"][1].update(
@@ -343,6 +346,36 @@ def test_truthful_inventory_loads_with_excess_assignments_and_shared_part_number
     assert loaded.licences == inventory
 
 
+@given(rows=st.lists(st.tuples(st.booleans(), st.booleans(), st.booleans()), max_size=60))
+@example(rows=[(True, True, True)] * 10 + [(False, True, True)] + [(False, True, False)] * 9)
+def test_truthful_filtered_directory_stays_unverified(
+    rows: list[tuple[bool, bool, bool]],
+) -> None:
+    licensed = sum(assigned for _, _, assigned in rows)
+    counts = {
+        "directory.user_count": sum(internal and included for internal, included, _ in rows),
+        "directory.guest_count": sum(not internal and included for internal, included, _ in rows),
+        LICENSED_ACCOUNTS.id: licensed,
+    }
+    findings = tuple(
+        replace(finding, value=count, coverage=Coverage("complete", count, 0, count))
+        if (count := counts.get(finding.id)) is not None
+        else finding
+        for finding in NONPROFIT.findings
+    )
+    (product,) = NONPROFIT.licences.products
+    licences = replace(
+        NONPROFIT.licences, products=(replace(product, purchased=licensed, assigned=licensed),)
+    )
+    scan = replace(NONPROFIT, findings=findings, licences=licences, directory_population=None)
+    answers = yaml.safe_load(sample_inputs_path("nonprofit").read_text(encoding="utf-8"))
+    html = _render(Tenant(scan, answers, "en", "opendesk"))
+    statuses = _statuses(html)
+    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+        assert statuses[workload] == "unknown"
+        assert 'data-reason="licence_directory_unverified"' in readiness_row(html, workload)
+
+
 @given(tenant=tenants())
 @example(tenant=OFFICE)
 @example(tenant=UNDERASSIGNED)
@@ -359,6 +392,7 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
     licences = tenant.scan.licences
     readiness = report_section(html, "readiness")
     accounts = recorded.get("directory.licensed_user_count")
+    population = tenant.scan.directory_population
     reconciled = contradiction = False
     complete_assignments = set()
     if (
@@ -380,6 +414,10 @@ def test_incomplete_required_evidence_prevents_ready(tenant: Tenant) -> None:
             and accounts.coverage.kind == "complete"
             and accounts.period is None
             and accounts.collected_at == licences.collected_at
+            and population is not None
+            and population.coverage.kind == "complete"
+            and population.collector == accounts.collector
+            and population.collected_at == accounts.collected_at
         ):
             seats = [product.assigned for product in licences.products]
             contradiction = accounts.value > sum(seats) or any(

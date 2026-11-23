@@ -6,6 +6,16 @@
   },
   "generated_at": "2026-11-02T09:00:00Z",
   "source_kind": "sample",
+  "directory_population": {
+    "collector": "directory",
+    "collected_at": "2026-11-02T09:00:00Z",
+    "coverage": {
+      "kind": "complete",
+      "scanned": 103,
+      "failed": 0,
+      "total": 103
+    }
+  },
   "collectors": [
     {
       "id": "licences",

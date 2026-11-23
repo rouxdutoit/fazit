@@ -318,6 +318,13 @@ def _directory_cross_check(scan: Scan, licences: Licences) -> str | None:
         return "licence_directory_unverified"
     if gap := _coverage_gap(accounts.coverage):
         return gap
+    population = scan.directory_population
+    if (
+        population is None
+        or population.coverage.kind != "complete"
+        or not population.includes(accounts)
+    ):
+        return "licence_directory_unverified"
     # Only user SKUs have assigned seats.
     seats = [product.assigned for product in licences.products]
     if not max(seats, default=0) <= accounts.value <= sum(seats):

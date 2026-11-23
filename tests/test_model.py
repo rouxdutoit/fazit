@@ -15,7 +15,7 @@ from fazit import model
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
 from fazit.i18n import error_sentence, load_locale
-from fazit.licences import licence_findings, load_service_plans
+from fazit.licences import classify_product, licence_findings, load_service_plans
 from fazit.model import Coverage, Scan, load_scan, load_scan_text
 from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text
 from fazit.report import render_report
@@ -118,13 +118,15 @@ def _load(data: dict, catalogue: Catalogue) -> Scan:
 
 
 @pytest.mark.parametrize("total", range(1, 4))
-@pytest.mark.parametrize("shared_population", [False, True])
+@pytest.mark.parametrize("declared", [False, True])
 def test_licensed_accounts_fit_exhaustive_directory_observations(
-    scan_data: dict, catalogue: Catalogue, total: int, shared_population: bool
+    scan_data: dict, catalogue: Catalogue, total: int, declared: bool
 ) -> None:
     ceilings: dict[tuple[tuple[int, Coverage], tuple[int, Coverage]], int] = {}
+    observations: set[tuple[int, Coverage]] = set()
     for rows in product(("internal", "guest", "other"), repeat=total):
-        internal, guests = set(), set()
+        internal = {(rows.count("internal"), Coverage("complete"))}
+        guests = {(rows.count("guest"), Coverage("complete"))}
         for checks in product(("checked", "failed", "pending"), repeat=total):
             observed = [row for row, check in zip(rows, checks, strict=True) if check == "checked"]
             if not observed:
@@ -134,28 +136,76 @@ def test_licensed_accounts_fit_exhaustive_directory_observations(
                     coverage = Coverage("partial", scanned, failed, total)
                     internal.add((observed.count("internal"), coverage))
                     guests.add((observed.count("guest"), coverage))
-        if not shared_population:
-            guests = {(count, Coverage("complete")) for count in range(total + 1)}
+        observations.update(internal, guests)
         for member, guest in product(internal, guests):
-            guest_count = rows.count("guest") if shared_population else guest[0]
-            possible = rows.count("internal") + guest_count
+            possible = rows.count("internal") + rows.count("guest")
             ceilings[member, guest] = max(ceilings.get((member, guest), 0), possible)
 
-    licensed = _finding("directory.licensed_user_count")
-    for (member, guest), ceiling in ceilings.items():
+    if declared:
+        scan_data["directory_population"] = {
+            "collector": "directory",
+            "collected_at": scan_data["generated_at"],
+            "coverage": asdict(Coverage("complete", total, 0, total)),
+        }
+    licensed = _finding("directory.licensed_user_count", period=None)
+    for member, guest in product(observations, repeat=2):
         scan_data["findings"] = [
-            _finding("directory.user_count", value=member[0], coverage=asdict(member[1])),
-            _finding("directory.guest_count", value=guest[0], coverage=asdict(guest[1])),
+            _finding(
+                "directory.user_count", value=member[0], coverage=asdict(member[1]), period=None
+            ),
+            _finding(
+                "directory.guest_count", value=guest[0], coverage=asdict(guest[1]), period=None
+            ),
             licensed,
         ]
-        for count in (ceiling, ceiling + 1):
-            licensed["value"] = count
-            if count == ceiling:
-                assert _load(scan_data, catalogue).findings[-1].value == count
-            else:
-                with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
-                    _load(scan_data, catalogue)
-                assert caught.value.field == "findings[2].value"
+        if not declared:
+            licensed["value"] = 2 * total + 1
+            assert _load(scan_data, catalogue).findings[-1].value == licensed["value"]
+            continue
+        ceiling = ceilings.get((member, guest))
+        if ceiling is not None:
+            licensed["value"] = ceiling
+            assert _load(scan_data, catalogue).findings[-1].value == ceiling
+        licensed["value"] = 0 if ceiling is None else ceiling + 1
+        with pytest.raises(InputError, match="subset_count_exceeds_population") as caught:
+            _load(scan_data, catalogue)
+        assert caught.value.field == (
+            "findings[1].value" if ceiling is None else "findings[2].value"
+        )
+
+
+def test_complete_filtered_directory_lists_load(scan_data: dict, catalogue: Catalogue) -> None:
+    for internal, guests, licensed in product(range(9, 18), repeat=3):
+        scan_data["findings"] = [
+            _finding(f"directory.{name}_count", value=count, coverage=asdict(coverage), period=None)
+            for name, count, coverage in (
+                ("user", internal, Coverage("complete", internal, 0, internal)),
+                ("guest", guests, Coverage("complete", guests, 0, guests)),
+                ("licensed_user", licensed, Coverage("complete")),
+            )
+        ]
+        assert _load(scan_data, catalogue).findings[-1].value == licensed
+
+
+def test_population_total_applies_only_to_matching_directory_snapshots(
+    scan_data: dict, catalogue: Catalogue
+) -> None:
+    scan_data["directory_population"] = {
+        "collector": "directory",
+        "collected_at": "2026-11-02T10:00:00+01:00",
+        "coverage": asdict(Coverage("complete", 20, 0, 20)),
+    }
+    finding = scan_data["findings"][0]
+    finding.update(value=10, coverage=asdict(Coverage("complete", 10, 0, 10)), period=None)
+    with pytest.raises(InputError, match="coverage_total_conflict") as caught:
+        _load(scan_data, catalogue)
+    assert caught.value.field == "findings[0].coverage.total"
+
+    finding["collected_at"] = "2026-11-02T08:59:59Z"
+    scan = _load(scan_data, catalogue)
+    assert scan.directory_population.coverage.total == 20
+    assert scan.findings[0].coverage.total == 10
+    assert scan.dropped_count == 0
 
 
 @pytest.mark.parametrize(
@@ -181,6 +231,51 @@ def test_undated_interview_period_uses_scan_utc_day(
         with pytest.raises(InputError, match="period_after_scan") as caught:
             _load(scan_data, catalogue)
         assert caught.value.field == "findings[3].period"
+
+
+@pytest.mark.parametrize(
+    ("collected_at", "valid"),
+    [
+        ("2026-11-02T00:30:00+01:00", False),
+        ("2026-11-01T23:30:00Z", False),
+        ("2026-11-01T19:30:00-05:00", True),
+        ("2026-11-02T00:30:00Z", True),
+        ("2026-11-02", True),
+    ],
+)
+def test_dated_period_uses_collection_utc_day(
+    scan_data: dict, catalogue: Catalogue, collected_at: str, valid: bool
+) -> None:
+    period = "2026-10-01/2026-11-02"
+    scan_data["findings"][1].update(period=period, collected_at=collected_at)
+    if valid:
+        assert _load(scan_data, catalogue).findings[1].period == period
+    else:
+        with pytest.raises(InputError, match="period_after_collection") as caught:
+            _load(scan_data, catalogue)
+        assert caught.value.field == "findings[1].period"
+
+
+@pytest.mark.parametrize(
+    ("generated_at", "valid"),
+    [
+        ("2026-11-02T00:30:00+01:00", False),
+        ("2026-11-01T23:30:00Z", False),
+        ("2026-11-01T19:30:00-05:00", True),
+        ("2026-11-02T00:30:00Z", True),
+    ],
+)
+def test_date_only_interview_uses_scan_utc_day(
+    scan_data: dict, catalogue: Catalogue, generated_at: str, valid: bool
+) -> None:
+    scan_data.update(generated_at=generated_at, findings=[scan_data["findings"][3]], licences=None)
+    scan_data["findings"][0]["collected_at"] = "2026-11-02"
+    if valid:
+        assert _load(scan_data, catalogue).findings[0].collected_at == "2026-11-02"
+    else:
+        with pytest.raises(InputError, match="collection_after_scan") as caught:
+            _load(scan_data, catalogue)
+        assert caught.value.field == "findings[0].collected_at"
 
 
 @pytest.mark.parametrize("content", ["sharepoint.file_count", "sharepoint.storage_bytes"])
@@ -561,11 +656,16 @@ def test_licences_preserve_identifiers_counts_and_service_plans(
     assert _load(scan_data, catalogue).licences is None
 
 
-def test_microsoft_licence_reference_loads(scan_data: dict, catalogue: Catalogue) -> None:
+@pytest.mark.parametrize("missing_guid", [None, "sku", "plan-omitted", "plan-null"])
+def test_microsoft_licence_reference_loads(
+    scan_data: dict, catalogue: Catalogue, missing_guid: str | None
+) -> None:
     path = Path(__file__).with_name("fixtures") / "microsoft_licence_reference.json"
     reference = json.loads(path.read_text(encoding="utf-8"))
     assert len({guid.strip().lower() for _, guid, _ in reference["products"]}) == 620
     plans = load_service_plans(catalogue)
+    if missing_guid is not None:
+        scan_data["licences"]["coverage"].update(kind="partial", total=2)
     (product_row,) = scan_data["licences"]["products"]
     for part_number, guid, indices in reference["products"]:
         service_plans = [tuple(reference["plans"][index]) for index in indices]
@@ -574,12 +674,25 @@ def test_microsoft_licence_reference_loads(scan_data: dict, catalogue: Catalogue
             sku_guid=guid,
             service_plans=[{"name": name, "guid": plan_guid} for name, plan_guid in service_plans],
         )
+        if missing_guid == "sku":
+            del product_row["sku_guid"]
+        elif missing_guid is not None:
+            for plan in product_row["service_plans"]:
+                if missing_guid == "plan-omitted":
+                    del plan["guid"]
+                else:
+                    plan["guid"] = None
         scan = _load(scan_data, catalogue)
         (loaded,) = scan.licences.products
-        assert (loaded.sku_part_number, loaded.sku_guid) == (part_number, guid.strip().lower())
+        assert loaded.sku_part_number == part_number
+        assert loaded.sku_guid == (None if missing_guid == "sku" else guid.strip().lower())
         assert [(plan.name, plan.guid) for plan in loaded.service_plans] == [
-            (name, plan_guid.lower()) for name, plan_guid in service_plans
+            (name, None if missing_guid in {"plan-omitted", "plan-null"} else plan_guid.lower())
+            for name, plan_guid in service_plans
         ]
+        assert (loaded.purchased, loaded.assigned) == (3, 2)
+        if missing_guid is not None:
+            assert all(match is None for match in classify_product(loaded, plans))
         assert licence_findings(scan, plans, catalogue)[0].value == 1
 
 
@@ -694,12 +807,14 @@ def test_scan_format_document_matches_the_loader(tmp_path: Path, catalogue: Cata
     names = set(re.findall(r"`([^`\n]+)`", text))
     required = {
         *model._SCAN_FIELDS,
+        *model._SCAN_OPTIONAL,
         *model._TOOL_FIELDS,
         *model._FINDING_FIELDS,
         *model._COLLECTOR_REQUIRED,
         *model._COLLECTOR_OPTIONAL,
         "kind",
         *model._COVERAGE_COUNTS,
+        *model._DIRECTORY_POPULATION_FIELDS,
         *model._LICENCE_FIELDS,
         *model._PRODUCT_REQUIRED,
         *model._PRODUCT_OPTIONAL,

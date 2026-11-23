@@ -36,6 +36,19 @@ def sku_key(part_number: str, guid: str) -> tuple[str, str]:
     return licence_name_key(part_number), guid.lower()
 
 
+def _accepts_licence_name(
+    value: object, guid: str | None, exceptions: frozenset[tuple[str, str]], *, incomplete: bool
+) -> bool:
+    if not isinstance(value, str):
+        return False
+    if IDENTIFIER.fullmatch(value.strip(" \t\u00a0")):
+        return True
+    if guid is not None:
+        return sku_key(value, guid) in exceptions
+    key = licence_name_key(value)
+    return incomplete and any(key == name for name, _ in exceptions)
+
+
 @dataclass(frozen=True)
 class WorkloadEntry:
     id: str
@@ -94,17 +107,15 @@ class Catalogue:
     def finding(self, finding_id: str) -> FindingEntry | None:
         return next((entry for entry in self.findings if entry.id == finding_id), None)
 
-    def accepts_sku_part_number(self, part_number: object, guid: str | None) -> bool:
-        return isinstance(part_number, str) and (
-            bool(IDENTIFIER.fullmatch(part_number.strip(" \t\u00a0")))
-            or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)
-        )
+    def accepts_sku_part_number(
+        self, part_number: object, guid: str | None, *, incomplete: bool = False
+    ) -> bool:
+        return _accepts_licence_name(part_number, guid, self.sku_exceptions, incomplete=incomplete)
 
-    def accepts_plan_name(self, name: object, guid: str | None) -> bool:
-        return isinstance(name, str) and (
-            bool(IDENTIFIER.fullmatch(name.strip(" \t\u00a0")))
-            or (licence_name_key(name), guid) in self.plan_exceptions
-        )
+    def accepts_plan_name(
+        self, name: object, guid: str | None, *, incomplete: bool = False
+    ) -> bool:
+        return _accepts_licence_name(name, guid, self.plan_exceptions, incomplete=incomplete)
 
 
 def _rows(

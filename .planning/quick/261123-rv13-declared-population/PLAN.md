@@ -2,7 +2,7 @@
 quick_id: 261123-rv13
 slug: declared-population
 date: 2026-11-23
-status: planned
+status: complete
 ---
 
 # Quick task: decide from declared populations only
