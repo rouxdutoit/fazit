@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Website language links
+
+**D40. Use the Material Symbols Outlined translate icon for the website language links.**
+
+The founder specified Outlined at the standard weight and grade for the footer and phone menu.
+
 ## 2026-11-23 — System colours and the report phone menu
 
 **D39. Adopt Apple's June 2025 palette and use the website's phone menu in the report.**

@@ -36,11 +36,11 @@ async function serve() {
   return server;
 }
 
-const capsules = ".btn, .language, .badge, .segmented label, .category-filter > button";
+const capsules = ".btn, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
-const centredLabels = `${capsules}, ${menuItems}`;
+const centredLabels = `${capsules}, ${menuItems}, a.language`;
 const symbolOnly = ".copy, .menu-button, .foot-mail, .tile-arrow, .report-card-control, .cost-segment.is-unknown";
-const textOnly = ".language, .badge:not(.status), .bar-links a:not(.btn), .segmented label:has(#f-status-all), .finding-evidence dd";
+const textOnly = ".badge:not(.status), .bar-links a:not(.btn, .language), .segmented label:has(#f-status-all), .finding-evidence dd";
 // Keep the component selectors so dropping the primitive from known markup fails the check.
 const components = [
   centredLabels, symbolOnly, ".symbol-label", ".more", "summary", ".status",
@@ -191,6 +191,9 @@ async function checkPage(page, route, width, origin, measure) {
   const response = await page.goto(origin + route);
   if (!response?.ok()) throw new Error("Page did not load");
   await page.evaluate(() => document.fonts.ready);
+  const languageName = route.startsWith("/de/") ? "English" : "Deutsch";
+  const languageLink = page.getByRole("link", { name: languageName, exact: true });
+  if (!report) await page.locator("footer a.language").and(languageLink).waitFor();
   await measure();
 
   const copy = page.locator("[data-copy]");
@@ -208,6 +211,7 @@ async function checkPage(page, route, width, origin, measure) {
     await links.first().waitFor({ state: "hidden" });
     await menu.press("Enter");
     await links.first().waitFor();
+    if (!report) await panel.locator("a.language").and(languageLink).waitFor();
     await measure(open);
     if (report) {
       const costs = panel.locator('a[href="#costs-title"]');
@@ -222,6 +226,7 @@ async function checkPage(page, route, width, origin, measure) {
     await links.first().waitFor({ state: "hidden" });
   } else {
     await menu.waitFor({ state: "hidden" });
+    if (!report) await page.locator(".bar-links a.language").waitFor({ state: "hidden" });
   }
 
   if (await page.locator("details:not(.bar-menu)").count()) {

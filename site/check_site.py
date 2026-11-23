@@ -306,8 +306,9 @@ class Page(HTMLParser):
             )
 
     def check_metadata(self, route: str, other_lang: str, pair: dict[str, str]) -> None:
-        if self.switches != [(pair[other_lang], other_lang, other_lang)]:
-            self.errors.append("The language switch must link to the corresponding page.")
+        switch = (pair[other_lang], other_lang, other_lang)
+        if self.switches != [switch, switch]:
+            self.errors.append("Both language links must point to the corresponding page.")
         if self.canonicals != [ORIGIN + route]:
             self.errors.append("Expected one canonical URL for the page.")
         if Counter(self.alternates) != Counter(alternates(pair).items()):

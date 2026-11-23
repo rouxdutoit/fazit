@@ -41,7 +41,7 @@ Apple updated these values on 9 June 2025. Accessed on 23 November 2026. [Apple 
 
 ## Symbols
 
-- Google Material Symbols, rounded, from `site/icons/` (the report inlines the same paths). Apache-2.0; keep the licence file.
+- Google Material Symbols, rounded, from `site/icons/` (the report inlines the same paths). The website language link uses Material Symbols Outlined (D40). The symbols use the Apache-2.0 licence. Keep the licence file.
 - A symbol sits on the first line of its text, sized in `em`, with wrapped lines aligned after it.
 - Never reuse a status symbol (check, warning triangle, stop octagon, question mark) for anything but status.
 
