@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Timeline dots and content link underlines
+
+**D46. Give timeline dots fixed dimensions and draw content link underlines on interaction.**
+
+The founder asked for circular dots that centre on the rail at each device scale. The component uses 11 px dots and a 1 px rail so the rail shares the centre pixel column. Content links on the site and in the report draw a 1 px underline on hover and keyboard focus. The rule keeps the resting underline on links in running text and applies to the words of standalone links and linked card titles. Reduced motion shows the underline immediately. Navigation and print keep their resting underline styles. [Timeline structure](DESIGN.md#structure) · [Link and motion rules](DESIGN.md#links-and-buttons)
+
 ## 2026-11-23 — Report area filters on phones
 
 **D45. Keep the status filters in one row.**

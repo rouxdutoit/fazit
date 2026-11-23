@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
 import { localContext, widths, withSite } from "./check_browser.mjs";
+import { checkLinkUnderlines } from "./check_link_underlines.mjs";
 
 const capsules = ".btn, .badge, .segmented label, .category-filter > button";
 const menuItems = ".bar-links a, .category-filter option";
@@ -17,7 +18,7 @@ const components = [
   ".status-summary dt", ".finding-evidence dd", ".privacy-facts h3", ".flow-links > a",
 ].join(", ");
 
-function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance }) {
+function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance, scale }) {
   const fontSample = 512;
   const surface = document.createElement("canvas");
   surface.width = surface.height = fontSample;
@@ -284,7 +285,8 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
 
   function lastLetter(label, em) {
     // The picker clones the selected option's label into selectedcontent.
-    const text = (label.querySelector(":scope > .symbol-text") ?? label).firstChild;
+    const content = label.querySelector(":scope > .symbol-text") ?? label;
+    const text = (content.querySelector(":scope > .link-text") ?? content).firstChild;
     if (text?.nodeType !== Node.TEXT_NODE || !text.data.trim()) return {};
     const letters = [...text.data.trim()];
     const first = text.data.length - text.data.trimStart().length;
@@ -470,6 +472,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     const box = timeline.getBoundingClientRect();
     const railCentre = box.left + parseFloat(rail.left) + width / 2;
     const pageBg = getComputedStyle(document.body).backgroundColor;
+    compare(timeline, "timeline device scale", devicePixelRatio - scale, 0);
     compare(timeline, "rail width", rail.content !== "none" && rail.backgroundImage !== "none" ? width - 1 : NaN, 0);
     for (const [index, step] of [...timeline.children].entries()) {
       const dot = step.querySelector(".timeline-dot");
@@ -478,10 +481,17 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
         continue;
       }
       const marker = dot.getBoundingClientRect();
-      compare(step, "dot centred on rail", (marker.left + marker.right) / 2 - railCentre);
+      compare(step, "dot centred on rail", (marker.left + marker.right) / 2 - railCentre, 0.1);
+      compare(step, "dot width equals height", marker.width - marker.height, 0.1);
+      compare(step, "dot width in whole pixels", marker.width - 11, 0);
+      compare(step, "dot starts at the timeline edge", marker.left - box.left, 0.1);
       if (index === 0) compare(step, "rail starts at first dot", box.top + parseFloat(rail.top) - centre(marker));
 
       const style = getComputedStyle(dot);
+      if (style.borderRadius !== "50%" || style.aspectRatio !== "1 / 1" || style.boxSizing !== "border-box"
+        || style.flexGrow !== "0" || style.flexShrink !== "0" || style.flexBasis !== "auto") {
+        failures.push({ selector: selector(step), check: "fixed circular dot", offset: "—" });
+      }
       const expectedFill = step.classList.contains("on") ? style.color : pageBg;
       if (style.backgroundColor !== expectedFill || !(Number(style.zIndex) > (Number(rail.zIndex) || 0))) {
         failures.push({ selector: selector(step), check: "dot covers the rail", offset: "—" });
@@ -489,9 +499,10 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     }
   }
 
+  const timelines = !scope || scope === ".timeline" ? document.querySelectorAll(".timeline") : [];
+  for (const timeline of timelines) measureTimeline(timeline);
   if (!scope) {
     measureBarAndPreview();
-    for (const timeline of document.querySelectorAll(".timeline")) measureTimeline(timeline);
     const costTiles = [...document.querySelectorAll("#costs [data-cost-tile]")];
     const [firstTile] = costTiles;
     for (const tile of costTiles) {
@@ -505,7 +516,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       }
     }
   }
-  return { failures, count, maximum };
+  return { failures, count, maximum, timelines: timelines.length };
 }
 
 async function clickCopyButton(page, button) {
@@ -620,15 +631,59 @@ async function checkPage(page, route, width, origin, measure) {
 }
 
 const tolerance = 0.75;
-const iPhone = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
+const iPhone = {
+  width: 390, device: "iPhone",
+  options: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 },
+};
+
+async function checkScaledTimelines(browser, origin, timelineRoutes, viewports, fullViews, measure) {
+  for (const viewport of viewports) {
+    const { width, device, options } = viewport;
+    for (const scale of [1, 2, 3]) {
+      if (fullViews.includes(viewport) && scale === (options.deviceScaleFactor ?? 1)) continue;
+      for (const theme of ["light", "dark"]) {
+        const context = await localContext(browser, origin, width, theme, { ...options, deviceScaleFactor: scale });
+        try {
+          const page = await context.newPage();
+          for (const route of timelineRoutes) {
+            const response = await page.goto(origin + route);
+            assert(response?.ok(), `Timeline page did not load: ${route}`);
+            await page.evaluate(() => document.fonts.ready);
+            await measure(page, { page: route, width, theme, device, scale }, ".timeline");
+          }
+        } finally {
+          await context.close();
+        }
+      }
+    }
+  }
+}
+
 async function checkAlignment({ browser, origin, routes }) {
   const failures = [];
+  const timelineRoutes = new Set();
   let maximum = 0;
   let count = 0;
   let views = 0;
+  let timelineViews = 0;
   const chromium = browser.browserType().name() === "chromium";
-  const sizes = [...widths, 390].sort((a, b) => a - b).map(width => ({ width, device: "viewport", options: {} }));
-  if (!chromium) sizes.push({ width: iPhone.viewport.width, device: "iPhone", options: iPhone });
+  const viewports = [...widths, 390].sort((a, b) => a - b)
+    .map(width => ({ width, device: "viewport", options: {} }));
+  const sizes = chromium ? viewports : [...viewports, iPhone];
+  async function measure(page, view, scope) {
+    const result = await page.evaluate(measureInPage, {
+      scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance, scale: view.scale,
+    });
+    failures.push(...result.failures.map(failure => ({ ...view, ...failure })));
+    count += result.count;
+    maximum = Math.max(maximum, result.maximum);
+    if (result.timelines) {
+      timelineRoutes.add(view.page);
+      timelineViews += 1;
+    } else if (scope === ".timeline") {
+      failures.push({ ...view, selector: ".timeline", check: "missing timeline", offset: "—" });
+    }
+  }
   for (const { width, device, options } of sizes) {
     for (const theme of ["light", "dark"]) {
       const context = await localContext(browser, origin, width, theme, options);
@@ -638,18 +693,11 @@ async function checkAlignment({ browser, origin, routes }) {
       const report = await reportContext.newPage();
       for (const page of [website, report]) page.setDefaultTimeout(3000);
       for (const route of routes) {
-        const view = { page: route, width, theme, device };
+        const view = { page: route, width, theme, device, scale: options.deviceScaleFactor ?? 1 };
         const page = route.startsWith("/demo/") ? report : website;
         views += 1;
         try {
-          await checkPage(page, route, width, origin, async scope => {
-            const result = await page.evaluate(measureInPage, {
-              scope, components, centredLabels, symbolOnly, textOnly, chevronLabels, singleLine, tolerance,
-            });
-            failures.push(...result.failures.map(failure => ({ ...view, ...failure })));
-            count += result.count;
-            maximum = Math.max(maximum, result.maximum);
-          });
+          await checkPage(page, route, width, origin, scope => measure(page, view, scope));
         } catch (error) {
           failures.push({ ...view, selector: "page", check: error.message.split("\n").slice(0, 6).join(" "), offset: "—" });
         }
@@ -658,11 +706,16 @@ async function checkAlignment({ browser, origin, routes }) {
       await reportContext.close();
     }
   }
+  await checkScaledTimelines(browser, origin, timelineRoutes, [...viewports, iPhone], sizes, measure);
   if (failures.length) {
     console.table(failures);
     process.exitCode = 1;
   }
-  console.log(`${views} page views, ${count} alignment measurements. Maximum offset ${maximum.toFixed(2)} px (limit ${tolerance} px). ${failures.length} failures.`);
+  console.log(`${views} full page views and ${timelineViews} timeline views at device scales 1, 2 and 3.`);
+  console.log(`${count} alignment measurements. Maximum offset ${maximum.toFixed(2)} px. ${failures.length} failures.`);
 }
 
-await withSite(checkAlignment);
+await withSite(async site => {
+  await checkAlignment(site);
+  await checkLinkUnderlines(site);
+});

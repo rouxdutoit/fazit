@@ -6,7 +6,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 
 ## Tokens
 
-- Use the tokens in `site/style.css` `:root`. No colour, font or radius values anywhere else. The report defines the same tokens, and a test keeps both in step.
+- Use the tokens in `site/style.css` `:root` for colour, fonts and corner radii. Timeline circles use the radius specified under Structure. The site and report share these tokens, and a test keeps both in step.
 - **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
 - **Type.** Figtree for all text, Geist Mono for code. The seven text sizes are display, title, headline, lead, body, subhead and footnote. Body copy uses weight 400, button labels 500, and headings and semibold labels 600.
@@ -71,7 +71,7 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 - **Hierarchy:** the conclusion first, then the evidence. Each screen has one thing to look at first.
 - **Sections:** a label on the left, the content on the right; one line between sections, running from the content's left edge to its right edge.
 - **Lists of facts are tiles:** a soft fill, no border, the card radius, 24 px padding. Each tile has one anchor (a symbol, a large number or a name), never two, then a short label or main line, then one line of detail. Within a group, either every tile has a symbol or none does.
-- **A sequence is a timeline.** The rail and dots share a centre line. Each dot centres on its title's cap band. The dot uses the text colour for what exists today and the page background for future steps, so the rail stays behind each dot.
+- **A sequence is a timeline.** Use 11 × 11 px dots with a 50% radius. The dot and the 1 px rail use the same left edge as their reference, with the rail in the dot's centre column. Each dot centres on its title's cap band. The current step uses a solid dot in the text colour. Future steps use an outlined dot with an opaque fill in the page background colour, so the rail meets each dot at its edge.
 - **No borders on cards.** Lines only separate rows and sections; in icon lists they start at the text.
 - **Badges show state.** A card can show a status or incomplete evidence in a non-interactive capsule at the top right. On phones the badges wrap below the name. Use pressable pills for controls such as filters.
 
@@ -85,7 +85,8 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Links and buttons
 
-- **Text links:** the text colour; on hover they lighten, and in dark mode they also glow. A link inside running text carries a thin static underline in the secondary text colour and no chevron; a standalone link ends in a chevron, has no underline and sits a step back in dark grey (`--link-quiet`), coming forward to the text colour on hover. Footer and bar links have neither.
+- **Text links** use the text colour. On hover they lighten, and in dark mode they also glow. At rest, only links in running text carry a 1 px underline in the secondary text colour. A standalone link uses a trailing chevron and sits a step back in dark grey (`--link-quiet`) until hover, when it takes the text colour.
+- **Underline on interaction.** On hover or keyboard focus, a 1 px underline in the link's current colour draws from left to right over 250 ms with `--ease` and retracts when the interaction ends. A gradient's `background-size` transition keeps the layout in place. The line sits over the resting underline in running text. On standalone links and linked card titles, it sits at the same offset and covers only the words. The chevron keeps its gap. The top bar, navigation, phone menu and footer are outside this rule. Reduced motion shows the line immediately. Print uses the resting styles.
 - **A card that leads to another page is one link as a whole.** Its title ends with the plain trailing chevron in the title's text colour. The same gap and baseline rules apply as for standalone links. On hover the card grows by about 1.5 % with a deeper shadow.
 - **Buttons follow apple.com.** Standard pills are 44 px high with 15 px text and 16 px horizontal padding. The desktop bar pill is 28 px high with 12 px text and 12 px horizontal padding. It has a hit area at least 44 px high. The copy button is 44 px square. The shared symbol and label primitive centres button content. Button labels use weight 500 in Figtree. The primary button lightens on hover and darkens when pressed while its text keeps the same colour.
 - **Report status filters** use a single capsule track with a 2 px inset and one row of same-height segments. The selected segment is a capsule. Use the full status labels when they fit the track. When space is tight, share the track width equally and show symbols and counts. Keep the word and count for All / Alle at every width.
@@ -95,7 +96,7 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Motion
 
-- Motion explains, it does not decorate: cards respond to hover and press, and the menu opens smoothly. Text and content never animate in; a page is readable the moment it loads. The one exception is the brand signature: the wordmark decodes in about half a second, in the bar when a visitor arrives from another site and in the footer as it comes into view.
+- Cards respond to hover and press, and the menu opens smoothly. Body text and content are in place on load. Two exceptions apply to text. On the website, the wordmark decodes in about half a second, in the bar when a visitor arrives from another site and in the footer as it comes into view. Content link underlines draw on hover and keyboard focus.
 - Durations of 0.2 to 0.8 s with Apple's ease curves. Nothing loops, nothing blocks reading.
 - With reduced motion switched on, nothing moves. Without JavaScript, everything is visible and usable.
 
@@ -117,4 +118,4 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 ## Checks
 
-`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. WebKit also runs at 390 × 844 px with iPhone touch and display settings. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px and checks that the section gap matches the home page. Both checks run in Chromium and WebKit. The release review checks the remaining design rules.
+`uv run python site/check_site.py` and the report tests check colour tokens, font families, shared symbols and the status palette. `node site/check_alignment.mjs` checks symbol alignment, chevron ink, button heights, timeline geometry, control wrapping, label clipping and segment heights at 360, 390, 768 and 1280 px. It checks timeline dots at device scales 1, 2 and 3 and allows 0.1 px for centre and width-to-height differences. The timeline checks include a 390 × 844 px iPhone viewport with touch and mobile settings. Alignment also checks underline behaviour for content and navigation links. `node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px and checks that the section gap matches the home page. Both checks run in Chromium and WebKit. The release review checks the remaining design rules.

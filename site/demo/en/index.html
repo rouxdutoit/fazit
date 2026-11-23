@@ -150,6 +150,41 @@
     @media screen and (prefers-color-scheme: dark) {
       a:hover { text-shadow: 0 0 12px var(--link-glow); }
     }
+    /* Keep the native underline for print and forced colours. */
+    main a:not([class]) {
+      text-decoration: underline 1px var(--fg-2);
+      text-underline-offset: 0.2em;
+    }
+
+    @media screen and (forced-colors: none) {
+      main :is(a:not([class]), a .link-text) {
+        /* Paint each line 0.2em below the baseline, using Figtree's 0.25em descent. */
+        padding-block-end: 1px;
+        background-image: linear-gradient(currentColor, currentColor);
+        background-position: left bottom 0.05em;
+        background-repeat: no-repeat;
+        background-size: var(--underline-width, 0%) 1px;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+      }
+
+      main a:not([class]) {
+        text-decoration: none;
+        background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--fg-2), var(--fg-2));
+        background-size: var(--underline-width, 0%) 1px, 100% 1px;
+      }
+
+      main a:is(:hover, :focus-visible) { --underline-width: 100%; }
+
+      @media (prefers-reduced-motion: no-preference) {
+        main a:not([class]) {
+          transition: color 0.2s ease, text-shadow 0.2s ease, background-size 250ms var(--ease);
+        }
+
+        main a .link-text { transition: background-size 250ms var(--ease); }
+      }
+    }
+
     :focus-visible {
       outline: 2px solid var(--link);
       outline-offset: 3px;
@@ -260,6 +295,7 @@
     .chevron-tail {
       padding-inline-start: calc(var(--chevron-gap, 0.38em) + var(--chevron-tracking, 0em));
       letter-spacing: normal;
+      white-space: nowrap;
     }
 
     /* Keep the chevron with the last word and adjust for wider Figtree side bearings. */
@@ -1456,7 +1492,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-telephony" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Telephony<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      <a href="#readiness-telephony" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Telephony</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Communication</span>
     </div>
     <span class="finding-status"><span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Blocker</span></span>
@@ -1467,7 +1503,7 @@
                   </div>
 
               </dl>
-              <p class="summary-links"><a class="more symbol-label" href="#status-blocker"><span class="symbol-text">All blockers<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+              <p class="summary-links"><a class="more symbol-label" href="#status-blocker"><span class="symbol-text"><span class="link-text">All blockers</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
           </div>
           <div class="subsection" data-summary="unknown">
@@ -1478,7 +1514,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-mail" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      <a href="#readiness-mail" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Mail</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Communication</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span></span>
@@ -1496,7 +1532,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-sharepoint" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      <a href="#readiness-sharepoint" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">SharePoint</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Files and documents</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span></span>
@@ -1514,7 +1550,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-office_files" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Office files<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      <a href="#readiness-office_files" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Office files</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Files and documents</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span></span>
@@ -1532,7 +1568,7 @@
                   <div>
                     <dt class="finding-head">
     <div>
-      <a href="#readiness-device_management" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text">Device management<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+      <a href="#readiness-device_management" class="finding-area area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Device management</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
       <span class="finding-category">Identity and devices</span>
     </div>
     <span class="finding-status"><span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span></span>
@@ -1550,7 +1586,7 @@
               </dl>
 
             <p class="summary-links">
-              <a class="more symbol-label symbol-wrap" href="#not-examined"><span class="symbol-text">All open points<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+              <a class="more symbol-label symbol-wrap" href="#not-examined"><span class="symbol-text"><span class="link-text">All open points</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
             </p>
 
@@ -1588,13 +1624,13 @@
                   <h4 class="scope-needed">Outside openDesk and needed here</h4>
                   <ul class="scope-links" role="list">
 
-                      <li><a href="#replacement-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Device management with Microsoft Intune<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
+                      <li><a href="#replacement-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Device management with Microsoft Intune</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-windows_applications" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Running Windows-only applications<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
+                      <li><a href="#replacement-windows_applications" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Running Windows-only applications</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-automation_and_low_code" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform automation and low-code applications<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
+                      <li><a href="#replacement-automation_and_low_code" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Power Platform automation and low-code applications</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
-                      <li><a href="#replacement-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Teams Phone and public telephone calling<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
+                      <li><a href="#replacement-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Teams Phone and public telephone calling</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></li>
 
                   </ul>
                 </div>
@@ -1681,7 +1717,7 @@
           <dl class="rows">
 
       <div>
-        <dt><a href="#readiness-directory" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Directory<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-directory" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Directory</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="decide">The service owner decides which guest accounts should retain access.</li>
@@ -1690,7 +1726,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">SharePoint</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The service owner records which processes rely on the custom site solutions.</li>
@@ -1699,7 +1735,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office files<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Office files</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The service owner checks which files contain macros that staff still use.</li><li data-step-kind="clarify">The service owner records the tasks staff carry out with the databases.</li><li data-step-kind="clarify">The service owner checks which layout files staff still need to edit.</li><li data-step-kind="clarify">The service owner identifies the diagrams that staff need to keep editing.</li>
@@ -1708,7 +1744,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Device management<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Device management</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The IT team checks which devices are suitable for a different operating system.</li>
@@ -1717,7 +1753,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Windows-only software<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Windows-only software</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The IT team asks the service owner of each such application whether staff need it on their own workstations or can use it on a separate Windows system.</li><li data-step-kind="clarify">The service owner records which tasks rely on the applications in the inventory.</li>
@@ -1726,7 +1762,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Power Platform</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">Licence management checks which applications and workflows need the assigned add-ons.</li>
@@ -1735,7 +1771,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identity and access<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Identity and access</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The information security officer records the conditions under which the organisation currently grants access.</li>
@@ -1744,7 +1780,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-integrations" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Integrations<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-integrations" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Integrations</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="clarify">The IT team records what data each integration transfers and what actions it triggers.</li>
@@ -1768,7 +1804,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+        <p><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Mail</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Who answers:</span>
     IT team
@@ -1794,7 +1830,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">SharePoint<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+        <p><a href="#readiness-sharepoint" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">SharePoint</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Who answers:</span>
     Service lead
@@ -1817,7 +1853,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office files<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+        <p><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Office files</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Who answers:</span>
     Service lead
@@ -1840,7 +1876,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Device management<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+        <p><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Device management</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Who answers:</span>
     IT team
@@ -1863,7 +1899,7 @@
     </dt>
     <dd class="open-details">
 
-        <p><a href="#readiness-security_compliance" data-unexamined-workload="security_compliance" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Security and compliance<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
+        <p><a href="#readiness-security_compliance" data-unexamined-workload="security_compliance" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Security and compliance</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></p>
 
       <p><span class="open-label">Who answers:</span>
     Information security officer
@@ -1884,7 +1920,7 @@
             <dl class="rows">
 
       <div>
-        <dt><a href="#readiness-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Telephony<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-telephony" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Telephony</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team plans a replacement that keeps the required phone services running during the move.</li><li data-step-kind="replace">The service lead and IT team decide how Teams Phone and public telephone calling are provided after the move.</li>
@@ -1893,7 +1929,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Mail<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-mail" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Mail</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team plans a new way for the affected systems to send mail.</li>
@@ -1902,7 +1938,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Office files<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-office_files" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Office files</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team tests a way to transfer the notebooks needed after the move.</li>
@@ -1911,7 +1947,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Device management<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-device_management" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Device management</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team plans how to enrol the devices in a replacement management service.</li><li data-step-kind="replace">The service lead and IT team decide how to manage devices after the move.</li>
@@ -1920,7 +1956,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Windows-only software<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-windows_software" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Windows-only software</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The service lead and IT team decide how to run Windows-only applications after the move.</li>
@@ -1929,7 +1965,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Power Platform<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-power_platform" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Power Platform</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team plans a replacement for the applications and workflows needed after the move.</li><li data-step-kind="replace">The service lead and IT team decide how to run the automations and low-code applications after the move.</li>
@@ -1938,7 +1974,7 @@
       </div>
 
       <div>
-        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text">Identity and access<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
+        <dt><a href="#readiness-identity_access" class="area-link more symbol-label symbol-wrap"><span class="symbol-text"><span class="link-text">Identity and access</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a></dt>
         <dd>
           <ul class="path-actions">
             <li data-step-kind="replace">The IT team plans how to connect the affected applications to a replacement sign-in service.</li>
@@ -2136,7 +2172,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2322,7 +2358,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2538,7 +2574,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2751,7 +2787,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -2997,7 +3033,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3193,7 +3229,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3313,7 +3349,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3430,7 +3466,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3572,7 +3608,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3674,7 +3710,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3819,7 +3855,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -3968,7 +4004,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -4178,7 +4214,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -4277,7 +4313,7 @@
   </span>
 
                       </span>
-                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text">All replacements<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a class="more symbol-label symbol-wrap" href="#moves-title"><span class="symbol-text"><span class="link-text">All replacements</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                     </p>
                   </article>
 
@@ -5307,7 +5343,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-directory" aria-label="Directory: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-directory" aria-label="Directory: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5331,7 +5367,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-mail" aria-label="Mail: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-mail" aria-label="Mail: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5355,7 +5391,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-onedrive" aria-label="OneDrive: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-onedrive" aria-label="OneDrive: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text"><span class="link-text">Ready</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5379,7 +5415,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5403,7 +5439,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5427,7 +5463,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-sharepoint" aria-label="SharePoint: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5451,7 +5487,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text"><span class="link-text">Ready</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5475,7 +5511,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text"><span class="link-text">Ready</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5500,7 +5536,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-teams" aria-label="Teams: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text"><span class="link-text">Ready</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5524,7 +5560,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5548,7 +5584,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5572,7 +5608,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5596,7 +5632,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-office_files" aria-label="Office files: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5621,7 +5657,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-device_management" aria-label="Device management: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-device_management" aria-label="Device management: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5645,7 +5681,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-device_management" aria-label="Device management: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-device_management" aria-label="Device management: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5670,7 +5706,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-windows_software" aria-label="Windows-only software: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-windows_software" aria-label="Windows-only software: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5695,7 +5731,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-power_platform" aria-label="Power Platform: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-power_platform" aria-label="Power Platform: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5720,7 +5756,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-telephony" aria-label="Telephony: Blocker" class="area-link replacement-status status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Blocker<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-telephony" aria-label="Telephony: Blocker" class="area-link replacement-status status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text"><span class="link-text">Blocker</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5744,7 +5780,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-identity_access" aria-label="Identity and access: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-identity_access" aria-label="Identity and access: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5768,7 +5804,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-security_compliance" aria-label="Security and compliance: Unknown" class="area-link replacement-status status unknown badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unknown<span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-security_compliance" aria-label="Security and compliance: Unknown" class="area-link replacement-status status unknown badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text"><span class="link-text">Unknown</span><span class="chevron-tail chevron-close" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
                       <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
                     </td>
                   </tr>
@@ -5792,7 +5828,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-small_apps" aria-label="Small applications: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-small_apps" aria-label="Small applications: Ready" class="area-link replacement-status status ready badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text"><span class="link-text">Ready</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>
@@ -5816,7 +5852,7 @@
                     </td>
 
                     <td role="cell" data-label="Area status">
-                      <a href="#readiness-integrations" aria-label="Integrations: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work<span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
+                      <a href="#readiness-integrations" aria-label="Integrations: Needs work" class="area-link replacement-status status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text"><span class="link-text">Needs work</span><span class="chevron-tail" aria-hidden="true"><svg class="chevron" viewBox="0 0 29 50" aria-hidden="true" focusable="false"><path d="M4.2 4.2 24.8 25 4.2 45.8"/></svg></span></span></a>
 
                     </td>
                   </tr>

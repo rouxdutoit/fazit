@@ -173,10 +173,39 @@ a:hover {
   text-shadow: 0 0 12px var(--link-glow);
 }
 
-/* Links in running text match the text colour, so a quiet line marks them. */
-main :where(p, li, dd, td, address) > a:not([class]) {
+/* Keep the native underline for print and forced colours. */
+main a:not([class]) {
   text-decoration: underline 1px var(--fg-2);
   text-underline-offset: 0.2em;
+}
+
+@media screen and (forced-colors: none) {
+  main :is(a:not([class]), a .link-text) {
+    /* Paint each line 0.2em below the baseline, using Figtree's 0.25em descent. */
+    padding-block-end: 1px;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: left bottom 0.05em;
+    background-repeat: no-repeat;
+    background-size: var(--underline-width, 0%) 1px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  main a:not([class]) {
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--fg-2), var(--fg-2));
+    background-size: var(--underline-width, 0%) 1px, 100% 1px;
+  }
+
+  main a:is(:hover, :focus-visible) { --underline-width: 100%; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    main a:not([class]) {
+      transition: color 0.2s ease, text-shadow 0.2s ease, background-size 250ms var(--ease);
+    }
+
+    main a .link-text { transition: background-size 250ms var(--ease); }
+  }
 }
 
 /* Controls that are links keep their own colours: only text links brighten and glow. */
@@ -276,6 +305,7 @@ code {
 .chevron-tail {
   padding-inline-start: calc(var(--chevron-gap, 0.38em) + var(--chevron-tracking, 0em));
   letter-spacing: normal;
+  white-space: nowrap;
 }
 
 /* Keep the chevron with the last word and adjust for wider Figtree side bearings. */
@@ -1253,6 +1283,8 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 }
 
 .timeline {
+  --timeline-dot-size: 11px;
+  --timeline-rail-width: 1px;
   position: relative;
   padding: 0;
   list-style: none;
@@ -1261,8 +1293,8 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 .timeline::before {
   position: absolute;
   inset-block: calc(var(--cap-height) / 2) calc(-1 * var(--rhythm-group));
-  inset-inline-start: calc(var(--cap-height) / 2 - 0.5px);
-  width: 1px;
+  inset-inline-start: calc((var(--timeline-dot-size) - var(--timeline-rail-width)) / 2);
+  inline-size: var(--timeline-rail-width);
   /* Fade the rail into the space below the last step. */
   background: linear-gradient(var(--rule) calc(100% - 2 * var(--rhythm-group)), transparent);
   content: "";
@@ -1273,11 +1305,16 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 }
 
 .timeline-dot {
-  --symbol-size: var(--cap-height);
+  flex: none;
+  inline-size: var(--timeline-dot-size);
+  block-size: var(--timeline-dot-size);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  margin-block-start: calc((var(--cap-height) - var(--timeline-dot-size)) / 2);
   position: relative;
   z-index: 1;
   border: 1px solid var(--fg-2);
-  border-radius: var(--radius-pill);
+  border-radius: 50%;
   background: var(--bg);
 }
 
@@ -1288,6 +1325,7 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 
 .timeline-name {
   display: flex;
+  align-items: flex-start;
   inline-size: fit-content;
   --symbol-gap: 24px;
   color: var(--fg-2);
@@ -1300,7 +1338,7 @@ main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 
 .timeline-text {
   max-width: var(--measure);
-  margin-inline-start: calc(var(--cap-height) + 24px);
+  margin-inline-start: calc(var(--timeline-dot-size) + 24px);
   color: var(--fg-2);
 }
 

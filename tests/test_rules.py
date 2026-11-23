@@ -2234,4 +2234,7 @@ def test_summary_explains_empty_lists_with_complete_evidence(
     assert 'href="#status-blocker"' not in blockers
     assert strings["path"]["empty"]["unknown"] in open_part
     open_points = strings["summary"]["not_examined"]
-    assert f'href="#not-examined"><span class="symbol-text">{open_points}<' in open_part
+    assert (
+        'href="#not-examined"><span class="symbol-text">'
+        f'<span class="link-text">{open_points}</span>' in open_part
+    )
