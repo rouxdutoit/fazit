@@ -370,7 +370,7 @@ In my consulting work, companies have asked me whether they could go open source
 
 Then I read a post by Jordan Krueger, and it clicked: we do not need more apps, we need better open source. Krueger asked people who build with AI to stop adding new things and help the tools others already rely on.
 
-In my own time, I had built projects because a language model made them easy to build, not because anyone had asked for them. The post said what I already knew. This time, companies had asked.
+I had built projects because agents made them easy to build, not because anyone had asked for them. The post said what I already knew. This time, companies had asked.
 
 Fazit is a new tool, so it does not follow that advice to the letter. It replaces nothing. openDesk, Nextcloud and LibreOffice already exist. What was missing was a way for an organisation to see, in its own numbers, what moving to them would take.
 
@@ -866,7 +866,7 @@ In meiner Beratungsarbeit haben mich Unternehmen gefragt, ob sie auf Open Source
 
 Dann las ich einen Beitrag von Jordan Krueger, und bei mir machte es klick. Darin heißt es, wir bräuchten nicht noch mehr Apps, sondern bessere Open-Source-Software. Wer mit KI Software entwickelt, solle nicht noch etwas Neues schaffen, sondern die Werkzeuge verbessern, auf die sich andere längst verlassen.
 
-Privat hatte ich Projekte entwickelt, weil ein Sprachmodell es mir leicht machte, nicht weil jemand danach gefragt hatte. Kruegers Beitrag sprach aus, was ich schon wusste. Diesmal hatten Unternehmen gefragt.
+Ich hatte Projekte entwickelt, weil KI-Agenten es mir leicht machten, nicht weil jemand danach gefragt hatte. Kruegers Beitrag sprach aus, was ich schon wusste. Diesmal hatten Unternehmen gefragt.
 
 Fazit ist ein neues Werkzeug und hält sich deshalb nicht wörtlich an Kruegers Rat. Es ersetzt nichts: openDesk, Nextcloud und LibreOffice gibt es bereits. Es fehlte ein Werkzeug, mit dem eine Organisation an ihren eigenen Zahlen ablesen kann, was der Umstieg erfordert.
 
