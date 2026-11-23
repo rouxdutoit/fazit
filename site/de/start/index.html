@@ -32,15 +32,15 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
+      <button class="menu-button symbol-label" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
-          <a href="/de/pilots/">Pilotprüfungen</a>
-          <a href="/de/integrators/">IT-Dienstleister</a>
-          <a href="/de/security/">Sicherheit</a>
-          <a href="/demo/de/">Beispielbericht</a>
-          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="symbol-label" href="/de/pilots/"><span class="symbol-text">Pilotprüfungen</span></a>
+          <a class="symbol-label" href="/de/integrators/"><span class="symbol-text">IT-Dienstleister</span></a>
+          <a class="symbol-label" href="/de/security/"><span class="symbol-text">Sicherheit</span></a>
+          <a class="symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht</span></a>
+          <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Quellcode</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
         </div>
       </nav>
     </div>
@@ -53,8 +53,8 @@
       <div class="command" role="group" aria-label="Im Terminal ausführen">
         <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
         <div class="command-line">
-          <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
-          <button class="btn copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+          <code><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">git clone https://github.com/<wbr>rouxdutoit/fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">cd fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">uv run fazit demo --lang de</span></span></code>
+          <button class="btn copy symbol-label" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon mask symbol icon-content-copy" aria-hidden="true"></span></button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
@@ -67,16 +67,14 @@
         <ul class="tiles tiles-2">
           <li>
             <a class="tile-link" href="https://git-scm.com/downloads" hreflang="en">
-              <h3>Git herunterladen</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Git herunterladen</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Lädt den Quellcode von Fazit herunter.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">
-              <h3>uv installieren</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">uv installieren</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
         </ul>
@@ -96,7 +94,7 @@
       <div class="sec-body">
         <p>Die letzte Zeile der Ausgabe nennt den Pfad des Berichts. Öffnen Sie die HTML-Datei in Ihrem Browser.</p>
         <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus und öffnen den Bericht erneut.</p>
-        <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="/de/security/#offline"><span class="symbol-text">Anleitung zur Prüfung ohne Netzwerk</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -104,7 +102,7 @@
       <h2 class="sec-label" id="start-own">Mit eigenen Daten</h2>
       <div class="sec-body">
         <p>Derzeit erstellt Fazit Berichte aus den Beispieldaten, ergänzt um Ihre eigenen Antworten und Kosten in <code>inputs.yaml</code>. Die Bestandszahlen stammen dabei weiter aus der fiktiven Stadtverwaltung. Als Nächstes kommt der Import von Exporten aus dem Microsoft 365 Admin Center; bis dahin können Sie Interesse an einer Pilotprüfung bekunden.</p>
-        <p><a class="more" href="/de/pilots/">Pilotprüfungen</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="/de/pilots/"><span class="symbol-text">Pilotprüfungen</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -114,9 +112,8 @@
         <ul class="tiles">
           <li>
             <a class="tile-link" href="/demo/de/">
-              <h3>Beispielbericht</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Beispielbericht</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Der Bericht zeigt die Ergebnisse für eine fiktive Stadtverwaltung mit simulierten Messwerten.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
         </ul>
@@ -150,8 +147,8 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
-          <a class="language" href="/start/" lang="en" hreflang="en" aria-label="English">EN</a>
+          <a class="foot-mail symbol-label" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="symbol mask icon-mail" aria-hidden="true"></span></a>
+          <a class="language symbol-label" href="/start/" lang="en" hreflang="en" aria-label="English"><span class="symbol-text">EN</span></a>
         </div>
       </div>
     </div>

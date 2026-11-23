@@ -32,15 +32,15 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
+      <button class="menu-button symbol-label" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">Menu</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Main navigation">
         <div class="bar-links-in">
-          <a href="/pilots/">Pilots</a>
-          <a href="/integrators/">Integrators</a>
-          <a href="/security/">Security</a>
-          <a href="/demo/en/">Sample report</a>
-          <a href="https://github.com/rouxdutoit/fazit">Source code</a>
-          <a class="btn btn-solid bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
+          <a class="symbol-label" href="/pilots/"><span class="symbol-text">Pilots</span></a>
+          <a class="symbol-label" href="/integrators/"><span class="symbol-text">Integrators</span></a>
+          <a class="symbol-label" href="/security/"><span class="symbol-text">Security</span></a>
+          <a class="symbol-label" href="/demo/en/"><span class="symbol-text">Sample report</span></a>
+          <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Source code</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Get started</span></a>
         </div>
       </nav>
     </div>
@@ -53,8 +53,8 @@
       <div class="command" role="group" aria-label="Run in a terminal">
         <p class="command-label" aria-hidden="true">Run in a terminal</p>
         <div class="command-line">
-          <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo</span></code>
-          <button class="btn copy" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+          <code><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">git clone https://github.com/<wbr>rouxdutoit/fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">cd fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">uv run fazit demo</span></span></code>
+          <button class="btn copy symbol-label" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon mask symbol icon-content-copy" aria-hidden="true"></span></button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
@@ -67,16 +67,14 @@
         <ul class="tiles tiles-2">
           <li>
             <a class="tile-link" href="https://git-scm.com/downloads">
-              <h3>Get Git</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Get Git</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Downloads Fazit's source code.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="https://docs.astral.sh/uv/getting-started/installation/">
-              <h3>Install uv</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Install uv</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Sets up the right Python and every package on the first run.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
         </ul>
@@ -96,7 +94,7 @@
       <div class="sec-body">
         <p>The last line of the output shows where the report was saved. Open that HTML file in your browser.</p>
         <p>To check that Fazit works without a network, disconnect, run <code>uv run <span class="code-option">--offline</span> fazit demo</code> and open the report again.</p>
-        <p><a class="more" href="/security/#offline">How to verify offline operation</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="/security/#offline"><span class="symbol-text">How to verify offline operation</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -104,7 +102,7 @@
       <h2 class="sec-label" id="start-own">With your own data</h2>
       <div class="sec-body">
         <p>Today Fazit builds reports from the bundled samples, with your own answers and costs in <code>inputs.yaml</code>. The inventory figures still come from the fictional town. Importing exports from the Microsoft 365 admin centre comes next; until then, you can register interest in a pilot.</p>
-        <p><a class="more" href="/pilots/">Pilot assessments</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="/pilots/"><span class="symbol-text">Pilot assessments</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -114,9 +112,8 @@
         <ul class="tiles">
           <li>
             <a class="tile-link" href="/demo/en/">
-              <h3>Sample report</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Sample report</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Browse the results for a fictional town with simulated measurements.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
         </ul>
@@ -150,8 +147,8 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"></a>
-          <a class="language" href="/de/start/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+          <a class="foot-mail symbol-label" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="symbol mask icon-mail" aria-hidden="true"></span></a>
+          <a class="language symbol-label" href="/de/start/" lang="de" hreflang="de" aria-label="Deutsch"><span class="symbol-text">DE</span></a>
         </div>
       </div>
     </div>

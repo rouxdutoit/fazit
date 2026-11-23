@@ -569,7 +569,11 @@ def check_commands(lang: str) -> list[str]:
         block = component[0]
         components.append(re.sub(r">\s+<", "><", block))
         code = re.search(r"<code>(.*?)</code>", block, re.S)
-        commands = re.findall(r"<span>([^<]+)</span>", code[1].replace("<wbr>", "")) if code else []
+        commands = (
+            re.findall(r'<span class="symbol-text">([^<]+)</span>', code[1].replace("<wbr>", ""))
+            if code
+            else []
+        )
         if commands != expected:
             errors.append(f"{route}: Expected the three demo commands for {lang}.")
         if not re.search(r"<button [^>]*\bdata-copy(?:\s|>)", block) or not all(
@@ -644,10 +648,10 @@ def _svg_paths(svg: bytes) -> set[str]:
 def _check_coverage_symbols(css: str) -> Iterator[str]:
     package = ROOT.parent / "src" / "fazit"
     template = (package / "templates" / "report.html.j2").read_text(encoding="utf-8")
-    macro = template.partition("macro status_label(")[2].split("endmacro", 1)[0]
+    macro = template.partition("macro status_contents(")[2].split("endmacro", 1)[0]
     names = dict(re.findall(r"'([\w]+)'\s*:\s*'([\w-]+)'", macro))
     if set(names) != set(STATUSES):
-        yield "Could not read every status symbol from status_label in report.html.j2."
+        yield "Could not read every status symbol from status_contents in report.html.j2."
         return
     status_paths = {}
     for name in names.values():
