@@ -859,7 +859,9 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     path = Path(result.stdout.strip())
     assert path.is_file() and path.parent == out
     html = path.read_text(encoding="utf-8")
-    assert html == demo_report.read_text(encoding="utf-8")
+    assert html == demo_report.read_text(encoding="utf-8").replace(
+        '<a class="wordmark" href="https://fazit.dev/">', '<a class="wordmark" href="#main">', 1
+    )
     macro = re.compile(r'<tr data-finding="office_files.kind.macro".*?</tr>', re.S)
     assert "Sample input" in macro.search(html)[0]
     assert 'data-cost-origin="sample_input">Sample input' in report_section(html, "costs")
@@ -1140,7 +1142,9 @@ def test_demo_and_report_use_the_scan_date_independently_of_the_clock(
     assert result.exit_code == 0 and not result.stderr, result.output
     rebuilt = out / original.name
     assert Path(result.stdout.strip()) == rebuilt
-    assert rebuilt.read_bytes() == original.read_bytes()
+    assert rebuilt.read_bytes() == original.read_bytes().replace(
+        b'<a class="wordmark" href="https://fazit.dev/">', b'<a class="wordmark" href="#main">', 1
+    )
 
 
 def test_source_does_not_read_the_clock() -> None:

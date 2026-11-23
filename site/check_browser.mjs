@@ -6,7 +6,10 @@ import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const modules = process.env.PLAYWRIGHT_DIR ?? "/home/roux/.local/share/playwright-1.62.1/node_modules/";
-const { chromium } = createRequire(resolve(modules, "check_browser.cjs"))("playwright");
+const { chromium, webkit } = createRequire(resolve(modules, "check_browser.cjs"))(
+  process.env.PLAYWRIGHT_MODULE ?? "playwright",
+);
+const engines = { chromium, webkit };
 const site = fileURLToPath(new URL(".", import.meta.url));
 const types = {
   ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript",
@@ -32,19 +35,35 @@ async function serve() {
   return server;
 }
 
-export async function withSite(check) {
+export async function withSite(check, { origin: suppliedOrigin, classicScrollbars = false } = {}) {
+  const engine = process.env.PLAYWRIGHT_ENGINE;
+  if (engine !== undefined && !Object.hasOwn(engines, engine)) {
+    throw new Error("PLAYWRIGHT_ENGINE must be chromium or webkit.");
+  }
   const files = await readdir(site, { recursive: true });
   const routes = files.filter(file => file.endsWith(".html") && !file.split(sep).some(part => part.startsWith(".")))
     .map(file => ("/" + file.split(sep).join("/")).replace(/\/index\.html$/, "/")).sort();
-  const server = await serve();
-  const origin = `http://127.0.0.1:${server.address().port}`;
-  let browser;
+  const server = suppliedOrigin ? null : await serve();
+  const origin = suppliedOrigin ?? `http://127.0.0.1:${server.address().port}`;
   try {
-    browser = await chromium.launch();
-    await check({ browser, origin, routes });
+    for (const name of engine ? [engine] : Object.keys(engines)) {
+      let browser;
+      try {
+        browser = await engines[name].launch(classicScrollbars && name === "chromium" ? {
+          ignoreDefaultArgs: ["--hide-scrollbars"],
+          args: ["--disable-features=OverlayScrollbar,FluentOverlayScrollbar"],
+        } : {});
+        console.log(`\n${name === "chromium" ? "Chromium" : "WebKit"} ${browser.version()}`);
+        await check({ browser, origin, routes });
+      } catch (error) {
+        console.error(`${name}: ${error.message}`);
+        process.exitCode = 1;
+      } finally {
+        await browser?.close();
+      }
+    }
   } finally {
-    await browser?.close();
-    await new Promise(done => server.close(done));
+    if (server) await new Promise(done => server.close(done));
   }
 }
 

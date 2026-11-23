@@ -22,6 +22,7 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
   surface.width = surface.height = fontSample;
   const canvas = surface.getContext("2d", { willReadFrequently: true });
   const stems = new Map();
+  const bearings = new Map();
   const failures = [];
   let count = 0;
   let maximum = 0;
@@ -40,8 +41,8 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     return `${style.fontStyle} ${style.fontWeight} ${size ?? style.fontSize} ${style.fontFamily}`;
   }
 
-  function metrics(element, text, size) {
-    canvas.font = font(element, size);
+  function metrics(element, text) {
+    canvas.font = font(element);
     return canvas.measureText(text);
   }
 
@@ -60,6 +61,26 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
       stems.set(canvas.font, (last - first) / (4 * fontSample));
     }
     return stems.get(canvas.font) * em;
+  }
+
+  function rightBearing(label, glyph) {
+    canvas.font = font(label, `${fontSample}px`);
+    const key = `${canvas.font} ${glyph}`;
+    if (!bearings.has(key)) {
+      // Canvas text bounds can include the glyph's advance. Read the painted ink instead.
+      const start = 16;
+      canvas.clearRect(0, 0, fontSample, fontSample);
+      canvas.fillText(glyph, start, fontSample - 32);
+      const { data } = canvas.getImageData(0, 0, fontSample, fontSample);
+      let right = fontSample;
+      search: for (; right > 0; right -= 1) {
+        for (let alpha = 4 * right - 1; alpha < data.length; alpha += 4 * fontSample) {
+          if (data[alpha] >= 128) break search;
+        }
+      }
+      bearings.set(key, (start + canvas.measureText(glyph).width - right) / fontSample);
+    }
+    return bearings.get(key);
   }
 
   function baseline(element) {
@@ -119,9 +140,8 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     range.setStart(text, end - last.length);
     range.setEnd(text, end);
     const box = range.getBoundingClientRect();
-    const { width, actualBoundingBoxRight } = metrics(label, last, `${fontSample}px`);
     const tracking = parseFloat(getComputedStyle(label).letterSpacing) || 0;
-    const bearing = (width - actualBoundingBoxRight) * em / fontSample + tracking;
+    const bearing = rightBearing(label, last) * em + tracking;
     return { right: box.right - bearing, lineOffset: box.top - firstLine };
   }
 
@@ -251,13 +271,63 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
     if (pair.matches(".finding-evidence dd")) {
       compare(pair, "evidence term", capCentres[0] - capCentre(pair.previousElementSibling));
     }
-    if (pair.matches(".command-line code > span") && pair.previousElementSibling) {
-      const preceding = pair.previousElementSibling.getBoundingClientRect();
-      compare(pair, "command line gap", Math.min(0, box.top - preceding.bottom - 8));
+    if (pair.matches(".command-line code > span")) {
+      const { lineHeight, fontSize } = getComputedStyle(labels[0]);
+      compare(pair, "command line height", parseFloat(lineHeight) - 1.7 * parseFloat(fontSize), 0.02);
+      if (pair.previousElementSibling) {
+        compare(pair, "command line gap", box.top - pair.previousElementSibling.getBoundingClientRect().bottom, 0.02);
+      }
+    }
+    if (pair.matches(".copy")) {
+      compare(pair, "copy hit target width", box.width - parseFloat(getComputedStyle(pair).getPropertyValue("--hit")), 0);
+      compare(pair, "command block centre", centre(box) - centre(pair.closest(".command-line").getBoundingClientRect()));
+    }
+  }
+
+  function measureBarAndPreview() {
+    const bar = document.querySelector(".bar-in");
+    const wordmark = bar?.querySelector(".wordmark");
+    const visible = wordmark?.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+    compare(wordmark ?? document.body, "wordmark centre", visible
+      ? centre(wordmark.getBoundingClientRect()) - centre(bar.getBoundingClientRect()) : NaN);
+
+    const preview = document.querySelector(".report-preview");
+    if (preview) {
+      const card = preview.querySelector(".report-card")?.getBoundingClientRect();
+      const link = preview.querySelector("figcaption a[download]");
+      const box = link?.getBoundingClientRect();
+      compare(link ?? preview, "download centred under preview", (box?.left + box?.right - card?.left - card?.right) / 2);
+    }
+  }
+
+  function measureTimeline(timeline) {
+    const rail = getComputedStyle(timeline, "::before");
+    const width = parseFloat(rail.width);
+    const box = timeline.getBoundingClientRect();
+    const railCentre = box.left + parseFloat(rail.left) + width / 2;
+    const pageBg = getComputedStyle(document.body).backgroundColor;
+    compare(timeline, "rail width", rail.content !== "none" && rail.backgroundImage !== "none" ? width - 1 : NaN, 0);
+    for (const [index, step] of [...timeline.children].entries()) {
+      const dot = step.querySelector(".timeline-dot");
+      if (!dot) {
+        compare(step, "timeline dot", NaN);
+        continue;
+      }
+      const marker = dot.getBoundingClientRect();
+      compare(step, "dot centred on rail", (marker.left + marker.right) / 2 - railCentre);
+      if (index === 0) compare(step, "rail starts at first dot", box.top + parseFloat(rail.top) - centre(marker));
+
+      const style = getComputedStyle(dot);
+      const expectedFill = step.classList.contains("on") ? style.color : pageBg;
+      if (style.backgroundColor !== expectedFill || !(Number(style.zIndex) > (Number(rail.zIndex) || 0))) {
+        failures.push({ selector: selector(step), check: "dot covers the rail", offset: "—" });
+      }
     }
   }
 
   if (!scope) {
+    measureBarAndPreview();
+    for (const timeline of document.querySelectorAll(".timeline")) measureTimeline(timeline);
     const costTiles = [...document.querySelectorAll("#costs [data-cost-tile]")];
     const [firstTile] = costTiles;
     for (const tile of costTiles) {
@@ -274,6 +344,18 @@ function measureInPage({ scope, components, centredLabels, symbolOnly, textOnly,
   return { failures, count, maximum };
 }
 
+async function clickCopyButton(page, button) {
+  // WebKit can stop delivering animation frames after the layout probes.
+  const point = await button.evaluate(element => {
+    element.scrollIntoView({ block: "center", behavior: "instant" });
+    const { x, y, width, height } = element.getBoundingClientRect();
+    const centre = { x: x + width / 2, y: y + height / 2 };
+    return element.contains(document.elementFromPoint(centre.x, centre.y)) ? centre : null;
+  });
+  assert(point, "Copy button centre is not a hit target");
+  await page.mouse.click(point.x, point.y);
+}
+
 async function checkPage(page, route, width, origin, measure) {
   const report = route.startsWith("/demo/");
   const response = await page.goto(origin + route);
@@ -286,7 +368,7 @@ async function checkPage(page, route, width, origin, measure) {
 
   const copy = page.locator("[data-copy]");
   for (const button of await copy.all()) {
-    await button.click();
+    await clickCopyButton(page, button);
     await page.locator("[data-copy].done").waitFor();
     await measure(".copy.done");
   }
@@ -336,15 +418,17 @@ async function checkPage(page, route, width, origin, measure) {
 }
 
 const tolerance = 0.75;
-const failures = [];
-let maximum = 0;
-let count = 0;
-let views = 0;
-await withSite(async ({ browser, origin, routes }) => {
+async function checkAlignment({ browser, origin, routes }) {
+  const failures = [];
+  let maximum = 0;
+  let count = 0;
+  let views = 0;
   for (const width of widths) {
     for (const theme of ["light", "dark"]) {
       const context = await localContext(browser, origin, width, theme);
-      await context.grantPermissions(["clipboard-write"], { origin });
+      if (browser.browserType().name() === "chromium") {
+        await context.grantPermissions(["clipboard-write"], { origin });
+      }
       const page = await context.newPage();
       page.setDefaultTimeout(3000);
       for (const route of routes) {
@@ -360,17 +444,17 @@ await withSite(async ({ browser, origin, routes }) => {
             maximum = Math.max(maximum, result.maximum);
           });
         } catch (error) {
-          failures.push({ ...view, selector: "page", check: error.message.split("\n").slice(0, 2).join(" "), offset: "—" });
+          failures.push({ ...view, selector: "page", check: error.message.split("\n").slice(0, 6).join(" "), offset: "—" });
         }
       }
       await context.close();
     }
   }
-});
-
-if (failures.length) {
-  console.table(failures);
-  process.exitCode = 1;
-} else {
-  console.log(`${views} page views, ${count} alignment measurements. Maximum offset ${maximum.toFixed(2)} px (limit ${tolerance} px).`);
+  if (failures.length) {
+    console.table(failures);
+    process.exitCode = 1;
+  }
+  console.log(`${views} page views, ${count} alignment measurements. Maximum offset ${maximum.toFixed(2)} px (limit ${tolerance} px). ${failures.length} failures.`);
 }
+
+await withSite(checkAlignment);

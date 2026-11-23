@@ -60,11 +60,12 @@ uv run fazit demo --lang en
 uv run python site/check_site.py
 node site/check_alignment.mjs
 node site/check_spacing.mjs
+node tests/browser/check-scrollbars.mjs
 ```
 
-All eight succeed, and the two reports open with the network off. Changes to the website or the report follow [DESIGN.md](DESIGN.md).
+Every command succeeds, and the two reports open with the network off. Changes to the website or the report follow [DESIGN.md](DESIGN.md).
 
-The alignment and spacing checks use local Playwright and Chromium. Set `PLAYWRIGHT_DIR` to the directory containing the `playwright` package if it differs from `/home/roux/.local/share/playwright-1.62.1/node_modules/`. The spacing check measures the named relations in [DESIGN.md](DESIGN.md#vertical-rhythm) on all pages at 360, 768 and 1280 px and lists any gaps that differ.
+The alignment, spacing and scrollbar checks use local Playwright and run in Chromium and WebKit by default, with separate results and the same limits for each engine. Set `PLAYWRIGHT_ENGINE` to `chromium` or `webkit` to run a single engine. Set `PLAYWRIGHT_DIR` to the directory containing the `playwright` package if it differs from `/home/roux/.local/share/playwright-1.62.1/node_modules/`. The spacing check measures the named relations in [DESIGN.md](DESIGN.md#vertical-rhythm) on all pages at 360, 768 and 1280 px and lists any gaps that differ.
 
 If report output changes, copy the HTML from the two demo runs above to `site/demo/de/index.html` and `site/demo/en/index.html`, using the matching language for each file.
 

@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
+import { widths, withSite } from "../../site/check_browser.mjs";
 
 const [siteOrigin, ...extraReports] = process.argv.slice(2);
-assert(siteOrigin, "Usage: node tests/browser/check-scrollbars.mjs <local site origin> [report.html ...]");
-const origin = new URL(siteOrigin).origin;
 const site = new URL("../../site/", import.meta.url);
-const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 
 async function check(page) {
   const problems = await page.evaluate(() => {
@@ -45,38 +41,53 @@ async function check(page) {
   assert.deepEqual(problems, [], page.url() + " at " + page.viewportSize().width + " px");
 }
 
-const routes = (await readdir(fileURLToPath(site), { recursive: true }))
-  .filter(path => path.endsWith(".html")).sort();
 const reports = ["en", "de"].map(lang => new URL(`demo/${lang}/index.html`, site).href)
   .concat(extraReports.map(path => pathToFileURL(resolve(path)).href));
-const browser = await chromium.launch({
-  ignoreDefaultArgs: ["--hide-scrollbars"],
-  args: ["--disable-features=OverlayScrollbar,FluentOverlayScrollbar"],
-});
-try {
-  for (const width of [360, 768, 1280]) {
+
+async function load(page, url, webkit) {
+  const response = await page.goto(url);
+  if (!url.startsWith("file:")) assert(response?.ok(), url);
+  await page.evaluate(emulateClassic => {
+    if (emulateClassic) {
+      // Headless WebKit needs a classic gutter to expose scrollbars to the size check.
+      const style = document.createElement("style");
+      style.textContent = ":where(*)::-webkit-scrollbar { width: 15px; height: 15px; }";
+      document.head.append(style);
+    }
+    return document.fonts.ready;
+  }, webkit);
+}
+
+async function checkScrollbars({ browser, origin, routes }) {
+  const webkit = browser.browserType().name() === "webkit";
+  for (const width of widths) {
     for (const colorScheme of ["light", "dark"]) {
       const viewport = { width, height: 800 };
-      const website = await browser.newPage({ viewport, colorScheme });
-      const report = await browser.newPage({ viewport, colorScheme, offline: true, javaScriptEnabled: false });
+      const reducedMotion = "reduce";
+      const website = await browser.newPage({ viewport, colorScheme, reducedMotion });
+      // WebKit's offline flag also rejects file navigation. Block network requests directly.
+      const report = await browser.newPage({ viewport, colorScheme, reducedMotion, offline: !webkit, javaScriptEnabled: false });
+      const networkRequests = [];
+      await report.route(/^https?:\/\//, route => {
+        networkRequests.push(route.request().url());
+        return route.abort("internetdisconnected");
+      });
       await website.route("**/*", route => route.request().url().startsWith(origin + "/")
         ? route.continue() : route.abort());
       try {
-        for (const path of routes) {
-          const response = await website.goto(new URL(path, origin).href);
-          assert(response?.ok(), path);
-          await website.evaluate(() => document.fonts.ready);
+        for (const route of routes) {
+          await load(website, new URL(route, origin).href, webkit);
           await check(website);
         }
         for (const url of reports) {
-          await report.goto(url);
-          await report.evaluate(() => document.fonts.ready);
+          await load(report, url, webkit);
           await check(report);
           await report.locator("details").evaluateAll(details => {
             for (const disclosure of details) disclosure.open = true;
           });
           await check(report);
         }
+        assert.deepEqual(networkRequests, [], "Offline reports made network requests");
         console.log(`${width} px, ${colorScheme}: ${routes.length} site pages and ${reports.length} offline reports passed`);
       } finally {
         await website.close();
@@ -84,6 +95,6 @@ try {
       }
     }
   }
-} finally {
-  await browser.close();
 }
+
+await withSite(checkScrollbars, { origin: siteOrigin && new URL(siteOrigin).origin, classicScrollbars: true });

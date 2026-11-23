@@ -84,13 +84,15 @@ class ReportDocument(HTMLParser):
             self.styles.append(data)
 
 
-def offline_policies(document: ReportDocument) -> list[str]:
+def offline_policies(document: ReportDocument, *, demo_home: str | None = None) -> list[str]:
     policies = []
     for tag, attrs in document.tags:
         assert tag not in RESOURCE_ELEMENTS, tag
         assert not (RESOURCE_ATTRIBUTES & attrs.keys()), attrs
         for name, value in attrs.items():
             if name in {"href", "xlink:href"}:
+                if demo_home and tag == "a" and attrs == {"class": "wordmark", "href": demo_home}:
+                    continue
                 assert (value or "").startswith("#"), value
             assert not name.startswith("on"), name
             if name == "style":

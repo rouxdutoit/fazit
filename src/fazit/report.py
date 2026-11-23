@@ -170,7 +170,7 @@ def render_demo(
     scan: Scan, *, lang: str, profile: str, catalogue: Catalogue, inputs: Inputs
 ) -> tuple[str, str]:
     context, plans = _prepare_report(scan, lang, profile, catalogue, inputs)
-    return _render_html(context), scan_to_json(scan, plans=plans)
+    return _render_html(context, demo=True), scan_to_json(scan, plans=plans)
 
 
 @dataclass(frozen=True)
@@ -820,9 +820,9 @@ def _assets() -> dict[str, dict[str, str]]:
     return {"fonts": fonts, "icons": icons}
 
 
-def _render_html(context: dict[str, object]) -> str:
+def _render_html(context: dict[str, object], *, demo: bool = False) -> str:
     source = files("fazit").joinpath("templates", "report.html.j2")
-    html = _compile_template(read_text(source)).render(**context, **_assets()).strip()
+    html = _compile_template(read_text(source)).render(**context, **_assets(), demo=demo).strip()
     return "\n".join(line.rstrip(" \t") for line in html.split("\n")) + "\n"
 
 

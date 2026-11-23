@@ -80,7 +80,7 @@
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
       --gutter: 20px;
       --rhythm-page-heading: 64px;
-      --rhythm-divider: 32px;
+      --rhythm-section-gap: 40px;
       --rhythm-section-heading: 16px;
       --rhythm-paragraph: 12px;
       --rhythm-lede-visual: 24px;
@@ -90,7 +90,6 @@
       --rhythm-group: 32px;
       --rhythm-subheading: 12px;
       --rhythm-caption: 16px;
-      --rhythm-footer: 48px;
       --rhythm-inline-links: 24px;
       --card-padding: 24px;
       --max: 1120px;
@@ -112,6 +111,12 @@
     }
     @media (max-width: 600px) {
       :root { --gutter: 16px; }
+    }
+    @media screen and (min-width: 768px) {
+      :root { --rhythm-section-gap: 56px; }
+    }
+    @media screen and (min-width: 1080px) {
+      :root { --rhythm-section-gap: 64px; }
     }
     * { box-sizing: border-box; }
     body {
@@ -356,6 +361,9 @@
         font-size: var(--fs-body);
       }
       .bar-menu .bar-links a:is(:hover, :focus-visible) { background: var(--fill); }
+      @media (prefers-reduced-motion: reduce) {
+        .bar-menu:not([open]) .bar-links { display: none; }
+      }
       @media (prefers-reduced-motion: no-preference) {
         .menu-icon > span { transition: transform 0.4s var(--ease); }
         @supports selector(details::details-content) {
@@ -1046,14 +1054,14 @@
       font-size: var(--fs-footnote);
     }
     @media screen {
-      main { padding-block-end: var(--rhythm-footer); }
+      main { padding-block-end: var(--rhythm-section-gap); }
       .page-intro {
         padding-block-start: calc(var(--rhythm-page-heading) - 1lh - var(--rhythm-subheading));
       }
-      .sec { padding-block-start: calc(1px + var(--rhythm-divider)); }
+      .sec { padding-block-start: calc(1px + var(--rhythm-section-gap)); }
+      main > * + section { margin-block-start: var(--rhythm-section-gap); }
 
       /* A nearer relation replaces the gap between content groups. */
-      main > * + section,
       main :where(.page-intro, .sec-body, .subsection, .scope-requirements, .cost-bars, .cost-chart-row, .finding, [data-subsection], details, .finding-missing, #costs-missing) > * + * {
         margin-block-start: var(--rhythm-group);
       }
@@ -1318,7 +1326,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <div class="bar">
     <div class="bar-in">
-      <a class="wordmark" href="#main">fazit</a>
+      <a class="wordmark" href="https://fazit.dev/">fazit</a>
       <nav class="bar-links" aria-label="Report sections">
     <div class="bar-links-in">
 

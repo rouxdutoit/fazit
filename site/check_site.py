@@ -598,7 +598,7 @@ def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     prefix = "/de" if lang == "de" else ""
     sample = f"/demo/{lang}/"
     destinations = {
-        "hero": [f"{sample}#readiness-telephony", f"{sample}#status-blocker", sample, sample],
+        "hero": [f"{sample}#readiness-telephony", f"{sample}#status-blocker", sample],
         "example": [f"{sample}#readiness-title"],
         "costs": [f"{sample}#costs-title"],
         "privacy": [f"{prefix}/security/"],
@@ -613,6 +613,14 @@ def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     for section, links in destinations.items():
         if re.findall(r'<a class="more(?: [^"]+)?" href="([^"]+)"', sections[section]) != links:
             errors.append(f"Home section {section} must link to {', '.join(links)}.")
+    caption = re.search(r"<figcaption\b[^>]*>(.*?)</figcaption>", sections["hero"], re.S)
+    download = rf'<a\b[^>]* href="{sample}" download="fazit-sample-report-{lang}\.html"'
+    if (
+        not caption
+        or len(re.findall(r"<a\b", caption[1])) != 1
+        or not re.search(download, caption[1])
+    ):
+        errors.append("The home report caption must contain one link that downloads the sample.")
     preview = status_preview(sections["hero"])
     if not preview or preview != status_preview(demo.source):
         errors.append("The hero preview must show the sample report's four status rows.")

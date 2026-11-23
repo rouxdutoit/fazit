@@ -4,14 +4,14 @@ import { localContext, widths, withSite } from "./check_browser.mjs";
 
 const design = await readFile(new URL("../DESIGN.md", import.meta.url), "utf8");
 const relations = new Map(Array.from(
-  design.matchAll(/^\| ([^|]+) \| `--rhythm-([a-z-]+)` \| (\d+) px \|$/gm),
-  ([, name, key, gap]) => [key, { name, expected: Number(gap) }],
+  design.matchAll(/^\| ([^|]+) \| `--([a-z-]+)` \| (\d+) px \| (\d+) px \| (\d+) px \|$/gm),
+  ([, name, token, ...gaps]) => [token.replace(/^rhythm-/, ""), { name, expected: gaps.map(Number) }],
 ));
-const scale = [4, 8, 12, 16, 24, 32, 48, 64, 96];
-// Chromium lays out in steps of 1/64 of a CSS pixel.
+const scale = [4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 96];
+// Allow for layout in steps of 1/64 of a CSS pixel.
 const tolerance = 0.02;
-if (relations.size !== 13 || [...relations.values()].some(({ expected }) => !scale.includes(expected))) {
-  throw new Error("DESIGN.md must give one spacing-scale value for each of the 13 relations.");
+if (relations.size !== 13 || [...relations.values()].some(({ expected }) => expected.some(gap => !scale.includes(gap)))) {
+  throw new Error("DESIGN.md must give one spacing-scale value per width for each of the 13 relations.");
 }
 
 function measureInPage(filtered) {
@@ -20,10 +20,10 @@ function measureInPage(filtered) {
   const columns = matchMedia("(min-width: 880px)").matches;
   const visual = "figure, ul, ol, dl, table, .finding, .command, .summary-costs, .table-scroll, .cost-bars, .sec-body .note";
   const flows = [
-    "main", ".hero", ".page-intro", ".center-page > div", ".sec-body", ".subsection",
-    ".preview-blockers", ".legal-part", ".legal-layout:not(.has-summary), .legal-layout > article",
+    ".hero", ".page-intro", ".center-page > div", ".sec-body", ".subsection",
+    ".preview-blockers", ".legal-part",
     ".scope-requirements", ".cost-bars", ".cost-chart-row", ".cost-notes", ".areas", ".finding",
-    "[data-subsection]", "details", ".finding-missing", ".has-summary", "#costs-missing", ".timeline",
+    "[data-subsection]", "details", ".finding-missing", "#costs-missing", ".timeline",
   ].join(", ");
 
   const visible = el => !el.matches(".sr-only, .copy-message:empty") && el.checkVisibility({ visibilityProperty: true });
@@ -41,28 +41,65 @@ function measureInPage(filtered) {
     return `${element.localName}${classes.map(name => "." + name).join("")}${key ? ` (${key})` : ""}`;
   }
 
-  function record(relation, first, second, gap = box(second).top - box(first).bottom) {
+  function record(relation, first, second, gap = box(second).top - box(first).bottom, edge = "") {
     const scope = first.closest("[id], [data-section], [data-summary], section[aria-labelledby]");
-    measurements.push({ relation, gap, pair: `${scope ? `${selector(scope)} / ` : ""}${selector(first)} → ${selector(second)}` });
+    const pair = `${scope ? `${selector(scope)} / ` : ""}${selector(first)} → ${selector(second)}`;
+    measurements.push({ relation, gap, pair: edge ? `${pair} (${edge})` : pair });
   }
 
   function measureStartAndEnd() {
     const heading = main.querySelector("h1");
     record("page-heading", main, heading, box(heading).top - box(main).top);
     const last = [...main.children].filter(visible).at(-1);
-    record("footer", last, document.querySelector("footer"));
+    record("section-gap", last, document.querySelector("footer"), undefined, "above footer");
+  }
+
+  function measureDivider(previous, section, firstItems, pseudo = false) {
+    const style = getComputedStyle(section, pseudo ? "::before" : null);
+    const size = pseudo ? parseFloat(style.height) : parseFloat(style.borderTopWidth);
+    const offset = pseudo ? parseFloat(style.top) : 0;
+    const hasRule = size > 0 && (!pseudo || style.content !== "none" && style.display !== "none");
+    const top = hasRule ? box(section).top + offset : NaN;
+    record("section-gap", previous, section, top - box(previous).bottom, "above divider");
+    for (const first of firstItems) {
+      record("section-gap", section, first, box(first).top - (top + size), "below divider");
+    }
+  }
+
+  function measureLegalDividers(intro, layout) {
+    const summary = layout.matches(".has-summary");
+    const [first, article] = layout.children;
+    measureDivider(intro, layout, summary && columns ? [first, article] : [first]);
+    if (summary && !columns) measureDivider(first, article, [article.firstElementChild]);
+    for (const part of layout.querySelectorAll(".legal-part + .legal-part")) {
+      measureDivider(part.previousElementSibling, part, [part.firstElementChild]);
+    }
   }
 
   function measureDividers() {
-    for (const section of main.querySelectorAll(".sec")) {
-      const divider = getComputedStyle(section, "::before");
-      const end = box(section).top + parseFloat(getComputedStyle(section).borderTopWidth)
-        + parseFloat(divider.top) + parseFloat(divider.height);
-      const items = [...section.children].filter(visible);
-      for (const first of columns ? items : items.slice(0, 1)) {
-        record("divider", section, first, box(first).top - end);
+    const sections = [...main.children].filter(visible);
+    for (const [index, section] of sections.entries()) {
+      if (!index) continue;
+      const previous = sections[index - 1];
+      if (section.matches(".legal-layout")) {
+        measureLegalDividers(previous, section);
+      } else if (section.matches("section")) {
+        const grid = section.querySelector(":scope > .sec") ?? section;
+        const items = [...grid.children].filter(visible);
+        measureDivider(previous, grid, columns ? items : items.slice(0, 1), true);
       }
     }
+  }
+
+  function measureCommand(block) {
+    const code = block.querySelector("code");
+    const symbol = block.querySelector(".copy > .symbol");
+    const outer = box(block);
+    const inner = box(code);
+    record("card-padding", block, code, inner.top - outer.top, "top");
+    record("card-padding", block, code, outer.bottom - inner.bottom, "bottom");
+    record("card-padding", block, code, inner.left - outer.left, "left");
+    record("card-padding", block, symbol ?? block, outer.right - symbol?.getBoundingClientRect().right, "right to copy symbol");
   }
 
   function measurePair(parent, previous, next) {
@@ -71,17 +108,13 @@ function measureInPage(filtered) {
       if (!columns) record("section-heading", previous, next);
       return;
     }
-    if (previous.matches(".page-intro") && next.matches(".legal-layout")) {
-      record("section-heading", previous.querySelector("h1"), next);
-      return;
-    }
     if (previous.matches("h1, .legal-part > h2")) {
       record("section-heading", previous, next);
       return;
     }
     if (next.matches("figcaption, .table-note, .cost-known-blocks, .cost-chart-values")
       || previous.matches(".command-label, .cost-origin, .legend")) {
-      record("caption", previous, next);
+      record("caption", previous, next.matches("figcaption") ? firstLink(next) ?? next : next);
       if (link(next)) record("visual-link", previous, firstLink(next));
       return;
     }
@@ -110,7 +143,7 @@ function measureInPage(filtered) {
       record("paragraph", previous, next);
       return;
     }
-    if (parent.matches(flows) && !(parent.matches(".has-summary") && columns)) record("group", previous, next);
+    if (parent.matches(flows)) record("group", previous, next);
   }
 
   function measureCaption(caption) {
@@ -159,6 +192,7 @@ function measureInPage(filtered) {
   measureDividers();
   for (const parent of [main, ...main.querySelectorAll("*")]) {
     const children = [...parent.children].filter(visible);
+    if (parent.matches(".command-line")) measureCommand(parent);
     if (parent.matches(".tiles, .status-group, .finding-cards")) {
       measureCards(children.filter(el => el.matches("li, .finding")));
     }
@@ -191,12 +225,12 @@ async function showEmptyResults(page) {
   return true;
 }
 
-const buckets = new Map(widths.map(width => [width, new Map([...relations.keys()].map(key => [key, []]))]));
-const errors = [];
-let views = 0;
-let expanded = 0;
-let filtered = 0;
-await withSite(async ({ browser, origin, routes }) => {
+async function checkSpacing({ browser, origin, routes }) {
+  const buckets = new Map(widths.map(width => [width, new Map([...relations.keys()].map(key => [key, []]))]));
+  const errors = [];
+  let views = 0;
+  let expanded = 0;
+  let filtered = 0;
   for (const width of widths) {
     for (const theme of ["light", "dark"]) {
       const context = await localContext(browser, origin, width, theme);
@@ -206,7 +240,7 @@ await withSite(async ({ browser, origin, routes }) => {
           for (const { relation, ...result } of await page.evaluate(measureInPage, state === "filtered")) {
             const bucket = buckets.get(width).get(relation);
             if (!bucket) throw new Error(`Missing rhythm definition for ${relation}`);
-            bucket.push({ ...result, page: route, view: `${theme} ${state}` });
+            bucket.push({ ...result, page: route, theme, state });
           }
         };
         try {
@@ -232,34 +266,47 @@ await withSite(async ({ browser, origin, routes }) => {
       await context.close();
     }
   }
-});
+  const { rows, offenders, count } = summarise(buckets);
+  console.table(rows);
+  console.log(`${views} page views, ${expanded} expanded views, ${filtered} empty filter views, ${count} spacing measurements (px).`);
+  if (offenders.length) console.table(offenders);
+  if (errors.length) console.table(errors);
+  if (errors.length || rows.some(row => row.offenders)) process.exitCode = 1;
+}
 
 const onScale = gap => scale.find(value => Math.abs(gap - value) <= tolerance);
 const display = gap => gap === null ? "missing box" : onScale(gap) ?? Number(gap.toFixed(2));
-const rows = [];
-const offenders = new Map();
-let count = 0;
-for (const [key, { name, expected }] of relations) {
-  for (const [width, byRelation] of buckets) {
-    const samples = byRelation.get(key);
-    count += samples.length;
-    const values = [...new Set(samples.map(({ gap }) => display(gap)))].sort((a, b) => a - b);
-    const invalid = samples.filter(({ gap }) => gap === null || onScale(gap) !== expected);
-    rows.push({ relation: name, width, "values found": values.join(", ") || "—", offenders: invalid.length || (samples.length ? 0 : "no measurements") });
-    for (const { page, pair, view, gap } of invalid) {
-      const actual = display(gap);
-      const id = JSON.stringify([key, width, page, pair, actual]);
-      if (!offenders.has(id)) {
-        offenders.set(id, { relation: name, width, page, pair, gap: actual, expected, views: new Set(), hits: 0 });
+const widthBand = width => width < 768 ? 0 : width < 1080 ? 1 : 2;
+
+function summarise(buckets) {
+  const rows = [];
+  const offenders = new Map();
+  let count = 0;
+  for (const [key, { name, expected }] of relations) {
+    for (const [width, byRelation] of buckets) {
+      const samples = byRelation.get(key);
+      count += samples.length;
+      const target = expected[widthBand(width)];
+      const home = theme => samples.find(sample =>
+        sample.page === "/" && sample.theme === theme && sample.state === "initial")?.gap;
+      const homeGaps = { light: home("light"), dark: home("dark") };
+      const values = [...new Set(samples.map(({ gap }) => display(gap)))].sort((a, b) => a - b);
+      const invalid = samples.filter(({ gap, theme }) => gap === null || onScale(gap) !== target
+        || (key === "section-gap" && (!Number.isFinite(homeGaps[theme]) || Math.abs(gap - homeGaps[theme]) > tolerance)));
+      rows.push({ relation: name, width, expected: target, "values found": values.join(", ") || "—", offenders: invalid.length || (samples.length ? 0 : "no measurements") });
+      for (const { page, pair, theme, state, gap } of invalid) {
+        const actual = display(gap);
+        const id = JSON.stringify([key, width, page, pair, actual]);
+        if (!offenders.has(id)) {
+          offenders.set(id, { relation: name, width, page, pair, gap: actual, expected: target, views: new Set(), hits: 0 });
+        }
+        const offender = offenders.get(id);
+        offender.views.add(`${theme} ${state}`);
+        offender.hits += 1;
       }
-      const offender = offenders.get(id);
-      offender.views.add(view);
-      offender.hits += 1;
     }
   }
+  return { rows, count, offenders: [...offenders.values()].map(({ views, ...row }) => ({ ...row, views: [...views].join(", ") })) };
 }
-console.table(rows);
-console.log(`${views} page views, ${expanded} expanded views, ${filtered} empty filter views, ${count} spacing measurements (px).`);
-if (offenders.size) console.table([...offenders.values()].map(({ views, ...row }) => ({ ...row, views: [...views].join(", ") })));
-if (errors.length) console.table(errors);
-if (errors.length || rows.some(row => row.offenders)) process.exitCode = 1;
+
+await withSite(checkSpacing);

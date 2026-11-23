@@ -13,6 +13,14 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Section spacing and sample report navigation
+
+**D44. Use a responsive section gap throughout the site and report.**
+
+The founder set 40 px below 768 px, 56 px from 768 px and 64 px from 1080 px. The gap applies on both sides of a section divider and above the footer. The screen rules include the legal pages and both sample reports. Print keeps its compact spacing. This updates D41. [Design rules](DESIGN.md#vertical-rhythm)
+
+The founder also asked for a single, centred download beneath the home preview, more padding in the shared command block and an unbroken outline on future timeline dots. Only the sample report produced by `fazit demo` links from the wordmark to the website in the report's language. Organisation reports link to their own content.
+
 ## 2026-11-23 — Linked card chevrons
 
 **D43. Use the plain trailing chevron on linked cards.**

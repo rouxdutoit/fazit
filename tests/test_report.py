@@ -931,6 +931,30 @@ def test_demo_writes_exactly_one_html_report(tmp_path: Path) -> None:
     assert "href=" not in footer
 
 
+@pytest.mark.parametrize(
+    ("lang", "demo_home"), [("en", "https://fazit.dev/"), ("de", "https://fazit.dev/de/")]
+)
+def test_only_the_demo_wordmark_links_to_the_website(
+    tmp_path: Path, lang: str, demo_home: str
+) -> None:
+    result = runner.invoke(app, ["demo", "--lang", lang, "--out", str(tmp_path / "demo")])
+    assert result.exit_code == 0, result.output
+    demo = ReportDocument(Path(result.stdout.splitlines()[-1]).read_text(encoding="utf-8"))
+    inputs = tmp_path / "inputs.yaml"
+    inputs.write_text("organisation_name: West Weir Council\n", encoding="utf-8")
+    report = ReportDocument(
+        rebuild_report(ALL_UNKNOWN_SCAN, tmp_path / "report", lang, inputs=inputs)
+    )
+
+    for document, href in ((demo, demo_home), (report, "#main")):
+        wordmarks = [
+            attrs for tag, attrs in document.tags if tag == "a" and attrs.get("class") == "wordmark"
+        ]
+        assert wordmarks == [{"class": "wordmark", "href": href}]
+        policies = offline_policies(document, demo_home=demo_home if document is demo else None)
+        assert len(policies) == 1 and "default-src 'none'" in policies[0]
+
+
 def test_scan_organisation_markup_is_ignored(tmp_path: Path) -> None:
     data = json.loads(PLANTED_SCAN.read_text(encoding="utf-8"))
     data["organisation"]["display_name"] = '<img src="https://example.invalid/organisation">'

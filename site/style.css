@@ -49,7 +49,7 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --gutter: 20px;
   --rhythm-page-heading: 64px;
-  --rhythm-divider: 32px;
+  --rhythm-section-gap: 40px;
   --rhythm-section-heading: 16px;
   --rhythm-paragraph: 12px;
   --rhythm-lede-visual: 24px;
@@ -59,7 +59,6 @@
   --rhythm-group: 32px;
   --rhythm-subheading: 12px;
   --rhythm-caption: 16px;
-  --rhythm-footer: 48px;
   --rhythm-inline-links: 24px;
   --card-padding: 24px;
   --max: 1120px;
@@ -85,7 +84,19 @@
 }
 
 @media print {
-  :root { color-scheme: light; }
+  :root {
+    color-scheme: light;
+    --rhythm-section-gap: 32px;
+  }
+  main { padding-block-end: 48px; }
+}
+
+@media screen and (min-width: 768px) {
+  :root { --rhythm-section-gap: 56px; }
+}
+
+@media screen and (min-width: 1080px) {
+  :root { --rhythm-section-gap: 64px; }
 }
 
 @media (max-width: 600px) {
@@ -111,8 +122,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-main {
-  padding-block-end: var(--rhythm-footer);
+@media screen {
+  main { padding-block-end: var(--rhythm-section-gap); }
 }
 
 body > footer {
@@ -637,17 +648,23 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 8px 8px 16px;
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--fill);
 }
 
+@media (width < 768px) {
+  .command-line { --card-padding: 20px; }
+}
+
 .command-line code {
   display: grid;
-  gap: 8px;
   min-width: 0;
   font-size: var(--fs-subhead);
 }
+
+.command-line .symbol-wrap { --symbol-leading: 1.7; }
+.command-line .symbol-text { text-box-trim: none; margin-block: 0; }
 
 .command-prompt::before {
   color: var(--fg-2);
@@ -658,6 +675,8 @@ code {
 .copy {
   flex: none;
   width: var(--hit);
+  /* The hit area extends into the padding while the symbol aligns with the text inset. */
+  margin-inline-end: calc((1em - var(--hit)) / 2);
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -956,7 +975,11 @@ code {
 .preview-blockers .finding > p {
   color: var(--fg-2);
 }
-.report-preview figcaption { font-size: var(--fs-subhead); }
+.report-preview figcaption {
+  display: flex;
+  justify-content: center;
+  font-size: var(--fs-subhead);
+}
 
 .page-intro {
   max-width: var(--max);
@@ -991,8 +1014,10 @@ code {
 /* Section rules align with the content edges. */
 .sec {
   position: relative;
-  padding-block-start: calc(1px + var(--rhythm-divider));
+  padding-block-start: calc(1px + var(--rhythm-section-gap));
 }
+
+main > * + .sec { margin-block-start: var(--rhythm-section-gap); }
 
 .sec::before, .foot-in::before {
   position: absolute;
@@ -1243,6 +1268,8 @@ code {
 
 .timeline-dot {
   --symbol-size: var(--cap-height);
+  position: relative;
+  z-index: 1;
   border: 1px solid var(--fg-2);
   border-radius: var(--radius-pill);
   background: var(--bg);
@@ -1299,9 +1326,7 @@ code {
   padding-block-start: calc(var(--rhythm-page-heading) - 1lh - var(--rhythm-subheading));
 }
 
-main :where(.hero, .page-intro, .center-page > div, .sec-body, .subsection, .preview-blockers, .finding) > * + *,
-main > * + .sec,
-main :where(.legal-part + .legal-part) {
+main :where(.hero, .page-intro, .center-page > div, .sec-body, .subsection, .preview-blockers, .finding) > * + * {
   margin-block-start: var(--rhythm-group);
 }
 
@@ -1321,8 +1346,7 @@ main :where(p) + :where(a.more, .flow-links) {
   margin-block-start: var(--rhythm-text-link);
 }
 
-main :where(h1, .legal-part > h2) + *,
-main :where(.page-intro) + .legal-layout {
+main :where(h1, .legal-part > h2) + * {
   margin-block-start: var(--rhythm-section-heading);
 }
 
@@ -1352,20 +1376,42 @@ main :where(.sec-body, .preview-blockers) > a.more {
 }
 
 .legal-layout {
-  max-width: var(--max);
+  width: calc(100% - 2 * var(--gutter));
+  max-width: calc(var(--max) - 2 * var(--gutter));
   margin-inline: auto;
-  padding-inline: var(--gutter);
 }
 
 .has-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: var(--rhythm-group) clamp(32px, 6vw, 64px);
+  column-gap: clamp(32px, 6vw, 64px);
 
   @media (min-width: 880px) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   }
+}
+
+@media screen {
+  .legal-layout, .legal-part + .legal-part {
+    margin-block-start: var(--rhythm-section-gap);
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: var(--rhythm-section-gap);
+  }
+
+  @media (width < 880px) {
+    .has-summary > article {
+      margin-block-start: var(--rhythm-section-gap);
+      border-block-start: 1px solid var(--rule);
+      padding-block-start: var(--rhythm-section-gap);
+    }
+  }
+}
+
+@media print {
+  .legal-layout { margin-block-start: var(--rhythm-section-heading); }
+  .has-summary { row-gap: var(--rhythm-group); }
+  .legal-part + .legal-part { margin-block-start: var(--rhythm-group); }
 }
 
 .legal-part h2 {
