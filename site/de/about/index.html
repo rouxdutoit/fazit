@@ -32,15 +32,15 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
+      <button class="menu-button symbol-label" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
-          <a href="/de/pilots/">Pilotprüfungen</a>
-          <a href="/de/integrators/">IT-Dienstleister</a>
-          <a href="/de/security/">Sicherheit</a>
-          <a href="/demo/de/">Beispielbericht</a>
-          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="symbol-label" href="/de/pilots/"><span class="symbol-text">Pilotprüfungen</span></a>
+          <a class="symbol-label" href="/de/integrators/"><span class="symbol-text">IT-Dienstleister</span></a>
+          <a class="symbol-label" href="/de/security/"><span class="symbol-text">Sicherheit</span></a>
+          <a class="symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht</span></a>
+          <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Quellcode</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
         </div>
       </nav>
     </div>
@@ -80,37 +80,32 @@
         <ul class="tiles tiles-2">
           <li>
             <a class="tile-link" href="https://github.com/rouxdutoit/fazit/blob/main/LICENSE" hreflang="en">
-              <h3>Offen</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Offen</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Der Quellcode und alle Prüfregeln sind unter der Lizenz AGPL-3.0-or-later öffentlich zugänglich.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="/de/security/">
-              <h3>Lokal</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Lokal</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Die aktuelle Version läuft auf Ihrem Rechner und enthält keinen Netzwerkcode.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="/demo/de/">
-              <h3>Unbekannt bleibt unbekannt</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Unbekannt bleibt unbekannt</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Fehlt eine Zahl, weist der Bericht sie als fehlend aus und nennt den Grund und den nächsten Prüfschritt.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="/de/privacy/">
-              <h3>Kein Tracking</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Kein Tracking</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Diese Website setzt keine Cookies und lädt nichts von fremden Servern.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
           <li>
             <a class="tile-link" href="/de/roadmap/">
-              <h3>Noch nicht fertig</h3>
+              <h3 class="symbol-label symbol-wrap"><span class="symbol-text">Noch nicht fertig</span><span class="tile-arrow symbol symbol-label" aria-hidden="true"><span class="symbol mask icon-chevron chevron"></span></span></h3>
               <p>Derzeit arbeitet Fazit mit Beispieldaten. Geplant sind der Import Ihrer Microsoft-365-Exporte und die erste öffentliche Version.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
         </ul>
@@ -125,7 +120,7 @@
         <p>Ich schreibe den Code nicht selbst und lese nicht jede Zeile. Ich prüfe die Befunde dieser Modelle. Die Befunde sind öffentlich.</p>
         <p>Künftig lasse ich den Code vor jeder Veröffentlichung zusätzlich von einem offenen Modell auf meinem eigenen Rechner prüfen, damit sich die Prüfung mit öffentlich verfügbaren Modellgewichten auch offline wiederholen lässt.</p>
         <p>Die Zuordnungen zu openDesk und Nextcloud muss ein Mensch prüfen, der diese Lösungen betreibt. Ein Modell genügt dafür nicht. Diese Prüfung steht noch aus.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report" hreflang="en">Prüfberichte lesen</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report" hreflang="en"><span class="symbol-text">Prüfberichte lesen</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -142,7 +137,7 @@
         <p>Die Zuordnungen in Fazit halten fest, welche Microsoft-365-Funktionen openDesk und Nextcloud abdecken und wo Lücken bleiben. Wenn Sie eine der beiden Lösungen betreiben, lesen Sie bitte eine Zuordnung und berichtigen Sie, was nicht stimmt.</p>
         <p>Zeigt Fazit eine Lücke in einem Open-Source-Projekt, gehört die Verbesserung in dieses Projekt, in Abstimmung mit denen, die es betreuen.</p>
         <p>Wenn Sie eine Sprache ergänzen möchten, folgen Sie der <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit" hreflang="en">Übersetzungsanleitung</a>.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings" hreflang="en">Zuordnungen und Quellen ansehen</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings" hreflang="en"><span class="symbol-text">Zuordnungen und Quellen ansehen</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
   </main>
@@ -175,8 +170,8 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
-          <a class="language" href="/about/" lang="en" hreflang="en" aria-label="English">EN</a>
+          <a class="foot-mail symbol-label" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="symbol mask icon-mail" aria-hidden="true"></span></a>
+          <a class="language symbol-label" href="/about/" lang="en" hreflang="en" aria-label="English"><span class="symbol-text">EN</span></a>
         </div>
       </div>
     </div>

@@ -572,11 +572,18 @@ def check_home_costs(markup: str, demo: Page) -> list[str]:
     return errors
 
 
+def status_preview(markup: str) -> str:
+    summary = re.search(
+        r'<p class="sec-intro">[^<]+</p>\s*<dl class="status-summary">.*?</dl>', markup, re.S
+    )
+    return re.sub(r">\s+<", "><", summary[0]) if summary else ""
+
+
 def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     prefix = "/de" if lang == "de" else ""
     sample = f"/demo/{lang}/"
     destinations = {
-        "hero": [sample, sample],
+        "hero": [f"{sample}#readiness-telephony", f"{sample}#status-blocker", sample, sample],
         "example": [f"{sample}#readiness-title"],
         "costs": [f"{sample}#costs-title"],
         "privacy": [f"{prefix}/security/"],
@@ -591,6 +598,12 @@ def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     for section, links in destinations.items():
         if re.findall(r'<a class="more(?: [^"]+)?" href="([^"]+)"', sections[section]) != links:
             errors.append(f"Home section {section} must link to {', '.join(links)}.")
+    preview = status_preview(sections["hero"])
+    if not preview or preview != status_preview(demo.source):
+        errors.append("The hero preview must show the sample report's four status rows.")
+    headings = re.findall(r"<h[1-6]\b[^>]*>(.*?)</h[1-6]>", main, re.S)
+    if any(re.sub(r"<[^>]+>", "", heading).rstrip().endswith(".") for heading in headings):
+        errors.append("Home headings should omit the final full stop.")
     errors.extend(check_home_costs(sections["costs"], demo))
     return errors
 
@@ -631,7 +644,11 @@ def check_commands(lang: str) -> list[str]:
         block = component[0]
         components.append(re.sub(r">\s+<", "><", block))
         code = re.search(r"<code>(.*?)</code>", block, re.S)
-        commands = re.findall(r"<span>([^<]+)</span>", code[1].replace("<wbr>", "")) if code else []
+        commands = (
+            re.findall(r'<span class="symbol-text">([^<]+)</span>', code[1].replace("<wbr>", ""))
+            if code
+            else []
+        )
         if commands != expected:
             errors.append(f"{route}: Expected the three demo commands for {lang}.")
         if not re.search(r"<button [^>]*\bdata-copy(?:\s|>)", block) or not all(
@@ -684,9 +701,6 @@ def check_assets() -> list[str]:
             errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
         elif filename == "og.png" and image.stat().st_size >= 150_000:
             errors.append(f"{filename}: Must be under 150 KB.")
-    for preview in (ROOT / "images").glob("readiness-*"):
-        if preview.suffix in {".png", ".webp"} and preview.stat().st_size >= 150_000:
-            errors.append(f"{preview.relative_to(ROOT)}: Must be under 150 KB.")
     if f"Sitemap: {ORIGIN}/sitemap.xml" not in (ROOT / "robots.txt").read_text().splitlines():
         errors.append("robots.txt: Missing sitemap URL.")
     return errors
@@ -718,10 +732,10 @@ def _svg_paths(svg: bytes) -> set[str]:
 def _check_coverage_symbols(css: str) -> Iterator[str]:
     package = ROOT.parent / "src" / "fazit"
     template = (package / "templates" / "report.html.j2").read_text(encoding="utf-8")
-    macro = template.partition("macro status_label(")[2].split("endmacro", 1)[0]
+    macro = template.partition("macro status_contents(")[2].split("endmacro", 1)[0]
     names = dict(re.findall(r"'([\w]+)'\s*:\s*'([\w-]+)'", macro))
     if set(names) != set(STATUSES):
-        yield "Could not read every status symbol from status_label in report.html.j2."
+        yield "Could not read every status symbol from status_contents in report.html.j2."
         return
     status_paths = {}
     for name in names.values():

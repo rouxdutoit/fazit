@@ -18,6 +18,15 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - Colour carries meaning, nothing else. Status colours mean status; everything else, buttons and links included, is monochrome.
 - Never colour a heading, a tile or a background to decorate it.
 - Status is never colour alone: every status shows its symbol and its word.
+- Status symbols use Apple's system colours at full strength. A status badge tints its background with the same colour and keeps its text in the main text colour.
+- With `prefers-contrast: more`, use Apple's Increase Contrast colours for the current theme. Print uses the light Increase Contrast palette.
+
+| Status | Light | Dark | Increase Contrast light | Increase Contrast dark |
+| --- | --- | --- | --- | --- |
+| Blocker | `#FF9500` | `#FF9F0A` | `#C93400` | `#FFB340` |
+| Needs work | `#FFCC00` | `#FFD60A` | `#B25000` | `#FFD426` |
+| Ready | `#34C759` | `#30D158` | `#248A3D` | `#30DB5B` |
+| Unknown | `#8E8E93` | `#8E8E93` | `#6C6C70` | `#AEAEB2` |
 
 ## Structure
 

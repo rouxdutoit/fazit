@@ -58,9 +58,12 @@ uv run pytest -q
 uv run fazit demo --lang de
 uv run fazit demo --lang en
 uv run python site/check_site.py
+node site/check_alignment.mjs
 ```
 
-All six succeed, and the two reports open with the network off. Changes to the website or the report follow [DESIGN.md](DESIGN.md).
+All seven succeed, and the two reports open with the network off. Changes to the website or the report follow [DESIGN.md](DESIGN.md).
+
+The alignment check uses local Playwright and Chromium. Set `PLAYWRIGHT_DIR` to the directory containing the `playwright` package if it differs from `/home/roux/.local/share/playwright-1.62.1/node_modules/`.
 
 If report output changes, copy the HTML from the two demo runs above to `site/demo/de/index.html` and `site/demo/en/index.html`, using the matching language for each file.
 

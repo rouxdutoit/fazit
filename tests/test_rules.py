@@ -1647,7 +1647,7 @@ def test_licence_inventory_shows_its_coverage_gap(
 
     found = report_section(html, "found")
     summary = re.search(
-        r'<summary id="licences-title">.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
+        r'<summary id="licences-title"[^>]*>.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
     )
     assert summary is not None
     evidence = summary[1]
@@ -1966,8 +1966,8 @@ def _rendered_coverage_counts(html: str, lang: str) -> Counter[str]:
     column = re.escape(load_locale(lang)["moves"]["replacement"])
     cells = re.findall(
         rf'<td role="cell" data-label="{column}" data-coverage-label="[^"]+">'
-        r'\s*<span class="cov-cell">\s*'
-        r'<span class="cov(?: cov-none)?">.*?</span>\s*<strong>([^<]+)</strong>',
+        r'\s*<span class="cov-cell\b[^"]*">\s*'
+        r'<svg[^>]*>.*?</svg>\s*<strong class="symbol-text">([^<]+)</strong>',
         section,
         re.S,
     )
@@ -2133,7 +2133,7 @@ def test_next_steps_and_open_evidence_follow_the_findings(
         rule for rule in status_rules.workloads["telephony"].rules if rule.status == "blocker"
     )
     assert re.search(
-        r'<dt><a href="#readiness-telephony" class="area-link more">.*?</a></dt>\s*'
+        r'<dt><a href="#readiness-telephony" class="area-link more\b[^"]*">.*?</a></dt>\s*'
         r'<dd>\s*<ul class="path-actions">\s*'
         rf'<li data-step-kind="{rule.next_step.kind}">{re.escape(rule.next_step.text["en"])}</li>',
         path,
@@ -2193,4 +2193,5 @@ def test_summary_explains_empty_lists_with_complete_evidence(
     assert "a Blocker cannot be ruled out" not in blockers
     assert 'href="#status-blocker"' not in blockers
     assert strings["path"]["empty"]["unknown"] in open_part
-    assert f'href="#not-examined">{strings["summary"]["not_examined"]}' in open_part
+    open_points = strings["summary"]["not_examined"]
+    assert f'href="#not-examined"><span class="symbol-text">{open_points}</span>' in open_part

@@ -44,6 +44,7 @@ EMBEDDED_FONT = re.compile(r"url\(data:font/woff2;base64,[A-Za-z0-9+/=]+\)")
 SAMPLES = [("town", "en"), ("town", "de"), ("nonprofit", "en"), ("nonprofit", "de")]
 CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
 CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+STATUS_PATHS = re.compile(r'<(?:span|dt) class="status ([a-z_]+)[^"]*"><svg[^>]*><path d="([^"]+)"')
 
 
 def _sample_report(sample: str, out: Path, lang: str, profile: str) -> str:
@@ -96,7 +97,12 @@ def test_report_navigation_resolves_and_appendix_explains_scope(
     ]
     assert len(indexes) == 2
     for index in indexes:
-        assert re.findall(r'<a href="#([^"]+)">([^<]+)</a>', index) == expected_links
+        assert (
+            re.findall(
+                r'<a href="#([^"]+)"[^>]*><span class="symbol-text">([^<]+)</span></a>', index
+            )
+            == expected_links
+        )
     appendix = unescape(report_section(html, "appendix"))
     for key in ("not_looked", "not_looked_text"):
         assert strings["appendix"][key] in appendix
@@ -157,7 +163,7 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         )
         for coverage in codes
     }
-    status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
+    status_paths = dict(STATUS_PATHS.findall(html))
     chevron_icon = ROOT / "site" / "icons" / "chevron-right.svg"
     chevron = re.search(r'<path d="([^"]+)"', chevron_icon.read_text(encoding="utf-8"))[1]
     for item in mapping.functions:
@@ -179,16 +185,16 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
             if expected_need
             else strings["moves"]["need_not_assessed"]
         )
-        coverage = re.search(r'<span class="cov-cell">.*?</td>', row, re.S)
+        coverage = re.search(r'<span class="cov-cell\b[^"]*">.*?</td>', row, re.S)
         assert coverage is not None
         source = ROOT / "site" / "icons" / f"{symbols[item.coverage]}.svg"
         path = re.search(r'<path d="([^"]+)"', source.read_text(encoding="utf-8"))[1]
         assert re.findall(r'<path d="([^"]+)"', coverage[0]) == [path]
-        assert path not in status_paths
+        assert path not in status_paths.values()
         assert strings["mapping_coverage"][item.coverage] in unescape(coverage[0])
         link = re.search(
             r'<a href="#readiness-([^"]+)" aria-label="([^"]+)" '
-            r'class="area-link more replacement-status">(.*?)</a>',
+            r'class="[^"]*\breplacement-status\b[^"]*">(.*?)</a>',
             row,
             re.S,
         )
@@ -196,9 +202,10 @@ def test_replacements_use_coverage_symbols_distinct_from_status(
         assert unescape(link[2]) == strings["moves"]["status_link"].format(
             area=strings["workload"][item.workload], status=strings["status"][status]
         )
-        assert f'<span class="status {status} badge">' in link[3]
-        label = re.search(r'<span>([^<]+)<svg[^>]*><path d="([^"]+)"', link[3])
-        assert label and (unescape(label[1]), label[2]) == (strings["status"][status], chevron)
+        assert f"status {status} badge" in link[0]
+        label = re.search(r'<span class="symbol-text">([^<]+)</span><svg', link[3])
+        assert label and unescape(label[1]) == strings["status"][status]
+        assert re.findall(r'<path d="([^"]+)"', link[3]) == [status_paths[status], chevron]
         for _, attrs in ReportDocument(row.replace(link[0], "")).tags:
             assert not ({"status", *DISPLAY_ORDER} & set(attrs.get("class", "").split()))
 
@@ -230,8 +237,9 @@ def _assert_status_summary(summary: str, counts: Counter[str], formatter: Format
     status_list = re.search(r'<dl class="status-summary">(.*?)</dl>', summary, re.S)
     assert status_list is not None
     rows = re.findall(
-        r'<dt><span class="status ([a-z_]+)"><svg[^>]*>.*?</svg> ([^<]+)</span>'
-        r' <span class="row-count">([^<]+)</span></dt>'
+        r'<dt class="status ([a-z_]+)[^"]*"><svg[^>]*>.*?</svg>'
+        r'<span class="symbol-text">([^<]+)</span>'
+        r' <span class="row-count[^"]*">([^<]+)</span></dt>'
         r"\s*<dd>([^<]+)</dd>",
         unescape(status_list[1]),
     )
@@ -285,7 +293,8 @@ def test_summary_caps_blockers_and_open_areas_in_catalogue_order(
     assert [workload for _, workload, _ in rows] == blocker_ids[:3]
     strings = load_locale("en")
     assert strings["summary"]["confirmed"].format(shown=3, total=len(blocker_ids)) in blockers
-    assert f'href="#status-blocker">{strings["summary"]["all_blockers"]}' in blockers
+    all_blockers = strings["summary"]["all_blockers"]
+    assert f'href="#status-blocker"><span class="symbol-text">{all_blockers}</span>' in blockers
 
     for term, workload, detail in rows:
         card = readiness_row(readiness, workload)
@@ -332,9 +341,9 @@ def test_summary_counts_and_links_match_the_report(tmp_path: Path, sample: str, 
 
     assert counts["blocker"] <= 3
     assert strings["summary"]["confirmed"].split("{shown}")[0] not in summary
-    assert (f'href="#status-blocker">{strings["summary"]["all_blockers"]}' in summary) == bool(
-        counts["blocker"]
-    )
+    all_blockers = strings["summary"]["all_blockers"]
+    blocker_link = f'href="#status-blocker"><span class="symbol-text">{all_blockers}</span>'
+    assert (blocker_link in summary) == (counts["blocker"] > 0)
     assert not any(text in summary for text in ("data-segment", "readiness-bar", "%"))
     ids = {attrs.get("id") for _, attrs in document.tags}
     links = re.findall(r'href="#([^"]+)"', summary)
@@ -359,14 +368,15 @@ def test_summary_keeps_all_unknown_areas_unknown(tmp_path: Path, lang: str) -> N
     assert strings["path"]["empty"]["blocker"] in unescape(summary)
     assert strings["summary"]["caveat"].format(n=formatter.integer(len(unknown_areas))) in summary
     assert [workload for _, workload, _ in _summary_area_rows(summary)] == unknown_areas[:4]
-    assert f'href="#not-examined">{strings["summary"]["not_examined"]}' in summary
+    open_points = strings["summary"]["not_examined"]
+    assert f'href="#not-examined"><span class="symbol-text">{open_points}</span>' in summary
     costs = report_section(html, "costs")
     missing = re.findall(r'data-missing-cost="([^"]+)"', costs)
     assert 0 < len(set(missing)) < len(missing)
     missing_label = strings["costs"]["inputs_missing"].format(
         n=formatter.integer(len(set(missing)))
     )
-    assert f'href="#costs-missing">{missing_label}' in summary
+    assert f'href="#costs-missing"><span class="symbol-text">{missing_label}</span>' in summary
     assert 'id="costs-missing">' in costs and strings["costs"]["missing_fix"] in costs
     assert "#status-blocker" not in summary
 
@@ -495,7 +505,7 @@ def test_manual_open_points_name_the_actual_question_and_input(tmp_path: Path, l
 
 def _path_action_rows(part: str) -> list[tuple[str, list[tuple[str, str]]]]:
     groups = re.findall(
-        r'<dt><a href="#readiness-([^"]+)" class="area-link more">.*?</a></dt>\s*'
+        r'<dt><a href="#readiness-([^"]+)" class="area-link more\b[^"]*">.*?</a></dt>\s*'
         r'<dd>\s*<ul class="path-actions">(.*?)</ul>',
         part,
         re.S,
@@ -611,7 +621,8 @@ def test_summary_scope_matches_the_replacements_and_gaps(lang: str, profile: str
     chevron = (ROOT / "site" / "icons" / "chevron-right.svg").read_text(encoding="utf-8")
     path = re.search(r'<path d="([^"]+)"', chevron)[1]
     links = re.findall(
-        r'<li><a href="#(replacement-[^"]+)" class="area-link more">([^<]+)'
+        r'<li><a href="#(replacement-[^"]+)" class="area-link more\b[^"]*">'
+        r'<span class="symbol-text">([^<]+)</span>'
         r'<svg[^>]* aria-hidden="true"[^>]*><path d="([^"]+)"/></svg></a></li>',
         needed[1],
     )
@@ -657,11 +668,17 @@ def test_readiness_cards_keep_status_order_and_show_the_area_and_action(
         assert f'<span class="finding-category">{category}</span>' in unescape(card)
         status = re.search(r'data-status="([^"]+)"', card)[1]
         label = strings["status"][status]
-        assert re.search(rf'<p class="finding-status">.*?</svg> <span>{label}</span>', card, re.S)
-        incomplete = strings["readiness"]["incomplete"]
-        assert (f'<span class="badge"><span>{incomplete}</span></span>' in card) == (
-            " data-incomplete" in card
+        assert re.search(
+            rf'<p class="finding-status">.*?</svg><span class="symbol-text">{label}</span>',
+            card,
+            re.S,
         )
+        incomplete = strings["readiness"]["incomplete"]
+        assert bool(
+            re.search(
+                rf'<span class="badge\b[^"]*"><span class="symbol-text">{incomplete}</span>', card
+            )
+        ) == (" data-incomplete" in card)
         reason = re.search(r'<div class="finding-reason">(.*?)</div>', card, re.S)
         assert reason and re.sub(r"<[^>]+>", "", reason[1]).strip()
         if status != "ready":
@@ -707,7 +724,8 @@ def test_card_disclosures_count_each_observation_once(
             **{kind: counts[kind] for kind in ("measured", "provided", "unknown")}
         )
         assert re.search(
-            rf'<summary id="evidence-{workload}">.*?</svg>\s*<span>{copy["evidence"]}\s*'
+            rf'<summary id="evidence-{workload}"[^>]*>.*?</svg>\s*'
+            rf'<span class="symbol-text">{copy["evidence"]}\s*'
             rf'<small class="evidence-counts">{expected}</small>',
             detail,
             re.S,
@@ -830,7 +848,7 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
     assert {card["data-category"] for card in cards} == set(category_ids)
 
     assert f'<legend class="sr-only">{strings["filter"]["status_legend"]}</legend>' in status_group
-    labels = re.findall(r"<label>(.*?)</label>", status_group, re.S)
+    labels = re.findall(r"<label\b[^>]*>(.*?)</label>", status_group, re.S)
     radios = [attrs for tag, attrs in ReportDocument(status_group).tags if tag == "input"]
     assert len(labels) == len(radios) == len(DISPLAY_ORDER) + 1
     for option, label, radio in zip(("all", *DISPLAY_ORDER), labels, radios, strict=True):
@@ -846,13 +864,14 @@ def test_readiness_filters_use_the_card_counts_and_catalogue(
         assert ("<svg" in label) is (option != "all")
 
     ((legend, category_menu),) = re.findall(
-        r'<select id="f-category" name="f-category" aria-label="([^"]+)">(.*?)</select>',
+        r'<select id="f-category" name="f-category" aria-label="([^"]+)"[^>]*>(.*?)</select>',
         readiness,
         re.S,
     )
     assert unescape(legend) == strings["filter"]["category_legend"]
     options = re.findall(
-        r'<option id="f-category-([^"]+)" value="([^"]+)"( selected)?>([^<]+)</option>',
+        r'<option id="f-category-([^"]+)" value="([^"]+)" class="symbol-label"( selected)?>'
+        r'<svg[^>]*>.*?</svg><span class="symbol-text">([^<]+)</span></option>',
         category_menu,
     )
     assert options == [
@@ -980,12 +999,9 @@ def test_report_document_structure(
     assert cells and all(attrs.get("data-label") in labels for attrs in cells)
 
     # Colour is never the only cue: every status label carries its own symbol and its text.
-    icons = {
-        status: re.findall(rf'<span class="status {status}"><svg[^>]*><path d="([^"]+)"', html)
-        for status in ("ready", "needs_work", "blocker", "unknown")
-    }
-    paths = {next(iter(set(found))) for found in icons.values() if found}
-    assert len(paths) == sum(1 for found in icons.values() if found)
+    icons = set(STATUS_PATHS.findall(html))
+    assert {status for status, _ in icons} == set(DISPLAY_ORDER)
+    assert len({path for _, path in icons}) == len(icons) == len(DISPLAY_ORDER)
 
 
 def _luminance(color: str) -> float:
@@ -1017,10 +1033,6 @@ def test_report_styles_work_in_light_dark_narrow_and_print(
                 contrast = (high + 0.05) / (low + 0.05)
                 assert contrast >= 4.5, (scheme, foreground, background, contrast)
         assert _luminance(colors["--accent-hover"]) > _luminance(colors["--accent"])
-        status_colors = [
-            colors[f"--status-{status}"] for status in ("ready", "needs-work", "blocker", "unknown")
-        ]
-        assert len(set(status_colors)) == 4, (scheme, status_colors)
     assert re.search(r"@media[^{}]+\(max-width:\s*40rem\)", css)
     assert re.search(r"content:\s*attr\(data-label\)", css)
     assert re.search(r"@page\s*\{\s*margin:", css)
@@ -1044,9 +1056,9 @@ def test_report_styles_follow_the_design_rules(style_references: dict[str, str],
     assert not (font_errors := list(check_font_families(css))), font_errors
 
     moves = report_section(html, "moves")
-    coverage_cells = re.findall(r'<span class="cov-cell">.*?</td>', moves, re.S)
+    coverage_cells = re.findall(r'<span class="cov-cell\b[^"]*">.*?</td>', moves, re.S)
     coverage_paths = set(re.findall(r'<path d="([^"]+)"', "".join(coverage_cells)))
-    status_paths = set(re.findall(r'<span class="status \w+"><svg[^>]*><path d="([^"]+)"', html))
+    status_paths = {path for _, path in STATUS_PATHS.findall(html)}
     assert coverage_paths and status_paths, "Coverage cells and status labels both need symbols"
     assert coverage_paths.isdisjoint(status_paths), (
         "Coverage cells reuse a status symbol",
@@ -1107,10 +1119,34 @@ def test_report_and_website_share_colour_tokens(tmp_path: Path) -> None:
     for hover, text in zip(tokens["--solid-hover"], tokens["--solid-fg"], strict=True):
         low, high = sorted((_luminance(hover), _luminance(text)))
         assert (high + 0.05) / (low + 0.05) >= 4.5
-    for status in ("ready", "needs-work", "blocker"):
-        assert tokens[f"--status-{status}"] == (
-            light[f"--status-{status}"],
-            dark[f"--status-{status}"],
+
+
+def test_status_palette_is_shared_by_the_site_and_report(style_references: dict[str, str]) -> None:
+    (report,) = ReportDocument(style_references["en"]).styles
+    site = (ROOT / "site" / "style.css").read_text("utf-8")
+    palettes = {
+        "": {
+            "blocker": "light-dark(#ff9500,#ff9f0a)",
+            "needs-work": "light-dark(#ffcc00,#ffd60a)",
+            "ready": "light-dark(#34c759,#30d158)",
+            "unknown": "#8e8e93",
+        },
+        "@media (prefers-contrast: more), print": {
+            "blocker": "light-dark(#c93400,#ffb340)",
+            "needs-work": "light-dark(#b25000,#ffd426)",
+            "ready": "light-dark(#248a3d,#30db5b)",
+            "unknown": "light-dark(#6c6c70,#aeaeb2)",
+        },
+    }
+    for css in (site, report):
+        for media, expected in palettes.items():
+            start = re.escape(media) + r"\s*\{\s*" if media else ""
+            root = re.search(start + r":root\s*\{([^}]+)\}", css)
+            assert root, media
+            values = re.findall(r"--status-([\w-]+):\s*([^;]+);", root[1])
+            assert {key: re.sub(r"\s+", "", value) for key, value in values} == expected
+        assert re.search(
+            r"\.status > \.icon:not\(\.chevron\)\s*\{\s*color:\s*var\(--status-fill\)", css
         )
 
 

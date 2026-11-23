@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Status colours
+
+**D38. Use the status colours at full strength.**
+
+The founder confirmed that D30 uses Apple's system colours directly in both themes. The site and report use the corresponding Increase Contrast colours when requested by the device. Print uses the light Increase Contrast palette for legibility on paper.
+
 ## 2026-11-23 — Report navigation and section layout
 
 **D37. Use the sticky top bar and the website's section grid.**

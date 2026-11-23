@@ -360,7 +360,7 @@ confirmations:
 
     found = report_section(html, "found")
     evidence = re.search(
-        r'<summary id="licences-title">.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
+        r'<summary id="licences-title"[^>]*>.*?</summary>\s*(<p[^>]*>.*?</p>)', found, re.S
     )
     assert evidence is not None
     provenance = "measured" if coverage == "complete" else "unknown"

@@ -32,15 +32,15 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/" aria-label="Fazit home" aria-current="page">fazit</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
+      <button class="menu-button symbol-label" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">Menu</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Main navigation">
         <div class="bar-links-in">
-          <a href="/pilots/">Pilots</a>
-          <a href="/integrators/">Integrators</a>
-          <a href="/security/">Security</a>
-          <a href="/demo/en/">Sample report</a>
-          <a href="https://github.com/rouxdutoit/fazit">Source code</a>
-          <a class="btn btn-solid bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
+          <a class="symbol-label" href="/pilots/"><span class="symbol-text">Pilots</span></a>
+          <a class="symbol-label" href="/integrators/"><span class="symbol-text">Integrators</span></a>
+          <a class="symbol-label" href="/security/"><span class="symbol-text">Security</span></a>
+          <a class="symbol-label" href="/demo/en/"><span class="symbol-text">Sample report</span></a>
+          <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Source code</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Get started</span></a>
         </div>
       </nav>
     </div>
@@ -53,37 +53,69 @@
         <h1 id="hero-title">What leaving Microsoft&nbsp;365 would take</h1>
         <p class="hero-sub">What you rely on, what needs work and what it would cost, in one report that Fazit writes on your own computer.</p>
         <div class="hero-actions">
-          <a class="btn btn-solid" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
-          <a class="btn btn-secondary" href="/demo/en/"><span class="btn-icon icon-description" aria-hidden="true"></span>View sample report</a>
+          <a class="btn btn-solid symbol-label" href="/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Get started</span></a>
+          <a class="btn btn-secondary symbol-label" href="/demo/en/"><span class="btn-icon mask symbol icon-description" aria-hidden="true"></span><span class="symbol-text">View sample report</span></a>
         </div>
         <p class="hero-status">Today with sample data. Import of your own Microsoft 365 exports comes next.</p>
       </div>
       <figure class="report-preview">
         <div class="report-card">
-          <span class="report-card-bar" aria-hidden="true">
-            <code>report-2026-11-02-en.html</code>
+          <span class="report-card-bar symbol-label" aria-hidden="true">
+            <code class="symbol-text">report-2026-11-02-en.html</code>
             <span class="report-card-controls">
-              <span class="report-card-control icon-minimize"></span>
-              <span class="report-card-control icon-crop-square"></span>
-              <span class="report-card-control icon-close"></span>
+              <span class="report-card-control symbol-label"><span class="symbol mask icon-minimize"></span></span>
+              <span class="report-card-control symbol-label"><span class="symbol mask icon-crop-square"></span></span>
+              <span class="report-card-control symbol-label"><span class="symbol mask icon-close"></span></span>
             </span>
           </span>
-          <picture>
-            <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1424">
-            <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1424">
-            <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1218">
-            <img src="/images/readiness-en-light.webp" width="2016" height="1218" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The report identifies telephony as the blocker." decoding="async" fetchpriority="high">
-          </picture>
+          <div class="grid preview-summary">
+            <h2 class="preview-title">Where the organisation stands</h2>
+            <div class="sec-body">
+              <p class="sec-intro">Of 14 areas:</p>
+              <dl class="status-summary">
+                <div>
+                  <dt class="status blocker symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Blocker</span><span class="row-count symbol-text">1</span></dt>
+                  <dd>A confirmed obstacle that must be resolved before this move.</dd>
+                </div>
+                <div>
+                  <dt class="status needs_work symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span><span class="row-count symbol-text">9</span></dt>
+                  <dd>The checks found work to do before a move.</dd>
+                </div>
+                <div>
+                  <dt class="status unknown symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg><span class="symbol-text">Unknown</span><span class="row-count symbol-text">1</span></dt>
+                  <dd>Evidence is missing, so this version cannot assess the area.</dd>
+                </div>
+                <div>
+                  <dt class="status ready symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg><span class="symbol-text">Ready</span><span class="row-count symbol-text">3</span></dt>
+                  <dd>The current checks found no blocker and no missing evidence.</dd>
+                </div>
+              </dl>
+              <div class="preview-blockers">
+                <h3>What blocks this move</h3>
+                <div class="finding">
+                  <div class="finding-head">
+                    <div>
+                      <h4 class="finding-area"><a class="more symbol-label symbol-wrap" href="/demo/en/#readiness-telephony"><span class="symbol-text">Telephony</span><svg class="icon symbol chevron" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a></h4>
+                      <span class="finding-category">Communication</span>
+                    </div>
+                    <span class="finding-status"><span class="status blocker badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg><span class="symbol-text">Blocker</span></span></span>
+                  </div>
+                  <p>The organisation uses Microsoft telephony and has confirmed that it has no replacement.</p>
+                </div>
+                <a class="more symbol-label symbol-wrap" href="/demo/en/#status-blocker"><span class="symbol-text">All blockers</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
+              </div>
+            </div>
+          </div>
         </div>
         <figcaption class="flow-links">
-          <a class="more" href="/demo/en/">Open the sample report</a>
-          <a class="more" href="/demo/en/" download="fazit-sample-report-en.html">Download HTML, 412 KB</a>
+          <a class="more symbol-label symbol-wrap" href="/demo/en/"><span class="symbol-text">Open the sample report</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
+          <a class="more symbol-label symbol-wrap" href="/demo/en/" download="fazit-sample-report-en.html"><span class="symbol-text">Download HTML, 424 KB</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
         </figcaption>
       </figure>
     </section>
 
     <section class="sec grid" id="example" aria-labelledby="example-title">
-      <h2 class="sec-label" id="example-title">Every finding shows its evidence.</h2>
+      <h2 class="sec-label" id="example-title">Every finding shows its evidence</h2>
       <div class="sec-body">
         <p class="lead">The report marks missing evidence as “Unknown”.</p>
         <!-- Mail header and shared-mailbox evidence from the matching demo. -->
@@ -94,27 +126,27 @@
               <span class="finding-category">Communication</span>
             </div>
             <p class="finding-status">
-              <span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Needs work</span></span>
-              <span class="badge"><span>Evidence incomplete</span></span>
+              <span class="status needs_work badge symbol-label"><svg class="icon symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg><span class="symbol-text">Needs work</span></span>
+              <span class="badge symbol-label"><span class="symbol-text">Evidence incomplete</span></span>
             </p>
           </div>
           <dl class="finding-evidence">
             <div data-evidence="mail.mailbox_count">
               <dt>Mailboxes</dt>
-              <dd data-provenance="measured">91 <small>Measured (simulated)</small></dd>
+              <dd data-provenance="measured" class="symbol-label"><span class="symbol-text">91</span> <small class="symbol-text">Measured (simulated)</small></dd>
             </div>
             <div data-evidence="mail.shared_mailbox_count">
               <dt>Shared mailboxes</dt>
-              <dd data-provenance="unknown">Unknown</dd>
+              <dd data-provenance="unknown" class="symbol-label"><span class="symbol-text">Unknown</span></dd>
             </div>
           </dl>
         </article>
-        <a class="more section-link" href="/demo/en/#readiness-title">See all areas</a>
+        <a class="more section-link symbol-label symbol-wrap" href="/demo/en/#readiness-title"><span class="symbol-text">See all areas</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
       </div>
     </section>
 
     <section class="sec grid" id="costs" aria-labelledby="costs-title">
-      <h2 class="sec-label" id="costs-title">See what it would cost.</h2>
+      <h2 class="sec-label" id="costs-title">See what it would cost</h2>
       <div class="sec-body">
         <p class="lead">Compare the five-year costs of staying, a partial move and a full move using your figures.</p>
         <!-- Totals and calculation origin from the matching demo's summary. -->
@@ -135,45 +167,45 @@
             </li>
           </ul>
         </div>
-        <a class="more section-link" href="/demo/en/#costs-title">How costs are calculated</a>
+        <a class="more section-link symbol-label symbol-wrap" href="/demo/en/#costs-title"><span class="symbol-text">How costs are calculated</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
       </div>
     </section>
 
     <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
-      <h2 class="sec-label" id="privacy-title">Nothing leaves your computer.</h2>
+      <h2 class="sec-label" id="privacy-title">Nothing leaves your computer</h2>
       <div class="sec-body">
         <p class="lead">After setup, Fazit uses bundled sample data to create an HTML report on your computer. It makes no network requests.</p>
         <ul class="tiles tiles-3 privacy-facts" role="list">
           <li>
-            <h3><span class="tile-icon icon-computer" aria-hidden="true"></span>Runs locally</h3>
+            <h3 class="symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-computer" aria-hidden="true"></span><span class="symbol-text">Runs locally</span></h3>
             <p>Demo runs offline.</p>
           </li>
           <li>
-            <h3><span class="tile-icon icon-lock" aria-hidden="true"></span>Read-only</h3>
+            <h3 class="symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-lock" aria-hidden="true"></span><span class="symbol-text">Read-only</span></h3>
             <p>No tenant changes.</p>
           </li>
           <li>
-            <h3><span class="tile-icon icon-code" aria-hidden="true"></span>Open source</h3>
+            <h3 class="symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-code" aria-hidden="true"></span><span class="symbol-text">Open source</span></h3>
             <p>Code and rules are public.</p>
           </li>
         </ul>
-        <a class="more section-link" href="/security/">How Fazit handles data</a>
+        <a class="more section-link symbol-label symbol-wrap" href="/security/"><span class="symbol-text">How Fazit handles data</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
       </div>
     </section>
 
     <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">Try it in three commands.</h2>
+      <h2 class="sec-label" id="how-title">Try it in three commands</h2>
       <div class="sec-body">
         <div class="command" role="group" aria-label="Run in a terminal">
           <p class="command-label" aria-hidden="true">Run in a terminal</p>
           <div class="command-line">
-            <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo</span></code>
-            <button class="btn copy" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+            <code><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">git clone https://github.com/<wbr>rouxdutoit/fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">cd fazit</span></span><span class="symbol-label symbol-wrap"><span class="command-prompt symbol-text" aria-hidden="true"></span><span class="symbol-text">uv run fazit demo</span></span></code>
+            <button class="btn copy symbol-label" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon mask symbol icon-content-copy" aria-hidden="true"></span></button>
           </div>
           <p class="copy-message" role="status"></p>
         </div>
         <p class="note-text">Needs Git and uv. <a href="/start/#start-need">What you need</a></p>
-        <a class="more section-link" href="/start/">Get started</a>
+        <a class="more section-link symbol-label symbol-wrap" href="/start/"><span class="symbol-text">Get started</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
       </div>
     </section>
 
@@ -181,8 +213,8 @@
       <div class="sec-body">
         <p class="lead">Sample data today, with import of your own exports next.</p>
         <div class="flow-links">
-          <a class="more" href="/pilots/">Pilot assessments</a>
-          <a class="more" href="/about/">About Fazit</a>
+          <a class="more symbol-label symbol-wrap" href="/pilots/"><span class="symbol-text">Pilot assessments</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
+          <a class="more symbol-label symbol-wrap" href="/about/"><span class="symbol-text">About Fazit</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a>
         </div>
         <p class="note-text"><span data-assessed-areas>14</span> areas, three targets, English and German, one file that opens offline</p>
       </div>
@@ -217,8 +249,8 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"></a>
-          <a class="language" href="/de/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
+          <a class="foot-mail symbol-label" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="symbol mask icon-mail" aria-hidden="true"></span></a>
+          <a class="language symbol-label" href="/de/" lang="de" hreflang="de" aria-label="Deutsch"><span class="symbol-text">DE</span></a>
         </div>
       </div>
     </div>

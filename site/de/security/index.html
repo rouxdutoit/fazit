@@ -32,15 +32,15 @@
   <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
+      <button class="menu-button symbol-label" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon symbol" aria-hidden="true"><span></span><span></span></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
-          <a href="/de/pilots/">Pilotprüfungen</a>
-          <a href="/de/integrators/">IT-Dienstleister</a>
-          <a href="/de/security/" aria-current="page">Sicherheit</a>
-          <a href="/demo/de/">Beispielbericht</a>
-          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="symbol-label" href="/de/pilots/"><span class="symbol-text">Pilotprüfungen</span></a>
+          <a class="symbol-label" href="/de/integrators/"><span class="symbol-text">IT-Dienstleister</span></a>
+          <a class="symbol-label" href="/de/security/" aria-current="page"><span class="symbol-text">Sicherheit</span></a>
+          <a class="symbol-label" href="/demo/de/"><span class="symbol-text">Beispielbericht</span></a>
+          <a class="symbol-label" href="https://github.com/rouxdutoit/fazit"><span class="symbol-text">Quellcode</span></a>
+          <a class="btn btn-solid bar-cta symbol-label" href="/de/start/"><span class="btn-icon mask symbol icon-terminal" aria-hidden="true"></span><span class="symbol-text">Jetzt starten</span></a>
         </div>
       </nav>
     </div>
@@ -51,18 +51,18 @@
       <h1>Sicherheit und Datenschutz</h1>
       <p>Die aktuelle Version von Fazit läuft auf Ihrem Rechner und enthält keinen Code für Netzwerkzugriffe. Geplant ist eine Anmeldung bei Microsoft mit reinem Lesezugriff.</p>
       <p>Beim geplanten Import sollen Nutzungsberichte ohne Netzwerkverbindung eingelesen werden.</p>
-      <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Schwachstelle melden</a>
+      <a class="btn btn-secondary symbol-label" href="#disclosure"><span class="btn-icon mask symbol icon-shield" aria-hidden="true"></span><span class="symbol-text">Schwachstelle melden</span></a>
     </div>
 
     <section class="sec grid" id="safeguards" aria-labelledby="safeguards-title">
       <h2 class="sec-label" id="safeguards-title">Was Fazit nie tun wird</h2>
       <div class="sec-body">
         <ul class="safeguards" role="list">
-          <li>In einen Microsoft-365-Mandanten schreiben oder Endpunkte außerhalb der Freigabeliste für Lesezugriffe aufrufen.</li>
-          <li>Prüfdaten von Ihrem Rechner übertragen. Für die geplante Anmeldung sind nur die Microsoft-Anmeldung und Microsoft Graph vorgesehen.</li>
-          <li>Anmeldetokens, erhobene Personennamen oder E-Mail-Adressen auf einem Datenträger speichern. Im Bericht können der von Ihnen angegebene Organisationsname und die Namen reiner Windows-Anwendungen stehen.</li>
-          <li>Externe Ressourcen in den Bericht nachladen.</li>
-          <li>Eine fehlende Zahl als erhoben ausgeben oder einen Bereich wegen einer ausgelassenen Prüfung besser einstufen.</li>
+          <li class="symbol-label symbol-wrap"><span class="symbol mask icon-shield" aria-hidden="true"></span><span class="symbol-text">In einen Microsoft-365-Mandanten schreiben oder Endpunkte außerhalb der Freigabeliste für Lesezugriffe aufrufen.</span></li>
+          <li class="symbol-label symbol-wrap"><span class="symbol mask icon-shield" aria-hidden="true"></span><span class="symbol-text">Prüfdaten von Ihrem Rechner übertragen. Für die geplante Anmeldung sind nur die Microsoft-Anmeldung und Microsoft Graph vorgesehen.</span></li>
+          <li class="symbol-label symbol-wrap"><span class="symbol mask icon-shield" aria-hidden="true"></span><span class="symbol-text">Anmeldetokens, erhobene Personennamen oder E-Mail-Adressen auf einem Datenträger speichern. Im Bericht können der von Ihnen angegebene Organisationsname und die Namen reiner Windows-Anwendungen stehen.</span></li>
+          <li class="symbol-label symbol-wrap"><span class="symbol mask icon-shield" aria-hidden="true"></span><span class="symbol-text">Externe Ressourcen in den Bericht nachladen.</span></li>
+          <li class="symbol-label symbol-wrap"><span class="symbol mask icon-shield" aria-hidden="true"></span><span class="symbol-text">Eine fehlende Zahl als erhoben ausgeben oder einen Bereich wegen einer ausgelassenen Prüfung besser einstufen.</span></li>
         </ul>
       </div>
     </section>
@@ -75,7 +75,7 @@
           <li>Trennen Sie den Rechner vom Netzwerk. Führen Sie im selben Verzeichnis <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus.</li>
           <li>Öffnen Sie die HTML-Datei, deren Pfad am Ende ausgegeben wird. Prüfen Sie auch die Druckvorschau. Beides funktioniert ohne Netzwerkverbindung.</li>
         </ol>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en">Offline-Test des installierten Pakets</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py" hreflang="en"><span class="symbol-text">Offline-Test des installierten Pakets</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -86,28 +86,23 @@
           <h3>Gilt heute</h3>
           <ul class="tiles tiles-2">
             <li>
-              <span class="tile-icon icon-computer" aria-hidden="true"></span>
-              <h4 class="tile-title">Lokale Verarbeitung</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-computer" aria-hidden="true"></span><span class="symbol-text">Lokale Verarbeitung</span></h4>
               <p>Verwenden Sie für die Erhebungsdatei, die Eingabedatei und das Ausgabeverzeichnis (<code>--out</code>) lokale Ordner ohne Synchronisierung. Über Netzwerkfreigaben oder synchronisierte Ordner können Ihre Dateien übertragen werden.</p>
             </li>
             <li>
-              <span class="tile-icon icon-description" aria-hidden="true"></span>
-              <h4 class="tile-title">Bericht ohne Netzwerk</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-description" aria-hidden="true"></span><span class="symbol-text">Bericht ohne Netzwerk</span></h4>
               <p>Der Bericht enthält die Formatvorlagen und die Schriften Figtree und Geist Mono direkt in der HTML-Datei. Er lässt sich ohne Internetverbindung, JavaScript oder externe Ressourcen öffnen und ausdrucken.</p>
             </li>
             <li>
-              <span class="tile-icon icon-visibility-off" aria-hidden="true"></span>
-              <h4 class="tile-title">Personenbezogene Daten</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-visibility-off" aria-hidden="true"></span><span class="symbol-text">Personenbezogene Daten</span></h4>
               <p>Das Erhebungsformat sieht weder Personennamen noch E-Mail-Adressen vor und Fazit verwirft unbekannte Felder. Der Name Ihrer Organisation und die Namen reiner Windows-Anwendungen können aus Ihren Angaben in <code>inputs.yaml</code> in den Bericht übernommen werden.</p>
             </li>
             <li>
-              <span class="tile-icon icon-terminal" aria-hidden="true"></span>
-              <h4 class="tile-title">Ein Befehl</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-terminal" aria-hidden="true"></span><span class="symbol-text">Ein Befehl</span></h4>
               <p>Nach der Einrichtung erstellt ein Befehl den Bericht aus den Beispieldaten mit eigenen Antworten und Kosten. Die Messwerte in den Beispielen sind simuliert.</p>
             </li>
             <li>
-              <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
-              <h4 class="tile-title">Nachvollziehbare Zahlen</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-fact-check" aria-hidden="true"></span><span class="symbol-text">Nachvollziehbare Zahlen</span></h4>
               <p>Fazit rechnet mit den bereitgestellten Kostenangaben und kennzeichnet Beispielwerte. Fehlende Nachweise bleiben unbekannt, und ausgelassene oder verweigerte Prüfungen führen nie zu einer besseren Einstufung.</p>
             </li>
           </ul>
@@ -118,23 +113,20 @@
           <p>Für die Anmeldung ist der Browser mit PKCE vorgesehen, ersatzweise ein Gerätecode.</p>
           <ul class="tiles tiles-2">
             <li>
-              <span class="tile-icon icon-lock" aria-hidden="true"></span>
-              <h4 class="tile-title">Nur Lesezugriff</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-lock" aria-hidden="true"></span><span class="symbol-text">Nur Lesezugriff</span></h4>
               <p>Für die geplante Anmeldung sind ausschließlich Leseberechtigungen und ausdrücklich zugelassene Endpunkte vorgesehen. Aufrufe, die den Microsoft-365-Mandanten ändern können, sind auch dann ausgeschlossen, wenn sie <code>GET</code> verwenden.</p>
             </li>
             <li>
-              <span class="tile-icon icon-memory" aria-hidden="true"></span>
-              <h4 class="tile-title">Tokens im Arbeitsspeicher</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-memory" aria-hidden="true"></span><span class="symbol-text">Tokens im Arbeitsspeicher</span></h4>
               <p>Sobald die Anmeldung verfügbar ist, verbleiben Zugriffs- und Aktualisierungstokens im Arbeitsspeicher.</p>
             </li>
             <li>
-              <span class="tile-icon icon-database" aria-hidden="true"></span>
-              <h4 class="tile-title">Nur Metadaten</h4>
+              <h4 class="tile-title symbol-label symbol-wrap"><span class="tile-icon symbol mask icon-database" aria-hidden="true"></span><span class="symbol-text">Nur Metadaten</span></h4>
               <p>Für die geplante Erhebung sind nur Anzahlen, Größen und codierte Nachweise vorgesehen. E-Mail-Texte und Dateiinhalte bleiben ungeöffnet.</p>
             </li>
           </ul>
         </div>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en">Grundsätze des Projekts</a></p>
+        <p><a class="more symbol-label symbol-wrap" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles" hreflang="en"><span class="symbol-text">Grundsätze des Projekts</span><span class="symbol mask icon-chevron chevron" aria-hidden="true"></span></a></p>
       </div>
     </section>
 
@@ -190,8 +182,8 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
-          <a class="language" href="/security/" lang="en" hreflang="en" aria-label="English">EN</a>
+          <a class="foot-mail symbol-label" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="symbol mask icon-mail" aria-hidden="true"></span></a>
+          <a class="language symbol-label" href="/security/" lang="en" hreflang="en" aria-label="English"><span class="symbol-text">EN</span></a>
         </div>
       </div>
     </div>

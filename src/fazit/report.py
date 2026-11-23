@@ -788,6 +788,7 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
 
 
 _ICONS = (
+    "check",
     "check-circle",
     "warning",
     "report",
