@@ -6,7 +6,7 @@ Use UTF-8 JSON up to 2 MiB. The format uses codes, counts and dates and has no f
 
 ## Scan fields
 
-All top-level fields are required.
+`directory_population` is optional. All other top-level fields are required.
 
 | Field | Value |
 | --- | --- |
@@ -15,6 +15,7 @@ All top-level fields are required.
 | `generated_at` | The date the scan was written or a timestamp with a UTC offset or `Z`. |
 | `source_kind` | `sample` for fictional data, `import` for evidence supplied from outside Fazit, or `live` for live collection. A scan with a sample evidence source must use `sample`. |
 | `collectors` | A list of collection records, which can be empty. |
+| `directory_population` | A declaration of shared scope for directory account counts. Omit the field or use `null` to leave the shared scope undeclared. |
 | `findings` | A list of observations, which can be empty. |
 | `licences` | A licence inventory or `null`. |
 
@@ -25,6 +26,14 @@ The catalogue lists finding IDs, workloads, types, units, collectors, sources, r
 - `id` is a registered collection method. Use each collector ID once.
 - `status` is `ok`, `partial` or `skipped`. For `ok`, omit `reason` or set it to `null`. For `partial` or `skipped`, give a registered reason code.
 - `permissions_used` is a list of registered permission codes. Use an empty list if the method used none.
+
+## Directory population
+
+Use `directory_population` when the directory collector counts internal, guest and licensed accounts within a single population. Its `collector` must be `directory` and must appear in `collectors`. Give `collected_at` as a timestamp with a UTC offset or `Z` and `coverage` as an object with a `total`. The total includes all account rows in the scope. For complete coverage, set `kind` to `complete`, `scanned` to `total` and `failed` to zero.
+
+The declaration applies to measured `directory.user_count`, `directory.guest_count` and `directory.licensed_user_count` findings from that collector and instant with `period` set to `null`. Any `coverage.total` on those findings must match the declared total. Other directory findings keep their own scope.
+
+To confirm licence absences, Fazit needs a complete directory declaration, a complete licensed account count and a complete licence inventory from the same instant. With independent scopes or incomplete coverage, Fazit reports the absence as unknown and retains any confirmed assignments.
 
 ## Findings
 
@@ -41,6 +50,7 @@ All finding keys are required. The `provenance` determines which fields must hav
 - If you supply a `collector`, its ID must appear in `collectors` and the catalogue must allow it for the finding. Any supplied `source` must be registered for that collector and finding. Without a collector, only findings that accept supplied evidence can name a source, and the source must be registered for supplied evidence. The codes `inputs_yaml` and `sample.inputs_yaml` belong to evidence read from the inputs file.
 - Give `collected_at` as a date or a timestamp with a UTC offset or `Z`. A measurement without a reporting period requires the time of collection.
 - Give `period` as `YYYY-MM-DD/YYYY-MM-DD`, or as `null` if there is no reporting period.
+- Comparisons between a date and a timestamp use the timestamp's UTC calendar date. A period ends by the collection date or, when `collected_at` is `null`, by the scan date.
 - Give `coverage` as an object when it applies. The next section describes its fields.
 
 ## Coverage
@@ -51,7 +61,7 @@ Set `kind` to `complete`, `partial` or `unknown`. The optional counts are `scann
 
 An inventory needs a `collector` of `licences` with status `ok` or `partial`, a registered licence `source`, a timestamp in `collected_at` and a `coverage` object. Use `products` for the list of observed products. Complete coverage requires a successful check for every product and zero failures, including when the list is empty.
 
-Each product requires non-negative integer counts for `purchased` and `assigned`. It can also supply `sku_part_number`, `sku_guid` and a `service_plans` list. The identifier fields may be `null`. Each service plan has the keys `name` and `guid`, with `null` allowed if an identifier is unavailable. The catalogue lists the exceptions to the identifier format for product codes and service-plan names. [Finding catalogue](../src/fazit/rules/findings.yaml)
+Each product requires non-negative integer counts for `purchased` and `assigned`. It can also supply `sku_part_number`, `sku_guid` and a `service_plans` list. The identifier fields may be `null`. Each service plan has the keys `name` and `guid`, with `null` allowed if an identifier is unavailable. In an incomplete inventory, a plan may omit `guid` and Fazit keeps products and plans with missing GUIDs unclassified. The catalogue lists the exceptions to the identifier format for product codes and service-plan names. [Finding catalogue](../src/fazit/rules/findings.yaml)
 
 ## Minimal example
 

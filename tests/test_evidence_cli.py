@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import re
+from dataclasses import asdict
 from importlib.resources import files
 from pathlib import Path
 
@@ -12,8 +13,10 @@ from fazit.catalogue import load_catalogue
 from fazit.cli import app
 from fazit.i18n import load_locale
 from fazit.licences import load_service_plans
+from fazit.model import Coverage
 
 NO_TELEPHONY = "confirmations: {telephony.in_use: false, telephony.replacement_available: false}"
+LICENCE_PILOTS = ("power_platform", "telephony", "identity_access", "security_compliance")
 
 
 @pytest.fixture
@@ -96,7 +99,7 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
             finding.update(value=None, provenance="unknown", coverage=None, missing_reason=reason)
     after = _html(_report(tmp_path / "directory-skipped", scan, answers))
 
-    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+    for workload in LICENCE_PILOTS:
         assert 'data-status="unknown"' in readiness_row(before, workload)
         row = readiness_row(after, workload)
         assert 'data-status="unknown"' in row, workload
@@ -109,7 +112,7 @@ def test_skipping_directory_keeps_unreconciled_licence_absence_unknown(
     product["assigned"] = assigned
     positive = _html(_report(tmp_path / "directory-skipped-with-assignments", scan, answers))
     assert 'data-reason="licence_directory_unverified"' in report_section(positive, "found")
-    for workload in ("power_platform", "telephony", "identity_access", "security_compliance"):
+    for workload in LICENCE_PILOTS:
         row = readiness_row(positive, workload)
         assert 'data-status="unknown" data-incomplete' in row
         assert f'data-reason="{reason}"' in row
@@ -645,12 +648,7 @@ def test_licence_pilots_require_reconciled_directory_headcount(
     )
     assert f'data-reason="{inventory_reason}"' in report_section(html, "found")
     open_points = report_section(html, "path")
-    for workload in (
-        "power_platform",
-        "telephony",
-        "identity_access",
-        "security_compliance",
-    ):
+    for workload in LICENCE_PILOTS:
         assert 'data-status="ready"' in readiness_row(baseline, workload)
         row = readiness_row(html, workload)
         assert 'data-status="unknown" data-incomplete' in row
@@ -681,6 +679,11 @@ def test_report_rejects_impossible_licensed_headcounts(tmp_path: Path, violation
 def test_report_bounds_unchecked_internal_accounts(tmp_path: Path) -> None:
     sample = files("fazit").joinpath("demo", "nonprofit", "scan.json")
     scan = json.loads(sample.read_text(encoding="utf-8"))
+    scan["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan["generated_at"],
+        "coverage": asdict(Coverage("complete", 20, 0, 20)),
+    }
     _finding(scan, "directory.user_count").update(
         value=0, coverage={"kind": "partial", "scanned": 19, "failed": 1, "total": 20}
     )
@@ -692,6 +695,90 @@ def test_report_bounds_unchecked_internal_accounts(tmp_path: Path) -> None:
     scan["licences"]["products"][0]["assigned"] = 21
     index = scan["findings"].index(accounts)
     _reject_scan(tmp_path / "too-many-accounts", scan, f"findings[{index}].value")
+
+
+@pytest.mark.parametrize(
+    ("member", "guest", "licensed", "declared_error"),
+    [
+        ((0, Coverage("partial", 19, 1, 20)), (19, Coverage("complete")), 21, "licensed_user"),
+        ((0, Coverage("partial", 19, 1, 20)), (19, Coverage("partial", 19, 0, 21)), 22, None),
+        ((11, Coverage("complete", 20, 0, 20)), (10, Coverage("complete", 20, 0, 20)), 20, "guest"),
+        (
+            (20, Coverage("complete", 20, 0, 20)),
+            (20, Coverage("complete", 20, 0, 20)),
+            25,
+            "licensed_user",
+        ),
+        ((10, Coverage("complete", 10, 0, 10)), (10, Coverage("complete", 10, 0, 10)), 11, None),
+    ],
+    ids=[
+        "missing-guest-total",
+        "different-totals",
+        "twenty-one-in-twenty",
+        "double-twenty",
+        "filtered",
+    ],
+)
+def test_directory_counts_without_a_declared_population_keep_licence_pilots_unknown(
+    tmp_path: Path,
+    member: tuple[int, Coverage],
+    guest: tuple[int, Coverage],
+    licensed: int,
+    declared_error: str | None,
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit")
+    scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
+    answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    scan.pop("directory_population", None)
+    for kind, (value, coverage) in (
+        ("user", member),
+        ("guest", guest),
+        ("licensed_user", (licensed, Coverage("complete"))),
+    ):
+        _finding(scan, f"directory.{kind}_count").update(value=value, coverage=asdict(coverage))
+    scan["licences"]["products"][0]["assigned"] = licensed
+
+    html = _html(_report(tmp_path / "undeclared", scan, answers))
+    for workload in LICENCE_PILOTS:
+        row = readiness_row(html, workload)
+        assert 'data-status="unknown" data-incomplete' in row
+        assert 'data-reason="licence_directory_unverified"' in row
+    if declared_error is not None:
+        scan["directory_population"] = {
+            "collector": "directory",
+            "collected_at": scan["generated_at"],
+            "coverage": asdict(Coverage("complete", 20, 0, 20)),
+        }
+        index = scan["findings"].index(_finding(scan, f"directory.{declared_error}_count"))
+        _reject_scan(tmp_path / "declared", scan, f"findings[{index}].value", answers)
+
+
+@pytest.mark.parametrize("state", ["partial", "unknown", "different-instant"])
+def test_licence_pilots_require_a_complete_directory_population_at_the_same_instant(
+    tmp_path: Path, state: str
+) -> None:
+    sample = files("fazit").joinpath("demo", "nonprofit")
+    scan = json.loads(sample.joinpath("scan.json").read_text(encoding="utf-8"))
+    answers = sample.joinpath("inputs.yaml").read_text(encoding="utf-8")
+    scan["directory_population"] = {
+        "collector": "directory",
+        "collected_at": scan["generated_at"],
+        "coverage": asdict(Coverage("complete", 21, 0, 21)),
+    }
+    baseline = _html(_report(tmp_path / "complete", scan, answers))
+    for workload in LICENCE_PILOTS:
+        assert 'data-status="ready"' in readiness_row(baseline, workload)
+
+    population = scan["directory_population"]
+    if state == "different-instant":
+        population["collected_at"] = "2026-11-05T10:59:59+01:00"
+    else:
+        population["coverage"] = asdict(Coverage(state, 20, 1, 21))
+    html = _html(_report(tmp_path / state, scan, answers))
+    for workload in LICENCE_PILOTS:
+        row = readiness_row(html, workload)
+        assert 'data-status="unknown" data-incomplete' in row
+        assert 'data-reason="licence_directory_unverified"' in row
 
 
 @pytest.mark.parametrize("date_only", ["both", "directory", "licences"])

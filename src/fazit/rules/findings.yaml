@@ -83,7 +83,6 @@ findings:
     unit: users
     label: finding.directory.licensed_user_count
     measured_by: {directory: [sample.directory]}
-    subset_of: [directory.user_count, directory.guest_count]
     provided: "no"
     headline: false
   - id: directory.guest_count

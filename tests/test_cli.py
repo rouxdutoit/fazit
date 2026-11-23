@@ -1035,6 +1035,10 @@ def test_report_bounds_scan_integers(
     tmp_path: Path, finding_id: str, maximum: int, oversized: str
 ) -> None:
     sample = json.loads(sample_scan_path("town").read_bytes())
+    if finding_id == "directory.user_count":
+        sample["directory_population"]["coverage"].update(scanned=maximum, total=maximum)
+        guests = next(row for row in sample["findings"] if row["id"] == "directory.guest_count")
+        guests["value"] = 0
     index, row = next(
         (i, row) for i, row in enumerate(sample["findings"]) if row["id"] == finding_id
     )
