@@ -459,10 +459,39 @@ def check_security_txt(now: datetime) -> list[str]:
     return errors
 
 
+def check_cache_headers(headers: str) -> list[str]:
+    expected = {
+        "/*": "no-cache",
+        "/fonts/*": "public, max-age=86400",
+        "/icons/*": "public, max-age=86400",
+        "/images/*": "public, max-age=86400",
+    }
+    cache_headers: dict[str, list[str]] = {}
+    path = ""
+    for line in headers.splitlines():
+        if line.startswith("/"):
+            path = line.rstrip()
+        else:
+            name, _, value = line.strip().partition(":")
+            if name.lower() == "cache-control":
+                cache_headers.setdefault(path, []).append(value.strip())
+    errors = [
+        f"_headers: Expected exactly one Cache-Control value of {value!r} for {path}."
+        for path, value in expected.items()
+        if cache_headers.get(path) != [value]
+    ]
+    errors.extend(
+        f"_headers: Unexpected Cache-Control rule for {path}."
+        for path in cache_headers
+        if path not in expected
+    )
+    return errors
+
+
 def check_headers() -> list[str]:
     headers = (ROOT / "_headers").read_text(encoding="utf-8")
     apache = (ROOT / ".htaccess").read_text(encoding="utf-8")
-    errors = []
+    errors = check_cache_headers(headers)
     pair = dict(zip(LANGUAGES, DEMO_ROUTES, strict=True))
     alternate_links = [
         f'<{url}>; rel="alternate"; hreflang="{lang}"' for lang, url in alternates(pair).items()

@@ -18,10 +18,14 @@ Header always set X-Content-Type-Options "nosniff"
 Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 Header always set Cross-Origin-Opener-Policy "same-origin"
 
-# File names carry no version, so assets are cached for a day, not marked immutable.
+# Asset files can be reused for a day. Pages and unversioned CSS and JS revalidate.
+Header onsuccess unset Cache-Control
 <If "%{REQUEST_URI} =~ m#^/(fonts|icons|images)/#">
-  Header set Cache-Control "public, max-age=86400"
+  Header always set Cache-Control "public, max-age=86400"
 </If>
+<Else>
+  Header always set Cache-Control "no-cache"
+</Else>
 
 <If "%{REQUEST_URI} =~ m#^/demo/en/(index[.]html)?$#">
   Header always set Link '<https://fazit.dev/demo/en/>; rel="canonical", <https://fazit.dev/demo/en/>; rel="alternate"; hreflang="en", <https://fazit.dev/demo/de/>; rel="alternate"; hreflang="de"'
