@@ -27,6 +27,10 @@ def response_headers($path; $names):
       ActionParameter2: ($blocks | header_value($path; $name))
     }];
 
+# Apply the browser header even on cache hits.
+def browser_cache($path):
+  [{ActionType: 25, ActionParameter1: header_value($path; "Cache-Control")}];
+
 def rule($name; $patterns; $matching; $actions):
   $actions[0] + {
     Description: $name,
@@ -38,6 +42,8 @@ def rule($name; $patterns; $matching; $actions):
 
 def desired_rules:
   ["/fonts/*", "/icons/*", "/images/*"] as $assets
+  # Anchor at the hostname so only top-level asset directories match.
+  | ($assets | map("pattern:^https?://[^/]+" + rtrimstr("*") + ".*$")) as $asset_urls
   | [$assets[] as $path | header_value($path; "Cache-Control")] as $cache_values
   | if ($cache_values | unique | length) != 1 then
       error("site/_headers must give fonts, icons and images the same Cache-Control value.")
@@ -52,8 +58,9 @@ def desired_rules:
         ])),
         rule("FazitSiteCSP"; ["*/demo/*"]; 2; response_headers("/*"; ["Content-Security-Policy"])),
         rule("FazitDemoCSP"; ["*/demo/*"]; 0; response_headers("/demo/*"; ["Content-Security-Policy"])),
-        rule("FazitAssetCache"; ($assets | map("*" + .)); 0;
-          response_headers($assets[0]; ["Cache-Control"])),
+        # Match Any and Match None on the same paths make the rules mutually exclusive.
+        rule("FazitAssetCache"; $asset_urls; 0; browser_cache($assets[0])),
+        rule("FazitRevalidateCache"; $asset_urls; 2; browser_cache("/*")),
         rule("FazitDemoLinkEn"; ["*/demo/en/"]; 0; response_headers("/demo/en/"; ["Link"])),
         rule("FazitDemoLinkDe"; ["*/demo/de/"]; 0; response_headers("/demo/de/"; ["Link"])),
         rule("FazitSecurityTxt"; ["*/.well-known/security.txt"]; 0;

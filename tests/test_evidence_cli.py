@@ -423,6 +423,23 @@ def test_report_shows_excess_assignments_as_assigned_use(
     )
 
 
+@pytest.mark.parametrize(
+    ("lang", "note"),
+    [
+        ("de", "Es ist 1 Lizenzplatz mehr zugewiesen als erworben."),
+        ("en", "The assigned count exceeds the purchased count by 1."),
+    ],
+)
+def test_report_describes_one_excess_licence_seat(
+    tmp_path: Path, town_scan: dict, lang: str, note: str
+) -> None:
+    phone = next(p for p in town_scan["licences"]["products"] if p["sku_part_number"] == "MCOEV")
+    phone.update(purchased=11, assigned=12)
+
+    html = _html(_report(tmp_path / "one-excess-assignment", town_scan, lang=lang))
+    assert f'data-reason="assigned_exceeds_purchased">{note}' in html
+
+
 def test_report_distinguishes_registered_skus_with_the_same_part_number(
     tmp_path: Path, town_scan: dict
 ) -> None:
@@ -464,6 +481,39 @@ def test_report_distinguishes_registered_skus_with_the_same_part_number(
     _reject_scan(
         tmp_path / "unregistered-plan-pair", town_scan, "licences.products[1].service_plans[0].name"
     )
+
+
+@pytest.mark.parametrize("missing", ["sku_part_number", "sku_guid"])
+def test_partial_inventory_accepts_a_shared_sku_with_one_identifier(
+    tmp_path: Path, town_scan: dict, missing: str
+) -> None:
+    products = [
+        {
+            "sku_part_number": roster.part_number,
+            "sku_guid": roster.sku_guid,
+            "purchased": 1,
+            "assigned": 1,
+            "service_plans": [
+                {"name": plan.name, "guid": plan.guid} for plan in roster.plans.values()
+            ],
+        }
+        for roster in load_service_plans(load_catalogue()).rosters.values()
+        if roster.part_number == "MCOPSTN5"
+    ]
+    del products[0][missing]
+    town_scan["licences"].update(
+        products=products, coverage={"kind": "partial", "scanned": 2, "failed": 1, "total": 3}
+    )
+
+    html = _html(_report(tmp_path / "partial-inventory", town_scan, NO_TELEPHONY))
+    assert html.count('data-product="MCOPSTN5"') == 1
+    assert 'data-status="needs_work" data-incomplete' in readiness_row(html, "telephony")
+    assert 'data-status="unknown" data-incomplete' in readiness_row(html, "power_platform")
+
+    products[0][missing] = (
+        "MCOEV" if missing == "sku_part_number" else ("00000000-0000-4000-8000-000000000001")
+    )
+    _reject_scan(tmp_path / "conflicting-identifiers", town_scan, f"licences.products[0].{missing}")
 
 
 @pytest.mark.parametrize(

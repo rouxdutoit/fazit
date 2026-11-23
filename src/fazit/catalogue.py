@@ -25,11 +25,15 @@ _CODE_PATH = r"[a-z0-9_]+(?:\.[a-z0-9_]+)*"
 _CODE = re.compile(_CODE_LENGTH + _CODE_PATH)
 _PERMISSION = re.compile(r"[A-Za-z0-9.]{1,64}")
 _LABEL = re.compile(_CODE_LENGTH + rf"(?:workload|finding|category)\.{_CODE_PATH}")
-_IDENTIFIER_EXCEPTION = re.compile(r"[A-Za-z0-9_()/ ]{1,80}")
+_IDENTIFIER_EXCEPTION = re.compile(r"[-A-Za-z0-9_()/+,&– ]{1,128}")
+
+
+def licence_name_key(name: str) -> str:
+    return " ".join(name.split()).casefold()
 
 
 def sku_key(part_number: str, guid: str) -> tuple[str, str]:
-    return part_number.replace("\u00a0", " ").casefold(), guid.lower()
+    return licence_name_key(part_number), guid.lower()
 
 
 @dataclass(frozen=True)
@@ -92,13 +96,14 @@ class Catalogue:
 
     def accepts_sku_part_number(self, part_number: object, guid: str | None) -> bool:
         return isinstance(part_number, str) and (
-            bool(IDENTIFIER.fullmatch(part_number))
+            bool(IDENTIFIER.fullmatch(part_number.strip(" \t\u00a0")))
             or (guid is not None and sku_key(part_number, guid) in self.sku_exceptions)
         )
 
     def accepts_plan_name(self, name: object, guid: str | None) -> bool:
         return isinstance(name, str) and (
-            bool(IDENTIFIER.fullmatch(name)) or (name.casefold(), guid) in self.plan_exceptions
+            bool(IDENTIFIER.fullmatch(name.strip(" \t\u00a0")))
+            or (licence_name_key(name), guid) in self.plan_exceptions
         )
 
 
@@ -304,10 +309,14 @@ def _identifier_exceptions(
 ) -> frozenset[tuple[str, str]]:
     rows = reader.fields(value, field, (), optional=None)
     keys = set()
-    for index, (raw_guid, part) in enumerate(rows.items()):
+    for index, (raw_guid, names) in enumerate(rows.items()):
         member = f"{field}[{index}]"
         guid = reader.guid(raw_guid, member)
-        keys.add((reader.matches(part, member, _IDENTIFIER_EXCEPTION).casefold(), guid))
+        for name in [names] if isinstance(names, str) else reader.rows(names, member):
+            key = licence_name_key(reader.matches(name, member, _IDENTIFIER_EXCEPTION)), guid
+            if key in keys:
+                reader.fail(member, "duplicate_id")
+            keys.add(key)
     return frozenset(keys)
 
 

@@ -60,6 +60,7 @@ licences:
   purchased: Erworben
   assigned: Zugewiesen
   assigned_exceeds_purchased: Es sind {count} Lizenzplätze mehr zugewiesen als erworben. Das kann vorkommen, wenn bei der Vertragsverlängerung weniger Plätze erworben werden.
+  assigned_exceeds_purchased_one: Es ist {count} Lizenzplatz mehr zugewiesen als erworben. Das kann vorkommen, wenn bei der Vertragsverlängerung weniger Plätze erworben werden.
   plans: Einordnung der Servicepläne
   bundled: Im Produkt enthalten
   add_on: Separat lizenziert

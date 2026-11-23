@@ -202,6 +202,7 @@ findings:
     unit: bytes
     label: finding.sharepoint.storage_bytes
     measured_by: {sharepoint_site_usage: [sample.sharepoint_site_usage]}
+    requires_population: sharepoint.site_count
     provided: "no"
     headline: true
   - id: sharepoint.file_count
@@ -212,6 +213,7 @@ findings:
     label: finding.sharepoint.file_count
     measured_by: {sharepoint_site_usage: [sample.sharepoint_site_usage]}
     aggregate: true
+    requires_population: sharepoint.site_count
     provided: "no"
     headline: false
   - id: sharepoint.custom_solutions_in_use
@@ -506,14 +508,16 @@ codes:
     - Team.ReadBasic.All
     - Channel.ReadBasic.All
     - DeviceManagementManagedDevices.Read.All
-  # Microsoft publishes these SKU identifiers with punctuation. Only these exact pairs are allowed.
+  # Published names outside the regular code pattern need their matching GUID.
   sku_exceptions:
     b1f3042b-a390-4b56-ab61-b88e7e767a97: "Microsoft_365_Business_Basic_EEA_(no_Teams)"
     ffa3a2a0-3820-462a-aa81-8a4d741f0cba: "Microsoft_365_Business_Standard_EEA_(no_Teams)"
     a23dbafb-3396-48b3-ad9c-a304fe206043: "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License"
     6ee4114a-9b2d-4577-9e7a-49fa43d222d3: "Microsoft_365_E5_EEA_(no_Teams)_with_Calling_Minutes"
     90277bc7-a6fe-4181-99d8-712b08b8d32b: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing"
-    a640eead-25f6-4bec-97e3-23cfd382d7c2: "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB"
+    a640eead-25f6-4bec-97e3-23cfd382d7c2:
+      - "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB"
+      - "Microsoft_365_E5_EEA_(no_Teams)without_Audio_Conferencing(500_seats_min)_HUB"
     f7ee79a7-7aec-4ca4-9fb9-34d6b930ad87: "Microsoft_365_F3_EEA_(no_Teams)"
     c2fe850d-fbbb-4858-b67d-bd0c6e746da3: "O365_w/o Teams Bundle_M3"
     602e6573-55a3-46b1-a1a0-cc267991501a: "O365_w/o Teams Bundle_M3_(500_seats_min)_HUB"
@@ -525,5 +529,84 @@ codes:
     c1f79c29-5d7a-4bec-a2c1-1a76774864c0: "Office_365_w/o_Teams_Bundle_Business_Standard"
     b57282e3-65bd-4252-9502-c0eae1e5ab7f: "Office_365_w/o_Teams_Bundle_E1"
     cf50bae9-29e8-4775-b07c-56ee10e3776d: "Office_365_w/o_Teams_Bundle_E5"
+    00e1ec7b-e4a3-40d1-9441-b69b597ab222: "Microsoft_365_ Business_ Premium_(no Teams)"
+    01d46c34-3525-47d5-bd1a-5f19979938a0: "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH"
+    0666269f-b167-4c5b-a76f-fc574f2b1118: "Microsoft_365_F1_EEA_(no_Teams)"
+    18a4bd3f-0b5b-4887-b04f-61dd0ee15f5e: "Microsoft_365_E5_(no_Teams)"
+    21502a13-c8dc-4744-be9c-177fd9d2eafc: "Microsoft_365_Business_Basic_(no Teams)"
+    24be3cd7-82ca-41a5-94a7-4903373cdcae: "Windows_365_Business_16_vCPU,_64_GB,_1_TB"
+    24c35284-d768-4e53-84d9-b7ae73dddf69: "Microsoft_365_Business_Premium_Donation_(Non_Profit_Pricing)"
+    27cb5f12-2e3f-4997-a649-45298673e6a1: "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_GCC"
+    2cfd692f-a352-4fa8-b960-e3ad0c9b1178: "Power Pages authenticated users T3_CN_CN"
+    32a0e471-8a27-4167-b24f-941559912425: "Microsoft 365 A3 Suite features for faculty"
+    398d37b5-8deb-48db-8f7f-703eb2fb7c72: "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_USGOV_DOD"
+    39a78eb6-3a8a-4e1e-878a-575a5c8984e7: "DYNAMICS_365_CONTACT_CENTER_ADD_ON_FOR_CUSTOMER_SERVICE_ENTERPRISE"
+    46c3a859-c90d-40b3-9551-6178a48d5c18: "Office_365_E3_(no_Teams)"
+    494721b8-1f30-4315-aba6-70ca169358d9: "Dynamics_365_Sales_Field_Service_and_Customer_Service_Partner_Sandbox"
+    4f05b1a3-a978-462c-b93f-781c6bee998f: "DYN365_ ENTERPRISE _RELATIONSHIP_SALES"
+    52ea0e27-ae73-4983-a08f-13561ebdb823: "Teams_Premium_(for_Departments)"
+    53265c61-c78c-4223-ab30-422da0c97fbb: "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_GCC"
+    5f43d48c-dd3d-4dd8-a059-70c2f040f979: "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_GCC"
+    6fe1e61a-91e5-40d7-a547-0d2dcc81bce8: "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack"
+    73e8b747-20bf-463d-8ffd-274a7d65d0bc: "DYNAMICS_365_CONTACT_CENTER_VOICE_ADD_ON_FOR_CUSTOMER_SERVICE_ENTERPRISE"
+    7cae5432-61bb-48c3-b75c-831394ec13a0: "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH"
+    7d2bb54a-a870-41c2-98d1-1f3b5b523275: "Power Pages authenticated users T2_CN_CN"
+    7e6e6091-1680-4532-9370-6cd4598483ac: "DYNAMICS_365_CONTACT_CENTER_DIGITAL_ADD_ON_FOR_CUSTOMER_SERVICE_ENTERPRISE"
+    816ee058-f70c-42ad-b433-d6171984ea20: "Power_Apps_per_app_plan_(1_app_or_portal)_BD_Only_GCC"
+    878b8bbd-3cd0-4b44-9a56-3406741e65e0: "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack"
+    93d9955a-ec70-44d5-8faa-a194492390f7: "Windows_365_Business_16_vCPU,_64_GB,_512_GB"
+    978ec396-f930-4ee1-85f3-e1d82e8f73a4: "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH"
+    9a3c2a19-06c0-41b1-b2ea-13528d7b2e17: "Power Pages authenticated users T1_CN_CN"
+    9b196e97-5830-4c2e-adc2-1e10ebf5dee5: "Microsoft_Teams_Calling_Plan_pay_as_you_go_(country_zone_1_US)"
+    b54f012e-69e1-43b1-87d0-666def064940: "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_USGOV_DOD"
+    d1f0495b-cb7b-4e11-8b85-daee7e7e5664: "Office_365_F3_EEA_(no_Teams)"
+    dbd31205-338e-4dec-903d-44402e305e32: "Microsoft_Teams_Calling_Plan_pay_as_you_go_(country_zone_1)"
+    dcf0408c-aaec-446c-afd4-43e3683943ea: "Microsoft_365_E3_(no_Teams)"
+    debc9e58-f2d7-412c-a0b6-575608564228: "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack"
+    f3d55e2d-4367-44fa-952e-83d0b5dd53fc: "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_USGOV_DOD"
+    f8ced641-8e17-4dc5-b014-f5a2d53f6ac8: "Office_365_E1_(no_Teams)"
   plan_exceptions:
     9a0125a5-c8f8-4526-b231-49e2abe0ebce: "Skype for Business PSTN Calling Domestic Small"
+    113feb6c-3fe4-4440-bddc-54d774bf0318: "EXCHANGE_S_FOUNDATION PBI_PREMIUM_EM1_ADDON"
+    176a09a6-7ec5-4039-ac02-b2791c6ba793: "Exchange Online Archiving"
+    2b815d45-56e4-4e3a-b65c-66cb9175b560: "Information Protection and Governance Analytics – Standard"
+    2e2ddb96-6af9-4b1d-a3f0-d6ecfd22edb2: "Microsoft Defender for Cloud Apps"
+    2e8dde43-6986-479d-b179-7dbe31c31f60: "CDS_ POWERAPPS_PER_USER_CUSTOM"
+    2f2e81a6-15de-4041-9f33-73c06fed3801: "CDS_CUSTOMER_INSIGHTS_JOURNEYS_ADD-ON"
+    2f442157-a11c-46b9-ae5b-6e39ff4e5849: "Microsoft 365 Advanced Auditing"
+    4de31727-a228-4ec3-a5bf-8e45b5ca48cc: "Office 365 Advanced eDiscovery"
+    5136a095-5cf0-4aff-bec3-e84448b38ea5: "Information Protection for Office 365 - Standard"
+    5689bec4-755d-4753-8b61-40975025187c: "Azure Information Protection Premium P2"
+    56e3d4ca-2e31-4c3f-8d57-89c1d363503b: "DYN365_ ENTERPRISE _RELATIONSHIP_SALES"
+    617b097b-4b93-4ede-83de-5f075bb5fb2f: "Premium Encryption in Office 365"
+    64bfac92-2b17-4482-b5e5-a0304429de3e: "Microsoft Endpoint DLP"
+    65cc641f-cccd-4643-97e0-a17e3045e541: "Microsoft Records Management"
+    664a2fed-6c7a-468e-af35-d61740f0ec90: "Project Online for Education"
+    6db1f1db-2b46-403f-be40-e39395f08dbb: "Microsoft Customer Key"
+    6dc145d6-95dd-4191-b9c3-185575ee6f6b: "Microsoft Communications DLP"
+    6ebdddb7-8e55-4af2-952b-69e77262f96c: "Microsoft Defender for Cloud Apps for DOD"
+    7d16094b-4db8-41ff-a182-372a90a85407: "Auditing_10Year_ Retention_ Add_On"
+    89b5d3b1-3855-49fe-b46c-87c66dbc1526: "Customer Lockbox for Government"
+    8ba1ff15-7bf6-4620-b65c-ecedb6942766: "Microsoft Sales Copilot Premium & Trial"
+    9bec7e34-c9fa-40b7-a9d1-bd6d1165c7ed: "Data Loss Prevention"
+    9f431833-0334-42de-a7dc-70aa40db46db: "Customer Lockbox"
+    a413a9ff-720c-4822-98ef-2f37c2a21f4c: "Microsoft 365 Communication Compliance"
+    a64b30ba-f310-4065-b444-2670ef146db0: "EXCHANGE_S_FOUNDATION PBI_PREMIUM_EM1_ADDON"
+    a6e407da-7411-4397-8a2e-d9b52780849e: "Intune-MAMTunnel"
+    aaa2cd24-5519-450f-a1a0-160750710ca1: "Windows Store for Business EDU Store_faculty"
+    acffdce6-c30f-4dc2-81c0-372e33c515ec: "MICROSOFT STREAM"
+    bb73f429-78ef-4ff2-83c8-722b04c3e7d1: "Intune-EPM"
+    bea4c11e-220a-4e6d-8eb8-8ea15d019f90: "RMS_S_ENTERPRISE)"
+    c2da6658-f89d-49f2-9508-40431dee115b: "CDS_ POWERAPPS_PER_APP_CUSTOM_NEW"
+    c4801e8a-cb58-4c35-aca6-f2dcc106f287: "Information Barriers"
+    d1cbfb67-18a8-4792-b643-630b7f19aad1: "Office 365 Advanced eDiscovery for Government"
+    d2d51368-76c9-4317-ada2-a12c004c432f: "Microsoft ML-Based Classification"
+    d587c7a3-bda9-4f99-8776-9bcf59c84f75: "Microsoft Insider Risk Management"
+    d9fa6af4-e046-4c89-9226-729a0786685d: "Information Protection and Governance Analytics - Premium"
+    e26c2fcc-ab91-4a61-b35c-03cdc8dddf66: "Microsoft Information Governance"
+    e7c91390-7625-45be-94e0-e16907e03118:
+      - "Virtualization Rights for Windows 10"
+      - "Virtualization Rights for Windows 10 (E3/E5+VDA)"
+    ee493f70-a3b3-4204-9511-e3f6083b8df3: "CDS_ POWERAPPS_PER_APP_CUSTOM_GCC"
+    efb0351d-3b08-4503-993d-383af8de41e3: "Information Protection for Office 365 - Premium"
+    f9c43823-deb4-46a8-aa65-8b551f0c4f8a: "SharePoint Plan 1G"

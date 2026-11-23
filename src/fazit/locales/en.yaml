@@ -60,6 +60,7 @@ licences:
   purchased: Purchased
   assigned: Assigned
   assigned_exceeds_purchased: The assigned count exceeds the purchased count by {count}. This can happen when a subscription is renewed with fewer seats.
+  assigned_exceeds_purchased_one: The assigned count exceeds the purchased count by {count}. This can happen when a subscription is renewed with fewer seats.
   plans: Service plan classification
   bundled: Included in the product
   add_on: Separately licensed
