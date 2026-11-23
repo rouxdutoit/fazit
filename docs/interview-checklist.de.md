@@ -87,18 +87,21 @@ Erfassen Sie die Anzahlen unter `provided_counts` und verwenden Sie unter `confi
 ### SharePoint
 
 - Setzt Ihre Organisation individuell angepasste SharePoint-Lösungen ein (`sharepoint.custom_solutions_in_use`)?
+- Gibt es Workflows oder automatisierte Genehmigungen, die auf SharePoint-Websites, in Listen oder Bibliotheken laufen oder von dort aus gestartet werden (`sharepoint.workflows_in_use`)?
 
 ### Teams
 
 - Muss der Chatverlauf aus Teams nach Auskunft der Fachbereiche oder der Schriftgutverwaltung erhalten bleiben (`teams.chat_history_must_be_kept`)?
+- Sind in Teams Apps, Registerkarten, Bots oder Konnektoren eingebunden (`teams.apps_in_use`)?
 
 ### Office-Dateien
 
-- Wie viele Dateien hat die IT-Stelle mit Endungen erfasst, die Makros zulassen (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`) (`office_files.kind.macro`)?
+- Wie viele Dateien hat die IT-Stelle mit Endungen erfasst, die Makros zulassen (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`, `.xls`, `.xlt`, `.xla`, `.doc`, `.dot`, `.ppt`, `.pot`, `.pps`, `.ppa`) (`office_files.kind.macro`)?
 - Wie viele Access-Datenbankdateien für Daten, Formulare oder Abfragen hat die IT-Stelle erfasst (`.accdb`, `.mdb`) (`office_files.kind.access`)?
 - Wie viele Publisher-Dateien zur Seitengestaltung hat die IT-Stelle erfasst (`.pub`) (`office_files.kind.publisher`)?
 - Wie viele Visio-Zeichnungsdateien für Diagramme hat die IT-Stelle erfasst (`.vsdx`) (`office_files.kind.visio`)?
 - Wie viele OneNote-Dateien für Notizen hat die IT-Stelle erfasst (`.one`) (`office_files.kind.onenote`)?
+- Sind die Beschäftigten bei ihrer Arbeit auf VBA-Makros in Office-Dateien angewiesen (`office_files.vba_macros_in_use`)?
 
 ### Geräteverwaltung
 

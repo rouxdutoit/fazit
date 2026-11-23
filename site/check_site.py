@@ -16,8 +16,10 @@ from xml.etree import ElementTree
 
 from typer.testing import CliRunner
 
+from fazit import REPOSITORY_URL
 from fazit.catalogue import load_catalogue
 from fazit.cli import app
+from fazit.fonts.css import CSS_DECLARATION, CSS_FONT_FACE, check_font_families
 from fazit.i18n import load_locale
 from fazit.mappings import load_mapping
 from fazit.status import STATUSES
@@ -33,6 +35,7 @@ PAGE_PAIRS = (
         (f"/{page}/", f"/de/{page}/")
         for page in ("start", "pilots", "integrators", "security", "about", "impressum", "privacy")
     ),
+    ("/coverage/", "/de/coverage/"),
     DEMO_ROUTES,
     ERROR_ROUTES,
 )
@@ -52,6 +55,12 @@ CSS_REFS = re.compile(
     re.I,
 )
 EMBEDDED_SVG = "data:image/svg+xml,"
+CSS_COMMENTS = re.compile(r"/\*.*?\*/", re.S)
+CSS_ROOT = re.compile(r"(?:^|(?<=[{}]))\s*:root\s*\{[^{}]*\}")
+CSS_COVERAGE = re.compile(r"[^{};]*\.cov(?:-[\w-]+)?(?![\w-])[^{};]*\{([^{}]*)\}")
+CSS_COLOUR = re.compile(r"#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)", re.I)
+# These neutral shadows give the menu and cards depth in either palette.
+SHADOW_COLOURS = {"rgb(0 0 0 / 4%)", "rgb(0 0 0 / 8%)", "rgb(0 0 0 / 18%)"}
 
 
 @dataclass(frozen=True)
@@ -111,6 +120,7 @@ class Page(HTMLParser):
         self._badge = ""
         self._cell_text: list[str] = []
         self._tally_text: list[str] | None = None
+        self.nav_controls: list[str] = []
         self.language = ""
         self.doctype = False
         self.feed(path.read_text(encoding="utf-8"))
@@ -142,6 +152,12 @@ class Page(HTMLParser):
 
         classes = values.get("class", "").split()
         self.record_button_icon(tag, classes, line)
+        if tag == "button" and values.get("aria-controls") == "site-nav":
+            self.nav_controls.append("toggle")
+        elif tag == "nav" and values.get("id") == "site-nav":
+            self.nav_controls.append("links")
+        elif tag == "a" and "bar-cta" in classes:
+            self.nav_controls.append("action")
         if tag == "table" and "coverage" in classes:
             self._coverage_table = True
         elif tag == "tr" and self._coverage_table:
@@ -152,9 +168,9 @@ class Page(HTMLParser):
             self._cell_text.clear()
         elif self._target is not None and "cov" in classes:
             self._badge = " ".join(name for name in classes if name.startswith("cov-"))
-        elif tag == "p" and "tally" in classes:
+        elif tag == "div" and "tally" in classes:
             self._tally_text = []
-        if tag == "tr" and values.get("id", "").startswith("readiness-"):
+        if tag == "article" and values.get("id", "").startswith("readiness-"):
             self.status_counts[values.get("data-status", "")] += 1
 
     def record_button_icon(self, tag: str, classes: list[str], line: int) -> None:
@@ -245,7 +261,7 @@ class Page(HTMLParser):
             self._target = None
         elif tag == "table":
             self._coverage_table = False
-        elif tag == "p" and self._tally_text is not None:
+        elif tag == "div" and self._tally_text is not None:
             self.tallies.append(" ".join("".join(self._tally_text).split()))
             self._tally_text = None
 
@@ -267,6 +283,8 @@ class Page(HTMLParser):
         if not demo:
             if not any(ref.plain_link and ref.value == "#main" for ref in self.references):
                 self.errors.append("Missing skip link to #main.")
+            if self.nav_controls != ["toggle", "links", "action"]:
+                self.errors.append("Expected the menu toggle, navigation and one action in order.")
             self.errors.extend(
                 f"Expected a btn-icon span with a matching SVG for the button on line {line}."
                 for line in sorted(self._buttons_without_icons)
@@ -509,10 +527,58 @@ def check_coverage(page: Page, lang: str) -> list[str]:
 def check_tally(page: Page, demo: Page, lang: str) -> list[str]:
     labels = load_locale(lang)["status"]
     total = demo.status_counts.total()
-    prefix = {"en": "All {} areas in the sample", "de": "Alle {} Bereiche im Beispiel"}[lang]
-    counts = ", ".join(f"{demo.status_counts[status]} {labels[status]}" for status in STATUSES)
-    expected = f"{prefix.format(total)}: {counts}."
+    prefix = {"en": "Of {} areas in the sample", "de": "Von {} Bereichen im Beispiel"}[lang]
+    order = ("blocker", "needs_work", "unknown", "ready")
+    counts = " ".join(f"{labels[status]} {demo.status_counts[status]}" for status in order)
+    expected = f"{prefix.format(total)}: {counts}"
     return [] if page.tallies == [expected] else [f"Sample tally should read {expected!r}."]
+
+
+def check_area_counts(demo: Page, lang: str) -> list[str]:
+    total = str(demo.status_counts.total())
+    prefix = "/de" if lang == "de" else ""
+    pattern = r"<span data-assessed-areas>\s*([0-9]+)\s*</span>"
+    errors = []
+    for route in (f"{prefix}/", f"{prefix}/pilots/"):
+        path = local_path(route)
+        if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != [total]:
+            errors.append(f"{path.relative_to(ROOT)}: Expected {total} assessed areas.")
+    return errors
+
+
+def check_commands(lang: str) -> list[str]:
+    prefix = "/de" if lang == "de" else ""
+    expected = [f"git clone {REPOSITORY_URL}", "cd fazit", "uv run fazit demo"]
+    if lang == "de":
+        expected[-1] += " --lang de"
+    components = []
+    errors = []
+    for route in (f"{prefix}/", f"{prefix}/start/"):
+        path = local_path(route)
+        if not path.is_file():
+            continue
+        markup = path.read_text(encoding="utf-8")
+        component = re.search(
+            r'<div class="command"[^>]*>.*?<p class="copy-message" role="status"></p>\s*</div>',
+            markup,
+            re.S,
+        )
+        if component is None:
+            errors.append(f"{route}: Expected the shared command block and its copy status.")
+            continue
+        block = component[0]
+        components.append(re.sub(r">\s+<", "><", block))
+        code = re.search(r"<code>(.*?)</code>", block, re.S)
+        commands = re.findall(r"<span>([^<]+)</span>", code[1].replace("<wbr>", "")) if code else []
+        if commands != expected:
+            errors.append(f"{route}: Expected the three demo commands for {lang}.")
+        if not re.search(r"<button [^>]*\bdata-copy(?:\s|>)", block) or not all(
+            re.search(rf'\b{flag}="[^"]+"', block) for flag in ("data-copied", "data-manual")
+        ):
+            errors.append(f"{route}: Expected copy feedback and manual-copy instructions.")
+    if len(components) == 2 and components[0] != components[1]:
+        errors.append(f"{prefix}/: Home and Start should use the same command block.")
+    return errors
 
 
 def check_demo_reports() -> list[str]:
@@ -542,12 +608,84 @@ def check_assets() -> list[str]:
         image = ROOT / filename
         if not image.is_file() or png_dimensions(image) != dimensions:
             errors.append(f"{filename}: Expected a PNG with dimensions {dimensions}.")
+        elif filename == "og.png" and image.stat().st_size >= 150_000:
+            errors.append(f"{filename}: Must be under 150 KB.")
     for preview in (ROOT / "images").glob("readiness-*"):
         if preview.suffix in {".png", ".webp"} and preview.stat().st_size >= 150_000:
             errors.append(f"{preview.relative_to(ROOT)}: Must be under 150 KB.")
     if f"Sitemap: {ORIGIN}/sitemap.xml" not in (ROOT / "robots.txt").read_text().splitlines():
         errors.append("robots.txt: Missing sitemap URL.")
     return errors
+
+
+def _check_design_urls(css: str) -> Iterator[str]:
+    for face in CSS_FONT_FACE.findall(css):
+        for ref in css_references(face, 1):
+            if (
+                not re.fullmatch(r"fonts/[\w-]+\.woff2", ref.value)
+                or not (ROOT / ref.value).is_file()
+            ):
+                yield f"@font-face URL {ref.value!r} must name a local WOFF2 font."
+    for ref in css_references(CSS_FONT_FACE.sub("", css), 1):
+        # check_reference verifies the source comment and the bytes of each embedded symbol.
+        if not ref.value.startswith(EMBEDDED_SVG) or ref.symbol_source is None:
+            yield f"CSS URL {ref.value!r} must embed a symbol from icons/."
+
+
+def _svg_paths(svg: bytes) -> set[str]:
+    root = ElementTree.fromstring(svg)
+    return {
+        " ".join(path.attrib["d"].split())
+        for path in root.findall(".//{*}path")
+        if "d" in path.attrib
+    }
+
+
+def _check_coverage_symbols(css: str) -> Iterator[str]:
+    package = ROOT.parent / "src" / "fazit"
+    template = (package / "templates" / "report.html.j2").read_text(encoding="utf-8")
+    macro = template.partition("macro status_label(")[2].split("endmacro", 1)[0]
+    names = dict(re.findall(r"'([\w]+)'\s*:\s*'([\w-]+)'", macro))
+    if set(names) != set(STATUSES):
+        yield "Could not read every status symbol from status_label in report.html.j2."
+        return
+    status_paths = {}
+    for name in names.values():
+        source = package / "icons" / f"{name}.svg"
+        try:
+            paths = _svg_paths(source.read_bytes())
+        except (OSError, ElementTree.ParseError):
+            yield f"Status symbol {name}.svg must be a readable SVG."
+            continue
+        if not paths:
+            yield f"Status symbol {name}.svg has no SVG path."
+        status_paths.update(dict.fromkeys(paths, name))
+    for rule in CSS_COVERAGE.findall(css):
+        for ref in css_references(rule, 1):
+            if not ref.value.startswith(EMBEDDED_SVG):
+                continue
+            name = ref.symbol_source or "embedded coverage symbol"
+            svg = unquote_to_bytes(ref.value.removeprefix(EMBEDDED_SVG))
+            try:
+                reused = _svg_paths(svg) & status_paths.keys()
+            except ElementTree.ParseError:
+                yield f"Coverage symbol {name} is not valid SVG."
+                continue
+            for status_icon in sorted({status_paths[path] for path in reused}):
+                yield f"Coverage symbol {name} reuses the path of status symbol {status_icon}.svg."
+
+
+def check_design(css: str) -> list[str]:
+    source = CSS_COMMENTS.sub("", CSS_REFS.sub("", css))
+    errors = []
+    for prop, value in CSS_DECLARATION.findall(CSS_ROOT.sub("", source)):
+        for colour in CSS_COLOUR.findall(value):
+            if prop.lower() != "box-shadow" or colour not in SHADOW_COLOURS:
+                errors.append(f"{prop}: {value.strip()} uses colour {colour} outside :root.")
+    errors.extend(check_font_families(source))
+    errors.extend(_check_design_urls(css))
+    errors.extend(_check_coverage_symbols(css))
+    return [f"style.css: {error}" for error in errors]
 
 
 def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str, str]]]:
@@ -566,10 +704,13 @@ def check_pages(pages: dict[Path, Page]) -> tuple[list[str], dict[str, dict[str,
             page.check_structure(lang, demo=demo)
             if not demo:
                 page.check_metadata(route, other, pair)
-            if (en, de) == PAGE_PAIRS[0]:
+            if en == "/coverage/":
                 page.errors.extend(check_coverage(page, lang))
+            elif en == "/":
+                page.errors.extend(check_commands(lang))
                 if demo_page := pages.get(local_path(f"/demo/{lang}/")):
                     page.errors.extend(check_tally(page, demo_page, lang))
+                    errors.extend(check_area_counts(demo_page, lang))
     for path, page in pages.items():
         if ORIGIN + route_for(path) not in declared:
             errors.append(f"{path.relative_to(ROOT)}: Page has no declared language pair.")
@@ -593,9 +734,9 @@ def main() -> int:
 
     references = [(path, ref) for path, page in pages.items() for ref in page.references]
     stylesheet = ROOT / "style.css"
-    references.extend(
-        (stylesheet, ref) for ref in css_references(stylesheet.read_text(encoding="utf-8"), 1)
-    )
+    css = stylesheet.read_text(encoding="utf-8")
+    errors.extend(check_design(css))
+    references.extend((stylesheet, ref) for ref in css_references(css, 1))
     for path, ref in references:
         if error := check_reference(route_for(path), ref, pages):
             errors.append(f"{path.relative_to(ROOT)}:{ref.line}: {error}")

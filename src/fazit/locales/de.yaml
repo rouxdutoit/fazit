@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: Bestandsaufnahme zu Microsoft 365
-  organisation: Organisation
+  title: "Was beim Umstieg von Microsoft\u00a0365 nötig ist"
   unnamed_organisation: Diese Organisation
   scan_date: Stand der Erhebung (scan.json)
   inputs_date: Stand der Angaben (inputs.yaml)
@@ -10,17 +9,43 @@ header:
   local: Wer Fazit ausgeführt hat, hat diesen Bericht lokal aus der Datei scan.json erstellt. Bei der Berichtserstellung wurde keine Netzwerkverbindung aufgebaut.
   offline: Trennen Sie zur Prüfung die Netzwerkverbindung und führen Sie den Befehl erneut aus oder öffnen Sie diese Datei.
   sample: Die Messwerte der Erhebung in diesem Bericht sind simuliert.
+nav:
+  summary: Überblick
+  next_steps: Nächste Schritte
+  areas: Bereiche
+  costs: Kosten
+  replacements: Ersatzlösungen
+  closer_look: Prüfbedarf
+  appendix: Anhang
+  on_this_page: Auf dieser Seite
+  label: Abschnitte des Berichts
+  skip: Zum Inhalt springen
+summary:
+  title: Wo die Organisation steht
+  of_areas: 'Von {n} Bereichen:'
+  blockers: Was diesem Umstieg entgegensteht
+  confirmed: 'Bestätigte Hindernisse: {shown} von {total}'
+  all_blockers: Alle Hindernisse
+  caveat: 'Bei {n} Bereichen ist der Status unbekannt oder die Nachweise sind unvollständig; ein Hindernis lässt sich daher nicht ausschließen.'
+  caveat_one: 'Bei {n} Bereich ist der Status unbekannt oder die Nachweise sind unvollständig, sodass sich ein Hindernis nicht ausschließen lässt.'
+  unknown: Was noch unbekannt ist
+  not_examined: Alle offenen Punkte
+  define:
+    blocker: Ein bestätigtes Hindernis, das vor diesem Umstieg ausgeräumt sein muss.
+    needs_work: Die Prüfungen haben Aufgaben ergeben, die vor einem Umstieg zu erledigen sind.
+    unknown: Es fehlen Nachweise, daher kann diese Version von Fazit den Bereich nicht bewerten.
+    ready: Die aktuellen Prüfungen haben weder ein Hindernis noch fehlende Nachweise ergeben.
+  scope_title: Was {profile} abdeckt
+  scope_of: 'Von den {n} Funktionen, die Fazit für {profile} prüft:'
+  scope_needed: Nicht in {profile} enthalten, aber in dieser Organisation benötigt
+  scope_unknown_one: Eine weitere Funktion fehlt in {profile}. Ob sie hier benötigt wird, ist unbekannt.
+  scope_unknown: 'Weitere {n} sind nicht in {profile} enthalten; ob diese Organisation sie benötigt, ist unbekannt.'
 found:
-  title: Ergebnisse der Bestandsaufnahme
+  title: Was Fazit erfasst hat
+  title_sample: Was Fazit für eine fiktive Organisation erfasst hat
   finding: Merkmal
   value: Wert
-  provenance: Herkunft des Werts
-  evidence: Datengrundlage der Ergebnisse
   collector: Erhebungsverfahren
-  source: Datenquelle
-  collected: Erhebungsdatum
-  period: Berichtszeitraum
-  coverage: Umfang der Erhebung
   sample: Die Messwerte der Erhebung sind simuliert.
   note: Hinweis
   comparison: Weitere Beobachtung
@@ -30,17 +55,16 @@ found:
     directory: Zu den internen Konten gehören gemeinsam genutzte Konten und Dienstkonten. Deshalb kann es mehr Konten als Beschäftigte geben. Gäste werden getrennt gezählt.
 licences:
   title: Lizenzprodukte
-  product: Produktkennung
   unregistered_product: Nicht registriertes Produkt {number}
   product_count: 'Erfasste Lizenzprodukte: {count}'
   purchased: Erworben
   assigned: Zugewiesen
   assigned_exceeds_purchased: Es sind {count} Lizenzplätze mehr zugewiesen als erworben. Das kann vorkommen, wenn bei der Vertragsverlängerung weniger Plätze erworben werden.
-  plans: Einordnung der Dienstpläne
+  plans: Einordnung der Servicepläne
   bundled: Im Produkt enthalten
   add_on: Separat lizenziert
-  unclassified: 'Dienstpläne ohne Einordnung in diesem Produkt: {count}.'
-  no_workload: 'Dienstpläne ohne Bezug zu einem geprüften Bereich: {count}.'
+  unclassified: 'Servicepläne ohne Einordnung in diesem Produkt: {count}.'
+  no_workload: 'Servicepläne ohne Bezug zu einem geprüften Bereich: {count}.'
   add_on_assigned: 'Zugewiesene Zusatzlizenz für {workload}'
   bundled_assigned: 'Im Produkt enthaltene, zugewiesene Lizenz für {workload}'
 status:
@@ -49,23 +73,39 @@ status:
   blocker: Hindernis
   unknown: Unbekannt
 costs:
-  title: Kostenvergleich über fünf Jahre
+  title: Was Verbleib und Umstieg in fünf Jahren kosten
   inputs: Kostenangaben
   input: Angabe
   results: Kosten je Szenario
   category: Kostenposition
   stay: Verbleib
-  partial_exit: Teilausstieg
-  full_exit: Vollausstieg
+  partial_exit: Teilweiser Umstieg
+  full_exit: Vollständiger Umstieg
   subtotal: Zwischensumme
   total: Gesamtkosten für fünf Jahre
   difference: Unterschied zum Verbleib
   not_provided: Nicht angegeben
   not_applicable: Entfällt
   invented_amounts: Die Beträge in dieser Tabelle beruhen auf frei erfundenen Preisen für das Beispiel.
-  rounding: Für die Anzeige sind Beträge auf zwei Nachkommastellen gerundet. Die Summen beruhen auf den ungerundeten Beträgen. Beim Nachrechnen mit den angezeigten Beträgen können sich daher kleine Abweichungen ergeben.
+  rounding: Die Gesamtkosten in der Übersicht und die Beträge im Vergleich der jährlichen Betriebskosten sind auf ganze Währungseinheiten gerundet. Die Tabellen zeigen bei Bedarf zwei Nachkommastellen. Die Summen beruhen auf ungerundeten Beträgen und können daher von der Summe der angezeigten Beträge abweichen.
   provide_inputs: Übergeben Sie die Datei mit den Kostenangaben über die Option --inputs des Befehls report.
   missing: 'Fehlende Angaben für das Szenario „{scenario}“'
+  stay_basis: Die heutigen Jahreskosten für fünf Jahre
+  comparison_unknown: Vergleich unbekannt
+  stay_assumption: Beim Verbleib wird keine Preisänderung angenommen.
+  break_even: '{scenario} kostet so viel wie der Verbleib, wenn der Betrieb des Zielsystems {amount} pro Jahr kostet (eingetragen: {entered}).'
+  break_even_none: '{scenario} kostet auch ohne Betriebskosten mehr als der Verbleib.'
+  vat_note: Alle Beträge wie eingetragen. Die Eingabedatei gibt nicht an, ob sie Umsatzsteuer enthalten.
+  profile_note: Die Kosten stammen aus der Eingabedatei und sind für jedes Zielprofil gleich.
+  less: weniger als beim Verbleib
+  more: mehr als beim Verbleib
+  same: gleich viel wie beim Verbleib
+  sub_cent: weicht um weniger als einen Cent ab
+  total_unknown: Summe unbekannt
+  known_blocks: 'Summe der bekannten Posten: {amount}'
+  inputs_missing: '{n} Angaben fehlen'
+  inputs_missing_one: '{n} Angabe fehlt'
+  missing_fix: Tragen Sie die fehlenden Beträge in die Eingabedatei ein und erstellen Sie den Bericht erneut.
   origins:
     invented: Erfunden für das Beispiel
     sample_input: Beispielangabe
@@ -86,12 +126,12 @@ costs:
     training_days_per_person: Schulungstage pro Person
     training_day_rate: Schulungskosten pro Person und Tag
     training_staff: Zahl der zu schulenden Personen
-    productivity_loss: Kosten durch Produktivitätsverluste
+    productivity_loss: &lost_time Verlorene Arbeitszeit (interne Schätzung, keine Zahlung)
     parallel_running_months: Monate mit Parallelbetrieb
   groups:
     running: Laufende Kosten
     direct_project: Direkte Projektkosten
-    productivity_loss: Produktivitätsverluste
+    productivity_loss: *lost_time
     parallel_running: Parallelbetrieb
   line_items:
     microsoft_licences: Bisherige Microsoft-Lizenzen
@@ -104,48 +144,61 @@ costs:
     application_adaptation: Anpassung von Anwendungen
     external_advice: Externe Beratung
     training: Schulung
-    productivity_loss: Kosten durch Produktivitätsverluste
+    productivity_loss: *lost_time
     parallel_running: Bisherige Microsoft-Lizenzen im Parallelbetrieb
   formulas_title: Berechnung der Kosten
   formulas:
-    - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenblöcke der Umstellung betragen null.
-    - Bei beiden Ausstiegsszenarien ziehen Sie die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
+    - Beim Verbleib fallen die jährlichen Microsoft-Lizenzkosten und die sonstigen bisherigen IT-Kosten jeweils über fünf Jahre an. Die drei Kostenposten für den Umstieg betragen null.
+    - Ziehen Sie bei beiden Umstiegsszenarien die Monate des Parallelbetriebs von 60 ab. Multiplizieren Sie die Jahreskosten der beibehaltenen Microsoft-Lizenzen mit den verbleibenden Monaten und teilen Sie das Ergebnis durch 12.
     - Multiplizieren Sie den monatlichen Hostingpreis pro Person mit der Zahl der Nutzenden und mit 60. Das Hosting beginnt im ersten Monat. Die Jahreskosten für Betrieb, sonstige Kosten des Zielsystems und sonstige bisherige IT-Kosten werden jeweils mit fünf multipliziert.
     - Die direkten Projektkosten umfassen einmalige Migration, Anpassung von Anwendungen, externe Beratung und Schulung. Die Schulungskosten ergeben sich aus Schulungstagen pro Person mal Tagessatz pro Person mal Zahl der zu schulenden Personen.
-    - Für die Produktivitätsverluste gilt der dafür eingegebene Betrag.
+    - Für verlorene Arbeitszeit wird der angegebene Betrag angesetzt.
     - Für den Parallelbetrieb multiplizieren Sie die bisherigen jährlichen Microsoft-Lizenzkosten mit den Monaten des Parallelbetriebs und teilen das Ergebnis durch 12.
-    - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenblöcken der Umstellung. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
+    - Die Gesamtkosten für fünf Jahre ergeben sich aus den laufenden Kosten und den drei Kostenposten für den Umstieg. Für den Vergleich werden von den Gesamtkosten jedes Szenarios die Gesamtkosten des Verbleibs abgezogen.
     - Ist ein Faktor null, beträgt die Kostenposition null. Fehlt eine für die Berechnung erforderliche Angabe, bleibt das Ergebnis unbekannt.
 readiness:
-  title: Bereitschaft nach Bereich
-  counts: Anzahl der Bereiche je Status
-  workload: Bereich
-  evidence: Datengrundlage
-  incomplete: Datengrundlage unvollständig
+  title: Wo die einzelnen Bereiche stehen
+  next_step: Nächster Schritt
+  incomplete: Nachweise unvollständig
   missing: Noch benötigte Angaben
   conflict: Der Bericht verwendet die erhobene Mindestzahl, da die eingetragene Gesamtzahl darunter liegt.
-  not_examined: Nicht untersucht
+  evidence: Nachweise
+  evidence_summary: '{measured} erhoben, {provided} bereitgestellt, {unknown} unbekannt'
+  all_replacements: Alle Ersatzlösungen
+filter:
+  status_legend: Bereiche nach Status anzeigen
+  category_legend: Bereiche nach Kategorie anzeigen
+  all: Alle
+  all_categories: Alle Kategorien
+  empty: Kein Bereich entspricht diesen Filtern. Wählen Sie „Alle“ und „Alle Kategorien“, um alle Bereiche anzuzeigen.
+  search_hint: Ausgeblendete Bereiche und, je nach Browser, geschlossene Abschnitte werden nicht durchsucht.
 moves:
-  title: Funktionen im Zielsystem
+  title: Was wodurch ersetzt wird
+  coverage: Funktionsabdeckung
+  need: Hier benötigt
+  need_not_assessed: Nicht geprüft
   microsoft: Funktion bei Microsoft
   replacement: Ersatz im Zielsystem
-  coverage: Abdeckung und Prüfdatum
-  evidence: Datengrundlage
-  workload_status: Status und Begründung für den Bereich
-  workload_evidence: 'Datengrundlage für den Bereich {workload}'
+  workload_status: Status des Bereichs
+  status_link: '{area}: {status}'
   no_function: In diesem Bereich ist keine Funktion zu übertragen.
+  licences_excluded: Lizenzen stehen nicht in dieser Tabelle, weil hier keine Funktion zu übertragen ist.
+  area_excluded: 'Der Bereich {area} steht nicht in dieser Tabelle, weil hier keine Funktion zu übertragen ist.'
   no_project_check: Für diese Zuordnung wurde keine projektspezifische Dokumentation geprüft.
+  unreviewed: Diese Zuordnung wurde noch nicht von einer Person geprüft, die das Zielsystem betreibt.
+  reviewed: Diese Zuordnung wurde am {date} von einer Person geprüft, die das Zielsystem betreibt.
 mapping_coverage:
-  in_suite: Im Paket enthalten
-  in_suite_with_limits: Mit Einschränkungen im Paket enthalten
+  in_suite: In der Suite
+  in_suite_with_limits: In der Suite mit Einschränkungen
   announced: Angekündigt
   component_vendor_solution: Lösung des Komponentenherstellers
-  open_source_community: Open-Source-Lösung aus der Gemeinschaft
+  open_source_community: Open-Source-Lösung der Community
   open_source_third_party: Open-Source-Lösung eines Drittanbieters
   proprietary_third_party: Proprietäre Lösung eines Drittanbieters
+  transfer_undocumented: Direkte Übernahme nicht dokumentiert
   not_available: Nicht verfügbar
 attention:
-  title: Prüfbedarf
+  title: Was genauer zu prüfen ist
   files: Dateitypen für die weitere Prüfung
   file_kind: Dateityp
   extensions: Dateiendungen
@@ -160,24 +213,71 @@ attention:
   needed_here: Für diese Organisation erforderlich
   no_gaps: Das Profil führt keine Funktionen auf, für die eine direkte Übernahme ungeklärt ist.
 path:
-  title: Möglicher Ablauf
-  blocker: Bestätigte Hindernisse
-  unknown: Zuerst zu klärende Fragen
-  ready: Bereiche mit dem Status „Bereit“
+  title: Was als Nächstes zu tun ist
+  even_if_staying: Sinnvoll, auch wenn Sie bei Microsoft 365 bleiben
+  for_move: Für einen Umstieg nötig
+  who_answers: 'Wer gibt Auskunft:'
+  source: 'Quelle:'
+  input_field: 'Feld in inputs.yaml:'
+  finding_question: 'Was geht aus den Nachweisen zu „{finding}“ hervor?'
+  area_question: 'Welche Nachweise fehlen im Bereich {area}?'
+  collector_question: Welche Nachweise fehlen aus dieser Erhebung?
+  guidance:
+    not_in_export: Erfragen Sie die fehlende Angabe bei der fachlich verantwortlichen Stelle.
+    needs_recipient_export: Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln.
+    source_not_supplied: Klären Sie, aus welcher Quelle die fehlenden Daten stammen.
+  questions:
+    licences.contract_terms_known: Hat die Vergabestelle die Vertragsbedingungen der Microsoft-Lizenzen geprüft?
+    directory.account_list_reviewed: Hat die IT-Abteilung die aktuelle Kontenliste geprüft?
+    mail.shared_mailbox_count: Wie viele freigegebene Postfächer hat die Organisation?
+    mail.other_systems_send_mail: Versenden andere Systeme E-Mails über Microsoft?
+    onedrive.external_sharing_in_use: Gibt Ihre Organisation OneDrive-Dateien für Externe frei?
+    sharepoint.custom_solutions_in_use: Setzt Ihre Organisation individuell angepasste SharePoint-Lösungen ein?
+    sharepoint.workflows_in_use: Werden über SharePoint-Websites, Listen oder Bibliotheken Workflows oder automatisierte Genehmigungen ausgeführt oder gestartet?
+    teams.chat_history_must_be_kept: Muss der Chatverlauf aus Teams erhalten bleiben?
+    teams.apps_in_use: Sind in Teams Apps, Registerkarten, Bots oder Konnektoren eingebunden?
+    office_files.kind.macro: Wie viele Dateien haben Endungen, die Makros zulassen?
+    office_files.kind.access: Wie viele Access-Datenbankdateien gibt es?
+    office_files.kind.publisher: Wie viele Publisher-Dateien gibt es?
+    office_files.kind.visio: Wie viele Visio-Zeichnungsdateien gibt es?
+    office_files.kind.onenote: Wie viele OneNote-Dateien gibt es?
+    office_files.vba_macros_in_use: Sind VBA-Makros in Office-Dateien für die Arbeit erforderlich?
+    device_management.device_count: Wie viele Geräte umfasst der von der IT-Abteilung erfasste Bestand?
+    device_management.windows_device_count: Wie viele dieser Geräte laufen unter Windows?
+    device_management.in_use: Verwaltet Ihre Organisation Geräte über Microsoft?
+    device_management.windows_desktops_required: Benötigen Sie Windows-Arbeitsplätze für Anwendungen, Geräte oder Peripherie?
+    windows_software.application_count: Welche Anwendungen laufen ausschließlich unter Windows?
+    windows_software.without_web_version_count: Für welche reinen Windows-Anwendungen gibt es keine Webversion?
+    power_platform.in_use: Nutzt Ihre Organisation Dienste der Power Platform?
+    telephony.in_use: Läuft die Telefonie Ihrer Organisation ganz oder teilweise über Microsoft?
+    telephony.replacement_available: Steht für die eingesetzte Microsoft-Telefonie eine Alternative zur Verfügung?
+    identity_access.sso_application_count: Wie viele Anwendungen nutzen die zentrale Anmeldung über Microsoft?
+    identity_access.conditional_access_in_use: Setzt Ihre Organisation den bedingten Zugriff von Microsoft ein?
+    security_compliance.protection_or_retention_in_use: Nutzt Ihre Organisation Schutz- oder Aufbewahrungsfunktionen von Microsoft?
+    small_apps.in_use: Nutzen die Fachbereiche kleinere Microsoft-Anwendungen wie Forms, Planner oder Bookings?
+    integrations.application_count: Wie viele Fachanwendungen sind an Microsoft 365 angebunden?
+  transfer_actions:
+    not_available: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, womit sie {functions} nach dem Umstieg ersetzen.
+    not_available.device_management: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die Geräte nach dem Umstieg verwaltet werden.
+    not_available.desktop_operating_system: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie das Betriebssystem für die Arbeitsplatzrechner nach dem Umstieg bereitgestellt wird.
+    not_available.windows_applications: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie reine Windows-Anwendungen nach dem Umstieg betrieben werden.
+    not_available.automation_and_low_code: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie die automatisierten Abläufe und Low-Code-Anwendungen nach dem Umstieg betrieben werden.
+    not_available.telephony: Die fachlich verantwortliche Stelle und die IT-Abteilung legen fest, wie {functions} nach dem Umstieg bereitgestellt werden.
+    transfer_undocumented: Die fachlich verantwortliche Stelle und die IT-Abteilung planen und erproben die Übernahme oder den Neuaufbau der Inhalte für {functions}.
   empty:
     blocker: Die Bestandsaufnahme hat kein Hindernis ergeben.
     unknown: Der Status ist für alle Bereiche bekannt.
-    ready: Kein Bereich erfüllt die Voraussetzungen für den Status „Bereit“.
-  pilot_evidence: Der Bericht enthält keine Angaben zu einzelnen Abteilungen und kann daher keine Abteilung für einen Pilotbetrieb benennen.
-  pilot_choice: Die für die Umstellung Verantwortlichen wählen die Pilotgruppe gemeinsam mit der Organisation aus.
-  sequence: Typischer Ablauf einer Umstellung
-  steps:
-    - Eine Pilotgruppe erprobt das neue System.
-    - Dateien, die konvertiert werden müssen, werden vorbereitet und geprüft.
-    - Die Organisation stellt schrittweise um und betreibt beide Systeme vorübergehend parallel.
-    - Nach Abschluss der Umstellung schaltet die Organisation das bisherige System ab.
+role:
+  it_team: IT-Abteilung
+  licence_management: Lizenzverwaltung
+  service_owner: Fachlich verantwortliche Stelle
+  data_protection: Datenschutzbeauftragte
+  information_security: Für Informationssicherheit zuständige Person
+  procurement: Beschaffung
 appendix:
-  title: Anhang
+  title: Wie dieser Bericht entstanden ist
+  not_looked: Was Fazit nicht betrachtet
+  not_looked_text: Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Auswertungen nach Abteilungen und die Einstellungen des Zielsystems.
   schema_version: Schemaversion
   collectors: Erhebungsverfahren
   status: Status
@@ -209,6 +309,7 @@ source_kind:
   live: Live-Erhebung
 provenance:
   measured: Erhoben
+  measured_sample: Erhoben (simuliert)
   provided: Bereitgestellt
   unknown: Unbekannt
 collector:
@@ -252,7 +353,7 @@ coverage:
 reason:
   not_in_export:
     label: Die Angabe fehlt im Export.
-    fix: Prüfen Sie die Exporteinstellungen und stellen Sie einen Export mit dieser Angabe bereit.
+    fix: Erfragen Sie die fehlende Angabe bei der fachlich verantwortlichen Stelle. Tragen Sie sie in die Eingabedatei ein, sofern dort ein Feld dafür vorgesehen ist.
   permission_denied:
     label: Die Leseberechtigung für die Erhebung fehlte.
     fix: Lassen Sie die erforderlichen Berechtigungen durch die Administration prüfen.
@@ -267,10 +368,10 @@ reason:
     fix: Klären Sie die Frage und tragen Sie die Antwort in die Eingabedatei ein.
   source_not_supplied:
     label: Die Datenquelle lag nicht vor.
-    fix: Stellen Sie den erforderlichen Export bereit und erstellen Sie den Bericht erneut.
+    fix: Klären Sie, aus welcher Quelle die fehlende Angabe stammt. Fehlt sie in der Erhebungsdatei und in der Eingabedatei, bleibt sie unbekannt.
   needs_recipient_export:
     label: Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor.
-    fix: Stellen Sie einen Export der Exchange-Empfänger mit Angabe des Postfachtyps bereit.
+    fix: Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln. Im Bericht bleibt sie unbekannt.
   collector_skipped:
     label: Das Erhebungsverfahren wurde nicht ausgeführt.
     fix: Prüfen Sie den Grund im Anhang und reichen Sie die fehlenden Daten nach.
@@ -284,14 +385,14 @@ reason:
     label: Im Lizenzbestand sind keine Produkte erfasst.
     fix: Prüfen Sie die Quelle und reichen Sie eine vollständige Liste der Lizenzprodukte nach.
   licence_not_classified:
-    label: Das Programm konnte einen Dienstplan nicht einordnen.
-    fix: Gleichen Sie Produkt und Dienstplan mit der Lizenzreferenz ab und aktualisieren Sie den Dienstplankatalog.
+    label: Das Programm konnte einen Serviceplan nicht einordnen.
+    fix: Gleichen Sie Produkt und Serviceplan mit der Lizenzreferenz ab und aktualisieren Sie den Serviceplankatalog.
   licence_plan_list_missing:
-    label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Dienstpläne.
-    fix: Reichen Sie die Liste der Dienstpläne für dieses Produkt nach.
+    label: Für ein zugewiesenes Lizenzprodukt fehlt die Liste der Servicepläne.
+    fix: Reichen Sie die Liste der Servicepläne für dieses Produkt nach.
   licence_plan_list_incomplete:
-    label: Die Dienstplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
-    fix: Prüfen Sie den Export und reichen Sie die vollständige Liste der Dienstpläne für das Produkt nach.
+    label: Die Serviceplanliste für ein bekanntes Lizenzprodukt ist unvollständig.
+    fix: Lassen Sie durch die Lizenzverwaltung prüfen, welche Servicepläne zum Produkt gehören.
   licence_assignments_conflict:
     label: Die Lizenzzuweisungen widersprechen der Zahl der lizenzierten Konten.
     fix: Gleichen Sie Verzeichnis und Lizenzbestand derselben Organisation ab und erheben Sie die Zahlen erneut.
@@ -310,17 +411,12 @@ reason:
   provided_answers_conflict:
     label: Die eingetragenen Antworten widersprechen einander.
     fix: Klären Sie beide Antworten mit der zuständigen Stelle und korrigieren Sie die Angaben in den Dateien.
-  desktop_requirements_conflict:
-    label: >-
-      Laut Ihrer Angabe sind keine Windows-Arbeitsplätze erforderlich.
-      Die Anwendungsliste enthält Programme, die nur unter Windows laufen und für die keine Webversion verfügbar ist.
-    fix: Klären Sie mit der zuständigen Stelle, ob für diese Programme weiterhin Windows-Arbeitsplätze benötigt werden.
   not_established:
     label: Die vorliegenden Daten lassen die Frage offen.
     fix: Klären Sie die Angabe mit der für den Dienst zuständigen Stelle.
   not_recognised:
     label: Diese Programmversion kennt den Grund nicht.
-    fix: Prüfen Sie den Export und die Programmversion.
+    fix: Prüfen Sie die Version des Erhebungsprogramms und den Begründungscode in der Erhebungsdatei.
 units:
   users: Konten
   groups: Gruppen
@@ -365,6 +461,12 @@ workload:
   security_compliance: Sicherheit und Regelkonformität
   small_apps: Kleinere Anwendungen
   integrations: Anwendungsanbindungen
+category:
+  communication: Kommunikation
+  files: Dateien und Dokumente
+  identity_devices: Identität und Geräte
+  automation_ai: Automatisierung und KI
+  security: Sicherheit und Compliance
 finding:
   licences.contract_terms_known: Lizenzbedingungen geprüft
   directory.user_count: Interne Konten
@@ -384,15 +486,18 @@ finding:
   sharepoint.storage_bytes: Speicherbedarf in SharePoint
   sharepoint.file_count: Dateien in SharePoint
   sharepoint.custom_solutions_in_use: Individuell angepasste SharePoint-Lösungen im Einsatz
+  sharepoint.workflows_in_use: Workflows auf SharePoint-Websites, in Listen oder Bibliotheken im Einsatz
   teams.team_count: Teams
   teams.channel_count: Kanäle
   teams.teams_with_guests_count: Teams mit Gästen
   teams.chat_history_must_be_kept: Chatverlauf aus Teams muss erhalten bleiben
+  teams.apps_in_use: In Teams eingebundene Apps, Registerkarten, Bots oder Konnektoren
   office_files.kind.macro: Dateien, die Makros enthalten können
   office_files.kind.access: Access-Datenbanken
   office_files.kind.publisher: Publisher-Dateien
   office_files.kind.visio: Visio-Dateien
   office_files.kind.onenote: OneNote-Dateien
+  office_files.vba_macros_in_use: VBA-Makros, auf die die Beschäftigten angewiesen sind
   device_management.device_count: Geräte
   device_management.windows_device_count: Windows-Geräte
   device_management.in_use: Geräteverwaltung von Microsoft im Einsatz

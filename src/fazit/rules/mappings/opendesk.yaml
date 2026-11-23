@@ -5,6 +5,7 @@ description:
   en: Functions covered by the documented openDesk suite and gaps that require separate work.
   de: Dokumentierte Funktionen von openDesk und Lücken, die gesondert bearbeitet werden müssen.
 product_profile: true
+operator_review: unreviewed
 no_function: [licences]
 functions:
   - function: identity_management
@@ -12,63 +13,74 @@ functions:
     microsoft: {en: Microsoft Entra ID user and group management, de: Benutzer- und Gruppenverwaltung in Microsoft Entra ID}
     replacement: {en: Nubus, de: Nubus}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#nubus-identity-and-access-management--portal
+    checked_on: "2026-11-22"
   - function: mail_and_calendar
     workload: mail
     microsoft: {en: Exchange Online mail and calendar, de: E-Mail und Kalender in Exchange Online}
     replacement: {en: Open-Xchange (OX App Suite), de: Open-Xchange (OX App Suite)}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#ox-app-suite-groupware-with-ox-dovecot-mail-backend
+    checked_on: "2026-11-22"
   - function: personal_files
     workload: onedrive
     microsoft: {en: OneDrive personal file storage and sync, de: Persönliche Dateiablage und Synchronisierung in OneDrive}
     replacement: {en: Nextcloud Files, de: Nextcloud Files}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#nextcloud-files
+    checked_on: "2026-11-22"
   - function: team_files
     workload: sharepoint
     microsoft: {en: SharePoint team file libraries, de: Dateiablagen für Teams in SharePoint}
     replacement: {en: Shared folders in Nextcloud Files, de: Gemeinsame Ordner in Nextcloud Files}
     coverage: in_suite_with_limits
     reference_url: https://docs.opendesk.eu/user/applications/dateien/
-    checked_on: "2026-11-21"
+    checked_on: "2026-11-22"
     note:
       en: The file module supports shared folders. SharePoint site structure and library rules need a separate review.
       de: Das Dateimodul unterstützt gemeinsame Ordner. Prüfen Sie die Struktur der SharePoint-Websites und die Regeln der Bibliotheken gesondert.
   - function: sharepoint_workflows
     workload: sharepoint
+    need_finding: sharepoint.workflows_in_use
     microsoft: {en: SharePoint workflows, de: SharePoint-Workflows}
     replacement: {en: Separate redesign of workflows, de: Gesonderte Neugestaltung der Arbeitsabläufe}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://docs.opendesk.eu/user/applications/dateien/
-    checked_on: "2026-11-21"
+    checked_on: "2026-11-22"
     note:
       en: The file module documents shared files and folders. It provides no documented way to carry over SharePoint workflow definitions, triggers or approval steps.
       de: Das Dateimodul beschreibt gemeinsame Dateien und Ordner. Für SharePoint-Abläufe, Auslöser und Genehmigungsschritte ist keine Übernahme dokumentiert.
+  - function: intranet_pages
+    workload: sharepoint
+    microsoft: {en: SharePoint pages and intranet sites, de: SharePoint-Seiten und Intranet-Websites}
+    replacement: {en: XWiki, de: XWiki}
+    coverage: in_suite_with_limits
+    reference_url: https://docs.opendesk.eu/user/applications/wissen/
+    checked_on: "2026-11-22"
+    note:
+      en: The knowledge module documents wiki pages, subpages, further wikis and access rights per page. It names no way to carry over existing SharePoint pages or site structure.
+      de: Das Modul Wissen beschreibt Wikiseiten, Unterseiten, weitere Wikis und Zugriffsrechte für einzelne Seiten. Eine Übernahme vorhandener SharePoint-Seiten oder Website-Strukturen ist dort nicht beschrieben.
   - function: chat
     workload: teams
     microsoft: {en: Microsoft Teams chat, de: Chat in Microsoft Teams}
     replacement: {en: Element, de: Element}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#elementsynapse-chat--call
+    checked_on: "2026-11-22"
   - function: video_meetings
     workload: teams
     microsoft: {en: Microsoft Teams video meetings, de: Videobesprechungen in Microsoft Teams}
     replacement: {en: Jitsi, de: Jitsi}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing
+    checked_on: "2026-11-22"
   - function: teams_chat_history
     workload: teams
     microsoft: {en: Teams chat history, de: Chatverlauf aus Teams}
     replacement: {en: Separate decision on retaining past chats, de: Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://docs.opendesk.eu/user/applications/chat/
-    checked_on: "2026-11-21"
+    checked_on: "2026-11-22"
     need_finding: teams.chat_history_must_be_kept
     note:
       en: The chat guide documents new conversations in Element. It describes no import that preserves past Teams conversations, authors and timestamps in the new chat.
@@ -78,28 +90,49 @@ functions:
     microsoft: {en: Editing Microsoft Office documents, de: Bearbeitung von Microsoft-Office-Dateien}
     replacement: {en: Collabora Online, de: Collabora Online}
     coverage: in_suite_with_limits
-    reference_url: https://docs.opendesk.eu/user/applications/office/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#collabora-weboffice
+    checked_on: "2026-11-22"
     note:
       en: The web office edits documents, spreadsheets and presentations. The guide does not establish that complex layouts and features survive conversion.
       de: Texte, Tabellen und Präsentationen lassen sich im Browser bearbeiten. Ob aufwendige Layouts und Funktionen bei der Konvertierung erhalten bleiben, geht aus der Anleitung nicht hervor.
   - function: vba_macros
     workload: office_files
+    need_finding: office_files.vba_macros_in_use
     microsoft: {en: VBA macros in Office files, de: VBA-Makros in Office-Dateien}
     replacement: {en: Separate conversion or redevelopment, de: Gesonderte Konvertierung oder Neuentwicklung}
-    coverage: not_available
+    coverage: transfer_undocumented
     reference_url: https://docs.opendesk.eu/user/applications/office/
-    checked_on: "2026-11-21"
+    checked_on: "2026-11-22"
     note:
       en: The office guide describes editing imported files. It does not document a way to carry over working VBA automation.
       de: Die Office-Anleitung beschreibt die Bearbeitung importierter Dateien. Eine Übernahme funktionsfähiger VBA-Automatisierungen ist dort nicht beschrieben.
+  - function: notes
+    workload: office_files
+    microsoft: {en: OneNote notebooks, de: OneNote-Notizbücher}
+    replacement: {en: Notes, de: Notes}
+    coverage: in_suite_with_limits
+    reference_url: https://docs.opendesk.eu/operations/introduction/#overview
+    checked_on: "2026-11-22"
+    note:
+      en: The component list includes Notes for collaborative notes. Its guide is only available inside the installed application, and no public documentation describes carrying over OneNote notebooks.
+      de: Die Komponentenübersicht nennt Notes für gemeinsame Notizen. Die Anleitung ist nur in der installierten Anwendung verfügbar, und eine Übernahme von OneNote-Notizbüchern ist öffentlich nicht dokumentiert.
+  - function: diagrams
+    workload: office_files
+    microsoft: {en: Visio diagrams, de: Visio-Diagramme}
+    replacement: {en: CryptPad with diagrams.net, de: CryptPad mit diagrams.net}
+    coverage: in_suite_with_limits
+    reference_url: https://docs.opendesk.eu/operations/architecture/#cryptpad-online-diagrams
+    checked_on: "2026-11-22"
+    note:
+      en: The architecture names CryptPad for editing diagrams.net documents. It does not say whether existing Visio files can be opened or converted.
+      de: Laut Architekturdokumentation dient CryptPad zur Bearbeitung von diagrams.net-Dokumenten. Ob vorhandene Visio-Dateien geöffnet oder konvertiert werden können, geht daraus nicht hervor.
   - function: device_management
     workload: device_management
     microsoft: {en: Device management with Microsoft Intune, de: Geräteverwaltung mit Microsoft Intune}
     replacement: {en: Separate device management service, de: Gesonderte Lösung zur Geräteverwaltung}
     coverage: not_available
-    reference_url: https://docs.opendesk.eu/operations/introduction/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/introduction/#overview
+    checked_on: "2026-11-22"
     need_finding: device_management.in_use
     note:
       en: The component list covers workplace applications and identity. It lists no service for enrolling devices or enforcing device policies.
@@ -107,12 +140,11 @@ functions:
   - function: desktop_operating_system
     workload: device_management
     need_finding: device_management.windows_desktops_required
-    need_if_positive: windows_software.without_web_version_count
     microsoft: {en: Microsoft Windows desktop operating system, de: Arbeitsplatzbetriebssystem Microsoft Windows}
     replacement: {en: Separately managed workstation operating system, de: Separat verwaltetes Betriebssystem für Arbeitsplatzrechner}
     coverage: not_available
-    reference_url: https://docs.opendesk.eu/operations/introduction/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/introduction/#overview
+    checked_on: "2026-11-22"
     note:
       en: openDesk supplies server-side workplace applications. Its component list does not include a workstation operating system.
       de: openDesk stellt serverseitige Arbeitsplatzanwendungen bereit. Ein Betriebssystem für Arbeitsplatzrechner gehört laut Komponentenübersicht nicht zum Paket.
@@ -122,8 +154,8 @@ functions:
     microsoft: {en: Running Windows-only applications, de: Betrieb reiner Windows-Anwendungen}
     replacement: {en: Separate hosting or replacement of each application, de: Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen}
     coverage: not_available
-    reference_url: https://docs.opendesk.eu/operations/introduction/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/introduction/#overview
+    checked_on: "2026-11-22"
     note:
       en: The suite lists browser-based office and collaboration tools. Its component list does not include a way to run existing Windows-only applications.
       de: Das Paket umfasst Anwendungen für Büroarbeit und Zusammenarbeit im Browser. Eine Umgebung zum Betrieb vorhandener reiner Windows-Anwendungen ist in der Komponentenübersicht nicht enthalten.
@@ -132,8 +164,8 @@ functions:
     microsoft: {en: Power Platform automation and low-code applications, de: Automatisierung und Low-Code-Anwendungen mit Power Platform}
     replacement: {en: Separate review and redevelopment of applications and flows, de: Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen}
     coverage: not_available
-    reference_url: https://docs.opendesk.eu/operations/introduction/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/introduction/#overview
+    checked_on: "2026-11-22"
     need_finding: power_platform.in_use
     note:
       en: The suite does not list a general low-code platform or a way to reuse existing Power Platform apps and flows.
@@ -143,8 +175,8 @@ functions:
     microsoft: {en: Teams Phone and public telephone calling, de: Teams Phone und Anrufe ins öffentliche Telefonnetz}
     replacement: {en: Separate telephone service, de: Gesonderter Telefondienst}
     coverage: not_available
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#jitsi-video-conferencing
+    checked_on: "2026-11-22"
     need_finding: telephony.in_use
     note:
       en: Jitsi can offer telephone dial-in to a meeting with an external SIP service. The documentation does not show a replacement for office extensions, number routing or calling the public telephone network.
@@ -154,35 +186,35 @@ functions:
     microsoft: {en: Microsoft Entra single sign-on, de: Zentrale Anmeldung über Microsoft Entra}
     replacement: {en: Keycloak, de: Keycloak}
     coverage: in_suite
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#keycloak
+    checked_on: "2026-11-22"
   - function: security_and_compliance
     workload: security_compliance
     microsoft: {en: Microsoft 365 protection and retention controls, de: Schutz und Aufbewahrung in Microsoft 365}
     replacement: {en: Access controls and malware scanning in openDesk, de: Zugriffssteuerung und Schadsoftware-Prüfung in openDesk}
     coverage: in_suite_with_limits
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#nextcloud-files
+    checked_on: "2026-11-22"
     note:
-      en: The architecture documents access control and scanning of files and mail. It leaves organisation-wide retention and legal holds unverified.
-      de: Die Architekturdokumentation beschreibt den Zugriffsschutz und die Prüfung von Dateien und E-Mails. Organisationsweite Aufbewahrung und Sperren für Rechtsverfahren bleiben ungeklärt.
+      en: The architecture documents malware scanning of uploaded files and mail attachments. It does not document organisation-wide retention or legal holds.
+      de: Die Architekturdokumentation beschreibt die Prüfung hochgeladener Dateien und E-Mail-Anhänge auf Schadsoftware. Organisationsweite Aufbewahrung und die Aufbewahrung für Rechtsverfahren (Legal Hold) sind dort nicht beschrieben.
   - function: forms_tasks_bookings
     workload: small_apps
     microsoft: {en: "Microsoft Forms, Planner and Bookings", de: "Microsoft Forms, Planner und Bookings"}
     replacement: {en: OpenProject and OX App Suite for tasks, de: OpenProject und OX App Suite für Aufgaben}
     coverage: in_suite_with_limits
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/user/applications/aufgaben/
+    checked_on: "2026-11-22"
     note:
-      en: The suite covers project work and personal tasks. The component list does not establish equivalent general forms or public appointment booking.
-      de: Das Paket deckt Projektarbeit und persönliche Aufgaben ab. Gleichwertige allgemeine Formulare und eine öffentliche Terminbuchung gehen aus der Komponentenübersicht nicht hervor.
+      en: The task guide covers tasks with reminders, status and members. It describes no general forms or public appointment booking.
+      de: Die Anleitung zu Aufgaben beschreibt Aufgaben mit Erinnerungen, Status und Beteiligten. Allgemeine Formulare und eine öffentliche Terminbuchung sind dort nicht beschrieben.
   - function: application_integrations
     workload: integrations
     microsoft: {en: Integrations with Microsoft 365 applications, de: Anbindungen an Microsoft-365-Anwendungen}
     replacement: {en: Interfaces in the openDesk components, de: Schnittstellen der openDesk-Komponenten}
     coverage: in_suite_with_limits
-    reference_url: https://docs.opendesk.eu/operations/architecture/
-    checked_on: "2026-11-21"
+    reference_url: https://docs.opendesk.eu/operations/architecture/#component-integration
+    checked_on: "2026-11-22"
     note:
       en: The architecture describes interfaces and integrations within the suite. Existing business application connections need to be checked individually.
       de: Die Architekturdokumentation beschreibt Schnittstellen und Anbindungen innerhalb des Pakets. Prüfen Sie vorhandene Anbindungen von Fachanwendungen einzeln.

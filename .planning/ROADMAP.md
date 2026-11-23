@@ -67,7 +67,7 @@ Plans, run one at a time in this order:
 ### Phase 1.2: Outputs for Integrators (INSERTED)
 **Goal**: Integrators can move a report's findings into their own project plans, and anyone can check that a report has not been changed since it was written
 **Depends on**: Phase 1
-**Requirements**: OUTP-01, OUTP-02, OUTP-03, OUTP-04
+**Requirements**: OUTP-01, OUTP-02, OUTP-04
 **Success Criteria** (what must be TRUE):
   1. `--csv` (or an equivalent output) writes findings, open questions and effort drivers next to the report, with no field that can hold person data, covered by the privacy test.
   2. `fazit verify REPORT` passes on an unchanged report and fails, naming the section, after any edit; it works offline and its help text says it detects changes, not authorship.
@@ -156,6 +156,7 @@ Run order: 02-00 (founder) and 02-01 in parallel; 02-02; 02-03 and 02-04 in para
 
 - **Order.** Phases 1 to 4 are M0 to M3 from `DECISIONS.md`. No requirement dependency forced a reorder. Phase 3 technically needs only Phase 1; it follows Phase 2 because import comes before any live sign-in (D4).
 - **Pulled forward from M3 into Phase 1.** DIST-03 (`LICENSE`, SPDX headers, `CONTRIBUTING.md`, `SECURITY.md`) and DOCS-01 (README in English and German). A public repository needs these on its first day. DIST-03 is one requirement, so `CONTRIBUTING.md` and `SECURITY.md` come with the licence and the headers.
+- **Council summary in the report redesign.** By founder decision on 2026-11-22, OUTP-03 moves from Phase 1.2 into the report redesign (D35 in `DECISIONS.md`).
 - **Safeguard tests sit with the code they guard.** SAFE-04, SAFE-05 and SAFE-07 are in Phase 1. SAFE-01, SAFE-02, SAFE-03 and SAFE-06 are in Phase 3, where the Graph client and sign-in first exist.
 - **Standing rules after Phase 1.** CLI-06, REPT-06, SAFE-05, SAFE-07, I18N-01, I18N-02 and DOCS-01 are delivered in Phase 1 and bind every later phase: each new command prints its report path and accepts `--out`; each new data path is private by default and joins the privacy test; each new string goes into both locales; no test needs a tenant; the README and `SECURITY.md` are kept in step as commands and network code arrive.
 - **MODL-01 and DOCS-04.** MODL-01 calls the schema "documented". Phase 1 delivers the versioned schema and the rule that collectors write it while rules and report only read it. The published `docs/schema.md` is DOCS-04 in Phase 4, written once import and live collection have settled the format.

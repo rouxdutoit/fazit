@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/" aria-current="page">Pilotprüfungen</a>
@@ -39,11 +40,9 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -51,14 +50,14 @@
     <div class="page-intro">
       <h1>Pilotprüfungen</h1>
       <p>Fazit bietet drei kostenlose Pilotprüfungen an, je eine in Deutschland, Österreich und der Schweiz. Das Angebot richtet sich an Organisationen mit 200 bis 2.000 Beschäftigten.</p>
-      <p>Sie können Ihr Interesse bis zum <time datetime="2027-02-28">28. Februar 2027</time> anmelden. Die Frist endet früher, wenn alle Plätze vergeben sind.</p>
-      <a class="btn btn-solid" href="#contact"><span class="btn-icon icon-mail" aria-hidden="true"></span>Interesse anmelden</a>
+      <p>Sie können Ihr Interesse bis zum <time datetime="2027-02-28">28. Februar 2027</time> bekunden. Die Frist endet früher, wenn alle Plätze vergeben sind.</p>
+      <a class="btn btn-solid" href="#contact"><span class="btn-icon icon-mail" aria-hidden="true"></span>Interesse bekunden</a>
     </div>
 
     <section class="sec grid" aria-labelledby="pilot-report">
       <h2 class="sec-label" id="pilot-report">Was Sie erhalten</h2>
       <div class="sec-body">
-        <p>Wir unterstützen Sie dabei, Fazit auf einem Rechner Ihrer Organisation auszuführen. Der HTML-Bericht bleibt bei Ihnen. Er zeigt Abhängigkeiten, die Bereitschaft in 15 Bereichen, mögliche Open-Source-Alternativen und einen Kostenvergleich über fünf Jahre auf Grundlage Ihrer Angaben.</p>
+        <p>Wir unterstützen Sie dabei, Fazit auf einem Rechner Ihrer Organisation auszuführen. Der HTML-Bericht bleibt bei Ihnen. Die Übersicht für das Entscheidungsgremium steht auf der ersten Druckseite. Der Bericht bewertet <span data-assessed-areas>14</span> Bereiche und zeigt Abhängigkeiten, mögliche Open-Source-Alternativen und einen Kostenvergleich über fünf Jahre auf Grundlage Ihrer Angaben.</p>
         <p>Den <a href="/demo/de/">Beispielbericht</a> können Sie bereits ansehen. Die Pilotprüfungen beginnen, sobald Fazit <a href="/de/#status">Exporte aus dem Admin Center lokal einlesen</a> kann.</p>
       </div>
     </section>
@@ -71,9 +70,7 @@
           <li>Sie führen Fazit auf einem Rechner Ihrer Organisation aus.</li>
           <li>Sie nehmen an einem Auswertungsgespräch zum Programm und zum Bericht teil.</li>
         </ol>
-        <div class="subsection">
-          <p>Öffentliche Stellen erhalten eine einseitige Vereinbarung für ihr internes Freigabeverfahren.</p>
-        </div>
+        <p class="subsection">Für die interne Freigabe erhalten öffentliche Stellen eine einseitige Vereinbarung.</p>
       </div>
     </section>
 
@@ -86,7 +83,7 @@
     </section>
 
     <section class="sec grid" id="contact" aria-labelledby="pilot-contact">
-      <h2 class="sec-label" id="pilot-contact">Kontakt</h2>
+      <h2 class="sec-label" id="pilot-contact">Interesse bekunden</h2>
       <div class="sec-body">
         <p>Wenn Sie Interesse haben, schreiben Sie an <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>. Geben Sie bitte das Land und die ungefähre Zahl der Beschäftigten an.</p>
       </div>
@@ -119,7 +116,7 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
           <a class="language" href="/pilots/" lang="en" hreflang="en" aria-label="English">EN</a>
         </div>
       </div>

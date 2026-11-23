@@ -20,6 +20,7 @@ import pytest
 import yaml
 from helpers import (
     ROOT,
+    assert_readiness_order,
     readiness_row,
     readme_code_blocks,
     report_section,
@@ -27,7 +28,7 @@ from helpers import (
     sample_inputs_path,
     sample_scan_path,
 )
-from report_expectations import SECTION_ORDER
+from report_expectations import DISPLAY_ORDER, SECTION_ORDER
 
 from fazit import __version__, i18n, model, rules, validation
 from fazit import report as report_module
@@ -39,7 +40,6 @@ from fazit.mappings import PROFILES, load_mapping
 from fazit.model import Coverage, Scan, load_scan
 from fazit.parsing import parse_yaml, read_text
 from fazit.report import render_report, report_file_name
-from fazit.status import STATUSES
 
 ANSI_STYLE = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -204,14 +204,17 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
     mapping = load_mapping(profile, load_catalogue())
     strings = load_locale("en")
     moves = report_section(html, "moves")
+    caption = re.search(r"<caption data-sample>.*?</caption>", moves, re.S)
     assert mapping.label["en"] in html.split("</header>", 1)[0]
-    assert "<caption data-sample>" in moves
+    assert caption
+    dates = {row.checked_on for row in mapping.functions}
+    shared_check = len(dates) == 1 and None not in dates
     assert re.findall(r'<tr data-function="([^"]+)"', moves) == [
         row.function for row in mapping.functions
     ]
     readiness_html = report_section(html, "readiness")
     readiness = dict(
-        re.findall(r'<tr data-workload="([^"]+)" data-status="([^"]+)"', readiness_html)
+        re.findall(r'<article data-workload="([^"]+)" data-status="([^"]+)"', readiness_html)
     )
     appendix = report_section(html, "appendix")
     assert mapping.file_name in appendix and mapping.description["en"] in appendix
@@ -233,12 +236,14 @@ def test_report_shows_function_mapping_and_workload_evidence(tmp_path: Path, pro
             assert strings["moves"]["no_project_check"] in move[0]
             assert strings["moves"]["no_project_check"] in detail[0]
         else:
-            assert row.checked_on.isoformat() in move[0] and row.checked_on.isoformat() in detail[0]
-            assert row.reference_url and row.reference_url in unescape(detail[0])
+            assert row.checked_on.isoformat() in (caption[0] if shared_check else move[0])
+            assert row.checked_on.isoformat() in detail[0]
+            text = unescape(detail[0].replace("<wbr>", ""))
+            assert row.reference_url and row.reference_url in text
         if row.note:
             assert row.note["en"] in unescape(detail[0])
     assert "data-move-evidence=" not in moves and "href=" not in appendix
-    assert strings["moves"]["no_function"] in moves
+    assert strings["moves"]["licences_excluded"] in moves
     assert "Other systems send mail" in readiness_html
     assert strings["provenance"]["provided"] in readiness_html
     assert strings["source"]["sample.interview"] in readiness_html
@@ -392,12 +397,51 @@ def test_sample_measurement_labels_and_directory_note() -> None:
     assert measured_tables
     assert all("<caption data-sample>" in table for table in measured_tables)
     assert all(strings["found"]["sample"] in table for table in measured_tables)
-    found = html.split('data-section="found"')[1].split('data-section="appendix"')[0]
-    assert strings["found"]["notes"]["directory"] in found
+    readiness = report_section(html, "readiness")
+    assert strings["found"]["notes"]["directory"] in readiness
 
     relabeled = render_report(replace(scan, source_kind="import"), lang="en")
     assert strings["header"]["sample"] in relabeled
     assert "data-sample" in relabeled
+
+
+@pytest.mark.parametrize(
+    ("lang", "measurement_label", "title"),
+    [
+        ("en", "Measured (simulated)", "What Fazit recorded for a fictional organisation"),
+        ("de", "Erhoben (simuliert)", "Was Fazit für eine fiktive Organisation erfasst hat"),
+    ],
+)
+def test_sample_reports_label_simulated_measurements_and_fictional_inventory(
+    lang: str, measurement_label: str, title: str
+) -> None:
+    html = render_report(_sample_scan("town"), lang=lang)
+    labels = re.findall(r'<(?:span|small) class="prov">([^<]+)</(?:span|small)>', html)
+    strings = load_locale(lang)["provenance"]
+
+    assert measurement_label in labels and strings["measured"] not in labels
+    found = report_section(html, "found")
+    assert f'<h2 class="sec-label">{title}</h2>' in found
+    assert 'data-provenance="measured"' in found
+    assert f'<small class="prov">{measurement_label}</small>' in found
+    assert f'<span class="prov">{strings["provided"]}</span>' in report_section(html, "appendix")
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_scan_format_example_has_no_sample_labels(lang: str) -> None:
+    document = ROOT / "docs" / "scan-format.md"
+    assert document.is_file()
+    (example,) = readme_code_blocks(read_text(document))
+    scan = model.load_scan_text(example, "scan.json", load_catalogue())
+    html = render_report(scan, lang=lang)
+    strings = load_locale(lang)
+
+    assert not scan.is_sample
+    assert strings["provenance"]["measured_sample"] not in html
+    assert strings["found"]["title_sample"] not in html
+    assert f'<h2 class="sec-label">{strings["found"]["title"]}</h2>' in report_section(
+        html, "found"
+    )
 
 
 def test_provided_answer_source_is_independent_of_scan_source() -> None:
@@ -436,34 +480,31 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
     table = report_section(html, "readiness")
     assert "%" not in table
     rows = re.findall(
-        r'<tr data-workload="([^"]+)" data-status="([^"]+)"[^>]*>.*?</tr>', table, re.S
+        r'<article data-workload="([^"]+)" data-status="([^"]+)"[^>]*>.*?</article>', table, re.S
     )
     catalogue = load_catalogue()
-    assert [workload for workload, _ in rows] == list(catalogue.workload_ids)
+    assert_readiness_order(table, catalogue.assessed_workload_ids)
     assert "<caption data-sample>" in table
     assert [workload for workload, status in rows if status == "ready"] == (
         ["telephony"] if sample == "nonprofit" else []
     )
     for workload, status in rows:
         assert strings["status"][status] in readiness_row(table, workload)
-    segments = re.findall(r'data-segment="([^"]+)" data-count="(\d+)"', table)
-    assert segments == [
-        (status, str(total))
-        for status in STATUSES
-        if (total := sum(result == status for _, result in rows))
-    ]
-    assert sum(int(total) for _, total in segments) == len(catalogue.workloads)
-    assert 'data-subsection="not-examined"' in table
-    assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in table} == {
+    counts = tuple(sum(result == status for _, result in rows) for status in DISPLAY_ORDER)
+    assert counts == ((0, 3, 11, 0) if sample == "town" else (0, 1, 12, 1))
+    assert sum(counts) == len(catalogue.assessed_workload_ids)
+    open_points = report_section(html, "path")
+    assert 'data-subsection="not-examined"' in open_points
+    assert {key for key, _ in rows if f'data-unexamined-workload="{key}"' in open_points} == {
         key for key, status in rows if status == "unknown"
     }
     scan = _sample_scan(sample)
     for finding in scan.findings:
         if finding.provenance == "unknown":
-            assert f'data-unexamined-finding="{finding.id}"' in table
+            assert f'data-unexamined-finding="{finding.id}"' in open_points
     for collector in scan.collectors:
         if collector.status == "skipped":
-            assert f'data-unexamined-collector="{collector.id}"' in table
+            assert f'data-unexamined-collector="{collector.id}"' in open_points
     if sample == "town":
         mail = readiness_row(table, "mail")
         assert 'data-status="needs_work" data-incomplete' in mail
@@ -478,14 +519,16 @@ def test_scan_only_report_explains_readiness_and_missing_evidence(
             "52,5 GB",
             strings["provenance"]["measured"],
             strings["source"]["sample.onedrive_usage"],
-            "5. November 2026",
-            "9. Mai bis 4. Nov. 2026",
+            "5.\u00a0November\u00a02026",
+            "9.\u00a0Mai bis 4.\u00a0Nov.\u00a02026",
             "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen",
         ):
             assert text in onedrive
 
     appendix = html.split('data-section="appendix"', 1)[1]
-    assert appendix.count(strings["appendix"]["ready_evidence"]) == len(catalogue.workloads)
+    assert appendix.count(strings["appendix"]["ready_evidence"]) == len(
+        catalogue.assessed_workload_ids
+    )
     assert "status.yaml" in appendix
 
 
@@ -538,8 +581,8 @@ def test_nonprofit_partial_coverage_has_all_counts_and_localised_dates() -> None
     assert row is not None
     assert "Teilweise, 18 von 20 geprüft, 2 fehlgeschlagen" in row[1]
     assert "52,5 GB" in row[1]
-    assert "5. November 2026" in row[1]
-    assert "9. Mai bis 4. Nov. 2026" in row[1]
+    assert "5.\u00a0November\u00a02026" in row[1]
+    assert "9.\u00a0Mai bis 4.\u00a0Nov.\u00a02026" in row[1]
 
 
 @pytest.mark.parametrize(
@@ -849,7 +892,7 @@ def test_report_rebuilds_from_the_demo_copies(tmp_path: Path) -> None:
     assert scan_only.stdout.splitlines() == [str(report)] and not scan_only.stderr
     assert list(out.iterdir()) == [report]
     scan_html = report.read_text(encoding="utf-8")
-    assert 'lang="de"' in scan_html and "2. November 2026" in scan_html
+    assert 'lang="de"' in scan_html and "2.\u00a0November\u00a02026" in scan_html
     assert 'data-workload="telephony" data-status="unknown"' in report_section(
         scan_html, "readiness"
     )
@@ -1078,7 +1121,9 @@ def test_demo_and_report_use_the_scan_date_independently_of_the_clock(
         result = runner.invoke(app, ["demo", "--out", str(demo)])
     assert result.exit_code == 0 and not result.stderr, result.output
     assert Path(result.stdout.splitlines()[-1]) == original
-    assert "2 November 2026" in original.read_text(encoding="utf-8").split("</header>", 1)[0]
+    assert (
+        "2\u00a0November\u00a02026" in original.read_text(encoding="utf-8").split("</header>", 1)[0]
+    )
 
     scan = demo / "scan-2026-11-02-en.json"
     inputs = demo / "inputs-2026-11-02-en.yaml"

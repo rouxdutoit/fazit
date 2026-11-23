@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "fazit",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-11-02T09:00:00Z",
+  "source_kind": "import",
+  "collectors": [
+    {
+      "id": "licences",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "directory",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "mailbox_usage",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "onedrive_usage",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "sharepoint_site_usage",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "teams_usage",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    },
+    {
+      "id": "exchange_recipients",
+      "status": "skipped",
+      "reason": "source_not_supplied",
+      "permissions_used": []
+    }
+  ],
+  "findings": [],
+  "licences": null
+}

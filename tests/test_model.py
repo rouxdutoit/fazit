@@ -8,18 +8,15 @@ from pathlib import Path
 from typing import Never
 
 import pytest
+from helpers import ROOT, rebuild_report
 
+from fazit import model
 from fazit.catalogue import Catalogue, load_catalogue
 from fazit.errors import InputError
 from fazit.i18n import error_sentence, load_locale
 from fazit.model import Coverage, Scan, load_scan, load_scan_text
 from fazit.parsing import MAX_FILE_BYTES, parse_json, parse_yaml, read_text
 from fazit.report import render_report
-
-
-@pytest.fixture
-def catalogue() -> Catalogue:
-    return load_catalogue()
 
 
 def _finding(finding_id: str, **overrides: object) -> dict[str, object]:
@@ -166,6 +163,60 @@ def test_catalogue_refuses_an_unlisted_workload(tmp_path: Path) -> None:
         load_catalogue(bad)
 
     assert (caught.value.file, caught.value.field) == (bad.name, "findings[0].workload")
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "field", "code"),
+    [
+        ("    category: communication\n", "", "workloads[2].category", "missing_field"),
+        ("category: communication", "category: absent", "workloads[2].category", "invalid_code"),
+        (
+            "assessed: false",
+            "assessed: false\n    category: communication",
+            "workloads[0].category",
+            "invalid_field",
+        ),
+        ("assessed: false", 'assessed: "false"', "workloads[0].assessed", "invalid_field"),
+        (
+            "    label: category.security",
+            "    label: category.security\n  - id: unused\n    label: category.unused",
+            "categories[5].id",
+            "invalid_field",
+        ),
+        ("  - id: security\n", "  - id: files\n", "categories[4].id", "duplicate_id"),
+    ],
+)
+def test_catalogue_rejects_invalid_workload_categories(
+    tmp_path: Path, before: str, after: str, field: str, code: str
+) -> None:
+    source = files("fazit").joinpath("rules", "findings.yaml")
+    path = tmp_path / source.name
+    path.write_text(read_text(source).replace(before, after, 1), encoding="utf-8")
+
+    with pytest.raises(InputError, match=code) as caught:
+        load_catalogue(path)
+
+    assert (caught.value.file, caught.value.field) == (path.name, field)
+
+
+@pytest.mark.parametrize(
+    "owner", [None, "unregistered"], ids=["missing-owner", "unregistered-owner"]
+)
+def test_catalogue_requires_a_registered_finding_owner(tmp_path: Path, owner: str | None) -> None:
+    source = files("fazit").joinpath("rules", "findings.yaml")
+    path = tmp_path / source.name
+    update = "" if owner is None else f"    owner: {owner}\n"
+    path.write_text(
+        read_text(source).replace("    owner: procurement\n", update, 1), encoding="utf-8"
+    )
+
+    with pytest.raises(InputError) as caught:
+        load_catalogue(path)
+
+    assert (caught.value.file, caught.value.field) == (
+        path.name,
+        "findings.licences.contract_terms_known.owner",
+    )
 
 
 @pytest.mark.parametrize(
@@ -517,6 +568,41 @@ def test_schema_version_support_and_additive_compatibility(
     sentence = error_sentence(load_locale("en"), caught.value)
     assert all(text in sentence for text in ("scan.json", "schema_version", "2.0", "1.x"))
     assert caught.value.field == "schema_version"
+
+
+def test_scan_format_document_matches_the_loader(tmp_path: Path, catalogue: Catalogue) -> None:
+    document = ROOT / "docs" / "scan-format.md"
+    assert document.is_file()
+    text = read_text(document)
+    (example,) = re.findall(r"^```json\n(.*?)^```$", text, re.M | re.S)
+    scan = load_scan_text(example, "scan.json", catalogue)
+    assert not scan.is_sample
+
+    names = set(re.findall(r"`([^`\n]+)`", text))
+    required = {
+        *model._SCAN_FIELDS,
+        *model._TOOL_FIELDS,
+        *model._FINDING_FIELDS,
+        *model._COLLECTOR_REQUIRED,
+        *model._COLLECTOR_OPTIONAL,
+        "kind",
+        *model._COVERAGE_COUNTS,
+        *model._LICENCE_FIELDS,
+        *model._PRODUCT_REQUIRED,
+        *model._PRODUCT_OPTIONAL,
+        *model._SERVICE_PLAN_FIELDS,
+        *model.SOURCE_KINDS,
+        *model.COLLECTOR_STATUSES,
+        *model.PROVENANCES,
+        *model.COVERAGE_KINDS,
+    }
+    assert required <= names, sorted(required - names)
+    assert "D31" in text and "findings.yaml" in text
+
+    source = tmp_path / "scan.json"
+    source.write_text(example, encoding="utf-8")
+    html = rebuild_report(source, tmp_path / "out", "en")
+    assert 'data-finding="telephony.in_use" data-provenance="provided"' in html
 
 
 @pytest.mark.parametrize(

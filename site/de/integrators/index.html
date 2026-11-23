@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Erproben Sie den Fazit-Beispielbericht und informieren Sie sich über geplante Bestandsaufnahmen und das öffentliche Verzeichnis für IT-Dienstleister.">
+  <meta name="description" content="Planen Sie mit dem Fazit-Bericht die nächsten Schritte für Ihre Kunden und vergleichen Sie, welche Funktionen openDesk und Nextcloud abdecken.">
   <title>Für IT-Dienstleister · Fazit</title>
   <link rel="canonical" href="https://fazit.dev/de/integrators/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/integrators/">
@@ -12,14 +12,14 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
   <meta property="og:title" content="Für IT-Dienstleister · Fazit">
-  <meta property="og:description" content="Erproben Sie den Fazit-Beispielbericht und informieren Sie sich über geplante Bestandsaufnahmen und das öffentliche Verzeichnis für IT-Dienstleister.">
+  <meta property="og:description" content="Planen Sie mit dem Fazit-Bericht die nächsten Schritte für Ihre Kunden und vergleichen Sie, welche Funktionen openDesk und Nextcloud abdecken.">
   <meta property="og:url" content="https://fazit.dev/de/integrators/">
   <meta property="og:locale" content="de_DE">
   <meta property="og:locale:alternate" content="en_GB">
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,18 +40,17 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <div class="page-intro">
-      <h1>Für IT-Dienstleister</h1>
-      <p>Wenn Sie zu openDesk, Nextcloud oder vergleichbaren Lösungen beraten, können Sie am Beispielbericht sehen, was eine Bestandsaufnahme für Ihre Kunden enthalten wird, sobald der Import verfügbar ist. Das Programm ist kostenlos und steht unter der Lizenz AGPL-3.0-or-later.</p>
+      <h1>Mit den Befunden die nächsten Schritte planen</h1>
+      <p>Nutzen Sie die Befunde, um mit Ihren Kunden zu klären, welche Exporte und Antworten noch fehlen. Der Bericht bündelt offene Punkte nach den noch benötigten Nachweisen und nennt die jeweils zuständige Rolle. So genügt eine Anfrage, auch wenn mehrere Bereiche betroffen sind.</p>
+      <p>Für Phase 1.2 ist ein CSV-Export für die Projektplanung vorgesehen.</p>
     </div>
 
     <section class="sec grid" aria-labelledby="integrator-use">
@@ -58,21 +58,14 @@
       <div class="sec-body">
         <p>Sobald der lokale Import verfügbar ist, können Sie Fazit auf einem Rechner der beauftragenden Organisation ausführen. Der Bericht soll als Grundlage dienen, um Abhängigkeiten, gesondert zu planende Arbeiten und die Kosten der einzelnen Szenarien zu besprechen.</p>
         <p>Sie können das <a href="/demo/de/">mitgelieferte Beispiel</a> ausprobieren und um eigene Antworten und Kosten ergänzen. Die Messwerte in den Beispielen sind simuliert. Als Nächstes kommt der lokale Import von Exporten aus dem Admin Center; der <a href="/de/#status">Projektfahrplan</a> zeigt, was danach folgt.</p>
-      </div>
-    </section>
-
-    <section class="sec grid" aria-labelledby="integrator-list">
-      <h2 class="sec-label" id="integrator-list">Öffentliches Verzeichnis</h2>
-      <div class="sec-body">
-        <p>Das Verzeichnis ist für die Zeit nach den ersten Bestandsaufnahmen geplant. Unternehmen, die die Aufnahmekriterien erfüllen, werden in alphabetischer Reihenfolge aufgeführt. Der Eintrag ist kostenlos. Fazit vergibt keine Rangplätze und spricht keine Empfehlung aus.</p>
-        <p class="note">Das Verzeichnis enthält noch keine Einträge. Es öffnet nach den ersten echten Bestandsaufnahmen.</p>
+        <p><a class="more" href="/de/coverage/">Funktionsumfang von openDesk und Nextcloud vergleichen</a></p>
       </div>
     </section>
 
     <section class="sec grid" id="listing" aria-labelledby="integrator-criteria">
-      <h2 class="sec-label" id="integrator-criteria">Aufnahme in das Verzeichnis</h2>
+      <h2 class="sec-label" id="integrator-criteria">Wie Unternehmen in das Verzeichnis aufgenommen werden</h2>
       <div class="sec-body">
-        <p>Schreiben Sie an <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>. Nennen Sie den Namen und die öffentliche Website Ihres Unternehmens, stimmen Sie der Aufnahme zu und bestätigen Sie, dass Sie mindestens eine echte Bestandsaufnahme mit Fazit durchgeführt haben.</p>
+        <p>Nach den ersten Bestandsaufnahmen können Sie einen kostenlosen Eintrag im alphabetischen Verzeichnis beantragen, wenn Sie Fazit mindestens einmal mit realen Daten eingesetzt haben und den Namen und die öffentliche Website Ihres Unternehmens sowie Ihre Zustimmung an <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a> senden.</p>
         <p>Senden Sie uns keine Kundennamen, Erhebungsdateien oder Berichte. Sie bleiben bei der jeweiligen Organisation.</p>
       </div>
     </section>
@@ -104,7 +97,7 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
           <a class="language" href="/integrators/" lang="en" hreflang="en" aria-label="English">EN</a>
         </div>
       </div>

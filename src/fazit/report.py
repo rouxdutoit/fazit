@@ -2,20 +2,23 @@
 import base64
 import re
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
+from fractions import Fraction
 from functools import lru_cache, partial
 from importlib.resources import files
+from typing import Literal
 
 from jinja2 import Environment, StrictUndefined, Template
 
 from . import PROJECT_NAME, REPOSITORY_URL, __version__
-from .catalogue import Catalogue, load_catalogue
-from .costs import CostGroup, CostLine, ScenarioResult, compute_scenarios
+from .catalogue import ROLES, Catalogue, FindingEntry, load_catalogue
+from .costs import YEARS, CostGroup, CostLine, ScenarioResult, compute_scenarios
 from .evidence import (
     combine,
     evidence_conflicts,
-    is_complete,
     provided_answers_conflict,
     provided_findings,
 )
@@ -25,15 +28,25 @@ from .licences import (
     RegisteredPlan,
     ServicePlans,
     classify_product,
+    licence_finding_types,
     licence_findings,
     load_service_plans,
     scan_to_json,
 )
-from .mappings import FunctionMapping, TargetMapping, load_mapping
-from .model import Coverage, Finding, FindingValue, Product, Scan
+from .mappings import COVERAGE_LADDER, FunctionMapping, TargetMapping, load_mapping
+from .model import Collector, Coverage, Finding, FindingValue, Product, Scan
 from .parsing import read_text
 from .risky_files import load_risky_file_types
-from .status import STATUSES, StatusRuleSet, WorkloadStatus, evaluate, load_status_rules
+from .status import (
+    MissingEvidence,
+    StatusRuleSet,
+    TransferGap,
+    WorkloadStatus,
+    evaluate,
+    load_status_rules,
+)
+
+_DISPLAY_ORDER = ("blocker", "needs_work", "unknown", "ready")
 
 
 def report_file_name(generated_at: str, *, lang: str) -> str:
@@ -230,13 +243,25 @@ def _prepare_report(
     context = dict(
         **_formatting_context(formatter, catalogue),
         **_cost_context(inputs),
-        **_evidence_context(scan, by_id, other_evidence, status_rules, catalogue, mapping),
+        **_evidence_context(
+            scan,
+            by_id,
+            other_evidence,
+            status_rules,
+            catalogue,
+            mapping,
+            lang=lang,
+            strings=formatter.strings,
+        ),
         lang=lang,
         scan=scan,
         sample_scan=sample_scan,
         scan_periods=scan_periods,
         licences=_licence_rows(products, plans, formatter),
         product_count=derived[0] if derived else None,
+        licence_plan_list_incomplete=any(
+            finding.missing_reason == "licence_plan_list_incomplete" for finding in derived
+        ),
         mapping=mapping,
         risky_files=[(kind, by_id.get(kind.finding_id)) for kind in risky_kinds],
         checksums=checksums,
@@ -247,56 +272,306 @@ def _prepare_report(
     return context, plans
 
 
-def _mapping_gaps(
-    mapping: TargetMapping, by_id: dict[str, Finding], statuses: tuple[WorkloadStatus, ...]
-) -> list[tuple[FunctionMapping, Finding | None, str, tuple[str, ...]]]:
-    missing: dict[str, list[str]] = defaultdict(list)
+def _ordered_transfer_gaps(
+    mapping: TargetMapping, statuses: tuple[WorkloadStatus, ...]
+) -> tuple[TransferGap, ...]:
+    by_function = {gap.mapping.function: gap for row in statuses for gap in row.transfer_gaps}
+    return tuple(
+        by_function[item.function] for item in mapping.functions if item.function in by_function
+    )
+
+
+@dataclass(frozen=True)
+class ScopeStatement:
+    profile: str
+    total: int
+    by_coverage: tuple[tuple[str, int], ...]
+    needed: tuple[tuple[str, str], ...]
+    unknown_need: int
+    reviewed_on: date | None
+
+
+def scope_statement(
+    mapping: TargetMapping, statuses: tuple[WorkloadStatus, ...], lang: str
+) -> ScopeStatement | None:
+    if not mapping.product_profile:
+        return None
+    counts = Counter(item.coverage for item in mapping.functions)
+    gaps = _ordered_transfer_gaps(mapping, statuses)
+    return ScopeStatement(
+        profile=mapping.label[lang],
+        total=len(mapping.functions),
+        by_coverage=tuple((code, counts[code]) for code in COVERAGE_LADDER if code in counts),
+        needed=tuple(
+            (gap.mapping.microsoft[lang], f"transfer-gap-{gap.mapping.function}")
+            for gap in gaps
+            if gap.need == "yes"
+        ),
+        unknown_need=sum(gap.need == "unknown" for gap in gaps),
+        reviewed_on=mapping.reviewed_on,
+    )
+
+
+def _evidence_counts(
+    observations: Iterable[Finding],
+    rule_evidence: tuple[Finding, ...],
+    alternatives: Mapping[str, Finding],
+) -> dict[str, int]:
+    distinct = {finding.id: finding for finding in observations}
+    distinct.update((finding.id, finding) for finding in rule_evidence)
+    counts = Counter(finding.provenance for finding in distinct.values())
+    counts.update(
+        alternatives[finding_id].provenance for finding_id in distinct if finding_id in alternatives
+    )
+    return {kind: counts[kind] for kind in ("measured", "provided", "unknown")}
+
+
+def _target_functions(row: WorkloadStatus, mapping: TargetMapping) -> tuple[FunctionMapping, ...]:
+    needed = {gap.mapping.function for gap in row.transfer_gaps if gap.need == "yes"}
+    functions = (item for item in mapping.functions if item.workload == row.workload)
+    return tuple(sorted(functions, key=lambda item: item.function not in needed)[:2])
+
+
+@dataclass(frozen=True)
+class _SummaryOpenArea:
+    workload: str
+    finding_id: str | None
+    fix: str | None
+
+
+def _summary_open_areas(
+    statuses: tuple[WorkloadStatus, ...], catalogue: Catalogue, strings: dict
+) -> tuple[_SummaryOpenArea, ...]:
+    open_areas = []
+    for row in statuses:
+        if row.status == "unknown" or row.incomplete:
+            first_gap = row.missing[0] if row.missing else None
+            code = row.reason_code or (first_gap.reason_code if first_gap else "not_established")
+            gap = next((item for item in row.missing if item.reason_code == code), first_gap)
+            _, fix = reason_text(strings, code)
+            finding_id = gap.finding_id if gap else None
+            if code == "answer_not_provided" and finding_id:
+                entry = catalogue.finding(finding_id)
+                if _finding_input_key(entry):
+                    fix = None
+            open_areas.append(_SummaryOpenArea(row.workload, finding_id, fix))
+    return tuple(open_areas)
+
+
+@dataclass(frozen=True)
+class _OpenItem:
+    id: str
+    kind: Literal["finding", "area", "collector"]
+    areas: tuple[str, ...]
+    owner: str | None
+    reasons: tuple[str, ...]
+    unknown: bool = False
+    gap: bool = False
+
+
+@dataclass(frozen=True)
+class _OpenPoint:
+    key: str
+    collector: str | None
+    input_key: str | None
+    items: tuple[_OpenItem, ...]
+    areas: tuple[str, ...]
+    owners: tuple[str, ...]
+    reasons: tuple[str, ...]
+
+
+def _finding_input_key(entry: FindingEntry | None) -> str | None:
+    if entry is None or entry.provided == "no":
+        return None
+    if entry.provided in ("software_list", "software_list_without_web_version"):
+        return "windows_only_software"
+    if entry.type in ("boolean", "count"):
+        group = "confirmations" if entry.type == "boolean" else "provided_counts"
+        return f"{group}.{entry.id}"
+    return None
+
+
+def _open_finding_items(
+    finding_id: str,
+    entry: FindingEntry | None,
+    unknown: Finding | None,
+    gaps: list[tuple[str, MissingEvidence]],
+    open_areas: set[str],
+) -> Iterator[tuple[str, _OpenItem]]:
+    input_key = _finding_input_key(entry)
+    finding_key = f"finding.{finding_id}"
+    requests: dict[str, list[tuple[str, MissingEvidence]]] = defaultdict(list)
+    unknown_key = None
+    if unknown is not None:
+        unknown_key = input_key or (
+            f"collector.{unknown.collector}" if unknown.collector else finding_key
+        )
+        requests[unknown_key] = []
+    for area, gap in gaps:
+        key = input_key or (f"collector.{gap.collector}" if gap.collector else finding_key)
+        requests[key].append((area, gap))
+
+    for key, missing in requests.items():
+        areas = dict.fromkeys(area for area, _ in missing)
+        reasons = dict.fromkeys(gap.reason_code for _, gap in missing)
+        is_unknown = unknown is not None and key == unknown_key
+        if unknown is not None and is_unknown:
+            reasons.setdefault(unknown.missing_reason or "not_established", None)
+            if not areas and unknown.workload in open_areas:
+                areas[unknown.workload] = None
+        yield (
+            key,
+            _OpenItem(
+                finding_id,
+                "finding",
+                tuple(areas),
+                entry.owner if entry else "licence_management",
+                tuple(reasons),
+                unknown=is_unknown,
+                gap=bool(missing),
+            ),
+        )
+
+
+def _open_point(key: str, items: list[_OpenItem], catalogue: Catalogue) -> _OpenPoint:
+    group, _, name = key.partition(".")
+    collector = name if group == "collector" else None
+    input_key = None if group in ("area", "collector", "finding") else key
+    owners = {item.owner for item in items if item.owner}
+    if collector and not owners:
+        owners = {
+            entry.owner
+            for entry in catalogue.findings
+            if any(method == collector for method, _ in entry.measured_by)
+        }
+        if not owners:
+            owners.add("licence_management" if collector == "licences" else "it_team")
+    return _OpenPoint(
+        key,
+        collector,
+        input_key,
+        tuple(items),
+        tuple(dict.fromkeys(area for item in items for area in item.areas)),
+        tuple(role for role in ROLES if role in owners),
+        tuple(dict.fromkeys(code for item in items for code in item.reasons)),
+    )
+
+
+def _open_points(
+    statuses: tuple[WorkloadStatus, ...],
+    by_id: Mapping[str, Finding],
+    alternatives: Mapping[str, Finding],
+    catalogue: Catalogue,
+    collectors: tuple[Collector, ...],
+) -> tuple[_OpenPoint, ...]:
+    entries = {entry.id: entry for entry in catalogue.findings}
+    first_in_area = {}
+    for entry in entries.values():
+        first_in_area.setdefault(entry.workload, entry)
+    unknown = {
+        finding.id: finding
+        for finding in (*alternatives.values(), *by_id.values())
+        if finding.provenance == "unknown"
+    }
+    gaps: dict[str, list[tuple[str, MissingEvidence]]] = defaultdict(list)
     for row in statuses:
         for gap in row.missing:
-            missing[gap.finding_id].append(gap.reason_code)
-    dispute_codes = ("confirmation_conflict", "provided_answers_conflict")
-    gaps = []
-    for item in mapping.functions:
-        if item.coverage != "not_available":
+            gaps[gap.finding_id].append((row.workload, gap))
+
+    groups: dict[str, list[_OpenItem]] = defaultdict(list)
+    order = {}
+    finding_ids = (*entries, *licence_finding_types(catalogue))
+    positions = {finding_id: index for index, finding_id in enumerate(finding_ids)}
+    open_areas = {row.workload for row in statuses if row.status != "ready"}
+    for finding_id in finding_ids:
+        for key, item in _open_finding_items(
+            finding_id,
+            entries.get(finding_id),
+            unknown.get(finding_id),
+            gaps[finding_id],
+            open_areas,
+        ):
+            groups[key].append(item)
+            order.setdefault(key, positions[finding_id])
+    for index, row in enumerate(statuses):
+        if row.status == "unknown" and not row.missing:
+            key = f"area.{row.workload}"
+            first = first_in_area.get(row.workload)
+            groups[key].append(
+                _OpenItem(
+                    row.workload,
+                    "area",
+                    (row.workload,),
+                    first.owner if first else "it_team",
+                    (row.reason_code or "not_established",),
+                )
+            )
+            order[key] = positions[first.id] if first else len(finding_ids) + index
+    for collector in collectors:
+        if collector.status == "skipped":
+            groups[f"collector.{collector.id}"].append(
+                _OpenItem(
+                    collector.id,
+                    "collector",
+                    (),
+                    None,
+                    (collector.reason or "collector_skipped",),
+                )
+            )
+    last = len(finding_ids) + len(statuses)
+    return tuple(
+        _open_point(key, groups[key], catalogue)
+        for key in sorted(groups, key=lambda key: order.get(key, last))
+    )
+
+
+@dataclass(frozen=True)
+class _PathAction:
+    kind: str
+    text: str
+
+
+def _area_actions(
+    row: WorkloadStatus, status_rules: StatusRuleSet, lang: str, strings: dict
+) -> Iterator[_PathAction]:
+    functions: dict[str, list[FunctionMapping]] = defaultdict(list)
+    for gap in row.transfer_gaps:
+        if gap.need == "yes":
+            functions[gap.mapping.coverage].append(gap.mapping)
+
+    fired_steps = {rule.id: rule.next_step for rule in (row.deciding, *row.notes) if rule}
+    actions = strings["path"]["transfer_actions"]
+    for step in fired_steps.values():
+        # The evaluator attaches the template's action to each fired transfer rule.
+        coverage = next(
+            (code for code, rule in status_rules.target_gaps.items() if step is rule.next_step),
+            None,
+        )
+        if coverage is None:
+            yield _PathAction(step.kind, step.text[lang])
+        elif affected := functions.pop(coverage, None):
+            key = f"{coverage}.{affected[0].function}" if len(affected) == 1 else coverage
+            action = actions.get(key, actions[coverage])
+            names = ", ".join(item.microsoft[lang] for item in affected)
+            yield _PathAction(step.kind, action.format(functions=names))
+
+
+def _next_steps(
+    status_groups: list[tuple[str, tuple[WorkloadStatus, ...]]],
+    status_rules: StatusRuleSet,
+    lang: str,
+    strings: dict,
+) -> tuple[dict[str, list[_PathAction]], dict[str, list[_PathAction]]]:
+    staying: dict[str, list[_PathAction]] = defaultdict(list)
+    moving: dict[str, list[_PathAction]] = defaultdict(list)
+    for status, rows in status_groups:
+        if status not in ("blocker", "needs_work"):
             continue
-        finding = by_id.get(item.need_finding) if item.need_finding else None
-        need = "unknown"
-        complete = is_complete(finding)
-        confirmed_use = (
-            finding is not None
-            and finding.value is True
-            and (complete or finding.provenance == "measured")
-        )
-        if confirmed_use or complete:
-            need = "yes" if finding.value else "no"
-        reasons = tuple(
-            dict.fromkeys(
-                code
-                for code in missing.get(item.need_finding, ())
-                if code != "answer_not_provided" or need == "unknown"
-            )
-        )
-        if confirmed_use:
-            reasons = tuple(code for code in reasons if code in dispute_codes)
-        if reasons:
-            need = "unknown"
-        if item.need_if_positive and need != "yes":
-            count = by_id.get(item.need_if_positive)
-            disputes = tuple(
-                code for code in dispute_codes if code in missing[item.need_if_positive]
-            )
-            if disputes:
-                finding, need, reasons = count, "unknown", disputes
-            elif count is not None and type(count.value) is int and count.value > 0:
-                if need == "no":
-                    need, reasons = "unknown", ("desktop_requirements_conflict",)
-                elif finding is None or finding.value is None:
-                    finding, need, reasons = count, "yes", ()
-        if need == "unknown" and not reasons:
-            default = "answer_not_provided" if item.need_if_positive else "not_established"
-            reasons = ((finding.missing_reason if finding else None) or default,)
-        gaps.append((item, finding, need, reasons))
-    return gaps
+        for row in rows:
+            for action in _area_actions(row, status_rules, lang, strings):
+                group = moving if action.kind == "replace" else staying
+                group[row.workload].append(action)
+    return staying, moving
 
 
 def _evidence_context(
@@ -306,16 +581,26 @@ def _evidence_context(
     status_rules: StatusRuleSet,
     catalogue: Catalogue,
     mapping: TargetMapping,
+    *,
+    lang: str,
+    strings: dict,
 ) -> dict[str, object]:
     alternatives = {item.id: item for item in other_evidence}
     statuses = evaluate(
         by_id,
         status_rules,
         catalogue,
+        mapping,
         collectors={item.id: item for item in scan.collectors},
         alternatives=alternatives,
     )
     counts = Counter(row.status for row in statuses)
+    status_groups = [
+        (status, tuple(row for row in statuses if row.status == status))
+        for status in _DISPLAY_ORDER
+        if counts[status]
+    ]
+    staying_steps, move_steps = _next_steps(status_groups, status_rules, lang, strings)
     observations = [(entry, by_id.get(entry.id)) for entry in catalogue.findings]
     by_workload = {workload.id: [] for workload in catalogue.workloads}
     for entry, finding in observations:
@@ -329,16 +614,30 @@ def _evidence_context(
             item.id for item in other_evidence if provided_answers_conflict(by_id[item.id], item)
         },
         statuses=statuses,
-        status_counts=[(status, counts[status]) for status in STATUSES],
+        status_counts=[(status, counts[status]) for status in _DISPLAY_ORDER],
+        status_groups=status_groups,
+        area_count=len(catalogue.assessed_workload_ids),
+        blockers=tuple(row for row in statuses if row.status == "blocker"),
+        open_areas=_summary_open_areas(statuses, catalogue, strings),
         status_rules=status_rules,
         status_by_workload={row.workload: row for row in statuses},
-        mapping_gaps=_mapping_gaps(mapping, by_id, statuses),
-        unknown_findings=[finding for finding in by_id.values() if finding.provenance == "unknown"],
-        skipped_collectors=[
-            collector for collector in scan.collectors if collector.status == "skipped"
-        ],
+        mapping_gaps=_ordered_transfer_gaps(mapping, statuses),
+        scope_statement=scope_statement(mapping, statuses, lang),
+        open_points=_open_points(statuses, by_id, alternatives, catalogue, scan.collectors),
+        staying_steps=staying_steps,
+        move_steps=move_steps,
         headlines=[row for row in observations if row[0].headline],
-        groups=[(workload, by_workload[workload.id]) for workload in catalogue.workloads],
+        catalogue_evidence=by_workload,
+        inventory_workloads=tuple(
+            workload.id for workload in catalogue.workloads if not workload.assessed
+        ),
+        evidence_counts={
+            row.workload: _evidence_counts(
+                (finding for _, finding in by_workload[row.workload]), row.evidence, alternatives
+            )
+            for row in statuses
+        },
+        target_functions={row.workload: _target_functions(row, mapping) for row in statuses},
         software=[
             row
             for row in observations
@@ -347,17 +646,117 @@ def _evidence_context(
     )
 
 
+def _missing_cost_paths(scenarios: tuple[ScenarioResult, ...]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(path for result in scenarios for path in result.missing_inputs))
+
+
+@dataclass(frozen=True)
+class _CostComparison:
+    direction: Literal["less", "more", "same", "sub_cent", "unknown"]
+    amount: Fraction | None
+
+
+def _cost_comparison(difference: Fraction | None) -> _CostComparison:
+    if difference is None:
+        return _CostComparison("unknown", None)
+    amount = abs(difference)
+    if amount == 0:
+        return _CostComparison("same", amount)
+    if plain_amount(amount) == "0.00":
+        return _CostComparison("sub_cent", amount)
+    return _CostComparison("less" if difference < 0 else "more", amount)
+
+
+@dataclass(frozen=True)
+class _BreakEven:
+    amount: Fraction
+    entered: Fraction
+
+
+def _break_even(result: ScenarioResult, operations_per_year: Decimal | None) -> _BreakEven | None:
+    if result.difference_to_stay is None or operations_per_year is None:
+        return None
+    entered = Fraction(operations_per_year)
+    amount = entered - result.difference_to_stay / YEARS
+    return _BreakEven(amount, entered)
+
+
+@dataclass(frozen=True)
+class _CostTile:
+    result: ScenarioResult
+    comparison: _CostComparison
+    known_blocks: Fraction | None
+    break_even: _BreakEven | None
+
+
+def _known_block_sum(result: ScenarioResult) -> Fraction | None:
+    amounts = [
+        group.total
+        for group in (result.running, *result.blocks)
+        if group.lines and group.total is not None
+    ]
+    return sum(amounts, start=Fraction(0)) if amounts else None
+
+
+def _cost_tiles(scenarios: tuple[ScenarioResult, ...], inputs: Inputs) -> tuple[_CostTile, ...]:
+    operations = (
+        None,
+        inputs.partial_exit.operations_per_year,
+        inputs.full_exit.operations_per_year,
+    )
+    return tuple(
+        _CostTile(
+            result,
+            _cost_comparison(result.difference_to_stay),
+            _known_block_sum(result),
+            _break_even(result, entered),
+        )
+        for result, entered in zip(scenarios, operations, strict=True)
+    )
+
+
+@dataclass(frozen=True)
+class _CostChartRow:
+    tile: _CostTile
+    blocks: tuple[CostGroup, ...]
+    share: str | None
+
+
+def _cost_chart_rows(tiles: tuple[_CostTile, ...]) -> tuple[_CostChartRow, ...]:
+    largest = max(
+        (total for tile in tiles if (total := tile.result.total) is not None),
+        default=Fraction(0),
+    )
+    rows = []
+    for tile in tiles:
+        result = tile.result
+        blocks = (result.running, *result.blocks)
+        share = None
+        if result.total is not None:
+            ratio = result.total / largest if largest else Fraction(0)
+            share = f"{ratio:.4f}"
+        rows.append(_CostChartRow(tile, blocks, share))
+    return tuple(rows)
+
+
 def _cost_context(inputs: Inputs | None) -> dict[str, object]:
     cost_inputs = inputs if inputs is not None else Inputs()
     scenarios = compute_scenarios(cost_inputs)
+    tiles = _cost_tiles(scenarios, cost_inputs)
+    current_costs = vars(cost_inputs.current_costs)
+    target_costs = (vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit))
+    has_cost_inputs = any(
+        value is not None for fields in (current_costs, *target_costs) for value in fields.values()
+    )
     return dict(
         inputs=inputs,
-        sample_inputs=cost_inputs.answers_are_sample,
-        input_source=cost_inputs.answer_source,
         scenarios=scenarios,
         cost_blocks=_cost_table_blocks(scenarios),
-        current_costs=vars(cost_inputs.current_costs),
-        target_costs=(vars(cost_inputs.partial_exit), vars(cost_inputs.full_exit)),
+        cost_tiles=tiles,
+        cost_chart_rows=_cost_chart_rows(tiles) if has_cost_inputs else (),
+        missing_cost_paths=_missing_cost_paths(scenarios),
+        current_costs=current_costs,
+        target_costs=target_costs,
         cost_currency=cost_inputs.currency or "",
         plain_amount=plain_amount,
     )
@@ -377,11 +776,28 @@ def _formatting_context(formatter: Formatter, catalogue: Catalogue) -> dict[str,
         coverage_text=partial(_coverage_text, formatter=formatter),
         format=formatter,
         workload_labels=workload_labels,
+        workload_categories={
+            entry.id: entry.category for entry in catalogue.workloads if entry.assessed
+        },
+        category_labels={entry.id: _label(strings, entry.label) for entry in catalogue.categories},
+        categories=catalogue.categories,
         finding_labels=_finding_labels(catalogue, strings, workload_labels),
+        finding_owners={entry.id: entry.owner for entry in catalogue.findings},
+        finding_inputs={entry.id: _finding_input_key(entry) for entry in catalogue.findings},
     )
 
 
-_ICONS = ("check-circle", "warning", "report", "help", "chevron-right")
+_ICONS = (
+    "check-circle",
+    "warning",
+    "report",
+    "help",
+    "chevron-right",
+    "circle",
+    "contrast",
+    "code",
+    "cancel",
+)
 _FONTS = ("figtree-latin", "geist-mono-latin")
 _ICON_PATH = re.compile(r'<path d="([^"<>]+)"/>')
 

@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,11 +40,9 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -51,11 +50,11 @@
     <div class="page-intro">
       <h1>Mit Fazit starten</h1>
       <p>Führen Sie das Beispiel auf Ihrem eigenen Rechner aus. Sie brauchen kein Microsoft-Konto, und nach der Einrichtung läuft es ohne Netzwerkverbindung.</p>
-      <div class="command" role="group" aria-labelledby="command-label">
-        <p class="command-label" id="command-label">Im Terminal ausführen</p>
+      <div class="command" role="group" aria-label="Im Terminal ausführen">
+        <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
         <div class="command-line">
-          <code id="demo-command"><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
-          <button class="copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden></button>
+          <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
+          <button class="btn copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
@@ -67,14 +66,18 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
-            <span class="tile-icon icon-code" aria-hidden="true"></span>
-            <h3>Git</h3>
-            <p>Lädt den Quellcode von Fazit herunter. <a href="https://git-scm.com/downloads" hreflang="en">Git herunterladen</a></p>
+            <a class="tile-link" href="https://git-scm.com/downloads" hreflang="en">
+              <h3>Git herunterladen</h3>
+              <p>Lädt den Quellcode von Fazit herunter.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
-            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
-            <h3>uv</h3>
-            <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein. <a href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">uv installieren</a></p>
+            <a class="tile-link" href="https://docs.astral.sh/uv/getting-started/installation/" hreflang="en">
+              <h3>uv installieren</h3>
+              <p>Richtet beim ersten Start die passende Python-Version und alle Pakete ein.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
         </ul>
         <p class="note-text">Fazit wird unter Windows, macOS und Linux getestet.</p>
@@ -92,7 +95,7 @@
       <h2 class="sec-label" id="start-open">Den Bericht öffnen</h2>
       <div class="sec-body">
         <p>Die letzte Zeile der Ausgabe nennt den Pfad des Berichts. Öffnen Sie die HTML-Datei in Ihrem Browser.</p>
-        <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run --offline fazit demo --lang de</code> aus und öffnen den Bericht erneut.</p>
+        <p>Um zu prüfen, dass Fazit ohne Netzwerk arbeitet, trennen Sie die Verbindung, führen <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus und öffnen den Bericht erneut.</p>
         <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
       </div>
     </section>
@@ -106,27 +109,13 @@
     </section>
 
     <section class="sec grid" aria-labelledby="start-next">
-      <h2 class="sec-label" id="start-next">Weiter</h2>
+      <h2 class="sec-label" id="start-next">Das Ergebnis ohne Installation ansehen</h2>
       <div class="sec-body">
-        <ul class="tiles tiles-3">
+        <ul class="tiles">
           <li>
             <a class="tile-link" href="/demo/de/">
               <h3>Beispielbericht</h3>
-              <p>Den fertigen Bericht ansehen, ohne etwas zu installieren.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/de/integrators/">
-              <h3>Für IT-Dienstleister</h3>
-              <p>Sehen Sie, was eine Bestandsaufnahme für Ihre Kunden enthalten wird, sobald der Import verfügbar ist.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/de/security/">
-              <h3>Sicherheit und Datenschutz</h3>
-              <p>Die Schutzmaßnahmen im Einzelnen prüfen.</p>
+              <p>Der Bericht zeigt die Ergebnisse für eine fiktive Stadtverwaltung mit simulierten Messwerten.</p>
               <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
@@ -161,7 +150,7 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
           <a class="language" href="/start/" lang="en" hreflang="en" aria-label="English">EN</a>
         </div>
       </div>

@@ -87,18 +87,21 @@ Enter whole numbers under `provided_counts` and use `true` or `false` under `con
 ### SharePoint
 
 - Does your organisation use any custom SharePoint solutions (`sharepoint.custom_solutions_in_use`)?
+- Do workflows or automated approvals run on SharePoint sites, lists or libraries, or start from them (`sharepoint.workflows_in_use`)?
 
 ### Teams
 
 - Do department heads or records managers require the Teams chat history to be kept (`teams.chat_history_must_be_kept`)?
+- Are apps, tabs, bots or connectors added to teams (`teams.apps_in_use`)?
 
 ### Office files
 
-- How many files with extensions that allow macros has the IT lead counted (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`) (`office_files.kind.macro`)?
+- How many files with extensions that allow macros has the IT lead counted (`.xlsm`, `.xltm`, `.xlam`, `.xlsb`, `.docm`, `.dotm`, `.pptm`, `.potm`, `.ppam`, `.ppsm`, `.sldm`, `.xls`, `.xlt`, `.xla`, `.doc`, `.dot`, `.ppt`, `.pot`, `.pps`, `.ppa`) (`office_files.kind.macro`)?
 - How many Access database files for records, forms or queries has the IT lead counted (`.accdb`, `.mdb`) (`office_files.kind.access`)?
 - How many Publisher files used for page layout has the IT lead counted (`.pub`) (`office_files.kind.publisher`)?
 - How many Visio drawing files used for diagrams has the IT lead counted (`.vsdx`) (`office_files.kind.visio`)?
 - How many OneNote files used for notes has the IT lead counted (`.one`) (`office_files.kind.onenote`)?
+- Do staff rely on VBA macros in Office files for their work (`office_files.vba_macros_in_use`)?
 
 ### Device management
 

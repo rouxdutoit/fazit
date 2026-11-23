@@ -189,9 +189,18 @@ confirmations:
   # EN: Confirm whether the organisation uses tailored SharePoint solutions.
   # DE: Geben Sie an, ob die Organisation individuell angepasste SharePoint-Lösungen einsetzt.
   sharepoint.custom_solutions_in_use: null
+  # EN: Confirm whether workflows or automated approvals run on SharePoint sites, lists or libraries.
+  # DE: Geben Sie an, ob auf SharePoint-Websites, in Listen oder Bibliotheken Workflows oder automatisierte Genehmigungen laufen.
+  sharepoint.workflows_in_use: null
   # EN: Confirm whether Teams chat history must be kept.
   # DE: Geben Sie an, ob der Chatverlauf aus Teams erhalten bleiben muss.
   teams.chat_history_must_be_kept: null
+  # EN: Confirm whether apps, tabs, bots or connectors are added to teams.
+  # DE: Geben Sie an, ob in Teams Apps, Registerkarten, Bots oder Konnektoren eingebunden sind.
+  teams.apps_in_use: null
+  # EN: Confirm whether staff rely on VBA macros in Office files.
+  # DE: Geben Sie an, ob die Beschäftigten auf VBA-Makros in Office-Dateien angewiesen sind.
+  office_files.vba_macros_in_use: null
   # EN: Confirm whether the organisation manages any devices through Microsoft.
   # DE: Geben Sie an, ob die Organisation Geräte über Microsoft verwaltet.
   device_management.in_use: null

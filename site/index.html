@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Fazit is built to show what your organisation relies on in Microsoft 365, what would need work on openDesk, Nextcloud or LibreOffice, and what a move would cost. Free, open source and local.">
-  <title>Fazit · Know what leaving Microsoft 365 would take</title>
+  <title>Fazit · What leaving Microsoft 365 would take</title>
   <link rel="canonical" href="https://fazit.dev/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/">
   <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
-  <meta property="og:title" content="Fazit · Know what leaving Microsoft 365 would take">
+  <meta property="og:title" content="Fazit · What leaving Microsoft 365 would take">
   <meta property="og:description" content="Fazit is built to show what your organisation relies on in Microsoft 365, what would need work on openDesk, Nextcloud or LibreOffice, and what a move would cost. Free, open source and local.">
   <meta property="og:url" content="https://fazit.dev/">
   <meta property="og:locale" content="en_GB">
@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta property="og:image:alt" content="Fazit wordmark and an excerpt from the English sample report. The summary shows the number of areas in each status and identifies telephony as the blocker.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/" aria-label="Fazit home" aria-current="page">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Main navigation">
         <div class="bar-links-in">
           <a href="/pilots/">Pilots</a>
@@ -39,18 +40,16 @@
           <a href="/security/">Security</a>
           <a href="/demo/en/">Sample report</a>
           <a href="https://github.com/rouxdutoit/fazit">Source code</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
+          <a class="btn btn-solid bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
       <p class="eyebrow">For public-sector IT and integrators in Germany, Austria and Switzerland</p>
-      <h1 id="hero-title">Know what leaving Microsoft 365 would take</h1>
+      <h1 id="hero-title">What leaving Microsoft&nbsp;365 would take</h1>
       <p class="hero-sub">What you rely on, what needs work and what it would cost, in one report that Fazit writes on your own computer.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
@@ -70,27 +69,20 @@
           </span>
         </span>
         <picture>
-          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1440">
-          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1440">
-          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1120">
-          <img src="/images/readiness-en-light.webp" width="2016" height="1120" alt="Readiness section of the sample report: 4 areas Ready, 9 Needs work, 1 Blocker, 1 Unknown." decoding="async" fetchpriority="high">
+          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-en-mobile-dark.webp" width="800" height="1424">
+          <source media="(max-width: 600px)" srcset="/images/readiness-en-mobile-light.webp" width="800" height="1424">
+          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-en-dark.webp" width="2016" height="1218">
+          <img src="/images/readiness-en-light.webp" width="2016" height="1218" alt="Summary of the sample report. The status list for 14 areas shows Blocker (1), Needs work (9), Unknown (1) and Ready (3), with a definition for each. The report identifies telephony as the blocker." decoding="async" fetchpriority="high">
         </picture>
       </div>
       <figcaption>
-        <span>Real Fazit output, from the sample data for a fictional town.</span>
+        <span><span data-assessed-areas>14</span> areas, three targets (openDesk, Nextcloud and a product-neutral checklist), in English and German, as one file that opens offline.</span>
         <span class="caption-links">
           <a class="more" href="/demo/en/">Open the sample report</a>
-          <a class="btn btn-secondary btn-small" href="/demo/en/" download="fazit-sample-report-en.html"><span class="btn-icon icon-download" aria-hidden="true"></span>Download HTML, 290 KB</a>
+          <a class="more" href="/demo/en/" download="fazit-sample-report-en.html">Download HTML, 412 KB</a>
         </span>
       </figcaption>
     </figure>
-
-    <ul class="figures" aria-label="Fazit in figures">
-      <li><span class="figure-num">15</span><span>areas in every report, from mail to telephony</span></li>
-      <li><span class="figure-num">2</span><span>report languages: German and English</span></li>
-      <li><span class="figure-num">1</span><span>file for the whole report, which opens offline</span></li>
-      <li><span class="figure-num">3</span><span>targets: openDesk, Nextcloud and a product-neutral checklist</span></li>
-    </ul>
 
     <section class="sec grid" id="why" aria-labelledby="why-title">
       <h2 class="sec-label" id="why-title">Find the blockers before the project does</h2>
@@ -101,32 +93,222 @@
       </div>
     </section>
 
+    <section class="sec grid" id="example" aria-labelledby="example-title">
+      <h2 class="sec-label" id="example-title">Evidence and a next step for every area</h2>
+      <div class="sec-body">
+        <p class="lead">Each area shows its status, the evidence behind it and what is still missing. This example covers Mail in the report for a fictional town. Its measurements are simulated.</p>
+        <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
+          <div class="finding-head">
+            <div>
+              <h3 class="finding-area" id="area-mail">Mail</h3>
+              <span class="finding-category">Communication</span>
+            </div>
+            <p class="finding-status">
+              <span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Needs work</span></span>
+              <span class="badge"><span>Evidence incomplete</span></span>
+            </p>
+          </div>
+          <div class="finding-reason">
+            Other systems send mail through Microsoft and will need another way to send it.
+          </div>
+          <p class="finding-next"><strong>Next step</strong> The IT team plans a new way for the affected systems to send mail.</p>
+          <div class="finding-missing">
+            <p><strong>Evidence still needed</strong></p>
+            <ul>
+              <li data-missing="mail.shared_mailbox_count">
+                <strong data-reason="needs_recipient_export">How many shared mailboxes does the organisation have?</strong>
+                <p><span class="open-label">Who answers:</span> IT team</p>
+                <p><span class="open-label">Source:</span> Exchange recipient export</p>
+                <p><span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Ask the mail administrator to check the count separately. It stays Unknown in this report.</span></p>
+              </li>
+            </ul>
+          </div>
+          <details class="workload-evidence" data-evidence-workload="mail">
+            <summary id="evidence-mail"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span>Evidence<small class="evidence-counts">4 measured, 1 provided, 1 unknown</small></span></summary>
+            <ul class="rule-evidence" role="list">
+              <li data-evidence="mail.mailbox_count">
+                <strong>Mailboxes</strong>
+                <div data-provenance="measured">
+                  91 mailboxes
+                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
+                </div>
+              </li>
+              <li data-evidence="mail.shared_mailbox_count">
+                <strong>Shared mailboxes</strong>
+                <div data-provenance="unknown">
+                  <small class="evidence-meta"><span class="prov">Unknown</span></small>
+                </div>
+                <small>
+                  <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Ask the mail administrator to check the count separately. It stays Unknown in this report.</span></small>
+              </li>
+              <li data-evidence="mail.other_systems_send_mail">
+                <strong>Other systems send mail through Microsoft</strong>
+                <div data-provenance="provided">
+                  Yes
+                  <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10&nbsp;November&nbsp;2026</small>
+                </div>
+              </li>
+              <li data-evidence="mail.licence_bundled_assigned">
+                <strong>Included licence assigned for Mail</strong>
+                <div data-provenance="measured">
+                  Yes
+                  <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample licence inventory · 2&nbsp;November&nbsp;2026 · Complete, 3 of 3 scanned, 0 failed</small>
+                </div>
+              </li>
+            </ul>
+            <div class="table-scroll" role="region" aria-labelledby="evidence-mail" tabindex="0">
+              <table class="coverage" role="table">
+                <caption data-sample>Scan measurements are simulated.</caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader" data-label="Finding">Finding</th>
+                    <th scope="col" role="columnheader" data-label="Value">Value</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  <tr data-finding="mail.mailbox_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mailboxes</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+                        91 mailboxes
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
+                      </div>
+                      <small>Collection method · Mailbox usage report</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.shared_mailbox_count" data-provenance="unknown" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Shared mailboxes</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="unknown">
+                        <small class="evidence-meta"><span class="prov">Unknown</span></small>
+                      </div>
+                      <small>Collection method · Exchange recipient export</small>
+                      <small>
+                        <span data-reason="needs_recipient_export">Mailbox usage alone cannot establish the number of shared mailboxes. Ask the mail administrator to check the count separately. It stays Unknown in this report.</span></small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.storage_bytes" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mail storage</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+                        312.4 GB
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
+                      </div>
+                      <small>Collection method · Mailbox usage report</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.item_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Mail items</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="measured">
+                        504,210 items
+                        <small class="evidence-meta"><span class="prov">Measured (simulated)</span> · Sample mailbox usage report · 2&nbsp;November&nbsp;2026 · 6&nbsp;May to 1&nbsp;Nov&nbsp;2026 · Complete</small>
+                      </div>
+                      <small>Collection method · Mailbox usage report</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.other_systems_send_mail" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Finding">Other systems send mail through Microsoft</th>
+                    <td role="cell" data-label="Value">
+                      <div data-provenance="provided">
+                        Yes
+                        <small class="evidence-meta"><span class="prov">Provided</span> · Sample input · 10&nbsp;November&nbsp;2026</small>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+          <p class="finding-target">
+            <span data-target-function="mail_and_calendar">Open-Xchange (OX App Suite) · In the suite ·
+              <time datetime="2026-11-22">22&nbsp;November&nbsp;2026</time>
+            </span>
+            <a class="more" href="/demo/en/#moves-title">All replacements<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+          </p>
+        </article>
+        <p class="note-text">Fazit checks the structure of its inputs and selected relationships between figures. It cannot verify that a supplied inventory is accurate. The report depends on the people and tools that supplied the evidence.</p>
+        <div class="tally">
+          <p id="sample-tally-title">Of 14 areas in the sample:</p>
+          <ul role="list" aria-labelledby="sample-tally-title">
+            <li class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Blocker 1</li>
+            <li class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Needs work 9</li>
+            <li class="status unknown"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> Unknown 1</li>
+            <li class="status ready"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> Ready 3</li>
+          </ul>
+        </div>
+        <p><a class="more" href="/demo/en/#readiness-title">See all areas in the sample report</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="report" aria-labelledby="report-title">
+      <h2 class="sec-label" id="report-title">What you get</h2>
+      <div class="sec-body">
+        <p class="lead">The report shows which functions your organisation needs.</p>
+        <ul class="tiles tiles-2">
+          <li>
+            <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
+            <h3>Where the organisation stands</h3>
+            <p>The first printed page gives the council confirmed blockers, open questions and five-year cost totals.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-route" aria-hidden="true"></span>
+            <h3>What to do next</h3>
+            <p>Tasks worth doing even if you stay, and work needed for a move.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
+            <h3>Where each area stands</h3>
+            <p>See why each area has its status and what evidence supports it.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-euro" aria-hidden="true"></span>
+            <h3>What staying and moving cost over five years</h3>
+            <p>Compare staying, a partial move and a full move using the costs you supply.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-swap-horiz" aria-hidden="true"></span>
+            <h3>What replaces what</h3>
+            <p>Possible replacements and documented gaps for the chosen target profile.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-search" aria-hidden="true"></span>
+            <h3>What needs a closer look</h3>
+            <p>File types to review, Windows-only applications and functions that may need a separate solution.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
+            <h3>How this report was made</h3>
+            <p>Collection methods, assessment rules, cost calculations and run details.</p>
+          </li>
+        </ul>
+        <div class="subsection">
+          <p>The coverage table compares the documented functions in openDesk and Nextcloud.</p>
+          <p><a class="more" href="/coverage/">Compare openDesk and Nextcloud</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="how" aria-labelledby="how-title">
+      <h2 class="sec-label" id="how-title">How it works</h2>
+      <div class="sec-body">
+        <p class="lead">Install Git and uv, then run these commands. The first run downloads the dependencies. After setup, the demo runs offline and needs no Microsoft account.</p>
+        <div class="command" role="group" aria-label="Run in a terminal">
+          <p class="command-label" aria-hidden="true">Run in a terminal</p>
+          <div class="command-line">
+            <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo</span></code>
+            <button class="btn copy" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
+        <p><a class="more" href="/start/">Get started</a></p>
+      </div>
+    </section>
+
     <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
       <h2 class="sec-label" id="privacy-title">What stays on your computer</h2>
       <div class="sec-body">
         <p class="lead">Fazit builds the report on your computer. Once installed, it makes no network requests, and the report loads nothing from anywhere. Keep inputs and reports in a local folder that is not synchronised, and they stay on this machine.</p>
-        <ul class="tiles tiles-2">
-          <li>
-            <span class="tile-icon icon-computer" aria-hidden="true"></span>
-            <h3>Runs on your computer</h3>
-            <p>The report is one file in a folder you choose. Fazit uploads nothing and needs no account or cloud service.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-wifi-off" aria-hidden="true"></span>
-            <h3>No network requests</h3>
-            <p>Today Fazit contacts no server. The planned read-only sign-in will talk only to Microsoft sign-in and Microsoft Graph.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-lock" aria-hidden="true"></span>
-            <h3>Read-only by design</h3>
-            <p>The planned sign-in will ask only for read permissions and keep tokens in memory. The scan holds counts and codes, not personal names or email addresses.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-code" aria-hidden="true"></span>
-            <h3>Open to inspection</h3>
-            <p>Tests anyone can run show that Fazit stays offline and that reports load nothing external. The sign-in safeguards get their tests with the code.</p>
-          </li>
-        </ul>
         <div class="subsection">
           <h3>What Fazit will never do</h3>
           <ul class="safeguards">
@@ -139,231 +321,21 @@
         </div>
         <div class="subsection">
           <h3>Check it yourself</h3>
-          <p>After the first run, disconnect from the network, run <code>uv run --offline fazit demo</code> and open the report. It needs nothing from the network.</p>
+          <p>After the first run, disconnect from the network, run <code>uv run <span class="code-option">--offline</span> fazit demo</code> and open the report. It needs nothing from the network.</p>
           <p><a class="more" href="/security/#offline">How to verify offline operation</a></p>
         </div>
-      </div>
-    </section>
-
-    <section class="sec grid" id="example" aria-labelledby="example-title">
-      <h2 class="sec-label" id="example-title">One finding in full</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Can the town give up Teams Phone? This finding comes from the sample report for a fictional town. Its measurements are simulated.</p>
-        <article class="finding" aria-labelledby="finding-title">
-          <p class="finding-area" id="finding-title">Telephony</p>
-          <p class="finding-status"><span class="status-shape blocker" aria-hidden="true"></span>Blocker</p>
-          <p class="finding-reason">The organisation uses Microsoft telephony and has confirmed that it has no replacement.</p>
-          <dl class="evidence">
-            <div>
-              <dt>Separate licence assigned for Telephony</dt>
-              <dd class="evidence-value">Yes</dd>
-              <dd class="evidence-meta">Simulated in the sample licence inventory on 2 November 2026. Complete: 3 of 3 scanned, 0 failed.</dd>
-            </div>
-            <div>
-              <dt>Telephony runs through Microsoft</dt>
-              <dd class="evidence-value">Yes</dd>
-              <dd class="evidence-meta">Provided in the sample input on 10 November 2026.</dd>
-            </div>
-            <div>
-              <dt>Telephony replacement available</dt>
-              <dd class="evidence-value">No</dd>
-              <dd class="evidence-meta">Provided in the sample input on 10 November 2026.</dd>
-            </div>
-          </dl>
-          <p class="finding-target">On openDesk, telephone service is not in the suite and needs a separate provider. Checked 21 November 2026.</p>
-        </article>
-        <p class="tally">All 15 areas in the sample: 4 Ready, 9 Needs work, 1 Blocker, 1 Unknown.</p>
-        <p><a class="more" href="/demo/en/#readiness-title">Open the readiness section</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="report" aria-labelledby="report-title">
-      <h2 class="sec-label" id="report-title">What you get</h2>
-      <div class="sec-body">
-        <p class="sec-intro">One self-contained HTML report in English or German, ready to save, read offline or print.</p>
-        <ul class="tiles tiles-2">
-          <li>
-            <span class="tile-icon icon-description" aria-hidden="true"></span>
-            <h3>Report details</h3>
-            <p>Date, data source and target profile, at the top of every report.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-search" aria-hidden="true"></span>
-            <h3>What we found</h3>
-            <p>What the available evidence shows about your use of Microsoft 365.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-euro" aria-hidden="true"></span>
-            <h3>Five-year cost comparison</h3>
-            <p>Compare staying, a partial move and a full move at the prices you enter. The figures include retained licences, project costs, lost working time and parallel running.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-speed" aria-hidden="true"></span>
-            <h3>Readiness by area</h3>
-            <p>Ready, Needs work, Blocker or Unknown, with reasons, evidence and what was left unexamined.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-swap-horiz" aria-hidden="true"></span>
-            <h3>What moves where</h3>
-            <p>Possible replacements under the chosen target profile, with documented gaps.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-flag" aria-hidden="true"></span>
-            <h3>Needs attention</h3>
-            <p>File types to review, Windows-only applications and functions that may not carry over directly.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-route" aria-hidden="true"></span>
-            <h3>Suggested path</h3>
-            <p>Blockers, open questions and the areas that pass the current checks.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
-            <h3>Appendix</h3>
-            <p>Collection methods, rules, mappings, cost calculations and run details.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="sec grid" id="coverage" aria-labelledby="coverage-title">
-      <h2 class="sec-label" id="coverage-title">What the targets cover</h2>
-      <div class="sec-body">
-        <p class="sec-intro">The table summarises documented capabilities in the openDesk and Nextcloud profiles. The report uses the assessment evidence to show which functions your organisation needs.</p>
-        <ul class="legend" aria-label="Legend">
-          <li><span class="cov cov-full">In the suite</span></li>
-          <li><span class="cov cov-part">With limits</span></li>
-          <li><span class="cov cov-community">Community app</span></li>
-          <li><span class="cov cov-none">Not in the suite</span></li>
-        </ul>
-        <table class="coverage" role="table">
-          <caption class="sr-only">Coverage of each area by openDesk and Nextcloud</caption>
-          <thead role="rowgroup">
-            <tr role="row"><th scope="col" role="columnheader">Area</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
-          </thead>
-          <tbody role="rowgroup">
-            <tr role="row" data-workload="directory"><th scope="row" role="rowheader">Directory</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nubus</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud user and group administration</span></span></td></tr>
-            <tr role="row" data-workload="mail"><th scope="row" role="rowheader">Mail</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Open-Xchange (OX App Suite)</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Mail and Calendar with a separate mail server</span></span></td></tr>
-            <tr role="row" data-workload="onedrive"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Nextcloud Files</span></span></td></tr>
-            <tr role="row" data-workload="sharepoint"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Shared folders in Nextcloud Files · Separate redesign of workflows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Team Folders in Nextcloud Files · Rebuild supported workflows with Nextcloud Flow</span></span></td></tr>
-            <tr role="row" data-workload="teams"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Element · Jitsi · Separate decision on retaining past chats</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk · Separate decision on retaining past chats</span></span></td></tr>
-            <tr role="row" data-workload="office_files"><th scope="row" role="rowheader">Office files</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Collabora Online · Separate conversion or redevelopment</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Office · Separate conversion or redevelopment</span></span></td></tr>
-            <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Device management</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate device management service · Separately managed workstation operating system</span></span></td></tr>
-            <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Windows-only software</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate hosting or replacement of each application</span></span></td></tr>
-            <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate review and redevelopment of applications and flows</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Flow and Nextcloud Tables</span></span></td></tr>
-            <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telephony</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Not in the suite: </span></span><span>Separate telephone service</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Talk with a SIP bridge (Talk Enterprise subscription) and a SIP gateway</span></span></td></tr>
-            <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identity and access</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In the suite: </span></span><span>Keycloak</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community app: </span></span><span>OIDC Identity Provider app for Nextcloud</span></span></td></tr>
-            <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Security and compliance</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Access controls and malware scanning in openDesk</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud file protection and retention controls</span></span></td></tr>
-            <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Small applications</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>OpenProject and OX App Suite for tasks</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud Forms, Deck and Calendar</span></span></td></tr>
-            <tr role="row" data-workload="integrations"><th scope="row" role="rowheader">Integrations</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Interfaces in the openDesk components</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">With limits: </span></span><span>Nextcloud application interfaces and integrations</span></span></td></tr>
-          </tbody>
-        </table>
-        <p class="table-note">For public telephone calls with Nextcloud Talk, include the quoted recurring cost in the comparison and check call routing and queues. The openDesk and Nextcloud profiles were drafted from the projects’ documentation on 21 and 22 November 2026 and have not yet been reviewed by someone who runs these suites. Licences appear in the cost comparison. The generic profile covers other setups, such as desktops with Linux and LibreOffice.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings">Read the mappings and their sources</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="audience" aria-labelledby="audience-title">
-      <h2 class="sec-label" id="audience-title">Who it is for</h2>
-      <div class="sec-body">
-        <ul class="tiles tiles-3">
-          <li>
-            <a class="tile-link" href="/integrators/">
-              <span class="tile-icon icon-handshake" aria-hidden="true"></span>
-              <h3>Integrators</h3>
-              <p>With local import, you will be able to run the same assessment for each client and plan work from the findings.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
-            <h3>Municipal IT providers</h3>
-            <p>With local import, you will be able to offer assessments to member organisations and keep their assessment files on their own computers.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-person" aria-hidden="true"></span>
-            <h3>IT leads</h3>
-            <p>Run the demo without a Microsoft account and use your own answers and costs to prepare for an assessment.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">How it works</h2>
-      <div class="sec-body">
-        <p>Install Git and uv, then run three commands. The first run downloads what Fazit needs; after that the demo runs offline in about a second, with no Microsoft account.</p>
-        <p><a class="more" href="/start/">Get started</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="claims" aria-labelledby="claims-title">
-      <h2 class="sec-label" id="claims-title">Reading the findings</h2>
-      <div class="sec-body">
-        <p>Each finding shows its source, date, reporting period and coverage where available. Inventory figures say whether they were measured, provided or are unknown; cost figures say whether they were entered or calculated. Missing evidence comes with a reason and a next step. Cost totals stay unknown when required amounts are missing.</p>
-        <p>The report gives a status per area and has no overall score or verdict.</p>
-        <p>Fazit checks the structure of its inputs and selected relationships between figures. It cannot establish that a supplied inventory is true: a report is only as reliable as the people and tools that supplied its evidence.</p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="sources" aria-labelledby="sources-title">
-      <h2 class="sec-label" id="sources-title">Sources</h2>
-      <div class="sec-body">
-        <ul class="sources">
-          <li>
-            <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/" hreflang="de">openDesk evaluation for the City of Zurich</a>
-            <span>Bern University of Applied Sciences</span>
-          </li>
-          <li>
-            <a href="https://www.digitale-verwaltung-schweiz.ch/application/files/6017/8970/5022/Studie_Alternativen_zu_M365_und_Konsequenzen_bei_einem_Wechsel_September_2026.pdf" hreflang="de">Alternatives to Microsoft 365 and the implications of switching (PDF)</a>
-            <span>Study for Digitale Verwaltung Schweiz</span>
-          </li>
-        </ul>
-        <div class="subsection">
-          <h3>Target projects</h3>
-          <p>The <a href="https://docs.opendesk.eu/">openDesk</a> and <a href="https://nextcloud.com/">Nextcloud</a> profiles describe functions covered by projects such as Collabora Online, Open-Xchange, Element, Jitsi and Keycloak. Use the generic profile to consider other setups, such as desktops with Linux and LibreOffice.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec grid" id="free" aria-labelledby="free-title">
-      <h2 class="sec-label" id="free-title">Free and open source</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Fazit is free and open source under AGPL-3.0-or-later. All features and rules are in the open repository. The maintainer plans to earn from assessments and support around it.</p>
-        <ul class="tiles tiles-3">
-          <li>
-            <a class="tile-link" href="/pilots/">
-              <h3>Founding pilots</h3>
-              <p>Register interest in one of three free pilot assessments, one each in Germany, Austria and Switzerland. They start once import is available.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/integrators/">
-              <h3>For integrators</h3>
-              <p>Try the sample report and see the planned voluntary list of firms.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/security/">
-              <h3>Security and privacy</h3>
-              <p>Check the safeguards or report a vulnerability privately.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-        </ul>
       </div>
     </section>
 
     <section class="sec grid" id="status" aria-labelledby="status-title">
       <h2 class="sec-label" id="status-title">Project status</h2>
       <div class="sec-body">
+        <p class="lead">You can run Fazit from source and build reports from the bundled samples with your own answers and costs.</p>
         <ol class="timeline">
           <li class="timeline-step on">
             <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Now</p>
-            <p class="timeline-text">Run from source. Fazit builds reports from the bundled samples, with your own answers and costs. The measured figures in the samples are simulated. It is not yet on PyPI.</p>
+            <p class="timeline-text">The measured figures in the samples are simulated. Fazit is not yet on PyPI.</p>
           </li>
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
@@ -372,30 +344,31 @@
           </li>
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
-            <p class="timeline-name">Then</p>
-            <p class="timeline-text">Install with one command, or on Windows run a signed program without Python. Each release lists its checksums and contents.</p>
-          </li>
-          <li class="timeline-step">
-            <span class="timeline-dot" aria-hidden="true"></span>
-            <p class="timeline-name">After that</p>
-            <p class="timeline-text">Microsoft 365 Copilot and Copilot Studio as an assessed area, the date by which you need to decide, an export for project plans, a check that a report has not changed, and links to the sovereignty criteria of ZenDiS, the federal centre behind openDesk.</p>
-          </li>
-          <li class="timeline-step">
-            <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Later</p>
+            <p class="timeline-text">Install with one command, or run a signed Windows program without Python. Each release lists its checksums and contents.</p>
+            <p class="timeline-text">The report will cover Microsoft 365 Copilot and Copilot Studio and show the deadline for a renewal decision. CSV export for project plans, a report integrity check and links to the sovereignty criteria of ZenDiS, the federal centre behind openDesk, are planned.</p>
             <p class="timeline-text">Sign in read-only to check permissions and count licences and directory entries.</p>
           </li>
         </ol>
-        <p class="note-text">Reports are in German and English. French and Italian are planned with the Swiss pilot; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">the translation guide</a> shows how to add a language.</p>
+        <p class="note-text">French and Italian are planned with the Swiss pilot. <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit">The translation guide</a> shows how to add a language.</p>
       </div>
     </section>
 
-    <section class="sec grid" id="development" aria-labelledby="development-title">
-      <h2 class="sec-label" id="development-title">How it is made</h2>
+    <section class="sec grid" id="free" aria-labelledby="free-title">
+      <h2 class="sec-label" id="free-title">Free and open source</h2>
       <div class="sec-body">
-        <p class="lead">Written with AI tools, directed by a person.</p>
-        <p>Claude and Codex write the code. The maintainer decides what is built and answers for it, without reading every line. Before each release, other models look for faults, and their findings are public.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report">Read the reviews</a></p>
+        <p class="lead">Fazit is free and open source under AGPL-3.0-or-later. All features and rules are in the open repository. The maintainer plans to earn from assessments and support around it.</p>
+        <p>Claude and Codex write the code under the maintainer’s direction.</p>
+        <p><a class="more" href="/about/#about-made">How Fazit is made</a></p>
+        <ul class="tiles">
+          <li>
+            <a class="tile-link" href="/pilots/">
+              <h3>Founding pilots</h3>
+              <p>Register interest in one of three free pilot assessments, one each in Germany, Austria and Switzerland. They start once import is available.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+        </ul>
       </div>
     </section>
   </main>
@@ -426,7 +399,7 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"></a>
           <a class="language" href="/de/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
         </div>
       </div>

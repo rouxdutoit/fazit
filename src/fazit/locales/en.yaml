@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 header:
-  title: Microsoft 365 inventory
-  organisation: Organisation
+  title: "What leaving Microsoft\u00a0365 would take"
   unnamed_organisation: This organisation
   scan_date: Evidence date (scan.json)
   inputs_date: Inputs as of (inputs.yaml)
@@ -10,17 +9,43 @@ header:
   local: The person who ran Fazit created this report locally from scan.json. The command contacted no host.
   offline: To check, disconnect from the network and run the command again or open this file.
   sample: The scan measurements in this report are simulated.
+nav:
+  summary: Summary
+  next_steps: Next steps
+  areas: Areas
+  costs: Costs
+  replacements: Replacements
+  closer_look: Closer look
+  appendix: Appendix
+  on_this_page: On this page
+  label: Report sections
+  skip: Skip to content
+summary:
+  title: Where the organisation stands
+  of_areas: 'Of {n} areas:'
+  blockers: What blocks this move
+  confirmed: 'Confirmed blockers: {shown} of {total}'
+  all_blockers: All blockers
+  caveat: '{n} areas are Unknown or have incomplete evidence, so a Blocker cannot be ruled out.'
+  caveat_one: '{n} area is Unknown or has incomplete evidence, so a Blocker cannot be ruled out.'
+  unknown: What is still unknown
+  not_examined: All open points
+  define:
+    blocker: A confirmed obstacle that must be resolved before this move.
+    needs_work: The checks found work to do before a move.
+    unknown: Evidence is missing, so this version cannot assess the area.
+    ready: The current checks found no blocker and no missing evidence.
+  scope_title: What {profile} covers
+  scope_of: 'Of the {n} functions Fazit checks for {profile}:'
+  scope_needed: Outside {profile} and needed here
+  scope_unknown_one: One more function is outside {profile}. Whether this organisation needs it is unknown.
+  scope_unknown: '{n} more are outside {profile} and still Unknown here.'
 found:
-  title: What we found
+  title: What Fazit recorded
+  title_sample: What Fazit recorded for a fictional organisation
   finding: Finding
   value: Value
-  provenance: How we know
-  evidence: Evidence behind the figures
   collector: Collection method
-  source: Source
-  collected: Collection date
-  period: Reporting period
-  coverage: Coverage
   sample: Scan measurements are simulated.
   note: Note
   comparison: Other observation
@@ -30,7 +55,6 @@ found:
     directory: Internal accounts include shared and service accounts, so there can be more accounts than staff. Guests are counted separately.
 licences:
   title: Licence products
-  product: Product code
   unregistered_product: Unregistered product {number}
   product_count: 'Licence products found: {count}'
   purchased: Purchased
@@ -49,23 +73,39 @@ status:
   blocker: Blocker
   unknown: Unknown
 costs:
-  title: Five-year cost comparison
+  title: What staying and moving cost over five years
   inputs: Cost inputs
   input: Input
   results: Costs by scenario
   category: Cost category
   stay: Stay
-  partial_exit: Partial exit
-  full_exit: Full exit
+  partial_exit: Partial move
+  full_exit: Full move
   subtotal: Subtotal
   total: Five-year total
   difference: Difference from staying
   not_provided: Not provided
   not_applicable: Not applicable
   invented_amounts: Amounts in this table are based on invented prices for the demonstration.
-  rounding: Amounts are rounded to two decimal places for display. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
+  rounding: The summary totals and break-even figures are rounded to whole currency units. The tables show cents where needed. Totals use the unrounded amounts, so the displayed lines can differ slightly from their displayed sum.
   provide_inputs: Supply a cost input file with the report command's --inputs option.
   missing: 'Missing inputs for {scenario}'
+  stay_basis: Today's yearly costs for five years
+  comparison_unknown: Comparison unknown
+  stay_assumption: Staying assumes no price change.
+  break_even: '{scenario} costs the same as staying if target operations cost {amount} a year (entered: {entered}).'
+  break_even_none: '{scenario} costs more than staying even with no operations cost.'
+  vat_note: Amounts are as entered. The inputs file does not say whether they include VAT.
+  profile_note: The costs come from the inputs file and are the same for every target profile.
+  less: less than staying
+  more: more than staying
+  same: the same as staying
+  sub_cent: differs by less than one cent
+  total_unknown: Total unknown
+  known_blocks: 'Total for known cost categories: {amount}'
+  inputs_missing: '{n} inputs are missing'
+  inputs_missing_one: '{n} input is missing'
+  missing_fix: Enter the missing amounts in the inputs file and build the report again.
   origins:
     invented: Invented amount
     sample_input: Sample input
@@ -86,12 +126,12 @@ costs:
     training_days_per_person: Training days per person
     training_day_rate: Training cost per person per day
     training_staff: People to train
-    productivity_loss: Cost of productivity loss
+    productivity_loss: &lost_time Lost working time (internal estimate, not a payment)
     parallel_running_months: Months running both systems
   groups:
     running: Running costs
     direct_project: Direct project costs
-    productivity_loss: Productivity loss
+    productivity_loss: *lost_time
     parallel_running: Parallel running
   line_items:
     microsoft_licences: Current Microsoft licences
@@ -104,37 +144,49 @@ costs:
     application_adaptation: Application adaptation
     external_advice: External advice
     training: Training
-    productivity_loss: Cost of productivity loss
+    productivity_loss: *lost_time
     parallel_running: Current Microsoft licences during parallel running
   formulas_title: How the costs are calculated
   formulas:
     - Staying costs five times the annual Microsoft licence cost and five times the annual cost of other existing IT. The three change costs are zero.
-    - In each exit scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.
+    - In each move scenario, subtract the months of parallel running from 60. Multiply the annual cost of retained Microsoft licences by the remaining months and divide by 12.
     - Multiply the monthly hosting cost per user by the number of users and by 60. Hosting starts in the first month. Multiply each annual cost for operations, other target costs and other existing IT by five.
     - Direct project costs add one-time migration, application adaptation, external advice and training. Training costs are the days per person times the cost per person per day times the number of people to train.
-    - The productivity loss block uses the amount entered for productivity loss.
+    - The amount entered for lost working time forms its own cost block.
     - Parallel running costs the full annual Microsoft licence amount times the number of parallel months, divided by 12.
     - The five-year total adds running costs and the three change costs. The comparison subtracts the total for staying from each scenario's total.
     - A line with a zero factor costs zero. A missing input needed by a calculation leaves the result unknown.
 readiness:
-  title: Readiness by area
-  counts: Areas by status
-  workload: Area
-  evidence: Evidence
+  title: Where each area stands
+  next_step: Next step
   incomplete: Evidence incomplete
   missing: Evidence still needed
   conflict: The report uses the measured minimum because the supplied total is lower.
-  not_examined: Not examined
+  evidence: Evidence
+  evidence_summary: '{measured} measured, {provided} provided, {unknown} unknown'
+  all_replacements: All replacements
+filter:
+  status_legend: Show areas by status
+  category_legend: Show areas by category
+  all: All
+  all_categories: All categories
+  empty: No area matches these filters. Choose “All” and “All categories” to see every area.
+  search_hint: Filtered-out areas and, in some browsers, closed sections are not searched.
 moves:
-  title: What moves where
+  title: What replaces what
+  coverage: Coverage
+  need: Needed here
+  need_not_assessed: Not assessed
   microsoft: Microsoft function
   replacement: Target replacement
-  coverage: Coverage and check date
-  evidence: Readiness evidence
-  workload_status: Area status and reason
-  workload_evidence: Evidence for {workload}
+  workload_status: Area status
+  status_link: '{area}: {status}'
   no_function: There is no function to move.
+  licences_excluded: Licences have no function to move, so they are not in this table.
+  area_excluded: '{area} has no function to move, so it is not in this table.'
   no_project_check: This row has no project-specific documentation check.
+  unreviewed: This mapping has not yet been reviewed by someone who operates the target system.
+  reviewed: This mapping was reviewed on {date} by someone who operates the target system.
 mapping_coverage:
   in_suite: In the suite
   in_suite_with_limits: In the suite with limits
@@ -143,9 +195,10 @@ mapping_coverage:
   open_source_community: Open source community solution
   open_source_third_party: Open source third-party solution
   proprietary_third_party: Proprietary third-party solution
+  transfer_undocumented: Direct transfer undocumented
   not_available: Not available
 attention:
-  title: Needs attention
+  title: What needs a closer look
   files: File types to review
   file_kind: File type
   extensions: Extensions
@@ -160,24 +213,71 @@ attention:
   needed_here: Needed by this organisation
   no_gaps: This profile lists no functions with unverified direct transfer.
 path:
-  title: Suggested path
-  blocker: Confirmed blockers
-  unknown: Unknowns to resolve first
-  ready: Areas with Ready status
+  title: What to do next
+  even_if_staying: Worth doing even if you stay
+  for_move: Needed for a move
+  who_answers: 'Who answers:'
+  source: 'Source:'
+  input_field: 'Field in inputs.yaml:'
+  finding_question: 'What does the evidence show for “{finding}”?'
+  area_question: 'What evidence is still needed for {area}?'
+  collector_question: What evidence is missing from this collection?
+  guidance:
+    not_in_export: Ask the service owner for the missing information.
+    needs_recipient_export: Ask the mail administrator to check the count separately.
+    source_not_supplied: Find out which source can provide the missing evidence.
+  questions:
+    licences.contract_terms_known: Has procurement reviewed the Microsoft licence terms?
+    directory.account_list_reviewed: Has the IT team reviewed the current account list?
+    mail.shared_mailbox_count: How many shared mailboxes does the organisation have?
+    mail.other_systems_send_mail: Do other systems send mail through Microsoft?
+    onedrive.external_sharing_in_use: Does your organisation share OneDrive files with people outside it?
+    sharepoint.custom_solutions_in_use: Does your organisation use any custom SharePoint solutions?
+    sharepoint.workflows_in_use: Do any SharePoint sites, lists or libraries run or start workflows or automated approvals?
+    teams.chat_history_must_be_kept: Does your organisation need to keep its Teams chat history?
+    teams.apps_in_use: Are apps, tabs, bots or connectors added to teams?
+    office_files.kind.macro: How many files have extensions that allow macros?
+    office_files.kind.access: How many Access database files are there?
+    office_files.kind.publisher: How many Publisher files are there?
+    office_files.kind.visio: How many Visio drawing files are there?
+    office_files.kind.onenote: How many OneNote files are there?
+    office_files.vba_macros_in_use: Do staff rely on VBA macros in Office files?
+    device_management.device_count: How many devices does the IT inventory cover?
+    device_management.windows_device_count: How many of those devices run Windows?
+    device_management.in_use: Does your organisation manage devices through Microsoft?
+    device_management.windows_desktops_required: Do any applications, devices or peripherals need a Windows desktop?
+    windows_software.application_count: Which applications run only on Windows?
+    windows_software.without_web_version_count: Which Windows-only applications have no web version?
+    power_platform.in_use: Does your organisation use Power Platform services?
+    telephony.in_use: Does any of your organisation's telephony run through Microsoft?
+    telephony.replacement_available: Is a replacement available for the Microsoft telephony in use?
+    identity_access.sso_application_count: How many applications use Microsoft single sign-on?
+    identity_access.conditional_access_in_use: Does your organisation use Microsoft Conditional Access?
+    security_compliance.protection_or_retention_in_use: Does your organisation use Microsoft's protection or retention features?
+    small_apps.in_use: Do departments use smaller Microsoft applications such as Forms, Planner or Bookings?
+    integrations.application_count: How many business applications are connected to Microsoft 365?
+  transfer_actions:
+    not_available: The service lead and IT team decide on replacements for {functions} after the move.
+    not_available.device_management: The service lead and IT team decide how to manage devices after the move.
+    not_available.desktop_operating_system: The service lead and IT team decide how to provide the desktop operating system after the move.
+    not_available.windows_applications: The service lead and IT team decide how to run Windows-only applications after the move.
+    not_available.automation_and_low_code: The service lead and IT team decide how to run the automations and low-code applications after the move.
+    not_available.telephony: The service lead and IT team decide how {functions} are provided after the move.
+    transfer_undocumented: The service lead and IT team plan and test how to transfer or rebuild the content for {functions}.
   empty:
     blocker: The evidence identified no blocker.
     unknown: Every area has a known status.
-    ready: No area meets the evidence requirements for Ready.
-  pilot_evidence: The report has no department-level evidence, so it cannot identify a department for a pilot.
-  pilot_choice: The people responsible for the move choose the pilot group with the organisation.
-  sequence: How a move typically proceeds
-  steps:
-    - A pilot group tries the new system.
-    - Files that need conversion are prepared and tested.
-    - The organisation moves in waves with both systems running side by side.
-    - The organisation switches off the old system after the move is complete.
+role:
+  it_team: IT team
+  licence_management: Licence management
+  service_owner: Service lead
+  data_protection: Data protection officer
+  information_security: Information security officer
+  procurement: Procurement
 appendix:
-  title: Appendix
+  title: How this report was made
+  not_looked: What Fazit does not look at
+  not_looked_text: File contents, mail, data about individual people, analysis by department, and the settings of the target system.
   schema_version: Schema version
   collectors: Collection methods
   status: Status
@@ -209,6 +309,7 @@ source_kind:
   live: Live collection
 provenance:
   measured: Measured
+  measured_sample: Measured (simulated)
   provided: Provided
   unknown: Unknown
 collector:
@@ -252,7 +353,7 @@ coverage:
 reason:
   not_in_export:
     label: The export does not contain this figure.
-    fix: Check the export options and supply an export that includes it.
+    fix: Ask the service owner for the missing information. Enter it in the inputs file if there is a matching field.
   permission_denied:
     label: The collection method lacked permission.
     fix: Ask an administrator to check the required read permissions.
@@ -267,10 +368,10 @@ reason:
     fix: Find out the answer and enter it in the inputs file.
   source_not_supplied:
     label: The data source was missing.
-    fix: Supply the required export and rebuild the report.
+    fix: Find out which source can provide the missing information. It stays Unknown while it is absent from the scan and inputs file.
   needs_recipient_export:
     label: Mailbox usage alone cannot establish the number of shared mailboxes.
-    fix: Supply an Exchange recipient export that includes the mailbox type.
+    fix: Ask the mail administrator to check the count separately. It stays Unknown in this report.
   collector_skipped:
     label: The collection method did not run.
     fix: Check the reason in the appendix and supply the missing evidence.
@@ -291,7 +392,7 @@ reason:
     fix: Supply the list of service plans for that product.
   licence_plan_list_incomplete:
     label: Plan list incomplete for a known product.
-    fix: Check the export and supply the complete list of service plans for the product.
+    fix: Ask licence management to check which service plans belong to the product.
   licence_assignments_conflict:
     label: Licence assignments contradict licensed accounts.
     fix: Check the directory count and licence inventory for the same organisation and collect the figures again.
@@ -310,17 +411,12 @@ reason:
   provided_answers_conflict:
     label: The supplied answers disagree.
     fix: Check both answers with the service owner and correct the source files.
-  desktop_requirements_conflict:
-    label: >-
-      The supplied answer says Windows desktops are unnecessary.
-      The software list identifies Windows-only applications without a web version.
-    fix: Confirm with the service owner whether these applications still require Windows desktops.
   not_established:
     label: The available evidence leaves the answer open.
     fix: Review the finding with the person responsible for the service.
   not_recognised:
     label: This version does not recognise the reason.
-    fix: Check the export and the tool version.
+    fix: Check the version of the tool that produced the scan and the reason code in the scan file.
 units:
   users: accounts
   groups: groups
@@ -365,6 +461,12 @@ workload:
   security_compliance: Security and compliance
   small_apps: Small applications
   integrations: Integrations
+category:
+  communication: Communication
+  files: Files and documents
+  identity_devices: Identity and devices
+  automation_ai: Automation and AI
+  security: Security and compliance
 finding:
   licences.contract_terms_known: Licence terms reviewed
   directory.user_count: Internal accounts
@@ -384,15 +486,18 @@ finding:
   sharepoint.storage_bytes: SharePoint storage
   sharepoint.file_count: SharePoint files
   sharepoint.custom_solutions_in_use: Custom SharePoint solutions in use
+  sharepoint.workflows_in_use: Workflows on SharePoint sites, lists or libraries in use
   teams.team_count: Teams
   teams.channel_count: Channels
   teams.teams_with_guests_count: Teams with guests
   teams.chat_history_must_be_kept: Teams chat history must be kept
+  teams.apps_in_use: Apps, tabs, bots or connectors added to teams
   office_files.kind.macro: Files that may contain macros
   office_files.kind.access: Access databases
   office_files.kind.publisher: Publisher files
   office_files.kind.visio: Visio files
   office_files.kind.onenote: OneNote files
+  office_files.vba_macros_in_use: VBA macros that staff rely on
   device_management.device_count: Devices
   device_management.windows_device_count: Windows devices
   device_management.in_use: Microsoft device management in use

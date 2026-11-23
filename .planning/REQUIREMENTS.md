@@ -27,7 +27,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 ### Rules and mapping
 
 - [x] **RULE-01**: User can choose a target profile (`opendesk`, `nextcloud`, `generic`) that maps each Microsoft service to its open source replacement, defined in a YAML file
-- [x] **RULE-02**: Each workload gets a status of Ready, Needs work, Blocker or Unknown with a human-readable reason, from rules in a YAML file
+- [x] **RULE-02**: Each workload gets a status of Ready, Needs work, Blocker or Unknown with a human-readable reason, from rules in a YAML file. *D34 limits this to assessed areas and keeps Licences in the inventory.*
 - [x] **RULE-03**: A workload with missing, partial or skipped evidence is never Ready: it is Unknown unless a problem confirmed by complete evidence gives it a worse status, and it is always marked incomplete with the missing items listed
 - [x] **RULE-04**: Rule and mapping files are validated on load, and an invalid file produces an error that names the file and the field
 - [x] **RULE-05**: The list of risky file types is configurable, excludes `.dotx`, and macro-enabled types are reported as "may contain macros"
@@ -44,7 +44,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 ### Report
 
 - [x] **REPT-01**: Report is one self-contained `.html` file with inline CSS and embedded fonts (D29), no JavaScript and no external resources
-- [x] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer
+- [x] **REPT-02**: Report contains, in order: header with the read-only statement, what we found, cost comparison, readiness by workload, what moves where, needs attention, suggested path, appendix, footer. *The ten-section order in D33 supersedes this order.*
 - [x] **REPT-03**: Appendix lists permissions used, collectors skipped and why, the rules applied, and the full mapping
 - [x] **REPT-04**: Report works in light and dark mode, is readable at phone width, and prints cleanly to PDF
 - [x] **REPT-05**: Status is never conveyed by colour alone: each status has a text label and its own symbol (D-80)
@@ -62,7 +62,7 @@ Sources: `HANDOFF.md` (original spec) and `DECISIONS.md` (agreed changes, which 
 - [ ] **SOVC-01**: Each finding links to the criterion it informs in ZenDiS's sovereignty criteria catalogue (version 1.0) and, where they apply, the Austrian and Swiss equivalents; the appendix lists the mapping with its source and date
 - [ ] **OUTP-01**: User can export findings, open questions and effort drivers as CSV for project plans, under the same privacy rules as `scan.json`
 - [ ] **OUTP-02**: `fazit verify REPORT` checks offline whether a report was changed after it was written, using its embedded checksums; it detects changes, it does not prove who ran Fazit
-- [ ] **OUTP-03**: The report opens with a one-page summary (status per area, first blockers, open questions, the three scenario totals) that can be pasted into a council paper and fits German labels. *Why: decision-makers read one page; both release reviewers proposed it.*
+- [ ] **OUTP-03**: The report opens with one page for the council, with the organisation, evidence and answer dates, the sample or invented-price note where applicable, status counts and definitions, first blockers or the zero-blocker statement with its caveat, open questions and the three scenario totals with their origin. The content is the same on screen and on paper. A4 printing is tested in English and German for both samples and a report with all areas Unknown. Pasting into a council paper is best effort. *D35 moves this requirement into the report redesign.*
 - [ ] **OUTP-04**: User can run `fazit report --inputs inputs.yaml` without a scan, and `fazit` ships a blank interview starter with every measurement unknown. *Why: an integrator should not carry the fictional town's inventory into a client's first meeting.*
 - [ ] **DATA-01**: The report states where the tenant's data is stored (data location and EU Data Boundary status), from an admin-centre export or a provided answer, as a fact without a score
 
@@ -226,7 +226,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-02 | Phase 4 | Pending |
 | DOCS-03 | Phase 4 | Pending |
 | DOCS-04 | Phase 4 | Pending |
-| OUTP-03 | Phase 1.2 | Pending |
+| OUTP-03 | Report redesign | Pending |
 | OUTP-04 | Phase 1.2 | Pending |
 | IMPT-06 | Phase 2 | Pending |
 | VALD-01 | Phase 2 | Pending |
@@ -240,7 +240,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Unmapped: 0 ✓
 - Phase 1 (Demo and Report): 31
 - Phase 1.1 (AI Assistants and Decision Window): 2
-- Phase 1.2 (Outputs for Integrators): 4
+- Report redesign: 1
+- Phase 1.2 (Outputs for Integrators): 3
 - Phase 1.3 (Sovereignty Criteria): 1
 - Phase 2 (Import): 10
 - Phase 2.1 (Packaging and Launch): 4
@@ -249,4 +250,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-11-21*
-*Last updated: 2026-11-22 after the release review: Phase 1 complete, ideas both reviewers agreed on added (OUTP-03, OUTP-04, IMPT-06, VALD-01, DIST-04, CONV-06); packaging moved before live scans for the launch (phase 2.1, DIST-05)*
+*Last updated: 2026-11-22 for the report redesign. D33 and D34 amend REPT-02 and RULE-02, and D35 moves the council summary (OUTP-03) out of Phase 1.2.*

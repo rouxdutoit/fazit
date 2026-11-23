@@ -214,6 +214,12 @@ def _inputs(draw: st.DrawFn) -> dict | None:
             thorough,
         ),
     }
+    counts = inputs["provided_counts"]
+    for entry in answers:
+        if entry.id in counts and entry.subset_of and entry.subset_of <= counts.keys():
+            counts[entry.id] = min(
+                counts[entry.id], sum(counts[parent] for parent in entry.subset_of)
+            )
     if draw(st.booleans()):
         inputs["as_of"] = DAY
     if draw(st.booleans()):

@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta property="og:image:alt" content="Fazit wordmark and an excerpt from the English sample report. The summary shows the number of areas in each status and identifies telephony as the blocker.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Main navigation">
         <div class="bar-links-in">
           <a href="/pilots/">Pilots</a>
@@ -39,11 +40,9 @@
           <a href="/security/" aria-current="page">Security</a>
           <a href="/demo/en/">Sample report</a>
           <a href="https://github.com/rouxdutoit/fazit">Source code</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
+          <a class="btn btn-solid bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
 
@@ -51,54 +50,65 @@
     <div class="page-intro">
       <h1>Security and privacy</h1>
       <p>The current version of Fazit runs on your computer and contains no network code. A read-only sign-in to Microsoft is planned.</p>
+      <p>The planned import will read usage exports offline.</p>
       <a class="btn btn-secondary" href="#disclosure"><span class="btn-icon icon-shield" aria-hidden="true"></span>Report a vulnerability</a>
     </div>
 
     <section class="sec grid" id="principles" aria-labelledby="principles-title">
-      <h2 class="sec-label" id="principles-title">Principles</h2>
+      <h2 class="sec-label" id="principles-title">What is true today and what is planned</h2>
       <div class="sec-body">
-        <ul class="tiles tiles-2">
-          <li>
-            <span class="tile-icon icon-lock" aria-hidden="true"></span>
-            <h3>Read-only</h3>
-            <p>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-computer" aria-hidden="true"></span>
-            <h3>Local processing</h3>
-            <p>Fazit keeps assessment data on the computer, as long as the scan, inputs and <code>--out</code> directory are on local storage: a network share sends those files over the network. Usage exports will be imported offline. The planned sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>, with no telemetry, analytics, update checks or content delivery networks.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-memory" aria-hidden="true"></span>
-            <h3>Tokens in memory</h3>
-            <p>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-database" aria-hidden="true"></span>
-            <h3>Metadata only</h3>
-            <p>Planned collection will be limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-visibility-off" aria-hidden="true"></span>
-            <h3>Personal data</h3>
-            <p>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-description" aria-hidden="true"></span>
-            <h3>Offline report</h3>
-            <p>The report is one HTML file with inline CSS and embedded Figtree and Geist Mono fonts. It opens and prints without a network connection, JavaScript or external resources.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
-            <h3>One command</h3>
-            <p>After setup, one command builds a report from the bundled samples with your own answers and costs. The measured figures in the samples are simulated. Planned sign-in will use the browser with PKCE and offer a device code as a fallback.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
-            <h3>Honest figures</h3>
-            <p>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</p>
-          </li>
-        </ul>
+        <div class="subsection">
+          <h3>True today</h3>
+          <ul class="tiles tiles-2">
+            <li>
+              <span class="tile-icon icon-computer" aria-hidden="true"></span>
+              <h4 class="tile-title">Local processing</h4>
+              <p>Fazit keeps assessment data on the computer if the scan, inputs and <code>--out</code> directory are on local storage. A network share sends those files over the network.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-description" aria-hidden="true"></span>
+              <h4 class="tile-title">Offline report</h4>
+              <p>The report is one HTML file with inline CSS and embedded Figtree and Geist Mono fonts. It opens and prints without a network connection, JavaScript or external resources.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-visibility-off" aria-hidden="true"></span>
+              <h4 class="tile-title">Personal data</h4>
+              <p>The scan format excludes collected person names and email addresses, and Fazit discards unrecognised fields. The report can show the organisation name and Windows-only application names you enter in <code>inputs.yaml</code>.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-terminal" aria-hidden="true"></span>
+              <h4 class="tile-title">One command</h4>
+              <p>After setup, one command builds a report from the bundled samples with your own answers and costs. The measured figures in the samples are simulated.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
+              <h4 class="tile-title">Honest figures</h4>
+              <p>The report calculates only with costs you supply and marks example figures as examples. Missing evidence stays unknown, and a skipped or denied check never improves readiness.</p>
+            </li>
+          </ul>
+        </div>
+        <div class="subsection">
+          <h3>Planned for sign-in</h3>
+          <p>Sign-in will contact only <code>login.microsoftonline.com</code> and <code>graph.microsoft.com</code>. Fazit will omit telemetry, analytics, update checks and content delivery networks.</p>
+          <p>Sign-in will use the browser with PKCE and offer a device code as a fallback.</p>
+          <ul class="tiles tiles-2">
+            <li>
+              <span class="tile-icon icon-lock" aria-hidden="true"></span>
+              <h4 class="tile-title">Read-only</h4>
+              <p>The planned sign-in will request read permissions and use a list of approved read endpoints. Any request that could change the tenant is excluded, even one that uses <code>GET</code>.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-memory" aria-hidden="true"></span>
+              <h4 class="tile-title">Tokens in memory</h4>
+              <p>When sign-in is added, access and refresh tokens will stay in memory and never be written to disk.</p>
+            </li>
+            <li>
+              <span class="tile-icon icon-database" aria-hidden="true"></span>
+              <h4 class="tile-title">Metadata only</h4>
+              <p>Planned collection will be limited to counts, sizes and coded evidence. Fazit leaves mail bodies and file contents unopened.</p>
+            </li>
+          </ul>
+        </div>
         <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/DECISIONS.md#principles">Read the project’s principles</a></p>
       </div>
     </section>
@@ -108,7 +118,7 @@
       <div class="sec-body">
         <ol class="steps">
           <li>Set up Git and uv, clone the <a href="https://github.com/rouxdutoit/fazit">repository</a> and run <code>uv run fazit demo</code> once to install the dependencies.</li>
-          <li>Disconnect the computer from the network. In the same directory, run <code>uv run --offline fazit demo</code>.</li>
+          <li>Disconnect the computer from the network. In the same directory, run <code>uv run <span class="code-option">--offline</span> fazit demo</code>.</li>
           <li>Open the HTML file named on the last line of the output, then open the print preview. Both work while disconnected.</li>
         </ol>
         <p><a class="more" href="https://github.com/rouxdutoit/fazit/blob/main/tests/test_installed_package.py">See the installed package’s offline test</a></p>
@@ -133,7 +143,7 @@
     <section class="sec grid" id="disclosure" aria-labelledby="disclosure-title">
       <h2 class="sec-label" id="disclosure-title">Report a vulnerability</h2>
       <div class="sec-body">
-        <p>Use <a href="https://github.com/rouxdutoit/fazit/security/advisories/new">GitHub’s private vulnerability form</a>. If the form is unavailable, email <a href="mailto:hello@rouxdutoit.com">hello@rouxdutoit.com</a>.</p>
+        <p>Use <a href="https://github.com/rouxdutoit/fazit/security/advisories/new">GitHub’s private vulnerability form</a>. If the form is unavailable, <a href="mailto:hello@rouxdutoit.com">email the maintainer</a>.</p>
         <p>Do not disclose the vulnerability publicly. Use fictional examples, not real scans or reports.</p>
       </div>
     </section>
@@ -165,7 +175,7 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"></a>
           <a class="language" href="/de/security/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
         </div>
       </div>

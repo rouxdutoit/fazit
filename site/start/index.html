@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit and an excerpt from the readiness section of the English sample report">
+  <meta property="og:image:alt" content="Fazit wordmark and an excerpt from the English sample report. The summary shows the number of areas in each status and identifies telephony as the blocker.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/" aria-label="Fazit home">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Main navigation">
         <div class="bar-links-in">
           <a href="/pilots/">Pilots</a>
@@ -39,11 +40,9 @@
           <a href="/security/">Security</a>
           <a href="/demo/en/">Sample report</a>
           <a href="https://github.com/rouxdutoit/fazit">Source code</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
+          <a class="btn btn-solid bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Get started</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
     </div>
   </header>
 
@@ -51,11 +50,11 @@
     <div class="page-intro">
       <h1>Get started with Fazit</h1>
       <p>Run the demo on your own computer. It needs no Microsoft account, and after setup it runs without a network connection.</p>
-      <div class="command" role="group" aria-labelledby="command-label">
-        <p class="command-label" id="command-label">Run in a terminal</p>
+      <div class="command" role="group" aria-label="Run in a terminal">
+        <p class="command-label" aria-hidden="true">Run in a terminal</p>
         <div class="command-line">
-          <code id="demo-command"><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo</span></code>
-          <button class="copy" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden></button>
+          <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo</span></code>
+          <button class="btn copy" type="button" aria-label="Copy command" title="Copy" data-copy data-copied="Copied" data-manual="Copy the selected command." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
         </div>
         <p class="copy-message" role="status"></p>
       </div>
@@ -67,14 +66,18 @@
       <div class="sec-body">
         <ul class="tiles tiles-2">
           <li>
-            <span class="tile-icon icon-code" aria-hidden="true"></span>
-            <h3>Git</h3>
-            <p>Downloads Fazit's source code. <a href="https://git-scm.com/downloads">Get Git</a></p>
+            <a class="tile-link" href="https://git-scm.com/downloads">
+              <h3>Get Git</h3>
+              <p>Downloads Fazit's source code.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
           <li>
-            <span class="tile-icon icon-terminal" aria-hidden="true"></span>
-            <h3>uv</h3>
-            <p>Sets up the right Python and every package on the first run. <a href="https://docs.astral.sh/uv/getting-started/installation/">Install uv</a></p>
+            <a class="tile-link" href="https://docs.astral.sh/uv/getting-started/installation/">
+              <h3>Install uv</h3>
+              <p>Sets up the right Python and every package on the first run.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
           </li>
         </ul>
         <p class="note-text">Fazit is tested on Windows, macOS and Linux.</p>
@@ -84,7 +87,7 @@
     <section class="sec grid" aria-labelledby="start-run">
       <h2 class="sec-label" id="start-run">Run the demo</h2>
       <div class="sec-body">
-        <p>This builds the sample report for a fictional town administration, in English. For German, run <code>uv run fazit demo --lang de</code> in the same folder.</p>
+        <p>This builds the sample report for a fictional town administration, in English. For German, run <code>uv run fazit demo <span class="code-option">--lang de</span></code> in the same folder.</p>
       </div>
     </section>
 
@@ -92,7 +95,7 @@
       <h2 class="sec-label" id="start-open">Open the report</h2>
       <div class="sec-body">
         <p>The last line of the output shows where the report was saved. Open that HTML file in your browser.</p>
-        <p>To check that Fazit works without a network, disconnect, run <code>uv run --offline fazit demo</code> and open the report again.</p>
+        <p>To check that Fazit works without a network, disconnect, run <code>uv run <span class="code-option">--offline</span> fazit demo</code> and open the report again.</p>
         <p><a class="more" href="/security/#offline">How to verify offline operation</a></p>
       </div>
     </section>
@@ -106,27 +109,13 @@
     </section>
 
     <section class="sec grid" aria-labelledby="start-next">
-      <h2 class="sec-label" id="start-next">Next</h2>
+      <h2 class="sec-label" id="start-next">See the result without installing</h2>
       <div class="sec-body">
-        <ul class="tiles tiles-3">
+        <ul class="tiles">
           <li>
             <a class="tile-link" href="/demo/en/">
               <h3>Sample report</h3>
-              <p>See the finished report without installing anything.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/integrators/">
-              <h3>For integrators</h3>
-              <p>See what a client assessment will contain once import is available.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/security/">
-              <h3>Security and privacy</h3>
-              <p>Check the safeguards in detail.</p>
+              <p>Browse the results for a fictional town with simulated measurements.</p>
               <span class="tile-arrow" aria-hidden="true"></span>
             </a>
           </li>
@@ -161,7 +150,7 @@
         <p>AGPL-3.0-or-later · No cookies or analytics</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="Email" title="Email"></a>
           <a class="language" href="/de/start/" lang="de" hreflang="de" aria-label="Deutsch">DE</a>
         </div>
       </div>

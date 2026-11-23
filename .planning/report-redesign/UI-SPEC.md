@@ -2,6 +2,8 @@
 
 Design contract, revision 4, with both reviews, the filter request, the launch critique decisions and the usefulness review applied. One design, no options.
 
+**RR-11 (2026-11-23).** The founder reverted RR-09 item 1. The section index is back in RR-04's sticky top bar and the section headings use the website's grid. The compact phone menu holds the same links. The status list, the area cards, the filters, the replacements table and the cost tiles keep the RR-09 and RR-10 refinements.
+
 **Revision 4.1** (2026-11-22) adds the Apple-lens review (`.planning/research/apple-lens/REVIEW.md`, section 4 and copy bugs): one status list with counts and definitions; scope statement after the open questions; the blocker count line only when rows are cut off; the area name as every card's anchor; next steps before open points in "Worth doing even if you stay"; shorter search hint and Stay note; German provenance words.
 
 **Revision 4** (2026-11-22) applies the founder's decisions on the usefulness review (`.planning/research/report-usefulness/SYNTHESIS.md`, sections A and C): findings, not a verdict; page one written for the council, on screen and in print; no readiness bar in the summary; three cost totals with the Stay assumption and a break-even line; one open-points list straight after the summary, split into what is worth doing even if the organisation stays and what only a move needs; scoped blocker wording; a coverage symbol that no status uses; a scope statement once RR-06 and RR-07 have landed. It also takes in the launch-critique changes already in RR-01: Licences has no status, card or category, and the area count comes from the catalogue. German copy marked *draft* needs the native review before merge.
@@ -51,7 +53,7 @@ The summary is page one's body. In this order:
 
 Exactly one card per assessed workload, in `div.areas`, replaces the table. Licences has no status, card or category (launch critique C2); its evidence stays in `found`. `h2#readiness-title` stays. Order inside: the readiness bar, filters, status groups, empty state.
 
-**Readiness bar** (moved from the summary): the existing `.readiness-bar` and hooks, in display order, as the visual for the status filter directly above it. Height 12 px, gap 2 px, radius 999 px. It is not repeated on page one.
+**No readiness bar.** Founder's decision on 2026-11-22, after the Apple-lens review: the segmented bar is removed from the report entirely, from the summary and from above the filters. A coloured bar reads as a score or progress; the status filter's counts carry the distribution.
 
 ### 2.1 Grouping
 
@@ -194,7 +196,7 @@ With nothing open and no step, `path.empty.unknown` and `path.empty.blocker` as 
 
 ## 5. Navigation
 
-`div.bar > .bar-in > a.wordmark[href="#main"] + nav.bar-links[aria-label] > .bar-links-in`, sticky, seven links in section order: Summary, Next steps, Areas, Costs, Replacements, Closer look, Appendix. `main` has `id="main"`; `.skip` is first in `body`; `html { scroll-padding-block-start: calc(var(--bar-h) + 16px) }`. Hidden in print.
+`div.bar > .bar-in` stays at the top. It holds the wordmark linking to `#main` and `nav.bar-links > .bar-links-in` with seven links in section order. The labels are Summary, Next steps, Areas, Costs, Replacements, Closer look and Appendix. Below 40 rem the same links are available from the “On this page” disclosure in the bar. The link to the section containing `:target` is marked. `.skip` is first in `body` and focuses `main#main`. The fragment scroll offset is the bar height plus 16 px. Wide section headings add 8 px to align with their content when reached by a fragment. Print hides the bar and skip link.
 
 ## 6. Tokens and components
 
@@ -211,7 +213,7 @@ Reused from the site:
 
 | Report use | Site selector |
 |---|---|
-| Section frame, label left from 880 px | `.sec`, `.grid`, `.sec-label`, `.sec-body`, `.sec-intro`, `.subsection` |
+| Section frame, label left from 880 px with 4:8 columns and a divider spanning the content column | `.sec`, `.grid`, `.sec-label`, `.sec-body`, `.sec-intro`, `.subsection` |
 | Header | `.page-intro`, `.eyebrow` |
 | Bar, skip link | `.bar`, `.bar-in`, `.wordmark`, `.bar-links`, `.bar-links-in`, `.skip`, `.sr-only` |
 | Tiles | `.tiles`, `.tiles-2`, `.tile-label`, `.tile-title`, `.figure-num` |
@@ -225,7 +227,7 @@ Exceptions to copying, and no others:
 
 1. **Resources.** The two embedded font data URLs are the only `url()`. Site font paths, icon masks and rules that depend on the site's script (menu, reveal, copy) are not copied.
 2. **Symbols** are inline `<svg class="icon"><path>` at the site's sizes, never `use`. `circle`, `contrast`, `code` and `cancel` are packaged in `icons/` and registered in `report.py`.
-3. **Bar.** `div.bar`, not `header.bar` (tests split on the report's one `header`). Below 820 px there is no menu: `.bar-in { display: flex }`; `.bar-links { min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 4px; mask-image: linear-gradient(to left, transparent, #000 32px) }` so the row visibly continues and focus rings are not clipped; links `inline-flex`, `min-height: var(--hit)`.
+3. **Bar.** `div.bar` keeps the report's single `header` for the introduction. The inline links have 44 px targets. Below 40 rem a native disclosure replaces the inline row because the seven links exceed the space at 360 px. Both forms stay in the sticky bar and have room for their focus outlines.
 4. **Hover** stays `a:hover { color: var(--accent-hover); }` (a test matches the text).
 5. **Coverage label is visible**, because a printed report has no legend nearby.
 6. **Cards** in `.areas`: area name as anchor and status at body size on every card, compact Ready cards, and evidence kept as today's list markup in place of the site's `dl.evidence` (2.1, 2.3).
@@ -244,14 +246,14 @@ New, in the same visual language:
 
 ## 7. Phone and print
 
-**Phone (360 px).** One column, 16 px gutter. The status list and blockers come before any secondary figure. Meta row, legends and filter tracks wrap; cost heading wraps, block values one per line, cost table rows stack (3.2). No horizontal page scroll.
+**Phone (360 px).** One column with a 16 px gutter and each section heading above its content. The status list and blockers come before any secondary figure. The meta row, legends and filter tracks wrap. The cost heading wraps, block values appear one per line and cost table rows stack. The page scrolls vertically without a visible scrollbar. Content fits the viewport width.
 
 **Print.**
 
 - Hide `.bar`, `.skip`, `.filters`, `.areas-empty`. Filter rules are screen-only. Light palette.
 - Every `details` open: `details::details-content { content-visibility: visible; display: block; block-size: auto }`; chevrons hidden.
 - Type in pt: display 24, title 18, headline 14, lead 12, body 10, subhead 9, footnote 8. Card padding 12pt, section padding 16pt. One column; tiles two columns.
-- Breaks: the card head (area, status, reason, next step) stays together; evidence may break between rows; `thead { display: table-header-group }`; `.table-scroll { overflow: visible }`. `break-inside: avoid` on tiles, rows, cost rows and `tr`. `break-before: page` on `path`, `costs` and `appendix`, so header and summary are page one.
+- The card head (area, status, reason, next step) stays together. Evidence may break between rows. Table headers repeat and tables reflow into the page. Tiles, rows and cost rows stay together. `path`, `costs` and `appendix` each start a new page, so the first page holds the header and summary.
 - `print-color-adjust: exact`; 0.5pt `--rule` borders on cards, tiles, rows, notes and bar segments, so everything stays legible with backgrounds off; links in `--fg`. `@page { margin: 15mm }`.
 
 ## 8. Copy
@@ -312,7 +314,7 @@ Status names are used exactly and capitalised: Ready, Needs work, Blocker, Unkno
 | `appendix.not_looked_text` | File contents, mail, data about individual people, departments, and the settings of the target system. | Dateiinhalte, E-Mails, Daten zu einzelnen Personen, Abteilungen und die Einstellungen des Zielsystems. (*draft*) |
 | `found.title` | What Fazit recorded | Was Fazit erfasst hat (*draft*) |
 | `appendix.title` | How this report was made | Wie dieser Bericht entstanden ist |
-| `nav.*` | Summary, Next steps, Areas, Costs, Replacements, Closer look, Appendix | Überblick, Nächste Schritte, Bereiche, Kosten, Ersatz, Prüfbedarf, Anhang |
+| `nav.*` | Summary, Next steps, Areas, Costs, Replacements, Closer look, Appendix, On this page | Überblick, Nächste Schritte, Bereiche, Kosten, Ersatzlösungen, Prüfbedarf, Anhang, Auf dieser Seite |
 | `mapping_coverage.*` (German only) | unchanged | In der Suite; In der Suite mit Einschränkungen; Open-Source-Lösung der Community |
 
 Locale keys keep their names; only values change. In the cost formulas "exit scenario" becomes "move scenario" and "Ausstiegsszenarien" becomes "Umstiegsszenarien". A cost difference is less or more, never a saving; no "score", "verdict", "recommended", "recommendation", "best", "safe" or "easy" (German: no "Urteil", "Empfehlung", "empfohlen"). The report gives no effort estimate in days or money; it shows the counts that drive effort. Every string exists in both locales; every `data-label` is a locale string. The German `next_step` sentences and every value marked *draft* need a native-speaker pass before merge. Legal procedures are named, never cited by paragraph, unless a qualified person has checked the reference.
@@ -332,7 +334,7 @@ Locale keys keep their names; only values change. In the cost formulas "exit sce
 1. `SECTION_ORDER` and the CLI test's hardcoded nine sections take the ten in section 1, with `path` third. When Phase 1.1 ships, the `data-subsection` order assertion gains `licence-contract`.
 2. Readiness rows: `<tr data-workload=…>…</tr>` becomes `<article data-workload=…>…</article>`; regexes change the tag only. `site/check_site.py` counts `article[id^="readiness-"]`.
 3. CLI and simulation tests that assert catalogue order of readiness rows assert instead: group order, catalogue order inside each group, exactly one card per workload.
-4. `data-segment` is read from `readiness`, in display order.
+4. The `data-segment` assertion is replaced by counting cards per status in `readiness`, in display order (the bar is removed).
 5. The directory-note test slices `readiness` in place of `found`.
 6. Conflict assertions are scoped to one evidence record, because a card shows an observation in two lists.
 7. The headline `.figure` selector becomes `.figure-num`; the qualified-zero wording assertions stay.
@@ -395,7 +397,7 @@ replacements / closer look / recorded inventory / appendix (with "What Fazit doe
 
 The unfavourable case gets the same attention. Non-profit sample: no blocker, so "What blocks this move" shows the zero-blocker sentence and its caveat; the full move's productivity-loss input is missing, so its tile shows Unknown, the known blocks and "1 input is missing", there is no break-even line for it, and its chart row shows the Unknown marker without a bar. A report with every area Unknown shows the status list, the caveat, four unknown rows with "All open points", and three Unknown tiles. Each of the three must fit page one.
 
-Phone, 375 px: bar scrolls sideways with an edge fade; h1 on three lines; legend on two lines; blockers; tiles one per row; filter pills wrap; cards full width; cost heading stacked, block values one per line; cost table rows stacked.
+Phone, 375 px. The bar shows the wordmark and the “On this page” control. Headings sit above their content. The status list leads into the blockers. The tiles stack, the filter pills wrap, and cards fill the column. In Costs the block values appear one per line and the table rows stack.
 
 ## 11. Acceptance criteria
 
@@ -411,7 +413,7 @@ Phone, 375 px: bar scrolls sideways with an edge fade; h1 on three lines; legend
 10. Unknown is never shown as Ready, zero, blank or a dash. Three tiles show the five-year totals in whole currency units with their origin; a move tile's main line gives the difference. With Stay unknown and a move total known, the Stay tile shows Unknown and the move tile shows its total with "Comparison unknown" and the missing-input count. A row with an unknown block shows the dashed marker and no bar, "Total unknown", every unknown block named, and no difference. No other segment has a pattern.
 11. All drawn bars share one scale built from known totals; listed amounts equal the table's; origins appear beside tile and chart values; null inputs give no chart. The Stay assumption appears under the tiles and the chart; the break-even line names the operations input, shows the entered value, and equals the cost model's result (town full move: EUR 39,130).
 12. Every status shows symbol and word; every figure shows measured, provided or unknown as text; `.prov` has no border, background or radius; coverage symbols use no status colour and no status symbol (`in_suite` is `circle`).
-13. At 360 px: no horizontal page scroll; no break inside a number or unit; a seven-digit amount on one line in its tile; long German cost cells unclipped; the bar scrolls with visible continuation and unclipped focus; filter tracks wrap; targets at least 44 px.
+13. At 360 px the section menu and links have unclipped focus, the status track wraps and controls have targets of at least 44 px. Cost figures wrap at the currency space and very long numbers may wrap within the tile. The report fits without sideways scrolling or visible scrollbars at 360, 768 and 1280 px.
 14. Light and dark: the contrast and token tests pass; chart outlines, the unknown marker and the skip link's focus are visible in both.
 15. One `h1`; levels never skip; each `article` is labelled by its area; repeated status links have area-specific names; bars are `aria-hidden` with values in text; Tab reaches the skip link, nav links and every `summary`.
 16. Print (A4), checked on a real PDF in both languages: header and summary are page one and fit it for the town, the non-profit sample and an all-Unknown report; page one carries organisation, dates, sample note, definitions, blockers or the zero-blocker sentence, open questions and the three totals or Unknown; its text contains evidence from Ready cards, the licence table and every appendix part; no bar or filters; card heads unsplit; table headers repeat; `path`, costs and appendix start new pages; amounts and borders legible with backgrounds on and off.

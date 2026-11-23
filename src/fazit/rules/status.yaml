@@ -1,20 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 workloads:
-  licences:
-    ready:
-      evidence:
-        - {finding: licences.product_count, op: exists}
-        - {finding: licences.contract_terms_known, op: '==', value: true}
-      reason:
-        en: The licence products have been recorded and the contract terms have been reviewed.
-        de: Die Lizenzprodukte sind erfasst und die Vertragsbedingungen sind geprüft.
-    rules:
-      - id: licences-terms-unknown
-        when: [{finding: licences.contract_terms_known, op: '==', value: false}]
-        status: needs_work
-        reason:
-          en: The contract terms still need review.
-          de: Die Vertragsbedingungen müssen noch geprüft werden.
   directory:
     ready:
       evidence:
@@ -31,12 +16,20 @@ workloads:
         reason:
           en: Guest accounts require a decision about future access.
           de: Für Gastkonten ist zu klären, wer künftig Zugriff benötigt.
+        next_step:
+          kind: decide
+          en: The service owner decides which guest accounts should retain access.
+          de: Die fachlich verantwortliche Stelle entscheidet, welche Gastkonten weiterhin Zugriff erhalten.
       - id: directory-accounts-not-reviewed
         when: [{finding: directory.account_list_reviewed, op: '==', value: false}]
         status: needs_work
         reason:
           en: The account list still needs review.
           de: Die Kontenliste muss noch geprüft werden.
+        next_step:
+          kind: clarify
+          en: The IT team checks which accounts on the list are still needed.
+          de: Die IT-Abteilung prüft, welche der aufgeführten Konten noch benötigt werden.
   mail:
     ready:
       evidence:
@@ -53,6 +46,10 @@ workloads:
         reason:
           en: Other systems send mail through Microsoft and will need another way to send it.
           de: Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
+        next_step:
+          kind: replace
+          en: The IT team plans a new way for the affected systems to send mail.
+          de: "Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für\u00a0E-Mails."
   onedrive:
     ready:
       evidence:
@@ -68,15 +65,20 @@ workloads:
         status: needs_work
         reason:
           en: External recipients need a way to access shared files after the move.
-          de: Externe Empfänger benötigen nach dem Wechsel weiterhin Zugriff auf die für sie freigegebenen Dateien.
+          de: Externe Empfänger benötigen nach dem Umstieg weiterhin Zugriff auf die für sie freigegebenen Dateien.
+        next_step:
+          kind: decide
+          en: The service owner decides which external recipients should retain access to shared files.
+          de: Die fachlich verantwortliche Stelle entscheidet, welche externen Empfänger weiterhin auf freigegebene Dateien zugreifen sollen.
   sharepoint:
     ready:
       evidence:
         - {finding: sharepoint.site_count, op: exists}
         - {finding: sharepoint.custom_solutions_in_use, op: '==', value: false}
+        - {finding: sharepoint.workflows_in_use, op: '==', value: false}
       reason:
-        en: The SharePoint sites have been counted, and the organisation uses no custom solutions.
-        de: Die SharePoint-Websites sind erfasst, und die Organisation setzt keine individuell angepassten Lösungen ein.
+        en: The SharePoint sites have been counted, and the organisation reports neither custom solutions nor workflows on them.
+        de: Die SharePoint-Websites sind erfasst. Nach Angaben der Organisation werden dort weder individuell angepasste Lösungen noch Workflows genutzt.
     rules:
       - id: sharepoint-custom-solutions
         when: [{finding: sharepoint.custom_solutions_in_use, op: '==', value: true}]
@@ -84,34 +86,71 @@ workloads:
         reason:
           en: Custom SharePoint solutions need to be reviewed before the sites move.
           de: Prüfen Sie die individuell angepassten SharePoint-Lösungen, bevor die Websites umziehen.
+        next_step:
+          kind: clarify
+          en: The service owner records which processes rely on the custom site solutions.
+          de: Die fachlich verantwortliche Stelle erfasst, welche Arbeitsabläufe von den individuell angepassten Lösungen abhängen.
+      - id: sharepoint-workflows
+        when: [{finding: sharepoint.workflows_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Workflows on SharePoint sites, lists or libraries need to be rebuilt or replaced before the sites move.
+          de: Workflows auf SharePoint-Websites, in Listen oder Bibliotheken müssen vor dem Umstieg neu eingerichtet oder ersetzt werden.
+        next_step:
+          kind: clarify
+          en: The service owner of each affected site lists the workflows and approvals that staff still rely on.
+          de: Die fachlich verantwortliche Stelle jeder betroffenen Website erfasst die Workflows und Genehmigungen, auf die die Beschäftigten noch angewiesen sind.
   teams:
     ready:
       evidence:
         - {finding: teams.team_count, op: exists}
         - {finding: teams.teams_with_guests_count, op: '==', value: 0}
         - {finding: teams.chat_history_must_be_kept, op: '==', value: false}
+        - {finding: teams.apps_in_use, op: '==', value: false}
       reason:
-        en: The teams have been counted, there are no guests, and the chat history does not need to be kept.
-        de: Die Teams sind erfasst, es gibt keine Gäste und der Chatverlauf muss nicht erhalten bleiben.
+        en: The teams have no guests and no added apps, tabs, bots or connectors, and the chat history does not need to be kept.
+        de: In den Teams gibt es keine Gäste und keine eingebundenen Apps, Registerkarten, Bots oder Konnektoren. Der Chatverlauf muss nicht aufbewahrt werden.
     rules:
       - id: teams-guests
         when: [{finding: teams.teams_with_guests_count, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Teams with guests need a plan for managing external access after the move.
-          de: Klären Sie für Teams mit Gästen, wie der Zugriff von Externen nach dem Wechsel geregelt wird.
+          de: Klären Sie für Teams mit Gästen, wie der Zugriff von Externen nach dem Umstieg geregelt wird.
+        next_step:
+          kind: replace
+          en: The IT team plans how to manage guest access to team workspaces after the move.
+          de: Die IT-Abteilung plant, wie der Gastzugriff auf die gemeinsamen Arbeitsbereiche nach dem Umstieg verwaltet wird.
       - id: teams-chat-history
         when: [{finding: teams.chat_history_must_be_kept, op: '==', value: true}]
         status: needs_work
         reason:
           en: The organisation needs a way to retain the Teams chat history.
           de: Für den Chatverlauf aus Teams ist eine Aufbewahrungslösung erforderlich.
+        next_step:
+          kind: clarify
+          en: The data protection officer reviews which chat records the organisation is required to retain.
+          de: Die oder der Datenschutzbeauftragte prüft, welche Chatverläufe die Organisation aufbewahren muss.
+      - id: teams-apps
+        when: [{finding: teams.apps_in_use, op: '==', value: true}]
+        status: needs_work
+        reason:
+          en: Apps, tabs, bots or connectors added to teams need a replacement after the move.
+          de: Für in Teams eingebundene Apps, Registerkarten, Bots oder Konnektoren ist nach dem Umstieg Ersatz nötig.
+        next_step:
+          kind: clarify
+          en: The IT team lists the apps, tabs, bots and connectors added to teams and asks each service owner which of them staff still use.
+          de: Die IT-Abteilung erfasst die in Teams eingebundenen Apps, Registerkarten, Bots und Konnektoren und klärt mit den fachlich verantwortlichen Stellen, welche davon die Beschäftigten noch nutzen.
       - id: teams-audio-conferencing
         when: [{finding: teams.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
         reason:
           en: An assigned licence for audio conferencing requires checking how participants dial in to meetings.
           de: Prüfen Sie bei zugewiesenen Audiokonferenzlizenzen, wie sich Teilnehmende künftig in Besprechungen einwählen.
+        next_step:
+          kind: clarify
+          en: The service owner checks which meetings still need a telephone dial-in.
+          de: Die fachlich verantwortliche Stelle prüft, für welche Besprechungen eine telefonische Einwahl benötigt wird.
   office_files:
     ready:
       evidence:
@@ -130,30 +169,50 @@ workloads:
         reason:
           en: These extensions indicate that the files may contain macros, and estimating the effort requires a separate content scan that this tool does not perform.
           de: Dateien mit diesen Endungen können Makros enthalten, und für eine Aufwandsschätzung müssen die Inhalte gesondert geprüft werden, da das Programm die Dateien nicht öffnet.
+        next_step:
+          kind: clarify
+          en: The service owner checks which files contain macros that staff still use.
+          de: Die fachlich verantwortliche Stelle prüft, welche Dateien Makros enthalten, die die Beschäftigten noch nutzen.
       - id: office-access
         when: [{finding: office_files.kind.access, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Review how the organisation uses its Access databases before planning the move.
-          de: Prüfen Sie vor der Umstellung, wofür die Organisation ihre Access-Datenbanken nutzt.
+          de: Prüfen Sie vor dem Umstieg, wofür die Organisation ihre Access-Datenbanken nutzt.
+        next_step:
+          kind: clarify
+          en: The service owner records the tasks staff carry out with the databases.
+          de: Die fachlich verantwortliche Stelle erfasst, für welche Aufgaben die Beschäftigten die Datenbanken nutzen.
       - id: office-publisher
         when: [{finding: office_files.kind.publisher, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Check how the organisation will open and edit its Publisher files.
           de: Klären Sie, wie die Organisation ihre Publisher-Dateien künftig öffnet und bearbeitet.
+        next_step:
+          kind: clarify
+          en: The service owner checks which layout files staff still need to edit.
+          de: Die fachlich verantwortliche Stelle prüft, welche Layoutdateien die Beschäftigten noch bearbeiten müssen.
       - id: office-visio
         when: [{finding: office_files.kind.visio, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Check how the organisation will open and edit its Visio files.
           de: Klären Sie, wie die Organisation ihre Visio-Dateien künftig öffnet und bearbeitet.
+        next_step:
+          kind: clarify
+          en: The service owner identifies the diagrams that staff need to keep editing.
+          de: Die fachlich verantwortliche Stelle ermittelt, welche Diagramme die Beschäftigten weiterhin bearbeiten müssen.
       - id: office-onenote
         when: [{finding: office_files.kind.onenote, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Check how the organisation will move its OneNote notebooks.
           de: Klären Sie, wie die Organisation ihre OneNote-Notizbücher übernimmt.
+        next_step:
+          kind: replace
+          en: The IT team tests a way to transfer the notebooks needed after the move.
+          de: Die IT-Abteilung erprobt die Übernahme der Notizbücher, die nach dem Umstieg benötigt werden.
   device_management:
     ready:
       evidence:
@@ -170,18 +229,30 @@ workloads:
         reason:
           en: Devices managed through Microsoft need another management service.
           de: Über Microsoft verwaltete Geräte benötigen künftig eine andere Geräteverwaltung.
+        next_step:
+          kind: replace
+          en: The IT team plans how to enrol the devices in a replacement management service.
+          de: Die IT-Abteilung plant, wie sie die Geräte in eine andere Geräteverwaltung aufnimmt.
       - id: devices-windows
         when: [{finding: device_management.windows_device_count, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Review which of the Windows devices can move to a different operating system.
           de: Prüfen Sie, welche Windows-Geräte auf ein anderes Betriebssystem umgestellt werden können.
+        next_step:
+          kind: clarify
+          en: The IT team checks which devices are suitable for a different operating system.
+          de: Die IT-Abteilung prüft, welche Geräte sich für ein anderes Betriebssystem eignen.
       - id: devices-add-on
         when: [{finding: device_management.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
         reason:
           en: Separate device-management licences are assigned and the functions they support need review.
           de: Separate Lizenzen für die Geräteverwaltung sind zugewiesen, und die damit genutzten Funktionen sind zu prüfen.
+        next_step:
+          kind: clarify
+          en: Licence management checks which device management functions the assigned add-ons cover.
+          de: Die Lizenzverwaltung prüft, welche Funktionen der Geräteverwaltung die zugewiesenen Zusatzlizenzen abdecken.
   windows_software:
     ready:
       evidence:
@@ -195,14 +266,22 @@ workloads:
         when: [{finding: windows_software.without_web_version_count, op: '>', value: 0}]
         status: needs_work
         reason:
-          en: At least one Windows-only application has no web version and blocks a move away from Windows desktops. Plan to keep it running on Windows or arrange a replacement for the Microsoft 365 exit.
-          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und verhindert die Ablösung von Windows auf den Arbeitsplatzrechnern. Planen Sie beim Wechsel von Microsoft 365 den Weiterbetrieb unter Windows oder eine Ersatzlösung.
+          en: At least one Windows-only application has no web version and needs Windows to run, either on staff workstations or on a separate Windows system. For the move away from Microsoft 365, plan how staff will keep using it or arrange a replacement.
+          de: Mindestens eine reine Windows-Anwendung hat keine Webversion und benötigt Windows, entweder auf den Arbeitsplatzrechnern der Beschäftigten oder auf einem gesonderten Windows-System. Planen Sie für den Umstieg von Microsoft 365 den Weiterbetrieb der Anwendung oder eine Ersatzlösung.
+        next_step:
+          kind: clarify
+          en: The IT team asks the service owner of each such application whether staff need it on their own workstations or can use it on a separate Windows system.
+          de: Die IT-Abteilung klärt für jede betroffene Anwendung mit der fachlich verantwortlichen Stelle, ob die Beschäftigten sie auf ihren Arbeitsplatzrechnern benötigen oder auf einem gesonderten Windows-System nutzen können.
       - id: software-present
         when: [{finding: windows_software.application_count, op: '>', value: 0}]
         status: needs_work
         reason:
           en: Check how staff will use the Windows-only applications after the move.
-          de: Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Wechsel nutzen können.
+          de: Klären Sie, wie die Beschäftigten die reinen Windows-Anwendungen nach dem Umstieg nutzen können.
+        next_step:
+          kind: clarify
+          en: The service owner records which tasks rely on the applications in the inventory.
+          de: Die fachlich verantwortliche Stelle erfasst, welche Aufgaben von den Anwendungen in der Bestandsliste abhängen.
   power_platform:
     ready:
       evidence:
@@ -218,12 +297,20 @@ workloads:
         reason:
           en: Separate Power Platform licences are assigned and the applications and processes they support need review.
           de: Für die Power Platform sind separate Lizenzen zugewiesen, und die damit genutzten Anwendungen und Abläufe sind zu prüfen.
+        next_step:
+          kind: clarify
+          en: "Licence management checks which applications and workflows need the assigned\u00a0add-ons."
+          de: Die Lizenzverwaltung ermittelt, welche Anwendungen und Abläufe auf die zugewiesenen Zusatzlizenzen angewiesen sind.
       - id: power-in-use
         when: [{finding: power_platform.in_use, op: '==', value: true}]
         status: needs_work
         reason:
           en: The Power Platform applications and processes in use need a replacement.
           de: Die genutzten Anwendungen und Abläufe der Power Platform benötigen eine Alternative.
+        next_step:
+          kind: replace
+          en: The IT team plans a replacement for the applications and workflows needed after the move.
+          de: Die IT-Abteilung plant eine Ersatzlösung für die Anwendungen und Abläufe, die nach dem Umstieg weiter benötigt werden.
   telephony:
     ready:
       evidence:
@@ -241,6 +328,10 @@ workloads:
         reason:
           en: The organisation uses Microsoft telephony and has confirmed that it has no replacement.
           de: Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.
+        next_step:
+          kind: replace
+          en: The IT team plans a replacement that keeps the required phone services running during the move.
+          de: Die IT-Abteilung plant eine Ersatzlösung, mit der die benötigten Telefondienste beim Umstieg weiterlaufen können.
       - id: telephony-in-use
         when:
           - {finding: telephony.in_use, op: '==', value: true, accept_partial_true: true}
@@ -249,6 +340,10 @@ workloads:
         reason:
           en: The organisation uses Microsoft telephony and needs to test the available replacement.
           de: Die Organisation nutzt Telefonie über Microsoft und muss die verfügbare Alternative erproben.
+        next_step:
+          kind: replace
+          en: The IT team tests the available replacement against the organisation's call flows.
+          de: Die IT-Abteilung erprobt die verfügbare Ersatzlösung anhand der benötigten Anrufabläufe.
       - id: telephony-unused-add-on
         when:
           - {finding: telephony.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}
@@ -257,6 +352,10 @@ workloads:
         reason:
           en: Review whether the assigned Teams Phone licences are still needed because Microsoft telephony is unused.
           de: Prüfen Sie, ob die zugewiesenen Teams-Phone-Lizenzen noch benötigt werden, da die Organisation keine Telefonie über Microsoft nutzt.
+        next_step:
+          kind: decide
+          en: Licence management decides whether to retain the assigned telephony licences.
+          de: Die Lizenzverwaltung entscheidet, ob die zugewiesenen Telefonielizenzen beibehalten werden.
   identity_access:
     ready:
       evidence:
@@ -272,18 +371,30 @@ workloads:
         reason:
           en: Applications that rely on Microsoft single sign-on need to be connected to a different identity service.
           de: Anwendungen mit zentraler Anmeldung über Microsoft müssen an einen anderen Identitätsdienst angebunden werden.
+        next_step:
+          kind: replace
+          en: The IT team plans how to connect the affected applications to a replacement sign-in service.
+          de: Die IT-Abteilung plant die Anbindung der betroffenen Anwendungen an einen anderen Dienst für die zentrale Anmeldung.
       - id: identity-conditional-access
         when: [{finding: identity_access.conditional_access_in_use, op: '==', value: true}]
         status: needs_work
         reason:
           en: Review how the new identity service will enforce the organisation's access policies.
           de: Prüfen Sie, wie der neue Identitätsdienst die Zugriffsrichtlinien der Organisation durchsetzt.
+        next_step:
+          kind: clarify
+          en: The information security officer records the conditions under which the organisation currently grants access.
+          de: Die für Informationssicherheit zuständige Person erfasst, unter welchen Bedingungen die Organisation derzeit Zugriff gewährt.
       - id: identity-add-on
         when: [{finding: identity_access.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
         reason:
           en: Separate identity licences are assigned and the access functions they support need review.
           de: Für den Identitätsdienst sind separate Lizenzen zugewiesen, und die damit genutzten Zugriffsfunktionen sind zu prüfen.
+        next_step:
+          kind: clarify
+          en: Licence management checks which access functions the assigned add-ons cover.
+          de: Die Lizenzverwaltung prüft, welche Zugriffsfunktionen die zugewiesenen Zusatzlizenzen abdecken.
   security_compliance:
     ready:
       evidence:
@@ -299,12 +410,20 @@ workloads:
         reason:
           en: The organisation needs to carry its protection and retention requirements over to the replacement.
           de: Die Anforderungen an Schutz und Aufbewahrung müssen in die Nachfolgelösung übernommen werden.
+        next_step:
+          kind: replace
+          en: The information security officer plans how the replacement will meet the protection and retention requirements.
+          de: Die für Informationssicherheit zuständige Person plant, wie die Ersatzlösung die Anforderungen an Schutz und Aufbewahrung erfüllt.
       - id: security-add-on
         when: [{finding: security_compliance.licence_add_on_assigned, op: '==', value: true, accept_partial_true: true}]
         status: needs_work
         reason:
           en: Separate security or compliance licences are assigned and the functions they support need review.
           de: Separate Lizenzen für Sicherheit oder Regelkonformität sind zugewiesen, und die damit genutzten Funktionen sind zu prüfen.
+        next_step:
+          kind: clarify
+          en: Licence management records which protection and retention functions depend on the assigned add-ons.
+          de: Die Lizenzverwaltung erfasst, für welche Schutz- und Aufbewahrungsfunktionen die zugewiesenen Zusatzlizenzen benötigt werden.
   small_apps:
     ready:
       evidence: [{finding: small_apps.in_use, op: '==', value: false}]
@@ -318,6 +437,10 @@ workloads:
         reason:
           en: Check which forms, tasks or bookings the organisation needs to move to a replacement.
           de: Klären Sie, welche Formulare, Aufgaben oder Buchungen die Organisation in eine Nachfolgelösung übernehmen muss.
+        next_step:
+          kind: decide
+          en: The service owner decides which forms, tasks or bookings need to remain available after the move.
+          de: Die fachlich verantwortliche Stelle entscheidet, welche Formulare, Aufgaben oder Buchungen nach dem Umstieg verfügbar bleiben müssen.
   integrations:
     ready:
       evidence: [{finding: integrations.application_count, op: '==', value: 0}]
@@ -330,4 +453,30 @@ workloads:
         status: needs_work
         reason:
           en: Applications connected to Microsoft 365 need their integrations reviewed before the move.
-          de: Prüfen Sie vor der Umstellung die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.
+          de: Prüfen Sie vor dem Umstieg die Schnittstellen der an Microsoft 365 angebundenen Anwendungen.
+        next_step:
+          kind: clarify
+          en: The IT team records what data each integration transfers and what actions it triggers.
+          de: Die IT-Abteilung erfasst, welche Daten jede Schnittstelle überträgt und welche Vorgänge sie auslöst.
+
+target_gaps:
+  transfer_undocumented:
+    id: target-transfer-undocumented
+    status: needs_work
+    reason:
+      en: The {profile} target profile documents no direct transfer for {function}, which this organisation needs.
+      de: Für „{function}“ dokumentiert das Zielprofil „{profile}“ keine direkte Übernahme, und die Organisation benötigt diese Funktion.
+    next_step:
+      kind: replace
+      en: The service owner and the IT team plan how the existing content is carried over or rebuilt, and test that method before a move.
+      de: Die fachlich verantwortliche Stelle und die IT-Abteilung planen, wie die bestehenden Inhalte übernommen oder neu aufgebaut werden, und erproben dieses Vorgehen vor einem Umstieg.
+  not_available:
+    id: target-not-available
+    status: needs_work
+    reason:
+      en: The {profile} target profile lists no solution for {function}, which this organisation needs.
+      de: Das Zielprofil „{profile}“ nennt für „{function}“ keine Lösung, und die Organisation benötigt diese Funktion.
+    next_step:
+      kind: replace
+      en: The service owner and the IT team decide how this function is provided after a move.
+      de: Die fachlich verantwortliche Stelle und die IT-Abteilung entscheiden, wie diese Funktion nach einem Umstieg bereitgestellt wird.

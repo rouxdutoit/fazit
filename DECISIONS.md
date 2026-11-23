@@ -13,6 +13,45 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-23 — Report navigation and section layout
+
+**D37. Use the sticky top bar and the website's section grid.**
+
+The founder reverted RR-09 item 1. The section links stay in the sticky bar. A compact “On this page” disclosure holds the links when the inline row would overflow on phones. The website's section grid places headings to the left and content to the right from 880 px. At narrower widths each heading sits above its content. This updates the phone behaviour in D33.
+
+## 2026-11-22 — Report polish
+
+**D36. Area cards use badges for status and incomplete evidence.**
+
+The founder chose the area name as the anchor on both the website and the report. A quiet badge gives the status as a symbol and word. A second badge marks incomplete evidence when needed. Both sit at the top right on wide screens and below the area name on phones. The capsules are labels with no interaction. Pill-shaped controls remain pressable. This updates the card hierarchy in D33 and the structure rule in DESIGN.md.
+
+## 2026-11-22 — Report redesign
+
+**D33. The report leads with the findings.**
+
+- The section order is header, summary, path (What to do next), readiness, costs, moves, attention, found, appendix and footer. This changes REPT-02 and the report structure in D-19, D-26 and D-64 of the Phase 1 context. Run details carry the local and offline notes.
+- Each assessed area has a card headed by its area name, with its status on the next line. The report sorts a display copy into Blocker, Needs work, Unknown and Ready, in catalogue order within each group. The rule engine keeps its `STATUSES` order. Copilot follows the D-81 amendment in `.planning/phases/01.1-ai-assistants-and-decision-window/01.1-CONTEXT.md`.
+- Status counts appear in the summary and on the status filter. The founder removed the readiness bar from the entire report. Radio inputs and CSS filter the area cards on screen. Counts, statuses, the summary and printed pages cover every assessed area.
+- Catalogue data supplies the categories. Rule data supplies each action and its kind (`clarify`, `decide` or `replace`). What to do next puts actions and evidence requests worth doing even if the organisation stays before the actions needed for a move. Actions based on findings replace the stock steps and timeline.
+- The summary shows three five-year totals in whole currency units, the Stay assumption and the annual target operations cost at which each move would cost the same as staying, where calculable. It uses the existing cost model. Known totals set one scale for the chart. An unknown total has a marker in place of a bar.
+- The report shares the site's tokens and components, with six exceptions. (1) The report embeds both fonts and leaves script-dependent styles and icon masks to the site. (2) Symbols are inline SVG. (3) The report bar uses a `div`. D37 records the phone behaviour. (4) Link hover uses `--accent-hover`. (5) Coverage labels stay visible beside their symbols. (6) In grouped cards the area name is the anchor, the status is body size, Ready cards are compact and the evidence lists live in disclosures.
+- The filled circle marks in-suite coverage on the site and in the report. Coverage symbols and status symbols have distinct paths. `site/icons/` holds every symbol the report inlines. The site checker and report tests enforce the design rules.
+
+**D34. Licences is recorded inventory.**
+
+The licence evidence stays in the recorded inventory. Status, cards and categories apply to the assessed catalogue, which gives the area count. It contains 14 assessed areas before Phase 1.1. This amends D21 and RULE-02.
+
+**D35. Page one is for the council.**
+
+- The header and summary have the same content on screen and on paper. They give the organisation, evidence and answer dates, the sample or invented-price note where applicable, each status with its count and definition, the first blockers or the zero-blocker statement with its evidence caveat, the open questions and the three totals with their origin. The council receives findings and open questions for its own decision.
+- A4 PDFs verify page one for both samples and an all-Unknown report in English and German, with backgrounds on and off. Pasting into a council paper is best effort. This moves OUTP-03 from Phase 1.2 into the report redesign.
+
+## 2026-11-22 — Target profiles
+
+**D32. Readiness depends on the target profile.**
+
+The evaluator reads the chosen profile's transfer gaps. A needed function that the profile leaves out or has no documented way to transfer makes its area at least Needs work. Only a workload rule can set Blocker. An Unknown need keeps its area from Ready. The target rules live in `src/fazit/rules/status.yaml`. New Blocker rules wait for the operator review.
+
 ## 2026-11-22 — Scan consistency
 
 **D31. Validate the relationships between fields in `scan.json` 1.x at load time.**
@@ -38,6 +77,7 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 - A reporting period ends by the collection date, or by the scan date when the evidence is undated. Evidence is collected by the time the scan was generated. Date-only stamps give the calendar day for these ordering checks.
 - Measured snapshots and the licence inventory carry a clock time. Every clock time includes a UTC offset or `Z`. Date-only collection stamps are accepted for period-based measurements and for provided or unknown evidence. A date alone never establishes a shared instant.
 - Licence reconciliation still requires a complete inventory and a complete measured licensed headcount from the same instant. The headcount must be at least the largest user-SKU assignment count and at most the sum of assigned user seats. A missing, mistimed, incomplete or conflicting headcount leaves inferred licence absences unknown and preserves positive assignments.
+- Counts supplied together in one `inputs.yaml` follow the same subset rule: a subset count fits within its population when both are given.
 
 ## 2026-11-21 — M0 complete (demo and report)
 
@@ -98,7 +138,7 @@ Two independent analyses (Claude Fable 5.2 and Codex GPT-6.2-Astra at max effort
 - **D18. Command-line help is English only.** Everything in the report and every message the tool prints exists in German and English. Help text for commands and options stays in English, because the language is not known until the arguments have been parsed.
 - **D19. Privacy is by construction, and there is no `--include-names` in v1.** `scan.json` 1.x has no field that can hold a person's name or address, collectors write codes and counts only, and the loader drops anything it does not know. The handoff's opt-in flag returns when a collector exists that could supply names. This replaces redaction, which only protects the fields someone remembered to list.
 - **D20. No overall verdict.** The report gives status per area and says what must be resolved first. It does not say "go" or "no go", and it uses no numeric threshold.
-- **D21. Fifteen areas are assessed, not nine.** Public evaluations found their real gaps outside mail and files: telephony, Power Platform, identity, device management, security and compliance, small apps such as Forms and Planner, and integrations with business applications. Licence data shows which of these an organisation pays for, without reading any content.
+- **D21. Fifteen areas are assessed, not nine.** (amended by D34) Public evaluations found their real gaps outside mail and files: telephony, Power Platform, identity, device management, security and compliance, small apps such as Forms and Planner, and integrations with business applications. Licence data shows which of these an organisation pays for, without reading any content.
 - **D22. Costs are shown in three blocks:** direct project cost, productivity loss, and parallel running. Comparing licences with hosting alone understates the cost of leaving.
 - **D23. A "second source" scenario is deferred.** Keeping Microsoft 365 and building a fallback for chosen areas is a real option for many organisations. It is not in v1.
 - **D24 (replaced by D25). The tool was briefly called Fazit.** German for "conclusion" or "bottom line"; it reads naturally to the audience and in the formal register. Package, command and module are `fazit` (free on PyPI and npm on 2026-11-21). The working name `m365-exit-scan` is dropped because "M365" is Microsoft's trademark. A TMview search on 2026-11-21 found no live FAZIT word mark for software (class 9) or IT services (class 42) in the EU, Germany or Switzerland; expired German marks in those classes and live marks in unrelated classes exist. TMview is not an official register, so a formal clearance search is still needed before the first public release. The GitHub handle `fazit` is taken; the repository lives under the maintainer's account.

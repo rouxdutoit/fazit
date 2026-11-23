@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
-  <title>Fazit · Wissen, was ein Umstieg von Microsoft 365 erfordert</title>
+  <title>Fazit · Was beim Umstieg von Microsoft 365 nötig ist</title>
   <link rel="canonical" href="https://fazit.dev/de/">
   <link rel="alternate" hreflang="en" href="https://fazit.dev/">
   <link rel="alternate" hreflang="de" href="https://fazit.dev/de/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fazit">
-  <meta property="og:title" content="Fazit · Wissen, was ein Umstieg von Microsoft 365 erfordert">
+  <meta property="og:title" content="Fazit · Was beim Umstieg von Microsoft 365 nötig ist">
   <meta property="og:description" content="Fazit soll zeigen, worauf Ihre Organisation in Microsoft 365 angewiesen ist, was vor einem Umstieg auf openDesk, Nextcloud oder LibreOffice zu klären ist und was er kosten würde. Kostenlos, quelloffen und lokal.">
   <meta property="og:url" content="https://fazit.dev/de/">
   <meta property="og:locale" content="de_DE">
@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite" aria-current="page">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,18 +40,16 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
     <section class="hero" aria-labelledby="hero-title">
       <p class="eyebrow">Für die öffentliche IT und IT-Dienstleister in Deutschland, Österreich und der Schweiz</p>
-      <h1 id="hero-title">Wissen, was ein Umstieg von Microsoft 365 erfordert</h1>
+      <h1 id="hero-title">Was beim Umstieg von Microsoft&nbsp;365 nötig ist</h1>
       <p class="hero-sub">Worauf Sie angewiesen sind, was zu klären ist und was es kosten würde, in einem Bericht, den Fazit auf Ihrem eigenen Rechner erstellt.</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
@@ -70,27 +69,20 @@
           </span>
         </span>
         <picture>
-          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-de-mobile-dark.webp" width="800" height="1440">
-          <source media="(max-width: 600px)" srcset="/images/readiness-de-mobile-light.webp" width="800" height="1440">
-          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-de-dark.webp" width="2016" height="1120">
-          <img src="/images/readiness-de-light.webp" width="2016" height="1120" alt="Abschnitt zur Bereitschaft aus dem Beispielbericht: 4 Bereiche Bereit, 9 Handlungsbedarf, 1 Hindernis, 1 Unbekannt." decoding="async" fetchpriority="high">
+          <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="/images/readiness-de-mobile-dark.webp" width="800" height="1530">
+          <source media="(max-width: 600px)" srcset="/images/readiness-de-mobile-light.webp" width="800" height="1530">
+          <source media="(prefers-color-scheme: dark)" srcset="/images/readiness-de-dark.webp" width="2016" height="1218">
+          <img src="/images/readiness-de-light.webp" width="2016" height="1218" alt="Zusammenfassung des Beispielberichts. Die Statusliste für 14 Bereiche zeigt „Hindernis“ (1), „Handlungsbedarf“ (9), „Unbekannt“ (1) und „Bereit“ (3) mit jeweils einer Erläuterung. Als Hindernis nennt der Bericht die Telefonie." decoding="async" fetchpriority="high">
         </picture>
       </div>
       <figcaption>
-        <span>Echte Ausgabe von Fazit, erstellt aus den Beispieldaten einer fiktiven Stadtverwaltung.</span>
+        <span><span data-assessed-areas>14</span> Bereiche, drei Ziele (openDesk, Nextcloud und eine produktneutrale Prüfliste), auf Deutsch und Englisch als offline lesbare HTML-Datei.</span>
         <span class="caption-links">
           <a class="more" href="/demo/de/">Beispielbericht öffnen</a>
-          <a class="btn btn-secondary btn-small" href="/demo/de/" download="fazit-sample-report-de.html"><span class="btn-icon icon-download" aria-hidden="true"></span>HTML herunterladen, 300 KB</a>
+          <a class="more" href="/demo/de/" download="fazit-sample-report-de.html">HTML herunterladen, 425 KB</a>
         </span>
       </figcaption>
     </figure>
-
-    <ul class="figures" aria-label="Fazit in Zahlen">
-      <li><span class="figure-num">15</span><span>Bereiche in jedem Bericht, von E-Mail bis Telefonie</span></li>
-      <li><span class="figure-num">2</span><span>Berichtssprachen: Deutsch und Englisch</span></li>
-      <li><span class="figure-num">1</span><span>Datei für den ganzen Bericht, lesbar ohne Internet</span></li>
-      <li><span class="figure-num">3</span><span>Ziele: openDesk, Nextcloud und eine produktneutrale Prüfliste</span></li>
-    </ul>
 
     <section class="sec grid" id="why" aria-labelledby="why-title">
       <h2 class="sec-label" id="why-title">Hindernisse erkennen, bevor das Projekt sie findet</h2>
@@ -101,32 +93,222 @@
       </div>
     </section>
 
+    <section class="sec grid" id="example" aria-labelledby="example-title">
+      <h2 class="sec-label" id="example-title">Nachweise und nächster Schritt für jeden Bereich</h2>
+      <div class="sec-body">
+        <p class="lead">Für jeden Bereich nennt der Bericht den Status, die Nachweise und die noch offenen Angaben. Das Beispiel zeigt den Bereich E-Mail im Bericht für eine fiktive Stadtverwaltung. Die Messwerte sind simuliert.</p>
+        <article data-workload="mail" data-status="needs_work" data-incomplete data-category="communication" class="finding" id="readiness-mail" aria-labelledby="area-mail">
+          <div class="finding-head">
+            <div>
+              <h3 class="finding-area" id="area-mail">E-Mail</h3>
+              <span class="finding-category">Kommunikation</span>
+            </div>
+            <p class="finding-status">
+              <span class="status needs_work badge"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> <span>Handlungsbedarf</span></span>
+              <span class="badge"><span>Nachweise unvollständig</span></span>
+            </p>
+          </div>
+          <div class="finding-reason">
+            Andere Systeme versenden E-Mails über Microsoft und benötigen dafür künftig einen anderen Versandweg.
+          </div>
+          <p class="finding-next"><strong>Nächster Schritt</strong> Die IT-Abteilung plant für die betroffenen Systeme einen neuen Versandweg für&nbsp;E-Mails.</p>
+          <div class="finding-missing">
+            <p><strong>Noch benötigte Angaben</strong></p>
+            <ul>
+              <li data-missing="mail.shared_mailbox_count">
+                <strong data-reason="needs_recipient_export">Wie viele freigegebene Postfächer hat die Organisation?</strong>
+                <p><span class="open-label">Wer gibt Auskunft:</span> IT-Abteilung</p>
+                <p><span class="open-label">Quelle:</span> Export der Exchange-Empfänger</p>
+                <p><span data-reason="needs_recipient_export">Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor. Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln. Im Bericht bleibt sie unbekannt.</span></p>
+              </li>
+            </ul>
+          </div>
+          <details class="workload-evidence" data-evidence-workload="mail">
+            <summary id="evidence-mail"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg><span>Nachweise<small class="evidence-counts">4 erhoben, 1 bereitgestellt, 1 unbekannt</small></span></summary>
+            <ul class="rule-evidence" role="list">
+              <li data-evidence="mail.mailbox_count">
+                <strong>Postfächer</strong>
+                <div data-provenance="measured">
+                  91 Postfächer
+                  <small class="evidence-meta"><span class="prov">Erhoben (simuliert)</span> · Postfachnutzung aus Beispieldaten · 2.&nbsp;November&nbsp;2026 · 6.&nbsp;Mai bis 1.&nbsp;Nov.&nbsp;2026 · Vollständig</small>
+                </div>
+              </li>
+              <li data-evidence="mail.shared_mailbox_count">
+                <strong>Freigegebene Postfächer</strong>
+                <div data-provenance="unknown">
+                  <small class="evidence-meta"><span class="prov">Unbekannt</span></small>
+                </div>
+                <small>
+                  <span data-reason="needs_recipient_export">Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor. Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln. Im Bericht bleibt sie unbekannt.</span></small>
+              </li>
+              <li data-evidence="mail.other_systems_send_mail">
+                <strong>E-Mail-Versand anderer Systeme über Microsoft</strong>
+                <div data-provenance="provided">
+                  Ja
+                  <small class="evidence-meta"><span class="prov">Bereitgestellt</span> · Beispielangabe · 10.&nbsp;November&nbsp;2026</small>
+                </div>
+              </li>
+              <li data-evidence="mail.licence_bundled_assigned">
+                <strong>Im Produkt enthaltene, zugewiesene Lizenz für E-Mail</strong>
+                <div data-provenance="measured">
+                  Ja
+                  <small class="evidence-meta"><span class="prov">Erhoben (simuliert)</span> · Lizenzbestand aus Beispieldaten · 2.&nbsp;November&nbsp;2026 · Vollständig, 3 von 3 geprüft, 0 fehlgeschlagen</small>
+                </div>
+              </li>
+            </ul>
+            <div class="table-scroll" role="region" aria-labelledby="evidence-mail" tabindex="0">
+              <table class="coverage" role="table">
+                <caption data-sample>Die Messwerte der Erhebung sind simuliert.</caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader" data-label="Merkmal">Merkmal</th>
+                    <th scope="col" role="columnheader" data-label="Wert">Wert</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  <tr data-finding="mail.mailbox_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">Postfächer</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="measured">
+                        91 Postfächer
+                        <small class="evidence-meta"><span class="prov">Erhoben (simuliert)</span> · Postfachnutzung aus Beispieldaten · 2.&nbsp;November&nbsp;2026 · 6.&nbsp;Mai bis 1.&nbsp;Nov.&nbsp;2026 · Vollständig</small>
+                      </div>
+                      <small>Erhebungsverfahren · Bericht zur Postfachnutzung</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.shared_mailbox_count" data-provenance="unknown" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">Freigegebene Postfächer</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="unknown">
+                        <small class="evidence-meta"><span class="prov">Unbekannt</span></small>
+                      </div>
+                      <small>Erhebungsverfahren · Export der Exchange-Empfänger</small>
+                      <small>
+                        <span data-reason="needs_recipient_export">Aus der Postfachnutzung allein geht die Zahl der freigegebenen Postfächer nicht hervor. Lassen Sie die Zahl gesondert von der für E-Mail zuständigen Stelle ermitteln. Im Bericht bleibt sie unbekannt.</span></small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.storage_bytes" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">Speicherbedarf der Postfächer</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="measured">
+                        312,4 GB
+                        <small class="evidence-meta"><span class="prov">Erhoben (simuliert)</span> · Postfachnutzung aus Beispieldaten · 2.&nbsp;November&nbsp;2026 · 6.&nbsp;Mai bis 1.&nbsp;Nov.&nbsp;2026 · Vollständig</small>
+                      </div>
+                      <small>Erhebungsverfahren · Bericht zur Postfachnutzung</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.item_count" data-provenance="measured" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">Elemente in den Postfächern</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="measured">
+                        504.210 Elemente
+                        <small class="evidence-meta"><span class="prov">Erhoben (simuliert)</span> · Postfachnutzung aus Beispieldaten · 2.&nbsp;November&nbsp;2026 · 6.&nbsp;Mai bis 1.&nbsp;Nov.&nbsp;2026 · Vollständig</small>
+                      </div>
+                      <small>Erhebungsverfahren · Bericht zur Postfachnutzung</small>
+                    </td>
+                  </tr>
+                  <tr data-finding="mail.other_systems_send_mail" data-provenance="provided" role="row">
+                    <th scope="row" role="rowheader" data-label="Merkmal">E-Mail-Versand anderer Systeme über Microsoft</th>
+                    <td role="cell" data-label="Wert">
+                      <div data-provenance="provided">
+                        Ja
+                        <small class="evidence-meta"><span class="prov">Bereitgestellt</span> · Beispielangabe · 10.&nbsp;November&nbsp;2026</small>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+          <p class="finding-target">
+            <span data-target-function="mail_and_calendar">Open-Xchange (OX App Suite) · In der Suite ·
+              <time datetime="2026-11-22">22.&nbsp;November&nbsp;2026</time>
+            </span>
+            <a class="more" href="/demo/de/#moves-title">Alle Ersatzlösungen<svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></a>
+          </p>
+        </article>
+        <p class="note-text">Fazit prüft den Aufbau der Eingaben und ausgewählte Zusammenhänge zwischen Zahlen. Ob die Angaben zum Bestand stimmen, kann Fazit nicht feststellen. Die Aussagekraft des Berichts hängt von den Personen und Programmen ab, die die Nachweise geliefert haben.</p>
+        <div class="tally">
+          <p id="sample-tally-title">Von 14 Bereichen im Beispiel:</p>
+          <ul role="list" aria-labelledby="sample-tally-title">
+            <li class="status blocker"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480v-160q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v160q0 17 11.5 28.5T480-440ZM363-120q-16 0-30.5-6T307-143L143-307q-11-11-17-25.5t-6-30.5v-234q0-16 6-30.5t17-25.5l164-164q11-11 25.5-17t30.5-6h234q16 0 30.5 6t25.5 17l164 164q11 11 17 25.5t6 30.5v234q0 16-6 30.5T817-307L653-143q-11 11-25.5 17t-30.5 6H363Z"/></svg> Hindernis 1</li>
+            <li class="status needs_work"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm371-120q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Z"/></svg> Handlungsbedarf 9</li>
+            <li class="status unknown"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm2 160q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm4-572q25 0 43.5 16t18.5 40q0 22-13.5 39T502-525q-23 20-40.5 44T444-427q0 14 10.5 23.5T479-394q15 0 25.5-10t13.5-25q4-21 18-37.5t30-31.5q23-22 39.5-48t16.5-58q0-51-41.5-83.5T484-720q-38 0-72.5 16T359-655q-7 12-4.5 25.5T368-609q14 8 29 5t25-17q11-15 27.5-23t34.5-8Z"/></svg> Unbekannt 1</li>
+            <li class="status ready"><svg class="icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg> Bereit 3</li>
+          </ul>
+        </div>
+        <p><a class="more" href="/demo/de/#readiness-title">Alle Bereiche im Beispielbericht ansehen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="report" aria-labelledby="report-title">
+      <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
+      <div class="sec-body">
+        <p class="lead">Der Bericht zeigt, welche Funktionen Ihre Organisation benötigt.</p>
+        <ul class="tiles tiles-2">
+          <li>
+            <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
+            <h3>Übersicht für das Entscheidungsgremium</h3>
+            <p>Die erste Druckseite nennt bestätigte Hindernisse, offene Fragen und die Gesamtkosten über fünf Jahre.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-route" aria-hidden="true"></span>
+            <h3>Was als Nächstes zu tun ist</h3>
+            <p>Aufgaben, die auch beim Verbleib sinnvoll sind, und Arbeiten, die ein Umstieg erfordert.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-fact-check" aria-hidden="true"></span>
+            <h3>Wo die einzelnen Bereiche stehen</h3>
+            <p>Die Begründung und die Nachweise zeigen, wie der Status zustande kommt.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-euro" aria-hidden="true"></span>
+            <h3>Was Verbleib und Umstieg in fünf Jahren kosten</h3>
+            <p>Der Vergleich stellt die Kosten für Verbleib, teilweisen und vollständigen Umstieg anhand Ihrer Angaben gegenüber.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-swap-horiz" aria-hidden="true"></span>
+            <h3>Was wodurch ersetzt wird</h3>
+            <p>Mögliche Ersatzlösungen und dokumentierte Lücken für das gewählte Zielprofil.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-search" aria-hidden="true"></span>
+            <h3>Was genauer zu prüfen ist</h3>
+            <p>Dateitypen mit Prüfbedarf, reine Windows-Anwendungen und Funktionen, für die eine gesonderte Lösung nötig sein kann.</p>
+          </li>
+          <li>
+            <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
+            <h3>Wie dieser Bericht entstanden ist</h3>
+            <p>Erhebungsmethoden, Prüfregeln, Kostenberechnung und Angaben zum Programmlauf.</p>
+          </li>
+        </ul>
+        <div class="subsection">
+          <p>Die Tabelle vergleicht die dokumentierten Funktionen von openDesk und Nextcloud.</p>
+          <p><a class="more" href="/de/coverage/">openDesk und Nextcloud vergleichen</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec grid" id="how" aria-labelledby="how-title">
+      <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
+      <div class="sec-body">
+        <p class="lead">Installieren Sie Git und uv. Führen Sie anschließend diese Befehle aus. Beim ersten Lauf lädt uv die benötigten Pakete. Danach läuft das Beispiel ohne Microsoft-Konto und ohne Netzwerk.</p>
+        <div class="command" role="group" aria-label="Im Terminal ausführen">
+          <p class="command-label" aria-hidden="true">Im Terminal ausführen</p>
+          <div class="command-line">
+            <code><span>git clone https://github.com/<wbr>rouxdutoit/fazit</span><span>cd fazit</span><span>uv run fazit demo --lang de</span></code>
+            <button class="btn copy" type="button" aria-label="Befehl kopieren" title="Kopieren" data-copy data-copied="Kopiert" data-manual="Kopieren Sie den markierten Befehl." hidden><span class="btn-icon icon-content-copy" aria-hidden="true"></span></button>
+          </div>
+          <p class="copy-message" role="status"></p>
+        </div>
+        <p><a class="more" href="/de/start/">Jetzt starten</a></p>
+      </div>
+    </section>
+
     <section class="sec grid" id="privacy" aria-labelledby="privacy-title">
       <h2 class="sec-label" id="privacy-title">Was auf Ihrem Rechner bleibt</h2>
       <div class="sec-body">
         <p class="lead">Fazit erstellt den Bericht auf Ihrem Rechner. Nach der Installation baut es keine Netzwerkverbindung auf, und der Bericht lädt nichts nach. Legen Sie Eingaben und Berichte in einen lokalen Ordner, der nicht synchronisiert wird, dann bleiben sie auf diesem Rechner.</p>
-        <ul class="tiles tiles-2">
-          <li>
-            <span class="tile-icon icon-computer" aria-hidden="true"></span>
-            <h3>Läuft auf Ihrem Rechner</h3>
-            <p>Der Bericht ist eine einzelne Datei in einem Ordner Ihrer Wahl. Fazit lädt nichts hoch und braucht weder Konto noch Clouddienst.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-wifi-off" aria-hidden="true"></span>
-            <h3>Keine Netzwerkverbindungen</h3>
-            <p>Derzeit kontaktiert Fazit keinen Server. Die geplante Anmeldung mit reinem Lesezugriff spricht nur mit der Microsoft-Anmeldung und Microsoft Graph.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-lock" aria-hidden="true"></span>
-            <h3>Auf Lesezugriff ausgelegt</h3>
-            <p>Die geplante Anmeldung fordert nur Leserechte an und hält Anmeldetokens im Arbeitsspeicher. Die Erhebungsdatei enthält Anzahlen und Kennungen, keine Personennamen oder E-Mail-Adressen.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-code" aria-hidden="true"></span>
-            <h3>Offen nachprüfbar</h3>
-            <p>Tests, die jeder ausführen kann, zeigen, dass Fazit ohne Netzwerk arbeitet und Berichte nichts nachladen. Die Schutzmaßnahmen für die Anmeldung erhalten ihre Tests zusammen mit dem Code.</p>
-          </li>
-        </ul>
         <div class="subsection">
           <h3>Was Fazit nie tun wird</h3>
           <ul class="safeguards">
@@ -139,231 +321,21 @@
         </div>
         <div class="subsection">
           <h3>Selbst nachprüfen</h3>
-          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung, führen Sie <code>uv run --offline fazit demo --lang de</code> aus und öffnen Sie den Bericht. Er braucht nichts aus dem Netz.</p>
+          <p>Trennen Sie nach dem ersten Lauf die Netzwerkverbindung, führen Sie <code>uv run <span class="code-option">--offline</span> fazit demo <span class="code-option">--lang de</span></code> aus und öffnen Sie den Bericht. Er braucht nichts aus dem Netz.</p>
           <p><a class="more" href="/de/security/#offline">Anleitung zur Prüfung ohne Netzwerk</a></p>
         </div>
-      </div>
-    </section>
-
-    <section class="sec grid" id="example" aria-labelledby="example-title">
-      <h2 class="sec-label" id="example-title">Ein Befund im Detail</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Kann die Stadt auf Teams Phone verzichten? Dieser Befund stammt aus dem Beispielbericht für eine fiktive Stadtverwaltung. Die Messwerte des Beispiels sind simuliert.</p>
-        <article class="finding" aria-labelledby="finding-title">
-          <p class="finding-area" id="finding-title">Telefonie</p>
-          <p class="finding-status"><span class="status-shape blocker" aria-hidden="true"></span>Hindernis</p>
-          <p class="finding-reason">Die Organisation nutzt Telefonie über Microsoft und hat bestätigt, dass keine Alternative verfügbar ist.</p>
-          <dl class="evidence">
-            <div>
-              <dt>Zugewiesene Zusatzlizenz für Telefonie</dt>
-              <dd class="evidence-value">Ja</dd>
-              <dd class="evidence-meta">Simuliert im Lizenzbestand der Beispieldaten am 2. November 2026. Vollständig: 3 von 3 geprüft, 0 fehlgeschlagen.</dd>
-            </div>
-            <div>
-              <dt>Telefonie läuft über Microsoft</dt>
-              <dd class="evidence-value">Ja</dd>
-              <dd class="evidence-meta">Bereitgestellt in den Beispielangaben am 10. November 2026.</dd>
-            </div>
-            <div>
-              <dt>Alternative zur Telefonie verfügbar</dt>
-              <dd class="evidence-value">Nein</dd>
-              <dd class="evidence-meta">Bereitgestellt in den Beispielangaben am 10. November 2026.</dd>
-            </div>
-          </dl>
-          <p class="finding-target">In openDesk ist kein Telefondienst enthalten; dafür ist ein eigener Anbieter nötig. Geprüft am 21. November 2026.</p>
-        </article>
-        <p class="tally">Alle 15 Bereiche im Beispiel: 4 Bereit, 9 Handlungsbedarf, 1 Hindernis, 1 Unbekannt.</p>
-        <p><a class="more" href="/demo/de/#readiness-title">Abschnitt zur Bereitschaft öffnen</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="report" aria-labelledby="report-title">
-      <h2 class="sec-label" id="report-title">Was der Bericht enthält</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Sie erhalten eine einzelne HTML-Datei auf Deutsch oder Englisch. Sie können sie speichern, ohne Internetverbindung lesen und ausdrucken.</p>
-        <ul class="tiles tiles-2">
-          <li>
-            <span class="tile-icon icon-description" aria-hidden="true"></span>
-            <h3>Berichtsangaben</h3>
-            <p>Datum, Datenquelle und Zielprofil stehen im Kopf jedes Berichts.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-search" aria-hidden="true"></span>
-            <h3>Ergebnisse der Bestandsaufnahme</h3>
-            <p>Der Bericht zeigt, was die vorliegenden Nachweise über Ihre Nutzung von Microsoft 365 aussagen.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-euro" aria-hidden="true"></span>
-            <h3>Kostenvergleich über fünf Jahre</h3>
-            <p>Verglichen werden Verbleib, teilweiser und vollständiger Umstieg zu den Preisen, die Sie eintragen. Verbleibende Lizenzen, Projektkosten, verlorene Arbeitszeit und Parallelbetrieb fließen ein.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-speed" aria-hidden="true"></span>
-            <h3>Bereitschaft nach Bereich</h3>
-            <p>„Bereit“, „Handlungsbedarf“, „Hindernis“ oder „Unbekannt“, jeweils mit Begründung und Datengrundlage. Offene Prüfungen sind gekennzeichnet.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-swap-horiz" aria-hidden="true"></span>
-            <h3>Funktionen im Zielsystem</h3>
-            <p>Welche Funktionen das gewählte Zielprofil abdeckt und welche Lücken dokumentiert sind.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-flag" aria-hidden="true"></span>
-            <h3>Prüfbedarf</h3>
-            <p>Zu prüfende Dateitypen, reine Windows-Anwendungen und Funktionen, deren direkte Übernahme ungeklärt ist.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-route" aria-hidden="true"></span>
-            <h3>Möglicher Ablauf</h3>
-            <p>Hindernisse, offene Fragen und die Bereiche, die die aktuellen Prüfungen bestehen.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-menu-book" aria-hidden="true"></span>
-            <h3>Anhang</h3>
-            <p>Erhebungsmethoden, Prüfregeln, Zuordnungen, Kostenberechnung und Angaben zum Programmlauf.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="sec grid" id="coverage" aria-labelledby="coverage-title">
-      <h2 class="sec-label" id="coverage-title">Was die Zielsysteme abdecken</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Die Tabelle fasst die dokumentierten Funktionen der Profile für openDesk und Nextcloud zusammen. Der Bericht zeigt anhand der vorliegenden Nachweise, welche Funktionen Ihre Organisation benötigt.</p>
-        <ul class="legend" aria-label="Legende">
-          <li><span class="cov cov-full">In der Suite</span></li>
-          <li><span class="cov cov-part">Mit Einschränkungen</span></li>
-          <li><span class="cov cov-community">Community-App</span></li>
-          <li><span class="cov cov-none">Nicht in der Suite</span></li>
-        </ul>
-        <table class="coverage" role="table">
-          <caption class="sr-only">Abdeckung der Bereiche durch openDesk und Nextcloud</caption>
-          <thead role="rowgroup">
-            <tr role="row"><th scope="col" role="columnheader">Bereich</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
-          </thead>
-          <tbody role="rowgroup">
-            <tr role="row" data-workload="directory"><th scope="row" role="rowheader">Verzeichnisdienst</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span><span>Nubus</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Benutzer- und Gruppenverwaltung in Nextcloud</span></span></td></tr>
-            <tr role="row" data-workload="mail"><th scope="row" role="rowheader">E-Mail</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span><span>Open-Xchange (OX App Suite)</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Mail und Calendar mit einem gesonderten Mailserver</span></span></td></tr>
-            <tr role="row" data-workload="onedrive"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span><span>Nextcloud Files</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span><span>Nextcloud Files</span></span></td></tr>
-            <tr role="row" data-workload="sharepoint"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Gemeinsame Ordner in Nextcloud Files · Gesonderte Neugestaltung der Arbeitsabläufe</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Team Folders in Nextcloud Files · Unterstützte Arbeitsabläufe mit Nextcloud Flow neu erstellen</span></span></td></tr>
-            <tr role="row" data-workload="teams"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Element · Jitsi · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Talk · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</span></span></td></tr>
-            <tr role="row" data-workload="office_files"><th scope="row" role="rowheader">Office-Dateien</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Collabora Online · Gesonderte Konvertierung oder Neuentwicklung</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Office · Gesonderte Konvertierung oder Neuentwicklung</span></span></td></tr>
-            <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Geräteverwaltung</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner</span></span></td></tr>
-            <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Reine Windows-Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen</span></span></td></tr>
-            <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Flow und Nextcloud Tables</span></span></td></tr>
-            <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telefonie</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span><span>Gesonderter Telefondienst</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Talk mit SIP-Bridge (Talk-Enterprise-Abonnement) und SIP-Gateway</span></span></td></tr>
-            <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identitäten und Zugriff</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span><span>Keycloak</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community-App: </span></span><span>App OIDC Identity Provider für Nextcloud</span></span></td></tr>
-            <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Sicherheit und Regelkonformität</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Zugriffssteuerung und Schadsoftware-Prüfung in openDesk</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Dateischutz und Aufbewahrungseinstellungen in Nextcloud</span></span></td></tr>
-            <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Kleinere Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>OpenProject und OX App Suite für Aufgaben</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Nextcloud Forms, Deck und Calendar</span></span></td></tr>
-            <tr role="row" data-workload="integrations"><th scope="row" role="rowheader">Anwendungsanbindungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Schnittstellen der openDesk-Komponenten</span></span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span><span>Schnittstellen und Anbindungen für Nextcloud</span></span></td></tr>
-          </tbody>
-        </table>
-        <p class="table-note">Wenn Sie mit Nextcloud Talk das öffentliche Telefonnetz anbinden, nehmen Sie die angebotenen laufenden Kosten in den Vergleich auf und prüfen Sie Rufnummernweiterleitung und Warteschleifen. Die Profile für openDesk und Nextcloud wurden am 21. und 22. November 2026 aus der jeweiligen Projektdokumentation erstellt und noch nicht von jemandem geprüft, der diese Lösungen betreibt. Lizenzen erscheinen in der Kostenrechnung. Das allgemeine Profil deckt weitere Umgebungen ab, etwa Arbeitsplätze mit Linux und LibreOffice.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings" hreflang="en">Zuordnungen und Quellen ansehen</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="audience" aria-labelledby="audience-title">
-      <h2 class="sec-label" id="audience-title">Für wen Fazit gedacht ist</h2>
-      <div class="sec-body">
-        <ul class="tiles tiles-3">
-          <li>
-            <a class="tile-link" href="/de/integrators/">
-              <span class="tile-icon icon-handshake" aria-hidden="true"></span>
-              <h3>IT-Dienstleister</h3>
-              <p>Mit dem lokalen Import werden Sie für alle Kunden nach demselben Verfahren eine Bestandsaufnahme erstellen und die Projektplanung aus den Befunden ableiten können.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <span class="tile-icon icon-account-balance" aria-hidden="true"></span>
-            <h3>Kommunale IT-Dienstleister</h3>
-            <p>Mit dem lokalen Import werden Sie Ihren Mitgliedsorganisationen Bestandsaufnahmen anbieten können, bei denen die Prüfdateien auf ihren eigenen Rechnern bleiben.</p>
-          </li>
-          <li>
-            <span class="tile-icon icon-person" aria-hidden="true"></span>
-            <h3>IT-Leitungen</h3>
-            <p>Führen Sie das Beispiel ohne Microsoft-Konto aus und bereiten Sie mit eigenen Antworten und Kosten eine Bestandsaufnahme vor.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="sec grid" id="how" aria-labelledby="how-title">
-      <h2 class="sec-label" id="how-title">So funktioniert Fazit</h2>
-      <div class="sec-body">
-        <p>Installieren Sie Git und uv und führen Sie drei Befehle aus. Beim ersten Lauf lädt uv herunter, was Fazit braucht; danach entsteht das Beispiel ohne Netzwerk in etwa einer Sekunde, ohne Microsoft-Konto.</p>
-        <p><a class="more" href="/de/start/">Jetzt starten</a></p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="claims" aria-labelledby="claims-title">
-      <h2 class="sec-label" id="claims-title">Was die Befunde aussagen</h2>
-      <div class="sec-body">
-        <p>Der Bericht nennt zu jedem Befund, soweit vorhanden, Quelle, Datum, Berichtszeitraum und Umfang der Erhebung. Bestandszahlen sind als erhoben, bereitgestellt oder unbekannt gekennzeichnet, Kostenangaben als eingetragen oder berechnet. Bei fehlenden Nachweisen nennt er den Grund und den nächsten Prüfschritt. Fehlen erforderliche Kostenangaben, bleibt die Summe unbekannt.</p>
-        <p>Fazit bewertet jeden Bereich einzeln. Eine Gesamtbewertung gibt es nicht.</p>
-        <p>Fazit prüft den Aufbau der Eingaben und ausgewählte Zusammenhänge zwischen Zahlen. Ob ein gelieferter Bestand stimmt, kann es nicht feststellen: Der Bericht ist nur so verlässlich wie die Personen und Programme, die die Nachweise geliefert haben.</p>
-      </div>
-    </section>
-
-    <section class="sec grid" id="sources" aria-labelledby="sources-title">
-      <h2 class="sec-label" id="sources-title">Fachliche Grundlagen</h2>
-      <div class="sec-body">
-        <ul class="sources">
-          <li>
-            <a href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/">Evaluation openDesk für die Stadt Zürich</a>
-            <span>Berner Fachhochschule</span>
-          </li>
-          <li>
-            <a href="https://www.digitale-verwaltung-schweiz.ch/application/files/6017/8970/5022/Studie_Alternativen_zu_M365_und_Konsequenzen_bei_einem_Wechsel_September_2026.pdf">Alternativen zu M365 und Konsequenzen bei einem Wechsel (PDF)</a>
-            <span>Studie im Auftrag der Digitalen Verwaltung Schweiz</span>
-          </li>
-        </ul>
-        <div class="subsection">
-          <h3>Zielprojekte</h3>
-          <p>Die Profile für <a href="https://docs.opendesk.eu/">openDesk</a> und <a href="https://nextcloud.com/">Nextcloud</a> zeigen, welche Funktionen Projekte wie Collabora Online, Open-Xchange, Element, Jitsi und Keycloak abdecken. Für andere Umgebungen, etwa Arbeitsplätze mit Linux und LibreOffice, können Sie das allgemeine Profil verwenden.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec grid" id="free" aria-labelledby="free-title">
-      <h2 class="sec-label" id="free-title">Kostenlos und quelloffen</h2>
-      <div class="sec-body">
-        <p class="sec-intro">Fazit ist kostenlos und quelloffen unter der AGPL-3.0-or-later. Alle Funktionen und Prüfregeln liegen im offenen Repository. Der Projektverantwortliche will mit Prüfungen und Unterstützung rund um Fazit Geld verdienen.</p>
-        <ul class="tiles tiles-3">
-          <li>
-            <a class="tile-link" href="/de/pilots/">
-              <h3>Pilotprüfungen</h3>
-              <p>Bekunden Sie Interesse an einer von drei kostenlosen Pilotprüfungen, je einer in Deutschland, Österreich und der Schweiz. Sie beginnen, sobald der Import verfügbar ist.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/de/integrators/">
-              <h3>Für IT-Dienstleister</h3>
-              <p>Erproben Sie den Beispielbericht und lesen Sie, wie das geplante freiwillige Verzeichnis funktionieren soll.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-          <li>
-            <a class="tile-link" href="/de/security/">
-              <h3>Sicherheit und Datenschutz</h3>
-              <p>Prüfen Sie die Schutzmaßnahmen oder melden Sie vertraulich eine Schwachstelle.</p>
-              <span class="tile-arrow" aria-hidden="true"></span>
-            </a>
-          </li>
-        </ul>
       </div>
     </section>
 
     <section class="sec grid" id="status" aria-labelledby="status-title">
       <h2 class="sec-label" id="status-title">Projektstand</h2>
       <div class="sec-body">
+        <p class="lead">Sie können Fazit aus dem Quellcode starten und Berichte aus den Beispieldaten mit eigenen Antworten und Kosten erstellen.</p>
         <ol class="timeline">
           <li class="timeline-step on">
             <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Verfügbar</p>
-            <p class="timeline-text">Sie können Fazit aus dem Quellcode starten und Berichte aus den Beispieldaten mit eigenen Antworten und Kosten erstellen. Die Messwerte in den Beispielen sind simuliert. Das Paket ist noch nicht auf PyPI veröffentlicht.</p>
+            <p class="timeline-text">Die Messwerte in den Beispielen sind simuliert. Das Paket ist noch nicht auf PyPI veröffentlicht.</p>
           </li>
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
@@ -372,30 +344,31 @@
           </li>
           <li class="timeline-step">
             <span class="timeline-dot" aria-hidden="true"></span>
-            <p class="timeline-name">Danach</p>
-            <p class="timeline-text">Installation mit einem Befehl oder unter Windows als signiertes Programm ohne Python. Zu jeder Version gibt es Prüfsummen und eine Liste der enthaltenen Komponenten.</p>
-          </li>
-          <li class="timeline-step">
-            <span class="timeline-dot" aria-hidden="true"></span>
-            <p class="timeline-name">Anschließend</p>
-            <p class="timeline-text">Microsoft 365 Copilot und Copilot Studio als eigener Prüfbereich, das Datum, bis zu dem Sie entscheiden müssen, ein Export für Projektpläne, eine Prüfung, ob ein Bericht verändert wurde, und Verweise auf die Souveränitätskriterien des ZenDiS, des Bundeszentrums hinter openDesk.</p>
-          </li>
-          <li class="timeline-step">
-            <span class="timeline-dot" aria-hidden="true"></span>
             <p class="timeline-name">Später</p>
+            <p class="timeline-text">Geplant sind die Installation mit einem Befehl und ein signiertes Windows-Programm, das ohne Python läuft. Zu jeder Version gehören Prüfsummen und eine Liste der Komponenten.</p>
+            <p class="timeline-text">Der Bericht soll Microsoft 365 Copilot und Copilot Studio als eigenen Bereich abdecken und die Frist für die Entscheidung über die Lizenzverlängerung nennen. Vorgesehen sind außerdem ein CSV-Export für Projektpläne, eine Prüfung auf nachträgliche Änderungen am Bericht und Verweise auf die Souveränitätskriterien des ZenDiS, des Bundeszentrums hinter openDesk.</p>
             <p class="timeline-text">Nach einer Anmeldung mit reinem Lesezugriff soll Fazit Berechtigungen prüfen und Lizenzen und Verzeichniseinträge zählen.</p>
           </li>
         </ol>
-        <p class="note-text">Berichte gibt es auf Deutsch und Englisch. Französisch und Italienisch sind mit dem Schweizer Pilotprojekt geplant; <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit" hreflang="en">die Übersetzungsanleitung</a> zeigt, wie eine Sprache hinzukommt.</p>
+        <p class="note-text">Französisch und Italienisch sind mit dem Schweizer Pilotprojekt geplant. <a href="https://github.com/rouxdutoit/fazit/blob/main/CONTRIBUTING.md#translating-fazit" hreflang="en">Die Übersetzungsanleitung</a> zeigt, wie eine Sprache hinzukommt.</p>
       </div>
     </section>
 
-    <section class="sec grid" id="development" aria-labelledby="development-title">
-      <h2 class="sec-label" id="development-title">Wie Fazit entsteht</h2>
+    <section class="sec grid" id="free" aria-labelledby="free-title">
+      <h2 class="sec-label" id="free-title">Kostenlos und quelloffen</h2>
       <div class="sec-body">
-        <p class="lead">Mit KI-Werkzeugen geschrieben, von einem Menschen geleitet.</p>
-        <p>Claude und Codex schreiben den Code. Der Projektverantwortliche entscheidet, was gebaut wird, und steht dafür ein, ohne jede Zeile selbst zu lesen. Vor jeder Veröffentlichung suchen weitere Modelle nach Fehlern, und ihre Befunde sind öffentlich.</p>
-        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/.planning/phases/01-demo-and-report" hreflang="en">Prüfberichte lesen</a></p>
+        <p class="lead">Fazit ist kostenlos und quelloffen unter der AGPL-3.0-or-later. Alle Funktionen und Prüfregeln liegen im offenen Repository. Der Projektverantwortliche will mit Prüfungen und Unterstützung rund um Fazit Geld verdienen.</p>
+        <p>Claude und Codex schreiben den Code unter Leitung des Projektverantwortlichen.</p>
+        <p><a class="more" href="/de/about/#about-made">Wie Fazit entsteht</a></p>
+        <ul class="tiles">
+          <li>
+            <a class="tile-link" href="/de/pilots/">
+              <h3>Pilotprüfungen</h3>
+              <p>Bekunden Sie Interesse an einer von drei kostenlosen Pilotprüfungen, je einer in Deutschland, Österreich und der Schweiz. Sie beginnen, sobald der Import verfügbar ist.</p>
+              <span class="tile-arrow" aria-hidden="true"></span>
+            </a>
+          </li>
+        </ul>
       </div>
     </section>
   </main>
@@ -426,7 +399,7 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
           <a class="language" href="/" lang="en" hreflang="en" aria-label="English">EN</a>
         </div>
       </div>

@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://fazit.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Fazit und ein Ausschnitt zur Bereitschaft aus dem englischen Beispielbericht">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
@@ -29,9 +29,10 @@
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt springen</a>
-  <header class="bar" data-bar>
+  <header class="bar">
     <div class="bar-in">
       <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
       <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
         <div class="bar-links-in">
           <a href="/de/pilots/">Pilotprüfungen</a>
@@ -39,11 +40,9 @@
           <a href="/de/security/">Sicherheit</a>
           <a href="/demo/de/">Beispielbericht</a>
           <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
-          <a class="nav-extra btn btn-solid btn-small" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
         </div>
       </nav>
-      <a class="btn btn-solid btn-small bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
     </div>
   </header>
 
@@ -54,7 +53,7 @@
     <div class="legal-layout has-summary">
       <aside aria-label="Datenschutz im Überblick">
         <dl class="rows">
-          <div><dt>Cookies</dt><dd>Keine. Die Website nutzt weder Cookies noch Webspeicher; Ihr Browser kann ihre Dateien zwischenspeichern.</dd></div>
+          <div><dt>Cookies</dt><dd>Keine Cookies und kein Webspeicher. Ihr Browser kann Dateien dieser Website im Cache ablegen.</dd></div>
           <div><dt>Webanalyse und Tracking</dt><dd>Keine.</dd></div>
           <div><dt>Anfragen an Dritte</dt><dd>Keine. Schriften und Dateien werden von dieser Website geladen.</dd></div>
           <div><dt>Verarbeitete Daten</dt><dd>Ihre IP-Adresse und technische Anfragedaten beim Abruf der Website.</dd></div>
@@ -87,7 +86,7 @@
         </section>
         <section class="legal-part">
           <h2>Links zu anderen Websites</h2>
-          <p>Wenn Sie einem Link zu einer anderen Website folgen, gelten dort deren Datenschutzbestimmungen.</p>
+          <p>Folgen Sie einem Link auf eine andere Website, gelten die Datenschutzbestimmungen des jeweiligen Anbieters.</p>
         </section>
         <section class="legal-part">
           <h2>Ihre Rechte</h2>
@@ -123,7 +122,7 @@
         <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
         <div class="foot-end">
           <a href="https://rouxdutoit.com">rouxdutoit.com</a>
-          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"><span class="icon-mail" aria-hidden="true"></span></a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
           <a class="language" href="/privacy/" lang="en" hreflang="en" aria-label="English">EN</a>
         </div>
       </div>

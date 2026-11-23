@@ -5,9 +5,10 @@ from string import Formatter as FormatParser
 
 import pytest
 
-from fazit.catalogue import load_catalogue
+from fazit.catalogue import ROLES, load_catalogue
 from fazit.i18n import SUPPORTED_LANGUAGES, Formatter, code_label, load_locale, reason_text
 from fazit.parsing import read_text
+from fazit.status import load_status_rules
 
 
 def flatten_keys(
@@ -53,13 +54,14 @@ def test_catalogue_labels_and_reason_codes_have_translations(lang: str) -> None:
     catalogue = load_catalogue()
     strings = load_locale(lang)
     leaves = flatten_keys(strings)
-    for entry in (*catalogue.workloads, *catalogue.findings):
+    for entry in (*catalogue.workloads, *catalogue.categories, *catalogue.findings):
         assert tuple(entry.label.split(".", 1)) in leaves, entry.label
     for entry in catalogue.findings:
         if entry.unit is not None:
             assert ("units", entry.unit) in leaves, entry.unit
     assert catalogue.collector_ids <= strings["collector"].keys()
     assert catalogue.source_codes <= strings["source"].keys()
+    assert set(ROLES) == strings["role"].keys()
     assert {
         "not_in_export",
         "permission_denied",
@@ -82,6 +84,31 @@ def test_catalogue_labels_and_reason_codes_have_translations(lang: str) -> None:
     assert code_label(strings, "collector", "unrecognised") == "unrecognised"
 
 
+@pytest.mark.parametrize("lang", SUPPORTED_LANGUAGES)
+def test_reason_fixes_do_not_direct_readers_to_import_or_export(lang: str) -> None:
+    for code, reason in load_locale(lang)["reason"].items():
+        fix = reason["fix"].casefold()
+        assert "import" not in fix and "export" not in fix, (lang, code)
+
+
+@pytest.mark.parametrize("lang", SUPPORTED_LANGUAGES)
+def test_locale_and_status_rule_copy_avoid_verdicts_and_promises(lang: str) -> None:
+    banned = re.compile(
+        r"\b(?:score|verdict|recommended|recommendation|best|safe|easy|saving)\b"
+        r"|\b(?:Urteil|Empfehlung|empfohlen)",
+        re.IGNORECASE,
+    )
+    for path, value in flatten_keys(load_locale(lang)).items():
+        texts = (value,) if isinstance(value, str) else value
+        assert all(not banned.search(text) for text in texts), (lang, ".".join(path))
+
+    for workload, block in load_status_rules(load_catalogue()).workloads.items():
+        assert not banned.search(block.ready_reason[lang]), (lang, workload, "ready")
+        for rule in block.rules:
+            assert not banned.search(rule.reason[lang]), (lang, rule.id, "reason")
+            assert not banned.search(rule.next_step.text[lang]), (lang, rule.id, "next_step")
+
+
 def test_template_uses_locale_for_visible_text() -> None:
     source = files("fazit").joinpath("templates", "report.html.j2")
     template = read_text(source)
@@ -100,17 +127,17 @@ def test_template_uses_locale_for_visible_text() -> None:
             "en",
             "1,234,567",
             "312.4 GB",
-            "2 November 2026",
-            "6 May to 1 Nov 2026",
-            "1 Dec 2025 to 1 Nov 2026",
+            "2\u00a0November\u00a02026",
+            "6\u00a0May to 1\u00a0Nov\u00a02026",
+            "1\u00a0Dec\u00a02025 to 1\u00a0Nov\u00a02026",
         ),
         (
             "de",
             "1.234.567",
             "312,4 GB",
-            "2. November 2026",
-            "6. Mai bis 1. Nov. 2026",
-            "1. Dez. 2025 bis 1. Nov. 2026",
+            "2.\u00a0November\u00a02026",
+            "6.\u00a0Mai bis 1.\u00a0Nov.\u00a02026",
+            "1.\u00a0Dez.\u00a02025 bis 1.\u00a0Nov.\u00a02026",
         ),
     ],
 )

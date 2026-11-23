@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Der Vergleich zeigt, welche Funktionen openDesk und Nextcloud laut Projektdokumentation je Bereich abdecken.">
+  <title>Diese Funktionen decken openDesk und Nextcloud ab · Fazit</title>
+  <link rel="canonical" href="https://fazit.dev/de/coverage/">
+  <link rel="alternate" hreflang="en" href="https://fazit.dev/coverage/">
+  <link rel="alternate" hreflang="de" href="https://fazit.dev/de/coverage/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fazit">
+  <meta property="og:title" content="Diese Funktionen decken openDesk und Nextcloud ab · Fazit">
+  <meta property="og:description" content="Der Vergleich zeigt, welche Funktionen openDesk und Nextcloud laut Projektdokumentation je Bereich abdecken.">
+  <meta property="og:url" content="https://fazit.dev/de/coverage/">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:image" content="https://fazit.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fazit-Schriftzug und Ausschnitt aus dem englischen Beispielbericht. Die Übersicht zeigt die Zahl der Bereiche je Status und nennt die Telefonie als Hindernis.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" hidden><span class="menu-icon" aria-hidden="true"></span><span class="sr-only">Menü</span></button>
+      <nav class="bar-links" id="site-nav" aria-label="Hauptnavigation">
+        <div class="bar-links-in">
+          <a href="/de/pilots/">Pilotprüfungen</a>
+          <a href="/de/integrators/">IT-Dienstleister</a>
+          <a href="/de/security/">Sicherheit</a>
+          <a href="/demo/de/">Beispielbericht</a>
+          <a href="https://github.com/rouxdutoit/fazit">Quellcode</a>
+          <a class="btn btn-solid bar-cta" href="/de/start/"><span class="btn-icon icon-terminal" aria-hidden="true"></span>Jetzt starten</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-intro">
+      <h1>Diese Funktionen decken openDesk und Nextcloud ab</h1>
+      <p>Die Tabelle vergleicht die beiden Suiten mit Microsoft 365. Bei der Bestandsaufnahme klären Sie, welche Funktionen Ihre Organisation benötigt.</p>
+    </div>
+
+    <section class="sec grid" id="coverage" aria-labelledby="coverage-title">
+      <h2 class="sec-label" id="coverage-title">Funktionsumfang nach Bereich vergleichen</h2>
+      <div class="sec-body">
+        <ul class="legend" aria-label="Legende">
+          <li><span class="cov cov-full">In der Suite</span></li>
+          <li><span class="cov cov-part">Mit Einschränkungen</span></li>
+          <li><span class="cov cov-community">Community-App</span></li>
+          <li><span class="cov cov-none">Nicht in der Suite</span></li>
+        </ul>
+        <table class="coverage" role="table">
+          <caption class="sr-only">Abdeckung der Bereiche durch openDesk und Nextcloud</caption>
+          <thead role="rowgroup">
+            <tr role="row"><th scope="col" role="columnheader">Bereich</th><th scope="col" role="columnheader">openDesk</th><th scope="col" role="columnheader">Nextcloud</th></tr>
+          </thead>
+          <tbody role="rowgroup">
+            <tr role="row" data-workload="directory"><th scope="row" role="rowheader">Verzeichnisdienst</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span>Nubus</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Benutzer- und Gruppenverwaltung in Nextcloud</span></td></tr>
+            <tr role="row" data-workload="mail"><th scope="row" role="rowheader">E-Mail</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span>Open-Xchange (OX App Suite)</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Mail und Calendar mit einem gesonderten Mailserver</span></td></tr>
+            <tr role="row" data-workload="onedrive"><th scope="row" role="rowheader">OneDrive</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span>Nextcloud Files</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span>Nextcloud Files</span></td></tr>
+            <tr role="row" data-workload="sharepoint"><th scope="row" role="rowheader">SharePoint</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Gemeinsame Ordner in Nextcloud Files · Gesonderte Neugestaltung der Arbeitsabläufe · XWiki</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Team Folders in Nextcloud Files · Unterstützte Arbeitsabläufe mit Nextcloud Flow neu erstellen</span></td></tr>
+            <tr role="row" data-workload="teams"><th scope="row" role="rowheader">Teams</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Element · Jitsi · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Talk · Gesonderte Entscheidung zur Aufbewahrung bisheriger Chats</span></td></tr>
+            <tr role="row" data-workload="office_files"><th scope="row" role="rowheader">Office-Dateien</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Collabora Online · Gesonderte Konvertierung oder Neuentwicklung · Notes · CryptPad mit diagrams.net</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Office · Gesonderte Konvertierung oder Neuentwicklung</span></td></tr>
+            <tr role="row" data-workload="device_management"><th scope="row" role="rowheader">Geräteverwaltung</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderte Lösung zur Geräteverwaltung · Separat verwaltetes Betriebssystem für Arbeitsplatzrechner</span></td></tr>
+            <tr role="row" data-workload="windows_software"><th scope="row" role="rowheader">Reine Windows-Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderter Betrieb oder Ersatz der einzelnen Anwendungen</span></td></tr>
+            <tr role="row" data-workload="power_platform"><th scope="row" role="rowheader">Power Platform</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderte Prüfung und Neuentwicklung von Anwendungen und Abläufen</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Flow und Nextcloud Tables</span></td></tr>
+            <tr role="row" data-workload="telephony"><th scope="row" role="rowheader">Telefonie</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-none"><span class="sr-only">Nicht in der Suite: </span></span>Gesonderter Telefondienst</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Talk mit SIP-Bridge (Talk-Enterprise-Abonnement) und SIP-Gateway</span></td></tr>
+            <tr role="row" data-workload="identity_access"><th scope="row" role="rowheader">Identitäten und Zugriff</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-full"><span class="sr-only">In der Suite: </span></span>Keycloak</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-community"><span class="sr-only">Community-App: </span></span>App OIDC Identity Provider für Nextcloud</span></td></tr>
+            <tr role="row" data-workload="security_compliance"><th scope="row" role="rowheader">Sicherheit und Regelkonformität</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Zugriffssteuerung und Schadsoftware-Prüfung in openDesk</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Dateischutz und Aufbewahrungseinstellungen in Nextcloud</span></td></tr>
+            <tr role="row" data-workload="small_apps"><th scope="row" role="rowheader">Kleinere Anwendungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>OpenProject und OX App Suite für Aufgaben</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Nextcloud Forms, Deck und Calendar</span></td></tr>
+            <tr role="row" data-workload="integrations"><th scope="row" role="rowheader">Anwendungsanbindungen</th><td role="cell" data-label="openDesk"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Schnittstellen der openDesk-Komponenten</span></td><td role="cell" data-label="Nextcloud"><span class="cov-cell"><span class="cov cov-part"><span class="sr-only">Mit Einschränkungen: </span></span>Schnittstellen und Anbindungen für Nextcloud</span></td></tr>
+          </tbody>
+        </table>
+        <p class="table-note">Wenn Sie mit Nextcloud Talk das öffentliche Telefonnetz anbinden, nehmen Sie die angebotenen laufenden Kosten in den Vergleich auf und prüfen Sie Rufnummernweiterleitung und Warteschleifen. Die Profile für openDesk und Nextcloud wurden am 21. und 22. November 2026 aus der jeweiligen Projektdokumentation erstellt und noch nicht von jemandem geprüft, der diese Lösungen betreibt. Lizenzen erscheinen in der Kostenrechnung. Das allgemeine Profil deckt weitere Umgebungen ab, etwa Arbeitsplätze mit Linux und LibreOffice.</p>
+        <p><a class="more" href="https://github.com/rouxdutoit/fazit/tree/main/src/fazit/rules/mappings" hreflang="en">Zuordnungen und Quellen ansehen</a></p>
+      </div>
+    </section>
+
+    <section class="sec grid" id="sources" aria-labelledby="sources-title">
+      <h2 class="sec-label" id="sources-title">Fachliche Grundlagen</h2>
+      <div class="sec-body">
+        <ul class="sources">
+          <li>
+            <a class="more" href="https://www.bfh.ch/ti/de/forschung/forschungsprojekte/2025-867-514-540/">Evaluation openDesk für die Stadt Zürich</a>
+            <span>Berner Fachhochschule</span>
+          </li>
+          <li>
+            <a class="more" href="https://www.digitale-verwaltung-schweiz.ch/application/files/6017/8970/5022/Studie_Alternativen_zu_M365_und_Konsequenzen_bei_einem_Wechsel_September_2026.pdf">Alternativen zu Microsoft 365 und Folgen eines Umstiegs (PDF)</a>
+            <span>Studie im Auftrag der Digitalen Verwaltung Schweiz</span>
+          </li>
+        </ul>
+        <div class="subsection">
+          <h3>Zielprojekte</h3>
+          <p>Die Profile für <a href="https://docs.opendesk.eu/">openDesk</a> und <a href="https://nextcloud.com/">Nextcloud</a> zeigen, welche Funktionen Projekte wie Collabora Online, Open-Xchange, Element, Jitsi und Keycloak abdecken. Für andere Umgebungen, etwa Arbeitsplätze mit Linux und LibreOffice, können Sie das allgemeine Profil verwenden.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot-in">
+      <div class="foot-top">
+        <a class="wordmark" href="/de/" aria-label="Fazit-Startseite">fazit</a>
+        <nav class="foot-cols" aria-label="Fußnavigation">
+          <div>
+            <p class="foot-heading">Projekt</p>
+            <ul>
+              <li><a href="/de/about/">Über Fazit</a></li>
+              <li><a href="/demo/de/">Beispielbericht</a></li>
+              <li><a href="https://github.com/rouxdutoit/fazit">Quellcode</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-heading">Rechtliches</p>
+            <ul>
+              <li><a href="/de/impressum/">Impressum</a></li>
+              <li><a href="/de/privacy/">Datenschutz</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-fine">
+        <p>AGPL-3.0-or-later · Keine Cookies, keine Webanalyse</p>
+        <div class="foot-end">
+          <a href="https://rouxdutoit.com">rouxdutoit.com</a>
+          <a class="foot-mail" href="mailto:hello@rouxdutoit.com" aria-label="E-Mail" title="E-Mail"></a>
+          <a class="language" href="/coverage/" lang="en" hreflang="en" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
