@@ -6,6 +6,16 @@ Fazit is a free, open source command-line tool for assessing a move from Microso
 
 Fazit is in early development (alpha). It builds reports from bundled samples with your answers and costs in `inputs.yaml`. The measured figures in the samples are simulated; import of your own Microsoft 365 exports comes next.
 
+**Your data stays with you.**
+
+- Fazit runs on your computer and only reads. It never changes anything in Microsoft 365.
+- After setup it makes no network connections. The tests fail if any code tries to open one.
+- It keeps counts, not names. It writes no tokens, person names or email addresses to disk by default.
+- The report is one HTML file that loads nothing from anywhere and opens offline.
+- No telemetry, no accounts, no cookies, on the tool or on [fazit.dev](https://fazit.dev).
+
+Details and limits are under [What Fazit will never do](#what-fazit-will-never-do) and in the [security notes](https://fazit.dev/security/).
+
 ## Try it
 
 Install `uv`, clone this repository and run the command from the clone.

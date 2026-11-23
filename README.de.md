@@ -6,6 +6,16 @@ Fazit ist ein freies Open-Source-Werkzeug für die Kommandozeile, mit dem Sie ei
 
 Fazit steht am Anfang der Entwicklung (Alpha). Es erstellt Berichte aus mitgelieferten Beispielen mit Ihren Antworten und Kosten aus `inputs.yaml`. Die Messwerte in den Beispielen sind simuliert; als Nächstes kommt der Import Ihrer eigenen Microsoft-365-Exporte.
 
+**Ihre Daten bleiben bei Ihnen.**
+
+- Fazit läuft auf Ihrem Rechner und liest nur. Es ändert nichts in Microsoft 365.
+- Nach der Einrichtung baut es keine Netzwerkverbindungen auf. Die Tests schlagen fehl, sobald Code versucht, eine zu öffnen.
+- Es speichert Anzahlen, keine Namen. Zugangstoken, Personennamen und E-Mail-Adressen schreibt es standardmäßig nicht auf die Festplatte.
+- Der Bericht ist eine einzige HTML-Datei, die nichts nachlädt und sich ohne Internet öffnen lässt.
+- Keine Telemetrie, keine Konten, keine Cookies, weder im Werkzeug noch auf [fazit.dev](https://fazit.dev/de/).
+
+Einzelheiten und Grenzen stehen unter [Grenzen von Fazit](#grenzen-von-fazit) und in den [Sicherheitshinweisen](https://fazit.dev/de/security/).
+
 ## Ausprobieren
 
 Installieren Sie `uv` und klonen Sie dieses Repository. Führen Sie den Befehl im Verzeichnis des Klons aus.
