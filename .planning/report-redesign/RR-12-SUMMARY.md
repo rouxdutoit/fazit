@@ -111,3 +111,14 @@ The timeline and translation note retain their wording from Home. The status, Ma
 | Roadmap title and footer link | Fahrplan |
 | Roadmap metadata description | Der Fahrplan zeigt, was Fazit heute leistet und welche Funktionen als Nächstes geplant sind. |
 | Comparison footer link | openDesk und Nextcloud vergleichen |
+
+## RR-12b
+
+- Removed the duplicate status section and the CSS it used on both homepages. The hero preview shows the status list and links to the sample report. The site checker expects six sections and one assessed-area count per homepage.
+- The privacy copy describes the current demo. After setup, Fazit creates an HTML report locally from bundled sample data without making network requests. The demo also saves copies of the sample scan and inputs. Importing Microsoft 365 exports is planned. Both Security pages now advise using local folders without synchronisation.
+- Moved the Git and uv prerequisite below the commands. The footnote matches the Get started caption and links to its requirements section in the same language.
+- Removed the countries from the closing facts. The line ends with the offline HTML file.
+
+Chromium counted **224 words in English** (previously 245) and **222 in German** (previously 235), using the same rendered `main` count as RR-12.
+
+All four requested checks passed. Pytest passed 959 tests, Ruff lint and format checks passed, and the site checker verified 24 pages and 953 references. Chromium verified the caption and its destination in both languages and checked the home and Security pages at 360 and 1280 px in light and dark mode. Both CLI demo runs matched the published reports byte for byte, and both reports opened offline in Chromium.

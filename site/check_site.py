@@ -525,24 +525,6 @@ def check_coverage(page: Page, lang: str) -> list[str]:
     return errors
 
 
-def check_home_status(markup: str, demo: Page, lang: str) -> list[str]:
-    labels = load_locale(lang)["status"]
-    order = ("blocker", "needs_work", "unknown", "ready")
-    summary = demo.source.partition('<dl class="status-summary">')[2].partition("</dl>")[0]
-    status_markup = r'<span class="status (\w+)">(<svg\b[^>]*>.*?</svg>)'
-    icons = dict(re.findall(status_markup, summary, re.S))
-    expected = [
-        (status, icons.get(status, ""), labels[status], str(demo.status_counts[status]))
-        for status in order
-    ]
-    actual = re.findall(
-        rf'<dt>{status_markup}\s*([^<]+?)\s*</span></dt>\s*<dd class="row-count">(\d+)</dd>',
-        markup,
-        re.S,
-    )
-    return [] if actual == expected else ["Status list must match the sample report."]
-
-
 def check_home_costs(markup: str, demo: Page) -> list[str]:
     summary = demo.source.partition('<div class="subsection summary-costs">')[2]
     summary = summary.partition("</ul>")[0]
@@ -566,7 +548,6 @@ def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     sample = f"/demo/{lang}/"
     destinations = {
         "hero": [sample, sample],
-        "readiness": [sample],
         "example": [f"{sample}#readiness-title"],
         "costs": [f"{sample}#costs-title"],
         "privacy": [f"{prefix}/security/"],
@@ -576,12 +557,11 @@ def check_home(page: Page, demo: Page, lang: str) -> list[str]:
     main = page.source.partition("<main")[2].partition("</main>")[0]
     sections = dict(re.findall(r'<section [^>]*\bid="([^"]+)"[^>]*>(.*?)</section>', main, re.S))
     if list(sections) != list(destinations):
-        return ["Expected the seven home sections in order."]
+        return ["Expected the six home sections in order."]
     errors = []
     for section, links in destinations.items():
         if re.findall(r'<a class="more(?: [^"]+)?" href="([^"]+)"', sections[section]) != links:
             errors.append(f"Home section {section} must link to {', '.join(links)}.")
-    errors.extend(check_home_status(sections["readiness"], demo, lang))
     errors.extend(check_home_costs(sections["costs"], demo))
     return errors
 
@@ -591,7 +571,7 @@ def check_area_counts(demo: Page, lang: str) -> list[str]:
     prefix = "/de" if lang == "de" else ""
     pattern = r"<span data-assessed-areas>\s*([0-9]+)\s*</span>"
     errors = []
-    for route, number in ((f"{prefix}/", 2), (f"{prefix}/pilots/", 1)):
+    for route, number in ((f"{prefix}/", 1), (f"{prefix}/pilots/", 1)):
         path = local_path(route)
         expected = [total] * number
         if path.is_file() and re.findall(pattern, path.read_text(encoding="utf-8")) != expected:

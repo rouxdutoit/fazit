@@ -683,38 +683,18 @@ code {
   .finding-status { justify-content: flex-start; }
 }
 
-.status-summary {
-  display: grid;
-  gap: 8px;
-  margin: 24px 0 0;
-}
-
-.status-summary .status {
-  position: relative;
-  display: block;
-  padding-inline-start: calc(1.2em + 8px);
-}
-
-.status-summary .icon {
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: calc((1lh - 1.2em) / 2);
-}
-
-.status-summary > div, .finding-evidence > div {
+.finding-evidence > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 8px;
 }
 
-.status-summary dd, .finding-evidence dd {
+.finding-evidence dd {
   margin: 0;
   text-align: end;
   font-variant-numeric: tabular-nums;
 }
-
-.status-summary .row-count { font-weight: 600; }
 
 .finding-evidence {
   margin: 16px 0 0;
@@ -1595,10 +1575,7 @@ code {
   fill: currentColor;
 }
 
-.blocker { --status-fill: var(--status-blocker); }
 .needs_work { --status-fill: var(--status-needs-work); }
-.unknown { --status-fill: var(--status-unknown); }
-.ready { --status-fill: var(--status-ready); }
 .status .icon { color: color-mix(in srgb, var(--status-fill) var(--status-strength), var(--fg)); }
 
 .badge {
