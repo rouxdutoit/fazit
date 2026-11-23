@@ -221,3 +221,37 @@ def test_ci_uses_read_only_permissions_and_sha_pinned_actions(ci_workflow: dict)
         for step in job.get("steps", []):
             if "uses" in step:
                 assert re.fullmatch(r"[^@]+@[0-9a-fA-F]{40}", step["uses"])
+
+
+def test_release_uses_trusted_publishing_on_version_tags(ci_workflow: dict) -> None:
+    workflow = yaml.safe_load((ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8"))
+    assert workflow["on"] == {"push": {"tags": ["v*"]}}
+    assert workflow["permissions"] == {"contents": "read"}
+    assert "secrets." not in str(workflow)
+    assert workflow["jobs"].keys() == {"build", "publish"}
+
+    build = workflow["jobs"]["build"]
+    assert build.get("permissions", workflow["permissions"]) == {"contents": "read"}
+    checkout, setup_uv, upload = (step for step in build["steps"] if "uses" in step)
+    assert checkout["with"]["persist-credentials"] is False
+    ci_actions = {step["uses"] for step in ci_workflow["jobs"]["checks"]["steps"] if "uses" in step}
+    assert {checkout["uses"], setup_uv["uses"]} <= ci_actions
+
+    publish = workflow["jobs"]["publish"]
+    assert publish["needs"] == "build"
+    assert publish["environment"] == {"name": "pypi", "url": "https://pypi.org/p/fazit"}
+    assert publish["permissions"] == {"id-token": "write"}
+    download, publish_pypi = publish["steps"]
+    assert upload["with"]["name"] == download["with"]["name"]
+    assert upload["with"]["path"] == download["with"]["path"] == "dist/"
+    assert not publish_pypi.get("with")
+
+    for step, action in (
+        (checkout, "actions/checkout"),
+        (setup_uv, "astral-sh/setup-uv"),
+        (upload, "actions/upload-artifact"),
+        (download, "actions/download-artifact"),
+        (publish_pypi, "pypa/gh-action-pypi-publish"),
+    ):
+        name, _, ref = step["uses"].partition("@")
+        assert name == action and re.fullmatch(r"[0-9a-f]{40}", ref)
