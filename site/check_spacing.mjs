@@ -16,25 +16,23 @@ const homeRelations = new Map(Array.from(
 ));
 const scale = [4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 72, 96, 104, 136];
 const references = new Map([
-  ["site-page-top", "/start/"],
-  ["site-section-gap", "/start/"],
-  ["report-page-top", "/demo/en/"],
+  ["page-top", "/"],
+  ["home-section-gap", "/"],
+  ["home-footer", "/"],
   ["report-section-gap", "/demo/en/"],
 ]);
 // Allow for layout in steps of 1/64 of a CSS pixel.
 const tolerance = 0.02;
-if (relations.size !== 15 || [...relations.values()].some(({ expected }) => expected.some(gap => !scale.includes(gap)))) {
-  throw new Error("DESIGN.md must give one spacing-scale value per width for each of the 15 relations.");
+if (relations.size !== 13 || [...relations.values()].some(({ expected }) => expected.some(gap => !scale.includes(gap)))) {
+  throw new Error("DESIGN.md must give one spacing-scale value per width for each of the 13 relations.");
 }
-if (homeRelations.size !== 4) throw new Error("DESIGN.md must give four fluid home relations.");
+if (homeRelations.size !== 4) throw new Error("DESIGN.md must give four fluid website relations.");
 const allRelations = new Map([...relations, ...homeRelations]);
 
 function measureInPage({ pageType, filtered }) {
   const measurements = [];
   const main = document.querySelector("main");
   const site = pageType !== "report";
-  const rhythm = site ? "site" : "report";
-  const sectionGap = `${rhythm}-section-gap`;
   const columns = matchMedia("(min-width: 880px)").matches;
   const visual = "figure, ul, ol, dl, table, .finding, .command, .summary-costs, .table-scroll, .cost-bars, .sec-body .note";
   const flows = [
@@ -70,7 +68,7 @@ function measureInPage({ pageType, filtered }) {
     const first = site
       ? main.querySelector(".hero > .eyebrow, .center-page > div > .eyebrow") ?? heading
       : heading;
-    record(`${rhythm}-page-top`, document.querySelector(".bar"), first);
+    record("page-top", document.querySelector(".bar"), first);
     if (pageType === "home") {
       const preview = main.querySelector(".report-preview");
       const beats = [...main.querySelectorAll(".home-beat")];
@@ -84,43 +82,52 @@ function measureInPage({ pageType, filtered }) {
       record("card", preview.querySelector(".preview-statuses"), preview.querySelector(".preview-details"));
     } else {
       const last = [...main.children].filter(visible).at(-1);
-      record(sectionGap, last, document.querySelector("footer"), undefined, "above footer");
+      record(site ? "home-footer" : "report-section-gap", last, document.querySelector("footer"));
     }
   }
 
-  function measureDivider(previous, section, firstItems, pseudo = false) {
-    const style = getComputedStyle(section, pseudo ? "::before" : null);
-    const size = pseudo ? parseFloat(style.height) : parseFloat(style.borderTopWidth);
-    const offset = pseudo ? parseFloat(style.top) : 0;
-    const hasRule = size > 0 && (!pseudo || style.content !== "none" && style.display !== "none");
+  function measureReportDivider(previous, section, firstItems) {
+    const style = getComputedStyle(section, "::before");
+    const size = parseFloat(style.height);
+    const offset = parseFloat(style.top);
+    const hasRule = size > 0 && style.content !== "none" && style.display !== "none";
     const top = hasRule ? box(section).top + offset : NaN;
-    record(sectionGap, previous, section, top - box(previous).bottom, "above divider");
+    record("report-section-gap", previous, section, top - box(previous).bottom, "above divider");
     for (const first of firstItems) {
-      record(sectionGap, section, first, box(first).top - (top + size), "below divider");
+      record("report-section-gap", section, first, box(first).top - (top + size), "below divider");
     }
   }
 
-  function measureLegalDividers(intro, layout) {
+  function measureSiteGap(previous, section, firstItems) {
+    const pseudo = getComputedStyle(section, "::before");
+    const hasRule = parseFloat(getComputedStyle(section).borderTopWidth) > 0 ||
+      (pseudo.display !== "none" && !["none", "normal"].includes(pseudo.content));
+    if (hasRule) record("home-section-gap", previous, section, NaN, "section divider");
+    for (const first of firstItems) record("home-section-gap", previous, first);
+  }
+
+  function measureLegalSections(intro, layout) {
     const summary = layout.matches(".has-summary");
     const [first, article] = layout.children;
-    measureDivider(intro, layout, summary && columns ? [first, article] : [first]);
-    if (summary && !columns) measureDivider(first, article, [article.firstElementChild]);
+    measureSiteGap(intro, layout, summary && columns ? [first, article] : [first]);
+    if (summary && !columns) measureSiteGap(first, article, [article.firstElementChild]);
     for (const part of layout.querySelectorAll(".legal-part + .legal-part")) {
-      measureDivider(part.previousElementSibling, part, [part.firstElementChild]);
+      measureSiteGap(part.previousElementSibling, part, [part.firstElementChild]);
     }
   }
 
-  function measureDividers() {
+  function measureSections() {
     const sections = [...main.children].filter(visible);
     for (const [index, section] of sections.entries()) {
       if (!index) continue;
       const previous = sections[index - 1];
       if (section.matches(".legal-layout")) {
-        measureLegalDividers(previous, section);
+        measureLegalSections(previous, section);
       } else if (section.matches("section")) {
         const grid = section.querySelector(":scope > .sec") ?? section;
-        const items = [...grid.children].filter(visible);
-        measureDivider(previous, grid, columns ? items : items.slice(0, 1), true);
+        const items = [...grid.children].filter(visible).slice(0, columns ? undefined : 1);
+        if (site) measureSiteGap(previous, grid, items);
+        else measureReportDivider(previous, grid, items);
       }
     }
   }
@@ -221,7 +228,7 @@ function measureInPage({ pageType, filtered }) {
   }
 
   measureStartAndEnd();
-  if (pageType !== "home") measureDividers();
+  if (pageType !== "home") measureSections();
   for (const parent of [main, ...main.querySelectorAll("*")]) {
     const children = [...parent.children].filter(visible);
     if (parent.matches(".command-line") && pageType !== "home") measureCommand(parent);
@@ -246,6 +253,107 @@ function measureInPage({ pageType, filtered }) {
   return measurements;
 }
 
+function measureGeometryInPage(openMenu) {
+  const box = element => element.getBoundingClientRect();
+  const visible = element => element.checkVisibility({ visibilityProperty: true });
+  const bar = document.querySelector(".bar");
+  const menu = bar.querySelector(".menu-button");
+  const phone = visible(menu);
+  const row = [...bar.querySelectorAll(".bar-links-in")].find(visible);
+  const metrics = {};
+
+  function recordBox(name, rect, axes = ["left", "top", "width", "height"]) {
+    for (const axis of axes) metrics[`${name} ${axis}`] = rect[axis];
+  }
+
+  if (row) {
+    const links = [...row.querySelectorAll("a")].filter(link => visible(link) && !(openMenu && link.matches(".bar-cta")));
+    const boxes = links.map(box);
+    const gaps = boxes.slice(1).map((next, i) => openMenu ? next.top - boxes[i].bottom : next.left - boxes[i].right);
+    const name = openMenu ? "phone links" : "desktop links";
+    recordBox(name, box(row), openMenu ? ["left", "top", "width"] : undefined);
+    if (openMenu) recordBox("first phone link", boxes[0]);
+    else metrics["last desktop link right"] = boxes.at(-1).right;
+    for (const [label, values] of [
+      ["font size", links.map(link => parseFloat(getComputedStyle(link).fontSize))],
+      ["height", boxes.map(rect => rect.height)],
+      ["gap", gaps],
+    ]) {
+      metrics[`${name} minimum ${label}`] = Math.min(...values);
+      metrics[`${name} maximum ${label}`] = Math.max(...values);
+    }
+    if (!openMenu) {
+      metrics["desktop link top"] = Math.min(...boxes.map(rect => rect.top));
+      metrics["desktop link bottom"] = Math.max(...boxes.map(rect => rect.bottom));
+    }
+  } else if (openMenu || !phone) {
+    throw new Error("Visible navigation links are missing.");
+  }
+  if (openMenu) return metrics;
+
+  recordBox("bar", box(bar));
+  recordBox("bar inner", box(bar.querySelector(".bar-in")));
+  const wordmark = bar.querySelector(".wordmark");
+  recordBox("wordmark", box(wordmark));
+  const text = new Range();
+  text.selectNodeContents(wordmark);
+  recordBox("wordmark text", text.getBoundingClientRect());
+  for (const key of ["fontSize", "fontWeight", "lineHeight"]) {
+    metrics[`wordmark ${key}`] = parseFloat(getComputedStyle(wordmark)[key]);
+  }
+  if (phone) {
+    recordBox("menu button", box(menu));
+    recordBox("menu icon", box(menu.querySelector(".menu-icon")));
+  }
+
+  function edge(element, side) {
+    const style = getComputedStyle(element);
+    return side === "left" ? box(element).left + parseFloat(style.paddingLeft)
+      : box(element).right - parseFloat(style.paddingRight);
+  }
+
+  const main = document.querySelector("main");
+  const intro = main.matches(".center-page") ? main : main.querySelector(".hero, .page-intro");
+  const footer = document.querySelector("footer .foot-in, footer[data-section=footer]");
+  const shells = [intro, ...main.querySelectorAll(".home-beat, .home-closing, .sec, .legal-layout"), footer];
+  if (intro !== main) shells.push(intro.querySelector("h1"));
+  const edges = shells.map(element => ({
+    name: element.id || element.className || element.tagName,
+    left: edge(element.querySelector(":scope > .sec-label") ?? element, "left"),
+    right: edge(element.querySelector(":scope > .sec-body") ?? element, "right"),
+  }));
+  return { metrics, edges, phone };
+}
+
+async function measureGeometry(page) {
+  const result = await page.evaluate(measureGeometryInPage, false);
+  if (result.phone) {
+    const menu = page.locator(".menu-button");
+    await menu.press("Enter");
+    await page.locator(".bar-links a:visible").first().waitFor();
+    Object.assign(result.metrics, await page.evaluate(measureGeometryInPage, true));
+    await menu.press("Enter");
+  }
+  return result;
+}
+
+function compareGeometry(result, home) {
+  const differences = [];
+  const compare = (name, actual, expected) => {
+    if (!Number.isFinite(actual) || !Number.isFinite(expected) || Math.abs(actual - expected) > tolerance) {
+      differences.push(`${name} ${actual ?? "missing"} (home ${expected ?? "missing"})`);
+    }
+  };
+  for (const key of new Set([...Object.keys(home.metrics), ...Object.keys(result.metrics)])) {
+    compare(key, result.metrics[key], home.metrics[key]);
+  }
+  for (const { name, left, right } of result.edges) {
+    compare(`${name} left text edge`, left, home.edges[0].left);
+    compare(`${name} right text edge`, right, home.edges[0].right);
+  }
+  return differences;
+}
+
 async function showEmptyResults(page) {
   const blocker = page.locator("#f-status-blocker");
   if (await blocker.isDisabled()) return false;
@@ -262,18 +370,23 @@ async function showEmptyResults(page) {
 }
 
 async function checkSpacing({ browser, origin, routes }) {
-  const viewports = [...widths.map(width => ({ width, options: {} })), iPhone].sort((a, b) => a.width - b.width);
+  const viewports = [...widths, 390, 819, 820, 1024, 1440].map(width => ({ width, options: {} }));
+  viewports.push(iPhone);
+  viewports.sort((a, b) => a.width - b.width);
   const buckets = new Map(viewports.map(({ width }) => [width, new Map([...allRelations.keys()].map(key => [key, []]))]));
   const errors = [];
   let views = 0;
   let expanded = 0;
   let filtered = 0;
-  for (const { width, options } of viewports) {
+  for (const { width, options, device } of viewports) {
     for (const theme of ["light", "dark"]) {
       const context = await localContext(browser, origin, width, theme, options);
       const page = await context.newPage();
+      page.setDefaultTimeout(3000);
+      let home;
       for (const route of routes) {
         const pageType = route.startsWith("/demo/") ? "report" : route === "/" || route === "/de/" ? "home" : "site";
+        const view = [theme, device].filter(Boolean).join(" ");
         const collect = async state => {
           const measurements = await page.evaluate(measureInPage, { pageType, filtered: state === "filtered" });
           for (const { relation, ...result } of measurements) {
@@ -288,6 +401,10 @@ async function checkSpacing({ browser, origin, routes }) {
           await page.evaluate(() => document.fonts.ready);
           await collect("initial");
           views += 1;
+          const geometry = await measureGeometry(page);
+          if (route === "/") home = geometry;
+          if (!home) throw new Error("Home page geometry is missing.");
+          for (const error of compareGeometry(geometry, home)) errors.push({ page: route, width, view, error });
           const details = page.locator("main details:not([open])");
           if (await details.count()) {
             await details.evaluateAll(items => items.forEach(item => { item.open = true; }));
@@ -299,7 +416,7 @@ async function checkSpacing({ browser, origin, routes }) {
             filtered += 1;
           }
         } catch (error) {
-          errors.push({ page: route, width, view: theme, error: error.message });
+          errors.push({ page: route, width, view, error: error.message });
         }
       }
       await context.close();
@@ -310,6 +427,7 @@ async function checkSpacing({ browser, origin, routes }) {
   console.log(`${views} page views including iPhone emulation, ${expanded} expanded views, ${filtered} empty filter views, ${count} spacing measurements (px).`);
   if (offenders.length) console.table(offenders);
   if (errors.length) console.table(errors);
+  console.log(`${errors.length} page load or geometry failures.`);
   if (errors.length || rows.some(row => row.offenders)) process.exitCode = 1;
 }
 

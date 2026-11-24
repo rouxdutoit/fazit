@@ -13,6 +13,12 @@ Running log of design decisions, newest first. `HANDOFF.md` is the original spec
 7. **One command.** After setup, one command produces a report. Live collection uses browser sign-in with PKCE by default, with device code as a fallback.
 8. **Honest figures.** Use supplied costs and clearly labelled example amounts. Show missing evidence as unknown. A skipped or denied collector never improves readiness.
 
+## 2026-11-24 — Shared website and report layout
+
+**D50. Use the home page's margins and bar throughout the website and report.**
+
+The founder asked for the home page's opening, section and footer gaps on the inner pages. Open space separates their sections, with the heading and content still aligned at the top of each row. The report uses the website's bar, content width, gutter and opening gap. It keeps its section links, phone disclosure and document spacing. On screen, the organisation name follows the title so a wrapping name leaves the opening gap intact. Print keeps the original order and layout. This updates D49 and D48. [Design rules](DESIGN.md)
+
 ## 2026-11-23 — Home page redesign
 
 **D49. Show the sample report first, then explain it in five sections.**

@@ -448,8 +448,8 @@
       --sans: Figtree, ui-sans-serif, system-ui, sans-serif;
       --mono: "Geist Mono", ui-monospace, monospace;
       --ease: cubic-bezier(0.32, 0.72, 0, 1);
-      --gutter: 20px;
-      --rhythm-report-page-top: 64px;
+      --gutter: clamp(16px, 5.5vw, 64px);
+      --rhythm-page-top: 72px;
       --rhythm-report-section-gap: 40px;
       --rhythm-section-heading: 16px;
       --rhythm-paragraph: 12px;
@@ -483,10 +483,16 @@
       :root { --gutter: 16px; }
     }
     @media screen and (min-width: 768px) {
-      :root { --rhythm-report-section-gap: 56px; }
+      :root {
+        --rhythm-page-top: 104px;
+        --rhythm-report-section-gap: 56px;
+      }
     }
     @media screen and (min-width: 1080px) {
-      :root { --rhythm-report-section-gap: 64px; }
+      :root {
+        --rhythm-page-top: 136px;
+        --rhythm-report-section-gap: 64px;
+      }
     }
     * { box-sizing: border-box; }
     body {
@@ -581,7 +587,7 @@
     .skip:hover { color: var(--solid-fg); text-shadow: none; }
     .bar {
       position: sticky;
-      inset-block-start: 0;
+      inset: 0 0 auto;
       z-index: 10;
       background: color-mix(in srgb, var(--bg) 82%, transparent);
       backdrop-filter: saturate(180%) blur(20px);
@@ -594,11 +600,12 @@
       max-width: var(--max);
       min-height: var(--bar-h);
       margin: 0 auto;
-      padding: 4px var(--gutter);
+      padding: 8px var(--gutter);
     }
     .wordmark, .wordmark:hover { color: var(--fg); }
     .wordmark:hover { text-shadow: none; }
     .wordmark {
+      font-size: var(--fs-body);
       font-weight: 600;
       line-height: 36px;
     }
@@ -676,20 +683,15 @@
     .symbol-label > .chevron { margin-inline: 0.105em; }
     .symbol-wrap > .chevron { margin-block-start: calc(var(--cap-height) - 0.50em); }
 
-    .bar-links { margin-inline-start: auto; }
+    .bar-links { flex: 1; }
     .bar-links-in {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 24px;
     }
-    .wordmark {
-      display: inline-flex;
-      align-items: center;
-    }
-    .wordmark, .bar-links a {
-      min-height: var(--hit);
-    }
     .bar-links a {
+      min-height: var(--hit);
       color: color-mix(in srgb, var(--fg) 80%, transparent);
       font-size: var(--fs-footnote);
       white-space: nowrap;
@@ -703,14 +705,18 @@
       font-weight: 600;
     }
     .bar-menu { display: none; border: 0; }
-    @media screen and (max-width: 819px) {
+    @media screen and (width < 820px) {
       .bar-in {
         display: grid;
         grid-template-columns: minmax(0, 1fr) var(--hit);
         gap: 0;
+        padding-block: 4px;
       }
       .bar-in > .bar-links { display: none; }
-      .bar-menu { display: block; }
+      .bar-menu {
+        display: block;
+        grid-area: 1 / 2;
+      }
       .menu-button {
         --symbol-gap: var(--btn-symbol-gap);
         justify-content: center;
@@ -1476,9 +1482,7 @@
     }
     @media screen {
       main { padding-block-end: var(--rhythm-report-section-gap); }
-      .page-intro {
-        padding-block-start: calc(var(--rhythm-report-page-top) - 1lh - var(--rhythm-subheading));
-      }
+      .page-intro { padding-block-start: var(--rhythm-page-top); }
       .sec { padding-block-start: calc(1px + var(--rhythm-report-section-gap)); }
       main > * + section { margin-block-start: var(--rhythm-report-section-gap); }
 
@@ -1635,6 +1639,7 @@
     @media print {
       :root {
         color-scheme: light;
+        --gutter: 20px;
         --fs-title: 18pt;
         --fs-headline: 14pt;
         --fs-lead: 12pt;
@@ -1648,7 +1653,11 @@
         print-color-adjust: exact;
       }
       .page-intro, .sec { padding: 16pt 0; }
-      .page-intro { padding-block: 0 4pt; }
+      .page-intro {
+        display: grid;
+        padding-block: 0 4pt;
+      }
+      .page-intro .eyebrow { grid-row: 1; }
       .page-intro h1 { font-size: var(--fs-title); }
       .grid { display: block; padding-inline: 0; }
       .sec::before { inset-inline: 0; }
@@ -1756,8 +1765,8 @@
   <main id="main" tabindex="-1">
   <header data-section="header">
     <div class="page-intro">
-      <p class="eyebrow">{{ inputs.organisation_name if inputs and inputs.organisation_name else strings.header.unnamed_organisation }}</p>
       <h1>{{ strings.header.title }}</h1>
+      <p class="eyebrow">{{ inputs.organisation_name if inputs and inputs.organisation_name else strings.header.unnamed_organisation }}</p>
       <dl class="report-meta">
         <div data-input-role="scan">
           <dt>{{ strings.header.scan_date }}</dt>

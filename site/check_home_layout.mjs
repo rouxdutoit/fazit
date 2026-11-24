@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from "node:assert/strict";
-import { iPhone, localContext } from "./check_browser.mjs";
+import { pathToFileURL } from "node:url";
+import { iPhone, localContext, withSite } from "./check_browser.mjs";
 
 const widths = [360, 390, 768, 960, 1130, 1280];
 const routes = ["/", "/de/"];
@@ -210,4 +211,8 @@ export async function checkHomeLayout({ browser, origin }) {
   }
   console.table(rows);
   console.log(`${focusStops} keyboard stops across both home pages at 390 and 1280 px, with menu and skip link verification.`);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await withSite(checkHomeLayout);
 }

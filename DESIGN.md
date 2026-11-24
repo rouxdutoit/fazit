@@ -10,7 +10,7 @@ When a rule here and a habit disagree, the rule wins. Change a rule only with a 
 - **Light mode:** apple.com neutrals (`#ffffff`, `#f5f5f7`, `#1d1d1f`, `#6e6e73`). **Dark mode:** Fazit's green on near-black (`#050906`, `#c4f7d0`). Buttons, links and symbols take the text colour in both modes. The only other colours are the iOS system colours for status.
 - The page follows the device's light or dark setting. There is no theme switch.
 - **Type.** Figtree for all text, Geist Mono for code. The seven text sizes are display, title, headline, lead, body, subhead and footnote. Body copy uses weight 400, button labels 500, and headings and semibold labels 600.
-- **Spacing.** Use 4, 8, 12, 16, 24, 32, 48, 64 and 96 px. The rhythm tables also specify fixed and fluid gaps. The website gutter is `clamp(16px, 5.5vw, 64px)`, with 16 px at 600 px and below. The report gutter is 20 px (16 px on phones).
+- **Spacing.** Use 4, 8, 12, 16, 24, 32, 48, 64 and 96 px. The rhythm tables also specify fixed and fluid gaps. On screen, the website and report share a 1120 px maximum width including the gutters. The gutter is `clamp(16px, 5.5vw, 64px)`, with 16 px at 600 px and below.
 - **Button tokens.** `--btn-height` is 44 px and `--btn-compact-height` is 28 px. `--btn-symbol-gap` is `0.4em` for buttons, filter segments, category options and language links. Status badges use a 4 px gap. The site and report share these tokens.
 - **Line length:** one measure, `--measure` (680 px), for all running text whatever its size; set in rem so small type does not wrap early. Paragraphs wrap with `text-wrap: pretty`, so no paragraph ends on a lone word; headings use `text-wrap: balance`. Never force line breaks with `<br>` or narrow boxes, except in postal addresses.
 
@@ -46,9 +46,7 @@ The website is read like a product page, with more space around sections. The re
 
 | Relation | Token | Below 768 px | 768–1079 px | 1080 px and up |
 | --- | --- | ---: | ---: | ---: |
-| Website bar to first content | `--rhythm-site-page-top` | 72 px | 104 px | 136 px |
-| Website section gap | `--rhythm-site-section-gap` | 56 px | 72 px | 96 px |
-| Report bar to report heading | `--rhythm-report-page-top` | 64 px | 64 px | 64 px |
+| Bar to website opening or report title | `--rhythm-page-top` | 72 px | 104 px | 136 px |
 | Report section gap | `--rhythm-report-section-gap` | 40 px | 56 px | 64 px |
 | Section heading to its first content | `--rhythm-section-heading` | 16 px | 16 px | 16 px |
 | Paragraph to paragraph | `--rhythm-paragraph` | 12 px | 12 px | 12 px |
@@ -62,14 +60,14 @@ The website is read like a product page, with more space around sections. The re
 | Inline gap between standalone links in a row | `--rhythm-inline-links` | 24 px | 24 px | 24 px |
 | Command block padding | `--card-padding` | 20 px | 24 px | 24 px |
 
-| Home relation | Token | All widths |
+| Website relation | Token | All widths |
 | --- | --- | --- |
 | Hero status to report window | `--rhythm-home-preview` | `clamp(48px, 7vw, 72px)` |
-| Report window to first beat and beat to beat | `--rhythm-home-section-gap` | `clamp(120px, 14vw, 200px)` |
+| Report window to first beat, beat to beat and inner-page section gap | `--rhythm-home-section-gap` | `clamp(120px, 14vw, 200px)` |
 | Last beat to closing section | `--rhythm-home-closing` | `clamp(136px, 16vw, 216px)` |
-| Closing section to footer | `--rhythm-home-footer` | `clamp(96px, 12vw, 136px)` |
+| Last section to footer | `--rhythm-home-footer` | `clamp(96px, 12vw, 136px)` |
 
-Measure from the bottom of the bar to the eyebrow on the website's home and 404 pages and to the introduction heading on the other pages. The report's eyebrow uses some of the gap above its heading and can wrap. On pages with dividers, measure the section gap on both sides of the rule, starting with the first divider after the introduction. In those sections, align the top edges of the heading and first content when they sit in columns. A disclosure title acts as a subsection heading when expanded.
+Measure from the bottom of the bar to the eyebrow on the home and 404 pages and to the title elsewhere, including in the report. The organisation name sits below the report title on screen and above it in print. Measure the website section gap between consecutive sections, starting at the end of the introduction. Measure the report section gap on both sides of each divider. A disclosure title acts as a subsection heading when expanded.
 
 Visuals include cards, tile groups, lists, tables and command blocks. A lede introduces the next visual. A caption can sit above or below its visual. Measure the configured inline gap when a report link row shows one link. The footer gap ends at the footer's top edge. The report uses compact print spacing so the council summary fits on the first page.
 
@@ -78,7 +76,8 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 ## Structure
 
 - **Hierarchy:** the conclusion first, then the evidence. Each screen has one thing to look at first.
-- **Sections.** On the inner pages and in the report, place the label on the left and the content on the right. Run the section rule from the content's left edge to its right edge.
+- **Bar.** The website and report share the same sticky bar, wordmark and navigation geometry. The bar is 52 px high with a 44 px square menu control below 820 px. From 820 px it is 60 px high, with 12 px links aligned to the right and 24 px between them. The report menu lists the report sections.
+- **Sections.** On the inner pages and in the report, align the label on the left and the first content on the right at their top edges when they sit in columns. Separate website sections with space. Run the report section rule from the content's left edge to its right edge.
 - **Home.** Centre the hero and the closing actions. Between them, pair each beat's title, secondary lede and standalone link with a panel. At 880 px and up, split the columns 5 to 7 and alternate the panel's side, starting on the right. Below 880 px, put the copy first in one column. Leave open space between beats.
 - **Home report window.** Use the Linux window bar and limit the window to 62.5 rem. Use four status tiles and two detail cards. Below 760 px, arrange the status tiles two by two and stack the details. Give each card a 32 px label row, a 2.25 rem value at weight 600 and a secondary caption at subhead size. Align the values and captions within each row and keep the status tiles equal in height. Show the status symbol and word without a badge on the status tiles.
 - **Home panels.** Centre each panel in its column. Use a neutral fill, a 32 px radius, `clamp(20px, 2.6vw, 32px)` padding and a width of `min(100%, 48vw, 34rem)`. Fill the column below 880 px. Let the content set the height. Cards use the page background and a `0 16px 32px -16px rgb(0 0 0 / 16%)` shadow. Fill the available panel width up to 30 rem.
@@ -86,7 +85,7 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 - **Safeguards.** Give each row 16 px of top and bottom padding. A one-line row is 44 px high.
 - **Lists of facts are tiles:** a soft fill, no border, the card radius, 24 px padding. Each tile has one anchor (a symbol, a large number or a name), never two, then a short label or main line, then one line of detail. Within a group, either every tile has a symbol or none does.
 - **A sequence is a timeline.** Use 11 × 11 px dots with a 50% radius. The dot and the 1 px rail use the same left edge as their reference, with the rail in the dot's centre column. Each dot centres on its title's cap band. The current step uses a solid dot in the text colour. Future steps use an outlined dot with an opaque fill in the page background colour, so the rail meets each dot at its edge.
-- **No borders on cards.** Lines only separate rows and sections; in icon lists they start at the text.
+- **No borders on cards.** Lines separate rows, report sections and footers. In icon lists they start at the text.
 - **Badges show state.** A card can show a status or incomplete evidence in a non-interactive capsule at the top right. On phones the badges wrap below the name. Use pressable pills for controls such as filters.
 
 ## Symbols
@@ -137,4 +136,4 @@ Command lines use a line height of 1.7 with no added gap. Centre the copy button
 
 The home layout checks cover 360, 390, 768, 960, 1130 and 1280 px in both languages and themes, with and without increased contrast. They measure overflow, card heights, value and caption alignment, and panel widths and contents. The keyboard check covers the desktop and phone focus order.
 
-`node site/check_spacing.mjs` measures the rhythm on every page at 360, 768 and 1280 px. The home gaps follow their fluid tokens. The website opening gap and the inner pages' divider and footer gaps match the Start page at each width. The sample reports match each other. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.
+`node site/check_spacing.mjs` measures rhythm, bar geometry and text edges on every page at 360, 390, 768, 819, 820, 1024, 1280 and 1440 px. The website and both sample reports match the home page's bar and opening gap. Inner page sections and footers follow the home page's fluid gaps. The reports keep their document spacing. Both checks run in Chromium and WebKit and also use a 390 × 844 px iPhone viewport with touch and mobile settings. The release review checks the remaining design rules.
