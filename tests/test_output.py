@@ -139,9 +139,11 @@ def test_output_stays_in_the_opened_directory_after_an_ancestor_moves(
         path: str | Path, flags: int, mode: int = 0o777, *, dir_fd: int | None = None
     ) -> int:
         if flags & os.O_CREAT and not moved.exists():
+            assert dir_fd is not None
             ancestor.rename(moved)
             out.mkdir(parents=True)
             (out / name).write_bytes(b"Other output")
+            assert os.path.samestat(os.fstat(dir_fd), (moved / "out").stat())
         return open_file(path, flags, mode, dir_fd=dir_fd)
 
     monkeypatch.setattr(os, "open", move_before_staging)

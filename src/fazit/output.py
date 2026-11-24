@@ -17,9 +17,12 @@ try:
 except ImportError:
     fcntl = None
 
+# stat advertises fstatat even on older CPython releases that omit lstat.
 # The support set lists rename for both rename and replace.
-_DIR_FD = {os.open, os.mkdir, os.lstat, os.rename, os.unlink} <= os.supports_dir_fd and all(
-    hasattr(os, flag) for flag in ("O_DIRECTORY", "O_NOFOLLOW")
+_DIR_FD = (
+    {os.open, os.mkdir, os.stat, os.rename, os.unlink} <= os.supports_dir_fd
+    and os.stat in os.supports_follow_symlinks
+    and all(hasattr(os, flag) for flag in ("O_DIRECTORY", "O_NOFOLLOW"))
 )
 _CREATE_PRIVATE = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0)
 _READ_BACKUP = (
@@ -125,7 +128,10 @@ def write_files(out_dir: Path | str, outputs: Mapping[str, str]) -> tuple[Path, 
 
 def _check_destination(directory: _Directory, name: str, label: str) -> os.stat_result | None:
     try:
-        metadata = os.lstat(directory.entry(name), dir_fd=directory.fd)
+        if directory.fd is None:
+            metadata = os.lstat(directory.path / name)
+        else:
+            metadata = os.stat(name, dir_fd=directory.fd, follow_symlinks=False)
     except FileNotFoundError:
         return None
     except OSError:
